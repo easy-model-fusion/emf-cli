@@ -7,11 +7,13 @@ import (
 	"os"
 )
 
+const rootName = "emf-cli"
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "emf-client",
-	Short: "EMF client is a command line tool to manage a EMF project easily",
-	Long:  `EMF client is a command line tool to manage a EMF project easily.`,
+	Use:   rootName,
+	Short: "emf-cli is a command line tool to manage a EMF project easily",
+	Long:  `emf-cli is a command line tool to manage a EMF project easily.`,
 	Run:   runBase,
 }
 
@@ -20,17 +22,24 @@ func runBase(cmd *cobra.Command, args []string) {
 	// get all commands
 	var commandList []string
 	for _, child := range cmd.Commands() {
+		// Exclude the completion and help[command] commands
+		// if child.Use != "completion" && child.Use != "compdef" {
 		commandList = append(commandList, child.Use)
+		//}
 	}
 
 	// allow the user to choose one command
 	selectedCommand, _ := pterm.DefaultInteractiveSelect.WithOptions(commandList).Show()
 
-	// run the selected command
+	// get the chosen command
 	selectedChild, _, _ := cmd.Find([]string{selectedCommand})
-	if selectedChild != nil {
+
+	if rootName == selectedChild.Use { // avoid loops when the chosen command is the help command
+		cmd.HelpFunc()(cmd, args)
+		return
+	} else if selectedChild != nil { // run the selected command
 		selectedChild.Run(cmd, args)
-	} else {
+	} else { // unexpected
 		app.L().WithTime(false).Error("Selected command " + selectedCommand + " is not recognized")
 	}
 }

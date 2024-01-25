@@ -8,7 +8,7 @@ import (
 // initCmd represents the init command
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Get the version of EMF client",
+	Short: "Get the version of emf-cli",
 	Run:   runVersion,
 }
 
