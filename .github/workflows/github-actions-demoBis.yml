@@ -30,11 +30,11 @@ jobs:
 
     - name: Exécuter main.go
       id: run-main
-      run: main.go
+      run: go run main.go
 
     - name: Afficher la sortie de main.go
       run: echo "La sortie de main.go est '${{ steps.run-main.outputs.stdout }}'"
       id: set-output
-
+      
     - name: Définir la sortie pour le job build
       run: echo "run-main=${{ steps.set-output.outputs.stdout }}" >> $GITHUB_ENV
