@@ -81,6 +81,13 @@ jobs:
     - name: generate test coverage
       run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 
+   - name: Upload coverage artifact
+      if: github.event_name == 'push'
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage
+        path: ./cover.out
+
     - name: check test coverage
       uses: vladopajic/go-test-coverage@v2
       with:
@@ -89,4 +96,3 @@ jobs:
         threshold-file: 70
         threshold-package: 80
         threshold-total: 90
-
