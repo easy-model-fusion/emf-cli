@@ -3,7 +3,7 @@ name: client workflow
 on:
   push:
     branches:
-      - 14-create-create-CI-CD # main
+      - main
   pull_request:
     branches:
       - main
