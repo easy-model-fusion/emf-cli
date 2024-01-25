@@ -28,9 +28,6 @@ jobs:
     - name: Display Go version
       run: go version
 
-    - name: Afficher les versions des dépendances
-      run: go list -m -json all | jq '.[] | .Path + " " + .Version'
-
     - name: Exécuter main.go
       id: run-main
       run: go run main.go
