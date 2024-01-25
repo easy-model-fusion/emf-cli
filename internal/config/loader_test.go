@@ -1,6 +1,7 @@
-package app
+package config
 
 import (
+	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/test"
 	"os"
 	"path/filepath"
@@ -10,17 +11,17 @@ import (
 )
 
 func init() {
-	initLogger()
+	app.Init("", "")
 }
 
 func TestLoadNotExistentConfFile(t *testing.T) {
 	// Load the configuration file
-	err := LoadConfFile(".")
+	err := Load(".")
 	// Assert that the load method did return an error because no conf file in project
 	test.AssertNotEqual(t, err, nil)
 }
 
-func TestLoadConfFile(t *testing.T) {
+func TestLoad(t *testing.T) {
 	dname, err := os.MkdirTemp("", "emf-cli")
 	if err != nil {
 		t.Error(err)
@@ -37,7 +38,7 @@ func TestLoadConfFile(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while writing into conf file.")
 
 	// Load the configuration file
-	err = LoadConfFile(dname)
+	err = Load(dname)
 
 	// Assert that the load method did not return any error
 	test.AssertEqual(t, err, nil, "Error while loading conf file.")

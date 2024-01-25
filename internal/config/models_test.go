@@ -1,4 +1,4 @@
-package confgen
+package config
 
 import (
 	"github.com/easy-model-fusion/client/internal/app"
@@ -31,7 +31,7 @@ func TestAddModel(t *testing.T) {
 
 	// Call the AddModel function to add new models
 	newModels := []string{"model3", "model4"}
-	err = app.LoadConfFile(confDir)
+	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 	err = AddModel(newModels)
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
@@ -62,7 +62,7 @@ func TestAddModelOnEmptyConfFile(t *testing.T) {
 
 	// Call the AddModel function to add new models
 	newModels := []string{"model1", "model2"}
-	err = app.LoadConfFile(confDir)
+	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 	err = AddModel(newModels)
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")

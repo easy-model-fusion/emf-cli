@@ -1,10 +1,10 @@
-package app
+package config
 
 import (
 	"github.com/spf13/viper"
 )
 
-func LoadConfFile(confDirPath string) error {
+func Load(confDirPath string) error {
 	viper.Reset()
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
