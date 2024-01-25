@@ -90,17 +90,3 @@ jobs:
         threshold-package: 80
         threshold-total: 90
 
-    - name: Badge generation
-      run: echo -n "![Code Coverage](https://img.shields.io/badge/coverage-$(< cover_percentage.txt)%-brightgreen)" > coverage-badge.svg
-
-    - name: Extract percentage coverage
-      run: go tool cover -func=cover.out | awk 'END { print int($3) }' > cover_percentage.txt
-
-    - name: Commit badge to repository
-      run: |
-        git config user.name "${{ github.actor }}"
-        git config user.email "${{ github.actor }}@users.noreply.github.com"
-        git add coverage-badge.svg cover_percentage.txt
-        git commit -m "Add badge" || true
-        git push
-
