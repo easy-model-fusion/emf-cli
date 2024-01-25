@@ -29,6 +29,7 @@ func TestLoadConfFile(t *testing.T) {
 	defer os.RemoveAll(dname)
 	// Create a temporary config file for the test
 	file, err := os.Create(filepath.Join(dname, "config.yaml"))
+	defer file.Close()
 	test.AssertEqual(t, err, nil, "Error while creating conf file.")
 
 	// Write some content to the config file

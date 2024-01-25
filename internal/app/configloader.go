@@ -5,6 +5,7 @@ import (
 )
 
 func LoadConfFile(confDirPath string) error {
+	viper.Reset()
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(confDirPath)
