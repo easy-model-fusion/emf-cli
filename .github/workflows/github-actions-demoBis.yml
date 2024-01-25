@@ -1,0 +1,33 @@
+name: vérification du client 
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+    - name: Checkout du code
+      uses: actions/checkout@v2
+
+    - name: Installer Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.21.6
+
+    - name: Installer les dépendances Go
+      run: go get -v -t -d ./...
+
+    - name: Exécuter main.go
+      id: main
+      run: go run chemin/vers/votre/main.go
+
+    - name: Vérifier le succès de main.go
+      run: exit ${{ steps.main.outcome }}
