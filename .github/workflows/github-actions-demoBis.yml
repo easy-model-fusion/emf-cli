@@ -30,22 +30,11 @@ jobs:
 
     - name: Exécuter main.go
       id: run-main
-      run: go run main.go
+      run: go run chemin/vers/votre/main.go
 
-  verify:
-    runs-on: ${{ matrix.os }}
-    needs: build
-
-    strategy:
-      matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
-
-    steps:
-    - name: Vérifier qu'il n'y a pas eu d'erreur
-      run: |
-        if [ "${{ needs.build.outputs.run-main }}" == "success" ]; then
-          echo "Le fichier main.go s'est exécuté sans erreur."
-        else
-          echo "Le fichier main.go a rencontré des erreurs."
-          exit 1
-        fi
+    - name: Afficher la sortie de main.go
+      run: echo "La sortie de main.go est '${{ steps.run-main.outputs.stdout }}'"
+      id: set-output
+      
+    - name: Définir la sortie pour le job build
+      run: echo "run-main=${{ steps.set-output.outputs.stdout }}" >> $GITHUB_ENV
