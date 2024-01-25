@@ -38,3 +38,22 @@ jobs:
       
     - name: Définir la sortie pour le job build
       run: echo "run-main=${{ steps.set-output.outputs.stdout }}" >> $GITHUB_ENV
+
+  coverage:
+    runs-on: ubuntu-latest
+
+      steps:
+    - name: Checkout du code
+      uses: actions/checkout@v2
+
+    - name: Installer Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.21.6
+
+    - name: Exécuter les tests avec la couverture de code
+      run: |
+        go test -coverprofile=coverage.out ./...
+
+    - name: Afficher le rapport de couverture de code
+      run: go tool cover -func=coverage.out
