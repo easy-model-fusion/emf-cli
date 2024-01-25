@@ -3,7 +3,7 @@ name: vérification du client
 on:
   push:
     branches:
-      - main
+      - 14-create-create-CI-CD
 
 jobs:
   build:
