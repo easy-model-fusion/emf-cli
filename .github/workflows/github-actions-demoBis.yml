@@ -25,15 +25,29 @@ jobs:
     - name: Installer les dépendances Go
       run: go get -v -t -d ./...
 
-    - name: Exécuter main.go
-      id: main
-      run: go run main.go
-
-    - name: Vérifier le succès de main.go
-      run: exit ${{ steps.main.outcome }}
-
     - name: Display Go version
       run: go version
 
     - name: Afficher les versions des dépendances
       run: go list -m -json all | jq '.[] | .Path + " " + .Version'
+
+    - name: Exécuter main.go
+      id: main
+      run: go run main.go
+
+  verify:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+    - name: Vérifier qu'il n'y a pas eu d'erreur
+      run: |
+        if [ "${{ needs.build.outputs.run-main }}" == "success" ]; then
+          echo "Le fichier main.go s'est exécuté sans erreur."
+        else
+          echo "Le fichier main.go a rencontré des erreurs."
+          exit 1
+        fi
