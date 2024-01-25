@@ -4,14 +4,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-func LoadConfFile() {
+func LoadConfFile(confDirPath string) error {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
+	viper.AddConfigPath(confDirPath)
 
 	// Attempt to read the configuration file
-	if err := viper.ReadInConfig(); err != nil {
-		L().Fatal("Error while loading the config file")
-	}
-	L().Info("Config file loaded")
+	return viper.ReadInConfig()
 }

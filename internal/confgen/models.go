@@ -6,7 +6,10 @@ import (
 )
 
 func AddModel(models []string) { // Get the current working directory
-	app.LoadConfFile()
+	err := app.LoadConfFile(".")
+	if err != nil {
+		app.L().Fatal("Error while loading configuration file." + err.Error())
+	}
 
 	// Access and print the original models list
 	originalModelsList := viper.GetStringSlice("models")
