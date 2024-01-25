@@ -3,15 +3,11 @@ name: vérification du client
 on:
   push:
     branches:
-      - 14-create-create-CI-CD
-
-#on:
-#  push:
-#    branches:
-#      - main
-#  pull_request:
-#    branches:
-#      - main
+      #- 14-create-create-CI-CD
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
