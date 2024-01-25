@@ -1,8 +1,10 @@
 package utils
 
 import (
+	"embed"
 	"fmt"
 	"github.com/spf13/cobra"
+	"os"
 	"regexp"
 )
 
@@ -34,7 +36,17 @@ func ValidFileName(which int, optional bool) cobra.PositionalArgs {
 		if !IsFileNameValid(name) {
 			return fmt.Errorf("'%s' is not a valid file name", name)
 		}
-		
+
 		return nil
 	}
+}
+
+// CopyEmbeddedFile copies an embedded file to a destination.
+func CopyEmbeddedFile(fs embed.FS, file, dst string) error {
+	content, err := fs.ReadFile(file)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(dst, content, os.ModePerm)
 }
