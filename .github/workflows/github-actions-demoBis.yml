@@ -27,7 +27,13 @@ jobs:
 
     - name: Exécuter main.go
       id: main
-      run: go run chemin/vers/votre/main.go
+      run: go run main.go
 
     - name: Vérifier le succès de main.go
       run: exit ${{ steps.main.outcome }}
+
+    - name: Display Go version
+      run: go version
+
+    - name: Afficher les versions des dépendances
+      run: go list -m -json all | jq '.[] | .Path + " " + .Version'
