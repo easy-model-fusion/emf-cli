@@ -1,3 +1,5 @@
+![Code Coverage](coverage-badge.svg)
+
 # emf-bin
 
 ## Project setup
