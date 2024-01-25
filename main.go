@@ -7,13 +7,13 @@ import (
 
 var (
 	// Version is the binary version + build number
-	Version string
+	Version = ""
 	// BuildDate is the date of build
-	BuildDate string
+	BuildDate = ""
 )
 
 func main() {
-	app.Init()
+	app.Init(Version, BuildDate)
 
 	// Execute command
 	command.Execute()

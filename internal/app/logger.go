@@ -8,6 +8,6 @@ func L() *pterm.Logger {
 	return logger
 }
 
-func init() {
+func initLogger() {
 	logger = pterm.DefaultLogger.WithLevel(pterm.LogLevelTrace)
 }
