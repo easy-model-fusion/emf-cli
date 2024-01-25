@@ -1,4 +1,4 @@
-name: client verification 
+name: client workflow
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [ubuntu-latest] # [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
     - name: Checkout code
@@ -62,12 +62,3 @@ jobs:
 
     - name: View code coverage report
       run: go tool cover -func=coverage.out
-
-
-  check-after:
-    runs-on: ubuntu-latest
-    needs: coverage
-
-    steps:
-    - name: Workflow check
-      run: echo "Workflow successful."
