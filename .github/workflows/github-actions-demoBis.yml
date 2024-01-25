@@ -5,6 +5,14 @@ on:
     branches:
       - 14-create-create-CI-CD
 
+#on:
+#  push:
+#    branches:
+#      - main
+#  pull_request:
+#    branches:
+#      - main
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -32,17 +40,6 @@ jobs:
       run: go build ./...
 
 
-#    - name: Exécuter main.go
-#      id: run-main
-#      run: go run main.go
-
-#    - name: Afficher la sortie de main.go
-#      run: echo "La sortie de main.go est '${{ steps.run-main.outputs.stdout }}'"
-#      id: set-output
-      
-#    - name: Définir la sortie pour le job build
-#      run: echo "run-main=${{ steps.set-output.outputs.stdout }}" >> $GITHUB_ENV
-
   coverage:
     runs-on: ubuntu-latest
 
@@ -69,3 +66,12 @@ jobs:
 
     - name: Afficher le rapport de couverture de code
       run: go tool cover -func=coverage.out
+
+
+  check-before-merge:
+    runs-on: ubuntu-latest
+    needs: build, coverage
+
+    steps:
+    - name: Vérifier le statut du workflow
+      run: echo "Le workflow a réussi. Autoriser le merge."
