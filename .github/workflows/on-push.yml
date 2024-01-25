@@ -9,8 +9,34 @@ on:
       - main
 
 jobs:
+  lint:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest] # [windows-latest, ubuntu-latest, macos-latest]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Installing Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.21.6
+    
+    - name: Installing golangci-lint
+      uses: golangci/golangci-lint-action@v2
+      with:
+        version: latest
+
+    - name: run golangci-lint
+      run: golangci-lint run ./...
+    
+
   build:
     runs-on: ${{ matrix.os }}
+    needs: lint
 
     strategy:
       matrix:
@@ -36,8 +62,12 @@ jobs:
 
 
   coverage:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     needs: build
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest] # [windows-latest, ubuntu-latest, macos-latest]
 
     steps:
     - name: Checkout code
@@ -47,14 +77,6 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.21.6
-
-    - name: Installing golangci-lint
-      uses: golangci/golangci-lint-action@v2
-      with:
-        version: latest
-
-    - name: run golangci-lint
-      run: golangci-lint run ./...
 
     - name: Run tests with code coverage
       run: |
