@@ -81,7 +81,7 @@ jobs:
     - name: generate test coverage
       run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 
-   - name: Upload coverage artifact
+    - name: Upload coverage artifact
       if: github.event_name == 'push'
       uses: actions/upload-artifact@v2
       with:
