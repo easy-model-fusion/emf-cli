@@ -42,6 +42,7 @@ jobs:
 
   coverage:
     runs-on: ubuntu-latest
+    needs: build
 
     steps:
     - name: Checkout du code
@@ -70,7 +71,7 @@ jobs:
 
   check-before-merge:
     runs-on: ubuntu-latest
-    needs: build,coverage
+    needs: coverage
 
     steps:
     - name: Vérifier le statut du workflow
