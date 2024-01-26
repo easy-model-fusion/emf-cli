@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/utils"
-	"github.com/pterm/pterm"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -71,7 +70,7 @@ func runCompletion(cmd *cobra.Command, args []string) {
 
 	// No args, asking for a shell input
 	if len(args) == 0 {
-		selectedShell = askForShell()
+		selectedShell = utils.AskForUsersInput("Enter a shell name " + arguments)
 	} else {
 		selectedShell = args[0]
 	}
@@ -93,20 +92,6 @@ func runCompletion(cmd *cobra.Command, args []string) {
 	} else {
 		logger.Error(fmt.Sprintf("Shell '%s' not recognized. Expected "+arguments, selectedShell))
 	}
-}
-
-// askForShell asks the user for a shell name and returns it
-func askForShell() string {
-	// Create an interactive text input with single line input mode
-	textInput := pterm.DefaultInteractiveTextInput.WithMultiLine(false)
-
-	// Show the text input and get the result
-	result, _ := textInput.Show("Enter a shell name " + arguments)
-
-	// Print a blank line for better readability
-	pterm.Println()
-
-	return result
 }
 
 func init() {

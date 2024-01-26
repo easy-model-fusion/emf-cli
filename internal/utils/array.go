@@ -14,3 +14,9 @@ func ArrayStringContainsItem(arr []string, item string) bool {
 func ArrayStringAsArguments(arr []string) string {
 	return "[" + strings.Join(arr, "|") + "]"
 }
+
+func ArrayFromString(input string) []string {
+	// Split the input string based on the space character
+	result := strings.Split(input, " ")
+	return result
+}

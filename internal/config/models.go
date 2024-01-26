@@ -12,3 +12,12 @@ func AddModel(models []string) error {
 	// Attempt to write the configuration file
 	return viper.WriteConfig()
 }
+
+func RemoveModel(models []string) error {
+	return viper.WriteConfig()
+}
+
+func RemoveAllModels() error {
+	viper.Set("models", []string{})
+	return viper.WriteConfig()
+}
