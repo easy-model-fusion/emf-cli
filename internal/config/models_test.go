@@ -26,15 +26,20 @@ func setupConfigDirStrings(t *testing.T, initialModels []string) string {
 	// Set up a temporary config file with some initial models
 	initialConfigFile := filepath.Join(confDir, "config.yaml")
 
-	err = createConfigFileStrings(initialConfigFile, initialModels)
+	err = createConfigFileStrings(t, initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 
 	return confDir
 }
 
-func createConfigFileStrings(filePath string, models []string) error {
+func createConfigFileStrings(t *testing.T, filePath string, models []string) error {
 	file, err := os.Create(filePath)
-	defer file.Close()
+	defer func(file *os.File) {
+		err = file.Close()
+		if err != nil {
+			t.Error(err)
+		}
+	}(file)
 	if err != nil {
 		return err
 	}
@@ -42,8 +47,11 @@ func createConfigFileStrings(filePath string, models []string) error {
 	if len(models) > 0 {
 		// Write models to the config file
 		_, err = file.WriteString("models:\n")
-		for _, model := range models {
-			_, err := file.WriteString("  - " + model + "\n")
+		if err != nil {
+			return err
+		}
+		for _, item := range models {
+			_, err = file.WriteString("  - " + item + "\n")
 			if err != nil {
 				return err
 			}
@@ -124,7 +132,7 @@ func TestGetModels_Success(t *testing.T) {
 		{Name: "model1", PipeLine: "pipeline1", DirectoryPath: "/path/to/model1", AddToBinary: true},
 		{Name: "model2", PipeLine: "pipeline2", DirectoryPath: "/path/to/model2", AddToBinary: false},
 	}
-	err := setupConfigFile(initialConfigFile, initialModels)
+	err := setupConfigFile(t, initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 
 	// Call the GetModels function
@@ -146,7 +154,7 @@ func TestGetModels_MissingConfig(t *testing.T) {
 
 	// Setup file
 	var initialModels []model.Model
-	err := setupConfigFile(initialConfigFile, initialModels)
+	err := setupConfigFile(t, initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 
 	// Call the GetModels function
@@ -199,7 +207,7 @@ func TestRemoveModels_Success(t *testing.T) {
 		{Name: "model1", PipeLine: "pipeline1", DirectoryPath: "/path/to/model1", AddToBinary: true},
 		{Name: "model2", PipeLine: "pipeline2", DirectoryPath: "/path/to/model2", AddToBinary: false},
 	}
-	err := setupConfigFile(initialConfigFile, initialModels)
+	err := setupConfigFile(t, initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 
 	// Call the RemoveModels function
@@ -231,7 +239,7 @@ func TestRemoveAllModels_Success(t *testing.T) {
 		{Name: "model1", PipeLine: "pipeline1", DirectoryPath: "/path/to/model1", AddToBinary: true},
 		{Name: "model2", PipeLine: "pipeline2", DirectoryPath: "/path/to/model2", AddToBinary: false},
 	}
-	err := setupConfigFile(initialConfigFile, initialModels)
+	err := setupConfigFile(t, initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 
 	// Call the RemoveAllModels function
@@ -268,9 +276,14 @@ func setupConfigDir(t *testing.T) (string, string) {
 }
 
 // setupConfigFile creates a configuration file with specified models.
-func setupConfigFile(filePath string, models []model.Model) error {
+func setupConfigFile(t *testing.T, filePath string, models []model.Model) error {
 	file, err := os.Create(filePath)
-	defer file.Close()
+	defer func(file *os.File) {
+		err = file.Close()
+		if err != nil {
+			t.Error(err)
+		}
+	}(file)
 	if err != nil {
 		return err
 	}
@@ -278,8 +291,11 @@ func setupConfigFile(filePath string, models []model.Model) error {
 	if len(models) > 0 {
 		// Write models to the config file
 		_, err = file.WriteString("models:\n")
+		if err != nil {
+			return err
+		}
 		for _, m := range models {
-			_, err := file.WriteString(fmt.Sprintf("  - name: %s\n    pipeline: %s\n    directorypath: %s\n    addtobinary: %t\n",
+			_, err = file.WriteString(fmt.Sprintf("  - name: %s\n    pipeline: %s\n    directorypath: %s\n    addtobinary: %t\n",
 				m.Name, m.PipeLine, m.DirectoryPath, m.AddToBinary))
 			if err != nil {
 				return err

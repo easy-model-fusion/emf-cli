@@ -12,12 +12,10 @@ func GetModels() ([]model.Model, error) {
 	// Define a slice for models
 	var models []model.Model
 
-	logger := app.L().WithTime(false)
 	// Retrieve models using the generic function
 	if err := GetViperItem("models", &models); err != nil {
 		return nil, err
 	}
-	logger.Info("no err")
 	return models, nil
 }
 
