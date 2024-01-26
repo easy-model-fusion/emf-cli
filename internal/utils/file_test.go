@@ -81,5 +81,22 @@ func TestCopyEmbeddedFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to read destination file: %v", err)
 	}
+}
 
+func TestCloseFile(t *testing.T) {
+	// Create a temporary file
+	tmpFile, err := os.CreateTemp("", "emf-cli")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	// Close the file
+	CloseFile(tmpFile)
+
+	// Verify that the file is closed
+	err = tmpFile.Close()
+	if err == nil {
+		t.Fatal("File should be closed")
+	}
 }

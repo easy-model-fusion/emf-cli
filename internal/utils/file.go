@@ -3,6 +3,7 @@ package utils
 import (
 	"embed"
 	"fmt"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"os"
 	"regexp"
@@ -49,4 +50,11 @@ func CopyEmbeddedFile(fs embed.FS, file, dst string) error {
 	}
 
 	return os.WriteFile(dst, content, os.ModePerm)
+}
+
+// CloseFile closes a file and logs an error if it occurs.
+func CloseFile(file *os.File) {
+	if err := file.Close(); err != nil {
+		pterm.Error.Println(fmt.Sprintf("Error closing file: %s", err))
+	}
 }
