@@ -22,6 +22,7 @@ func runRoot(cmd *cobra.Command, args []string) {
 	// get all commands
 	var commandList []string
 	for _, child := range cmd.Commands() {
+		logger.Info(child.Use)
 		if completionUse != child.Use {
 			commandList = append(commandList, child.Use)
 		}
@@ -33,6 +34,7 @@ func runRoot(cmd *cobra.Command, args []string) {
 	// get the chosen command
 	selectedChild, _, _ := cmd.Find([]string{selectedCommand})
 
+	logger.Info(selectedChild.Use)
 	if app.Name == selectedChild.Use { // avoid loops when the chosen command is the help command
 		cmd.HelpFunc()(cmd, args)
 		return
