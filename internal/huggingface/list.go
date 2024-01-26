@@ -9,7 +9,7 @@ import (
 	"net/url"
 )
 
-func GetModels(limit int, tag string, proxyURL *url.URL) ([]model.Model, error) {
+func GetModels(limit *int, tag string, proxyURL *url.URL) ([]model.Model, error) {
 	client := &http.Client{}
 	if proxyURL != nil {
 		client.Transport = &http.Transport{
@@ -17,7 +17,12 @@ func GetModels(limit int, tag string, proxyURL *url.URL) ([]model.Model, error) 
 		}
 	}
 
-	apiURL := fmt.Sprintf("https://huggingface.co/api/models?config=config&pipeline_tag=%v&limit=%d", tag, limit)
+	limitQuery := ""
+
+	if limit != nil {
+		limitQuery = fmt.Sprintf("&limit=%d", *limit)
+	}
+	apiURL := fmt.Sprintf("https://huggingface.co/api/models?config=config&pipeline_tag=%v%v", tag, limitQuery)
 	response, err := http.Get(apiURL)
 	if err != nil {
 		return nil, err
