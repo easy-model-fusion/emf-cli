@@ -19,26 +19,26 @@ func runRoot(cmd *cobra.Command, args []string) {
 
 	logger := app.L().WithTime(false)
 
-	// get all commands
-	var commandList []string
+	// Variables for the commands data
+	var commandsList []string
+	var commandsMap = make(map[string]func(*cobra.Command, []string)) // key: command.Use; value: command.Run
+
+	// get all the commands data
 	for _, child := range cmd.Commands() {
+		// Hiding the completion command inside the root command
 		if completionUse != child.Use {
-			commandList = append(commandList, child.Use)
+			commandsList = append(commandsList, child.Use)
+			commandsMap[child.Use] = child.Run
 		}
 	}
 
 	// allow the user to choose one command
-	selectedCommand, _ := pterm.DefaultInteractiveSelect.WithOptions(commandList).Show()
+	selectedCommand, _ := pterm.DefaultInteractiveSelect.WithOptions(commandsList).Show()
 
-	// get the chosen command
-	selectedChild, _, _ := cmd.Find([]string{selectedCommand})
-
-	if app.Name == selectedChild.Use { // avoid loops when the chosen command is the help command
-		cmd.HelpFunc()(cmd, args)
-		return
-	} else if selectedChild != nil { // run the selected command
-		selectedChild.Run(cmd, args)
-	} else { // unexpected
+	// Check if the selected command exists and runs it
+	if runCommand, exists := commandsMap[selectedCommand]; exists {
+		runCommand(cmd, args)
+	} else {
 		logger.Error("Selected command '" + selectedCommand + "' not recognized")
 	}
 }
