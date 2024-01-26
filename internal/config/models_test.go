@@ -26,7 +26,7 @@ func TestAddModel(t *testing.T) {
 	initialModels := []string{"model1", "model2"}
 	initialConfigFile := filepath.Join(confDir, "config.yaml")
 
-	err = createConfigFile(initialConfigFile, initialModels)
+	err = createConfigFile(t, initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 
 	// Call the AddModel function to add new models
@@ -57,7 +57,7 @@ func TestAddModelOnEmptyConfFile(t *testing.T) {
 	initialModels := []string{}
 	initialConfigFile := filepath.Join(confDir, "config.yaml")
 
-	err = createConfigFile(initialConfigFile, initialModels)
+	err = createConfigFile(t, initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 
 	// Call the AddModel function to add new models
@@ -88,7 +88,7 @@ func TestErrorOnAddModelWithEmptyViper(t *testing.T) {
 	initialModels := []string{}
 	initialConfigFile := filepath.Join(confDir, "config.yaml")
 
-	err = createConfigFile(initialConfigFile, initialModels)
+	err = createConfigFile(t, initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 
 	// Call the AddModel function to add new models
@@ -97,9 +97,14 @@ func TestErrorOnAddModelWithEmptyViper(t *testing.T) {
 	test.AssertNotEqual(t, err, nil, "Should get error while updating configuration file.")
 }
 
-func createConfigFile(filePath string, models []string) error {
+func createConfigFile(t *testing.T, filePath string, models []string) error {
 	file, err := os.Create(filePath)
-	defer file.Close()
+	defer func(file *os.File) {
+		err = file.Close()
+		if err != nil {
+			t.Error(err)
+		}
+	}(file)
 	if err != nil {
 		return err
 	}
@@ -107,8 +112,11 @@ func createConfigFile(filePath string, models []string) error {
 	if len(models) > 0 {
 		// Write models to the config file
 		_, err = file.WriteString("models:\n")
+		if err != nil {
+			return err
+		}
 		for _, model := range models {
-			_, err := file.WriteString("  - " + model + "\n")
+			_, err = file.WriteString("  - " + model + "\n")
 			if err != nil {
 				return err
 			}

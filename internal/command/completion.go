@@ -81,13 +81,29 @@ func runCompletion(cmd *cobra.Command, args []string) {
 	} else if utils.ArrayStringContainsItem(shells, selectedShell) {
 		switch selectedShell {
 		case "bash":
-			cmd.Root().GenBashCompletion(os.Stdout)
+			err := cmd.Root().GenBashCompletion(os.Stdout)
+			if err != nil {
+				logger.Error(err.Error())
+				return
+			}
 		case "zsh":
-			cmd.Root().GenZshCompletion(os.Stdout)
+			err := cmd.Root().GenZshCompletion(os.Stdout)
+			if err != nil {
+				logger.Error(err.Error())
+				return
+			}
 		case "fish":
-			cmd.Root().GenFishCompletion(os.Stdout, true)
+			err := cmd.Root().GenFishCompletion(os.Stdout, true)
+			if err != nil {
+				logger.Error(err.Error())
+				return
+			}
 		case "powershell":
-			cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+			err := cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
+			if err != nil {
+				logger.Error(err.Error())
+				return
+			}
 		}
 	} else {
 		logger.Error(fmt.Sprintf("Shell '%s' not recognized. Expected "+arguments, selectedShell))
