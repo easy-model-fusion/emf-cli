@@ -83,21 +83,18 @@ jobs:
         go test -coverprofile=coverage.out ./...
 
     - name: Upload coverage artifact
-      if: github.event_name == 'push'
       uses: actions/upload-artifact@v2
       with:
         name: coverage
         path: ./coverage.out
 
     - name: Download coverage artifact
-      if: github.event_name == 'push'
       uses: actions/download-artifact@v2
       with:
         name: coverage
         path: .
 
     - name: Upload coverage reports to Codecov
-      if: github.event_name == 'push'
       uses: codecov/codecov-action@v3
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
