@@ -1,8 +1,11 @@
 package utils
 
 import (
+	"github.com/easy-model-fusion/client/sdk"
 	"github.com/easy-model-fusion/client/test"
 	"github.com/spf13/cobra"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -48,5 +51,52 @@ func TestValidFileName(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
+	}
+}
+
+func TestCopyEmbeddedFile(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "emf-cli")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	sourceFile := "main.py"
+	destinationFile := filepath.Join(tmpDir, "destination.py")
+
+	// Call the function to copy the embedded file
+	err = CopyEmbeddedFile(sdk.EmbeddedFiles, sourceFile, destinationFile)
+	if err != nil {
+		t.Fatalf("CopyEmbeddedFile failed: %v", err)
+	}
+
+	// Verify that the destination file now exists
+	_, err = os.Stat(destinationFile)
+	if err != nil {
+		t.Fatalf("Destination file not created: %v", err)
+	}
+
+	// Read the content of the destination file
+	_, err = os.ReadFile(destinationFile)
+	if err != nil {
+		t.Fatalf("Failed to read destination file: %v", err)
+	}
+}
+
+func TestCloseFile(t *testing.T) {
+	// Create a temporary file
+	tmpFile, err := os.CreateTemp("", "emf-cli")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	// Close the file
+	CloseFile(tmpFile)
+
+	// Verify that the file is closed
+	err = tmpFile.Close()
+	if err == nil {
+		t.Fatal("File should be closed")
 	}
 }
