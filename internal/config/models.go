@@ -56,6 +56,9 @@ func RemoveModels(models []model.Model, modelsToRemove []string) error {
 		}
 	}
 
+	// Update the models
+	viper.Set("models", updatedModels)
+
 	// Attempt to write the configuration file
 	return utils.WriteViperConfig()
 }
