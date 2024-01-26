@@ -1,34 +1,60 @@
 package utils
 
-import "strings"
+import (
+	"github.com/easy-model-fusion/client/test"
+	"testing"
+)
 
-// ArrayStringContainsItem checks if an item is present in a slice of strings.
-func ArrayStringContainsItem(arr []string, item string) bool {
-	for _, element := range arr {
-		if element == item {
-			return true
-		}
+func TestArrayStringContainsItem(t *testing.T) {
+	arr := []string{"apple", "banana", "orange"}
+
+	// Test case: item is present in the array
+	result := ArrayStringContainsItem(arr, "banana")
+	test.AssertEqual(t, result, true, "Expected true")
+
+	// Test case: item is not present in the array
+	result = ArrayStringContainsItem(arr, "grape")
+	test.AssertEqual(t, result, false, "Expected false")
+}
+
+func TestArrayStringAsArguments(t *testing.T) {
+	arr := []string{"apple", "banana", "orange"}
+
+	// Test case
+	expected := "[apple|banana|orange]"
+	result := ArrayStringAsArguments(arr)
+	test.AssertEqual(t, result, expected, "Generated string does not match the expected format")
+}
+
+func TestArrayFromString(t *testing.T) {
+	input := "apple banana orange"
+
+	// Test case
+	expected := []string{"apple", "banana", "orange"}
+	result := ArrayFromString(input)
+
+	if len(result) != len(expected) {
+		test.AssertEqual(t, len(result), len(expected), "Lengths of arrays do not match")
 	}
-	return false
-}
 
-// ArrayStringAsArguments converts a slice of strings into a string with elements separated by '|'.
-func ArrayStringAsArguments(arr []string) string {
-	return "[" + strings.Join(arr, "|") + "]"
-}
-
-// ArrayFromString splits a string into a slice of strings based on space characters.
-func ArrayFromString(input string) []string {
-	// Split the input string based on the space character
-	result := strings.Split(input, " ")
-	return result
-}
-
-// MapFromArrayString creates a map from a slice of strings for faster lookup.
-func MapFromArrayString(items []string) map[string]struct{} {
-	stringMap := make(map[string]struct{})
-	for _, item := range items {
-		stringMap[item] = struct{}{}
+	for i := range expected {
+		test.AssertEqual(t, result[i], expected[i], "Array element mismatch at index", string(rune(i)))
 	}
-	return stringMap
+}
+
+func TestMapFromArrayString(t *testing.T) {
+	items := []string{"apple", "banana", "orange"}
+
+	// Test case
+	expected := map[string]struct{}{"apple": {}, "banana": {}, "orange": {}}
+	result := MapFromArrayString(items)
+
+	if len(result) != len(expected) {
+		test.AssertEqual(t, len(result), len(expected), "Lengths of maps do not match")
+	}
+
+	for key := range expected {
+		_, exists := result[key]
+		test.AssertEqual(t, exists, true, "Key not found in the result map:", key)
+	}
 }
