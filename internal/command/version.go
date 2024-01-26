@@ -5,10 +5,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// initCmd represents the init command
+// versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Get the version of EMF client",
+	Short: "Get the version of emf-cli",
 	Run:   runVersion,
 }
 
