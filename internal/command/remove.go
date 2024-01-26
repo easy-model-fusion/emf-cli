@@ -10,15 +10,12 @@ var allFlag bool
 
 // removeCmd represents the remove command
 var removeCmd = &cobra.Command{
-	Use:   "remove [model names...]",
+	Use:   "remove <model name> [<other model names>...]",
 	Short: "Remove one or more models",
 	Run:   runRemove,
 }
 
 func runRemove(cmd *cobra.Command, args []string) {
-
-	var modelsString string
-	var modelsSlice []string
 
 	// If allFlag is true, remove all models
 	if allFlag {
@@ -29,8 +26,12 @@ func runRemove(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	var modelsString string
+	var modelsSlice []string
+
 	// No args, asks for model names
 	if len(args) == 0 {
+		// TODO : multiselect of all downloaded models
 		modelsString = utils.AskForUsersInput("Indicate the models to remove")
 		modelsSlice = utils.ArrayFromString(modelsString)
 	} else {
@@ -42,7 +43,6 @@ func runRemove(cmd *cobra.Command, args []string) {
 	if err != nil {
 		return
 	}
-
 }
 
 func init() {
