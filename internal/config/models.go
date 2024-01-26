@@ -56,6 +56,8 @@ func RemoveModels(models []model.Model, modelsToRemove []string) error {
 		}
 	}
 
+	// TODO : remove the downloaded models : Issue #21
+
 	// Update the models
 	viper.Set("models", updatedModels)
 
@@ -65,6 +67,9 @@ func RemoveModels(models []model.Model, modelsToRemove []string) error {
 
 // RemoveAllModels empties the models list and writes to the configuration file.
 func RemoveAllModels() error {
+
+	// TODO : remove all the downloaded models : Issue #21
+
 	// Empty the models
 	viper.Set("models", []string{})
 
