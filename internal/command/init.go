@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/utils"
-	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -25,7 +24,7 @@ func runInit(cmd *cobra.Command, args []string) {
 
 	// No args, check projectName in pterm
 	if len(args) == 0 {
-		projectName = askForProjectName()
+		projectName = utils.AskForUsersInput("Enter a project name")
 	} else {
 		projectName = args[0]
 	}
@@ -36,20 +35,6 @@ func runInit(cmd *cobra.Command, args []string) {
 		return
 	}
 
-}
-
-// askForProjectName asks the user for a project name and returns it
-func askForProjectName() string {
-	// Create an interactive text input with single line input mode
-	textInput := pterm.DefaultInteractiveTextInput.WithMultiLine(false)
-
-	// Show the text input and get the result
-	result, _ := textInput.Show("Enter a project name")
-
-	// Print a blank line for better readability
-	pterm.Println()
-
-	return result
 }
 
 func init() {
