@@ -14,11 +14,13 @@ const GitURL = "https://github.com/SchawnnDev/" // TODO: change when repo is pub
 
 // CheckNewSDKVersion checks if a new version of the sdk is available
 func CheckNewSDKVersion() bool {
+	// TODO: implement
 	return false
 }
 
 // CheckNewCLIVersion checks if a new version of the cli is available
 func CheckNewCLIVersion() bool {
+	// TODO: implement
 	return false
 }
 
