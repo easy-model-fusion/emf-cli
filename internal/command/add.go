@@ -6,6 +6,7 @@ import (
 	"github.com/easy-model-fusion/client/internal/huggingface"
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
 
@@ -41,10 +42,20 @@ func runAdd(cmd *cobra.Command, args []string) {
 }
 
 func selectModels(tag string) []model.Model {
+	// Get list of models with current tag
 	models, err := huggingface.GetModels(nil, tag, nil)
 	if err != nil {
-		app.L().Fatal("api call error")
+		app.L().Fatal("error while calling api endpoint")
 	}
+
+	// Get existent models from configuration file
+	currentModelsNames, err := config.GetModelsNames()
+	if err != nil {
+		app.L().Fatal("error while getting current models")
+	}
+
+	// Remove existent models from list of models to add
+	models = config.RemoveModelsFromList(models, currentModelsNames)
 
 	// Build a multiselect with each model name
 	var modelNames []string
@@ -52,7 +63,8 @@ func selectModels(tag string) []model.Model {
 		modelNames = append(modelNames, item.Name)
 	}
 
-	selectedModelNames := utils.DisplayInteractiveMultiselect(modelNames)
+	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+	selectedModelNames := utils.DisplayInteractiveMultiselect(modelNames, checkMark, true)
 	var selectedModels []model.Model
 
 	for _, currentModel := range models {

@@ -18,13 +18,13 @@ func AskForUsersInput(inputDirective string) string {
 	return result
 }
 
-func DisplayInteractiveMultiselect(options []string) []string {
+func DisplayInteractiveMultiselect(options []string, checkMark *pterm.Checkmark, filter bool) []string {
 	// Create a new interactive multiselect printer with the options
 	// Disable the filter and set the keys for confirming and selecting options
 	printer := pterm.DefaultInteractiveMultiselect.
 		WithOptions(options).
-		WithFilter(false).
-		WithCheckmark(&pterm.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")})
+		WithFilter(filter).
+		WithCheckmark(checkMark)
 
 	// Show the interactive multiselect and get the selected options
 	selectedOptions, _ := printer.Show()

@@ -19,6 +19,20 @@ func GetModels() ([]model.Model, error) {
 	return models, nil
 }
 
+// GetModels retrieves models from the configuration.
+func GetModelsNames() ([]string, error) {
+	models, err := GetModels()
+	if err != nil {
+		return nil, err
+	}
+
+	var modelsNames []string
+	for _, item := range models {
+		modelsNames = append(modelsNames, item.Name)
+	}
+	return modelsNames, nil
+}
+
 // IsModelsEmpty checks if the models slice is empty.
 func IsModelsEmpty(models []model.Model) bool {
 	logger := app.L().WithTime(false)
@@ -46,18 +60,8 @@ func AddModel(models []model.Model) error {
 
 // RemoveModels filters out specified models and writes to the configuration file.
 func RemoveModels(models []model.Model, modelsToRemove []string) error {
-
-	// Create a map for faster lookup
-	modelsMap := utils.MapFromArrayString(modelsToRemove)
-
 	// Filter out the models to be removed
-	var updatedModels []model.Model
-	for _, existingModel := range models {
-		if _, exists := modelsMap[existingModel.Name]; !exists {
-			// Keep the model if it's not in the modelsToRemove list
-			updatedModels = append(updatedModels, existingModel)
-		}
-	}
+	updatedModels := RemoveModelsFromList(models, modelsToRemove)
 
 	// TODO : remove the downloaded models : Issue #21
 
@@ -78,4 +82,20 @@ func RemoveAllModels() error {
 
 	// Attempt to write the configuration file
 	return utils.WriteViperConfig()
+}
+
+func RemoveModelsFromList(currentModels []model.Model, modelsToRemove []string) []model.Model {
+	// Create a map for faster lookup
+	modelsMap := utils.MapFromArrayString(modelsToRemove)
+
+	// Filter out the models to be removed
+	var updatedModels []model.Model
+	for _, existingModel := range currentModels {
+		if _, exists := modelsMap[existingModel.Name]; !exists {
+			// Keep the model if it's not in the modelsToRemove list
+			updatedModels = append(updatedModels, existingModel)
+		}
+	}
+
+	return updatedModels
 }

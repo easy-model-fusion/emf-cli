@@ -5,6 +5,7 @@ import (
 	"github.com/easy-model-fusion/client/internal/config"
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
 
@@ -45,7 +46,7 @@ func runRemove(cmd *cobra.Command, args []string) {
 	// No args, asks for model names
 	if len(args) == 0 {
 		// Get selected models from multiselect
-		selectedModels = selectModelToDelete(models)
+		selectedModels = selectModelsToDelete(models)
 	} else {
 		// selected models from args
 		selectedModels = make([]string, len(args))
@@ -56,14 +57,15 @@ func runRemove(cmd *cobra.Command, args []string) {
 	_ = config.RemoveModels(models, selectedModels)
 }
 
-func selectModelToDelete(currentModels []model.Model) []string {
+func selectModelsToDelete(currentModels []model.Model) []string {
 	// Build a multiselect with each model name
 	var modelNames []string
 	for _, item := range currentModels {
 		modelNames = append(modelNames, item.Name)
 	}
 
-	return utils.DisplayInteractiveMultiselect(modelNames)
+	checkMark := &pterm.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")}
+	return utils.DisplayInteractiveMultiselect(modelNames, checkMark, false)
 }
 
 func init() {
