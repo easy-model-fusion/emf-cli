@@ -14,18 +14,17 @@ var rootCmd = &cobra.Command{
 	Use:   rootName,
 	Short: "emf-cli is a command line tool to manage a EMF project easily",
 	Long:  `emf-cli is a command line tool to manage a EMF project easily.`,
-	Run:   runBase,
+	Run:   runRoot,
 }
 
-func runBase(cmd *cobra.Command, args []string) {
+func runRoot(cmd *cobra.Command, args []string) {
+
+	logger := app.L().WithTime(false)
 
 	// get all commands
 	var commandList []string
 	for _, child := range cmd.Commands() {
-		// Exclude the completion and help[command] commands
-		// if child.Use != "completion" && child.Use != "compdef" {
 		commandList = append(commandList, child.Use)
-		//}
 	}
 
 	// allow the user to choose one command
@@ -40,7 +39,7 @@ func runBase(cmd *cobra.Command, args []string) {
 	} else if selectedChild != nil { // run the selected command
 		selectedChild.Run(cmd, args)
 	} else { // unexpected
-		app.L().WithTime(false).Error("Selected command " + selectedCommand + " is not recognized")
+		logger.Error("Selected command " + selectedCommand + " is not recognized")
 	}
 }
 
