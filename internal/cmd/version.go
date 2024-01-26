@@ -1,11 +1,11 @@
-package command
+package cmd
 
 import (
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/spf13/cobra"
 )
 
-// initCmd represents the init command
+// versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Get the version of emf-cli",

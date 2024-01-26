@@ -1,4 +1,4 @@
-package command
+package cmd
 
 import (
 	"github.com/easy-model-fusion/client/internal/app"
@@ -7,11 +7,9 @@ import (
 	"os"
 )
 
-const rootName = "emf-cli"
-
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   rootName,
+	Use:   app.Name,
 	Short: "emf-cli is a command line tool to manage a EMF project easily",
 	Long:  `emf-cli is a command line tool to manage a EMF project easily.`,
 	Run:   runRoot,
@@ -24,7 +22,9 @@ func runRoot(cmd *cobra.Command, args []string) {
 	// get all commands
 	var commandList []string
 	for _, child := range cmd.Commands() {
-		commandList = append(commandList, child.Use)
+		if completionUse != child.Use {
+			commandList = append(commandList, child.Use)
+		}
 	}
 
 	// allow the user to choose one command
@@ -33,13 +33,13 @@ func runRoot(cmd *cobra.Command, args []string) {
 	// get the chosen command
 	selectedChild, _, _ := cmd.Find([]string{selectedCommand})
 
-	if rootName == selectedChild.Use { // avoid loops when the chosen command is the help command
+	if app.Name == selectedChild.Use { // avoid loops when the chosen command is the help command
 		cmd.HelpFunc()(cmd, args)
 		return
 	} else if selectedChild != nil { // run the selected command
 		selectedChild.Run(cmd, args)
 	} else { // unexpected
-		logger.Error("Selected command " + selectedCommand + " is not recognized")
+		logger.Error("Selected command '" + selectedCommand + "' not recognized")
 	}
 }
 

@@ -1,5 +1,7 @@
 package app
 
+const Name = "emf-cli"
+
 var (
 	// Version is the binary version + build number
 	Version string
