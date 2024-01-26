@@ -1,4 +1,4 @@
-package cmd
+package command
 
 import (
 	"github.com/easy-model-fusion/client/internal/app"
