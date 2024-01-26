@@ -30,10 +30,21 @@ func runAdd(cmd *cobra.Command, args []string) {
 	}
 
 	var selectedModels []model.Model
-	if selectFiles {
-		selectedModels = selectModels(model.TEXT_TO_IMAGE)
+	if selectFiles || len(args) == 0 {
+		selectedTags := selectTags()
+		if len(selectedTags) == 0 {
+			app.L().WithTime(false).Warn("Please select a model type")
+			runAdd(cmd, args)
+		}
+		selectedModels = selectModels(selectedTags)
+		if selectedModels == nil {
+			app.L().WithTime(false).Warn("No models selected")
+			return
+		}
 	} else {
 	}
+
+	// TODO install models with addToBinary => true
 
 	err = config.AddModel(selectedModels)
 	if err != nil {
@@ -41,11 +52,15 @@ func runAdd(cmd *cobra.Command, args []string) {
 	}
 }
 
-func selectModels(tag string) []model.Model {
+func selectModels(tags []string) []model.Model {
 	// Get list of models with current tag
-	models, err := huggingface.GetModels(nil, tag, nil)
-	if err != nil {
-		app.L().Fatal("error while calling api endpoint")
+	var models []model.Model
+	for _, tag := range tags {
+		apiModels, err := huggingface.GetModels(nil, tag, nil)
+		if err != nil {
+			app.L().Fatal("error while calling api endpoint")
+		}
+		models = append(models, apiModels...)
 	}
 
 	// Get existent models from configuration file
@@ -63,17 +78,38 @@ func selectModels(tag string) []model.Model {
 		modelNames = append(modelNames, item.Name)
 	}
 
+	message := "Please select the model(s) to be added"
 	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedModelNames := utils.DisplayInteractiveMultiselect(modelNames, checkMark, true)
+	selectedModelNames := utils.DisplayInteractiveMultiselect(message, modelNames, checkMark, true)
+	if len(selectedModelNames) == 0 {
+		return nil
+	}
+	message = "Please select the model(s) that you don't wish to install directly"
+	checkMark = &pterm.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")}
+	installsToExclude := utils.DisplayInteractiveMultiselect(message, selectedModelNames, checkMark, false)
+
+	utils.DisplaySelectedItems(selectedModelNames)
 	var selectedModels []model.Model
 
 	for _, currentModel := range models {
 		if utils.ArrayStringContainsItem(selectedModelNames, currentModel.Name) {
+			currentModel.AddToBinary = !utils.ArrayStringContainsItem(installsToExclude, currentModel.Name)
 			selectedModels = append(selectedModels, currentModel)
 		}
 	}
 
 	return selectedModels
+}
+
+func selectTags() []string {
+	// Build a multiselect with each model name
+	tags := model.AllTags
+
+	message := "Please select the type of models you want to add"
+	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+	selectedTags := utils.DisplayInteractiveMultiselect(message, tags, checkMark, true)
+
+	return selectedTags
 }
 
 func init() {
