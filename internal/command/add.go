@@ -18,8 +18,10 @@ var addCmd = &cobra.Command{
 	Run:   runAdd,
 }
 
-var selectFiles bool
+// displayModels indicates if the multiselect of models should be displayed or not
+var displayModels bool
 
+// runAdd runs add command
 func runAdd(cmd *cobra.Command, args []string) {
 	logger := app.L().WithTime(false)
 
@@ -30,12 +32,14 @@ func runAdd(cmd *cobra.Command, args []string) {
 	}
 
 	var selectedModels []model.Model
-	if selectFiles || len(args) == 0 {
+	if displayModels || len(args) == 0 {
+		// Get selected tags
 		selectedTags := selectTags()
 		if len(selectedTags) == 0 {
 			app.L().WithTime(false).Warn("Please select a model type")
 			runAdd(cmd, args)
 		}
+		// Get selected models
 		selectedModels = selectModels(selectedTags)
 		if selectedModels == nil {
 			app.L().WithTime(false).Warn("No models selected")
@@ -46,15 +50,17 @@ func runAdd(cmd *cobra.Command, args []string) {
 
 	// TODO install models with addToBinary => true
 
+	// Add models to configuration file
 	err = config.AddModel(selectedModels)
 	if err != nil {
 		logger.Error("Error while adding models into config file:" + err.Error())
 	}
 }
 
+// selectModels displays a multiselect of models from which the user will choose to add to his project
 func selectModels(tags []string) []model.Model {
-	// Get list of models with current tag
 	var models []model.Model
+	// Get list of models with current tags
 	for _, tag := range tags {
 		apiModels, err := huggingface.GetModels(nil, tag, nil)
 		if err != nil {
@@ -84,11 +90,15 @@ func selectModels(tags []string) []model.Model {
 	if len(selectedModelNames) == 0 {
 		return nil
 	}
+	// Build a multiselect with each selected model name to exclude/include in the binary
 	message = "Please select the model(s) that you don't wish to install directly"
 	checkMark = &pterm.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")}
 	installsToExclude := utils.DisplayInteractiveMultiselect(message, selectedModelNames, checkMark, false)
 
+	// Display the selected models
 	utils.DisplaySelectedItems(selectedModelNames)
+
+	// Get models objects from models names
 	var selectedModels []model.Model
 
 	for _, currentModel := range models {
@@ -101,8 +111,9 @@ func selectModels(tags []string) []model.Model {
 	return selectedModels
 }
 
+// selectTags displays a multiselect to help the user choose the model types
 func selectTags() []string {
-	// Build a multiselect with each model name
+	// Build a multiselect with each tag name
 	tags := model.AllTags
 
 	message := "Please select the type of models you want to add"
@@ -113,8 +124,8 @@ func selectTags() []string {
 }
 
 func init() {
+	// Add --select flag to the add command
+	addCmd.Flags().BoolVarP(&displayModels, "select", "s", false, "Select models to add")
 	// Add the add command to the root command
 	rootCmd.AddCommand(addCmd)
-	// Add --select flag to the add command
-	addCmd.Flags().BoolVarP(&selectFiles, "select", "s", false, "Select files to add")
 }

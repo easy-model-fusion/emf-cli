@@ -46,11 +46,14 @@ func IsModelsEmpty(models []model.Model) bool {
 	return false
 }
 
+// AddModel adds models to configuration file
 func AddModel(models []model.Model) error {
+	// get existent models
 	originalModelsList, err := GetModels()
 	if err != nil {
 		return err
 	}
+	// add new models
 	updatedModelsList := append(originalModelsList, models...)
 	viper.Set("models", updatedModelsList)
 

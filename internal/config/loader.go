@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Load loads the current configuration file
 func Load(confDirPath string) error {
 	viper.Reset()
 	viper.SetConfigName("config")
