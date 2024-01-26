@@ -151,7 +151,7 @@ func createProjectFiles(projectName, sdkTag string) (err error) {
 
 	// Write project name and sdk tag to config
 	viper.Set("name", projectName)
-	viper.Set("tag", sdkTag)
+	viper.Set("sdk-tag", sdkTag)
 
 	err = viper.WriteConfig()
 	if err != nil {
