@@ -1,8 +1,10 @@
 package command
 
 import (
+	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/config"
-	"github.com/pterm/pterm"
+	"github.com/easy-model-fusion/client/internal/model"
+	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -17,6 +19,13 @@ var removeCmd = &cobra.Command{
 }
 
 func runRemove(cmd *cobra.Command, args []string) {
+	logger := app.L().WithTime(false)
+
+	// Load the configuration file
+	test := config.Load(".")
+	if test != nil {
+		logger.Error("Error reading config file:" + test.Error())
+	}
 
 	// remove all models
 	if allFlag {
@@ -35,26 +44,8 @@ func runRemove(cmd *cobra.Command, args []string) {
 
 	// No args, asks for model names
 	if len(args) == 0 {
-
-		// Build a multiselect with each model name
-		var modelNames []string
-		for _, item := range models {
-			modelNames = append(modelNames, item.Name)
-		}
-
-		// Create a new interactive multiselect printer with the options
-		// Disable the filter and set the keys for confirming and selecting options
-		printer := pterm.DefaultInteractiveMultiselect.
-			WithOptions(modelNames).
-			WithFilter(false).
-			WithCheckmark(&pterm.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")})
-
-		// Show the interactive multiselect and get the selected options
-		selectedModels, _ = printer.Show()
-
-		// Print the selected options, highlighted in green.
-		pterm.Info.Printfln("Selected options: %s", pterm.Green(selectedModels))
-
+		// Get selected models from multiselect
+		selectedModels = selectModelToDelete(models)
 	} else {
 		// selected models from args
 		selectedModels = make([]string, len(args))
@@ -63,6 +54,16 @@ func runRemove(cmd *cobra.Command, args []string) {
 
 	// remove selected models
 	_ = config.RemoveModels(models, selectedModels)
+}
+
+func selectModelToDelete(currentModels []model.Model) []string {
+	// Build a multiselect with each model name
+	var modelNames []string
+	for _, item := range currentModels {
+		modelNames = append(modelNames, item.Name)
+	}
+
+	return utils.DisplayInteractiveMultiselect(modelNames)
 }
 
 func init() {
