@@ -18,6 +18,10 @@ var removeCmd = &cobra.Command{
 
 func runRemove(cmd *cobra.Command, args []string) {
 
+	if config.LoadConfig() != nil {
+		return
+	}
+
 	// remove all models
 	if allFlag {
 		_ = config.RemoveAllModels()
