@@ -1,0 +1,106 @@
+name: client workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest] # [windows-latest, ubuntu-latest, macos-latest]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Installing Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.21.6
+    
+    - name: Installing golangci-lint
+      uses: golangci/golangci-lint-action@v2
+      with:
+        version: latest
+
+    - name: run golangci-lint
+      run: golangci-lint run ./...
+    
+
+  build:
+    runs-on: ${{ matrix.os }}
+    needs: lint
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest] # [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Installing Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.21.6
+
+    - name: Installing Go dependency
+      run: go get -v -t -d ./...
+
+    - name: Display Go version
+      run: go version
+
+    - name: Code compilation
+      run: go build ./...
+
+
+  coverage:
+    runs-on: ${{ matrix.os }}
+    needs: build
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest] # [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Installing Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.21.6
+
+    - name: Run tests with code coverage
+      run: |
+        go test -coverprofile=coverage.out ./...
+
+    - name: Upload coverage artifact
+      if: github.event_name == 'push'
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage
+        path: ./coverage.out
+
+    - name: Download coverage artifact
+      if: github.event_name == 'push'
+      uses: actions/download-artifact@v2
+      with:
+        name: coverage
+        path: .
+
+    - name: Upload coverage reports to Codecov
+      if: github.event_name == 'push'
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: View code coverage report
+      run: go tool cover -func=coverage.out

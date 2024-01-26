@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/easy-model-fusion/client/graph/badge.svg?token=3SQXYCHS25)](https://codecov.io/gh/easy-model-fusion/client)
+
 # emf-bin
 
 ## Project setup
