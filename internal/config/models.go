@@ -14,7 +14,7 @@ func GetModels() ([]model.Model, error) {
 
 	logger := app.L().WithTime(false)
 	// Retrieve models using the generic function
-	if err := utils.GetViperItem("models", &models); err != nil {
+	if err := GetViperItem("models", &models); err != nil {
 		return nil, err
 	}
 	logger.Info("no err")
@@ -67,7 +67,7 @@ func RemoveModels(models []model.Model, modelsToRemove []string) error {
 	viper.Set("models", updatedModels)
 
 	// Attempt to write the configuration file
-	return utils.WriteViperConfig()
+	return WriteViperConfig()
 }
 
 // RemoveAllModels empties the models list and writes to the configuration file.
@@ -79,5 +79,5 @@ func RemoveAllModels() error {
 	viper.Set("models", []string{})
 
 	// Attempt to write the configuration file
-	return utils.WriteViperConfig()
+	return WriteViperConfig()
 }
