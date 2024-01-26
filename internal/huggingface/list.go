@@ -6,11 +6,19 @@ import (
 	"github.com/easy-model-fusion/client/internal/model"
 	"io"
 	"net/http"
+	"net/url"
 )
 
-func GetModels(limit int, tag string) ([]model.Model, error) {
-	url := fmt.Sprintf("https://huggingface.co/api/models?config=config&pipeline_tag=%v&limit=%d", tag, limit)
-	response, err := http.Get(url)
+func GetModels(limit int, tag string, proxyURL *url.URL) ([]model.Model, error) {
+	client := &http.Client{}
+	if proxyURL != nil {
+		client.Transport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+	}
+
+	apiURL := fmt.Sprintf("https://huggingface.co/api/models?config=config&pipeline_tag=%v&limit=%d", tag, limit)
+	response, err := http.Get(apiURL)
 	if err != nil {
 		return nil, err
 	}
