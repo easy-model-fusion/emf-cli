@@ -5,7 +5,7 @@ import (
 	"github.com/easy-model-fusion/client/internal/config"
 	"github.com/easy-model-fusion/client/internal/huggingface"
 	"github.com/easy-model-fusion/client/internal/model"
-	"github.com/pterm/pterm"
+	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -20,32 +20,46 @@ var addCmd = &cobra.Command{
 var selectFiles bool
 
 func runAdd(cmd *cobra.Command, args []string) {
-	var selectedModels []string
+	logger := app.L().WithTime(false)
+
+	// Load the configuration file
+	err := config.Load(".")
+	if err != nil {
+		logger.Error("Error reading config file:" + err.Error())
+	}
+
+	var selectedModels []model.Model
 	if selectFiles {
-		selectedModels = selectModels()
+		selectedModels = selectModels(model.TEXT_TO_IMAGE)
 	} else {
 	}
 
-	config.Load(".")
-	config.AddModel(selectedModels)
+	err = config.AddModel(selectedModels)
+	if err != nil {
+		logger.Error("Error while adding models into config file:" + err.Error())
+	}
 }
 
-func selectModels() []string {
-	limit := 10
-	models, err := huggingface.GetModels(&limit, model.TEXT_TO_IMAGE, nil)
+func selectModels(tag string) []model.Model {
+	models, err := huggingface.GetModels(nil, tag, nil)
 	if err != nil {
 		app.L().Fatal("api call error")
 	}
 
-	var modelsNames []string
-	for i := 0; i < len(models); i++ {
-		modelsNames = append(modelsNames, models[i].Name)
+	// Build a multiselect with each model name
+	var modelNames []string
+	for _, item := range models {
+		modelNames = append(modelNames, item.Name)
 	}
 
-	selectedModels, _ := pterm.DefaultInteractiveMultiselect.WithOptions(modelsNames).Show()
+	selectedModelNames := utils.DisplayInteractiveMultiselect(modelNames)
+	var selectedModels []model.Model
 
-	// Print the selected models, highlighted in green.
-	pterm.Info.Printfln("Selected models: %s", pterm.Green(selectedModels))
+	for _, currentModel := range models {
+		if utils.ArrayStringContainsItem(selectedModelNames, currentModel.Name) {
+			selectedModels = append(selectedModels, currentModel)
+		}
+	}
 
 	return selectedModels
 }

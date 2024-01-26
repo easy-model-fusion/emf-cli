@@ -32,8 +32,11 @@ func IsModelsEmpty(models []model.Model) bool {
 	return false
 }
 
-func AddModel(models []string) error {
-	originalModelsList := viper.GetStringSlice("models")
+func AddModel(models []model.Model) error {
+	originalModelsList, err := GetModels()
+	if err != nil {
+		return err
+	}
 	updatedModelsList := append(originalModelsList, models...)
 	viper.Set("models", updatedModelsList)
 
