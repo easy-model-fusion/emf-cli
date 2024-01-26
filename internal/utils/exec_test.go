@@ -7,15 +7,18 @@ import (
 )
 
 func TestCheckForExecutable(t *testing.T) {
-	test.AssertEqual(t, CheckForExecutable("anexecutablethatcouldnotexists-yeahhh"), true)
+	_, ok := CheckForExecutable("anexecutablethatcouldnotexists-yeahhh")
+	test.AssertEqual(t, ok, false)
 
 	switch runtime.GOOS {
 	case "windows":
-		test.AssertEqual(t, CheckForExecutable("cmd.exe"), true)
+		_, ok = CheckForExecutable("cmd.exe")
+		test.AssertNotEqual(t, ok, true)
 	case "darwin":
 		fallthrough
 	case "linux":
-		test.AssertEqual(t, CheckForExecutable("ls"), true)
+		_, ok = CheckForExecutable("ls")
+		test.AssertNotEqual(t, ok, true)
 	default:
 		t.Skip("Unsupported operating system")
 	}

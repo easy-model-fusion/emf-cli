@@ -30,14 +30,22 @@ func runInit(cmd *cobra.Command, args []string) {
 		projectName = args[0]
 	}
 
-	createProjectSpinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Creating project '%s'...", projectName))
+	// Check if user has python installed
+	path, ok := CheckForPython()
+	if !ok {
+		os.Exit(1)
+	}
 
-	// smooth animation
-	time.Sleep(500 * time.Millisecond)
+	// Check the latest sdk version
+	pterm.Info.Println("Checking for latest sdk version...")
+	latestSdkTag, err := utils.GetLatestTag("sdk")
+	if err != nil {
+		pterm.Error.Println("Error checking for latest sdk version:", err)
+		os.Exit(1)
+	}
+	pterm.Info.Println("Using latest sdk version:", latestSdkTag)
 
-	err := createProject(projectName, func(msg string) {
-		createProjectSpinner.UpdateText(msg)
-	})
+	err = createProject(projectName, path, latestSdkTag)
 
 	// smooth animation
 	time.Sleep(1 * time.Second)
@@ -47,25 +55,25 @@ func runInit(cmd *cobra.Command, args []string) {
 		if !os.IsExist(err) {
 			removeErr := os.RemoveAll(projectName)
 			if removeErr != nil {
-				createProjectSpinner.Fail(fmt.Sprintf("Error deleting folder '%s': %s", projectName, removeErr))
+				pterm.Warning.Println(fmt.Sprintf("Error deleting folder '%s': %s", projectName, removeErr))
 				os.Exit(1)
 			}
 		}
-		createProjectSpinner.Fail(fmt.Sprintf("Error creating project '%s': %s", projectName, err))
+		pterm.Error.Println(fmt.Sprintf("Error creating project '%s': %s", projectName, err))
 		os.Exit(1)
 	}
 
-	createProjectSpinner.Success("Project created successfully")
+	pterm.Success.Println("Project created successfully!")
 }
 
 // createProject creates a new project with the given name
-func createProject(projectName string, logger func(msg string)) (err error) {
+func createProject(projectName, pythonPath, sdkTag string) (err error) {
 	// check if folder exists
 	if _, err = os.Stat(projectName); err != nil && !os.IsNotExist(err) {
 		return err
 	}
 
-	logger("Creating project folder...")
+	pterm.Info.Println("Creating project folder...")
 
 	// Create folder
 	err = os.Mkdir(projectName, os.ModePerm)
@@ -73,7 +81,7 @@ func createProject(projectName string, logger func(msg string)) (err error) {
 		return err
 	}
 
-	logger("Creating project files...")
+	pterm.Info.Println("Creating project files...")
 
 	// Copy main.py & config.yaml
 	err = utils.CopyEmbeddedFile(sdk.EmbeddedFiles, "main.py", filepath.Join(projectName, "main.py"))
@@ -85,6 +93,43 @@ func createProject(projectName string, logger func(msg string)) (err error) {
 	if err != nil {
 		return err
 	}
+
+	// Create sdk folder
+	err = os.Mkdir(filepath.Join(projectName, "sdk"), os.ModePerm)
+	if err != nil {
+		return err
+	}
+
+	// Clone SDK
+	spinnerInfo, _ := pterm.DefaultSpinner.Start("Cloning sdk...")
+	err = utils.CloneSDK(sdkTag, filepath.Join(projectName, "sdk"))
+	if err != nil {
+		spinnerInfo.Fail(err)
+		return err
+	}
+	spinnerInfo.Success()
+
+	// Create virtual environment
+	spinnerInfo, _ = pterm.DefaultSpinner.Start("Creating virtual environment...")
+	err = utils.CreateVirtualEnv(pythonPath, filepath.Join(projectName, ".venv"))
+	if err != nil {
+		spinnerInfo.Fail(err)
+		return err
+	}
+	spinnerInfo.Success()
+
+	// Install dependencies
+	pipPath, err := utils.FindVEnvPipExecutable(filepath.Join(projectName, ".venv"))
+	if err != nil {
+		return err
+	}
+
+	spinnerInfo, _ = pterm.DefaultSpinner.Start("Installing dependencies...")
+	err = utils.InstallDependencies(pipPath, filepath.Join(projectName, "sdk", "requirements.txt"))
+	if err != nil {
+		return err
+	}
+	spinnerInfo.Success()
 
 	return nil
 }
