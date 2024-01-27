@@ -5,15 +5,16 @@ import (
 )
 
 // AskForUsersInput asks the user for an input and returns it
-func AskForUsersInput(inputDirective string) string {
-	// Create an interactive text input with single line input mode
+func AskForUsersInput(message string) string {
 	textInput := pterm.DefaultInteractiveTextInput.WithMultiLine(false)
-
-	// Show the text input and get the result
-	result, _ := textInput.Show(inputDirective)
-
-	// Print a blank line for better readability
+	result, _ := textInput.Show(message)
 	pterm.Println()
-
 	return result
+}
+
+// AskForUsersConfirmation asks the user for a confirmation, returns true if the user confirms, false otherwise
+func AskForUsersConfirmation(message string) bool {
+	confirmation, _ := pterm.DefaultInteractiveConfirm.Show(message)
+	pterm.Println()
+	return confirmation
 }

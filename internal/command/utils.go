@@ -19,8 +19,8 @@ func CheckForPython() (string, bool) {
 
 	pterm.Warning.Println("Python is not installed or not available in the PATH")
 
-	if AskConfirmation("Do you want to specify the path to python?") {
-		result := AskInput("Enter python PATH")
+	if utils.AskForUsersConfirmation("Do you want to specify the path to python?") {
+		result := utils.AskForUsersInput("Enter python PATH")
 
 		if result == "" {
 			pterm.Error.Println("Please enter a valid path")
@@ -42,19 +42,4 @@ func CheckForPython() (string, bool) {
 	pterm.Warning.Println("If you have already installed Python, please add it to the PATH")
 
 	return "", false
-}
-
-// AskInput asks the user for an input
-func AskInput(message string) string {
-	textInput := pterm.DefaultInteractiveTextInput.WithMultiLine(false)
-	result, _ := textInput.Show(message)
-	pterm.Println()
-	return result
-}
-
-// AskConfirmation asks the user for a confirmation, returns true if the user confirms, false otherwise
-func AskConfirmation(message string) bool {
-	confirmation, _ := pterm.DefaultInteractiveConfirm.Show(message)
-	pterm.Println()
-	return confirmation
 }

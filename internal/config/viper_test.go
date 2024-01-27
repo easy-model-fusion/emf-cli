@@ -5,7 +5,6 @@ import (
 	"github.com/easy-model-fusion/client/test"
 	"github.com/spf13/viper"
 	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -19,17 +18,22 @@ type viperTestStructureTwo struct {
 
 // TestGetViperConfig_Success tests the successful loading of the Viper configuration.
 func TestGetViperConfig_Success(t *testing.T) {
+	dname, err := os.MkdirTemp("", "emf-cli")
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	defer os.RemoveAll(dname)
+
+	// Chdir to a temporary directory
+	err = os.Chdir(dname)
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Create config file
-	file, err := os.Create(filepath.Join(".", "config.yaml"))
-	defer func(file *os.File) {
-		// Close and remove the created file after the test
-		utils.CloseFile(file)
-		err = os.Remove(file.Name())
-		if err != nil {
-			t.Error(err)
-		}
-	}(file)
+	file, err := os.Create("config.yaml")
+	utils.CloseFile(file)
 
 	// Load the configuration file
 	err = GetViperConfig()
@@ -86,17 +90,22 @@ func TestGetViperItem_Error(t *testing.T) {
 
 // TestWriteViperConfig_Success tests the successful writing of the Viper configuration.
 func TestWriteViperConfig_Success(t *testing.T) {
+	dname, err := os.MkdirTemp("", "emf-cli")
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	defer os.RemoveAll(dname)
+
+	// Chdir to a temporary directory
+	err = os.Chdir(dname)
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Create config file
-	file, err := os.Create(filepath.Join(".", "config.yaml"))
-	defer func(file *os.File) {
-		// Close and remove the created file after the test
-		utils.CloseFile(file)
-		err = os.Remove(file.Name())
-		if err != nil {
-			t.Error(err)
-		}
-	}(file)
+	file, err := os.Create("config.yaml")
+	utils.CloseFile(file)
 
 	// Load the configuration file
 	viper.Reset()
