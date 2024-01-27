@@ -44,8 +44,6 @@ func AddModel(models []string) error {
 // RemoveModels filters out specified models and writes to the configuration file.
 func RemoveModels(models []model.Model, modelsToRemove []string) error {
 
-	logger := app.L().WithTime(false)
-
 	// Create a map for faster lookup
 	modelsMap := utils.MapFromArrayString(modelsToRemove)
 
@@ -55,7 +53,6 @@ func RemoveModels(models []model.Model, modelsToRemove []string) error {
 		if _, exists := modelsMap[existingModel.Name]; !exists {
 			// Keep the model if it's not in the modelsToRemove list
 			updatedModels = append(updatedModels, existingModel)
-			logger.Info(existingModel.Name)
 		}
 	}
 
