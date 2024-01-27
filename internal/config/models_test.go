@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/model"
+	"github.com/easy-model-fusion/client/internal/utils"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
@@ -293,12 +294,7 @@ func setupConfigDir(t *testing.T) (string, string) {
 // setupConfigFile creates a configuration file.
 func setupConfigFile(t *testing.T, filePath string, models []model.Model) error {
 	file, err := os.Create(filePath)
-	defer func(file *os.File) {
-		err = file.Close()
-		if err != nil {
-			t.Error(err)
-		}
-	}(file)
+	defer utils.CloseFile(file)
 	if err != nil {
 		return err
 	}

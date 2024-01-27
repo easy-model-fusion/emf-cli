@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/easy-model-fusion/client/test"
 	"github.com/spf13/viper"
 	"os"
@@ -23,10 +24,7 @@ func TestGetViperConfig_Success(t *testing.T) {
 	file, err := os.Create(filepath.Join(".", "config.yaml"))
 	defer func(file *os.File) {
 		// Close and remove the created file after the test
-		err = file.Close()
-		if err != nil {
-			t.Error(err)
-		}
+		utils.CloseFile(file)
 		err = os.Remove(file.Name())
 		if err != nil {
 			t.Error(err)
@@ -93,10 +91,7 @@ func TestWriteViperConfig_Success(t *testing.T) {
 	file, err := os.Create(filepath.Join(".", "config.yaml"))
 	defer func(file *os.File) {
 		// Close and remove the created file after the test
-		err = file.Close()
-		if err != nil {
-			t.Error(err)
-		}
+		utils.CloseFile(file)
 		err = os.Remove(file.Name())
 		if err != nil {
 			t.Error(err)
