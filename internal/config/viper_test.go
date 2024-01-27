@@ -34,6 +34,10 @@ func TestGetViperConfig_Success(t *testing.T) {
 	// Create config file
 	file, err := os.Create("config.yaml")
 	utils.CloseFile(file)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
 
 	// Load the configuration file
 	err = GetViperConfig()
@@ -106,6 +110,10 @@ func TestWriteViperConfig_Success(t *testing.T) {
 	// Create config file
 	file, err := os.Create("config.yaml")
 	utils.CloseFile(file)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
 
 	// Load the configuration file
 	viper.Reset()

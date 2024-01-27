@@ -302,7 +302,7 @@ func setupConfigFile(t *testing.T, filePath string, models []model.Model) error 
 	if len(models) > 0 {
 
 		// Write models to the config file
-		err := writeToConfigFile(file, "models", models)
+		err = writeToConfigFile(file, "models", models)
 		if err != nil {
 			return err
 		}
@@ -315,7 +315,7 @@ func setupConfigFile(t *testing.T, filePath string, models []model.Model) error 
 		}
 
 		// Writing alternative data to the config file
-		err := writeToConfigFile(file, "alternative", alternative)
+		err = writeToConfigFile(file, "alternative", alternative)
 		if err != nil {
 			return err
 		}
