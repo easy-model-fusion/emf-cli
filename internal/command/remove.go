@@ -18,9 +18,18 @@ var removeCmd = &cobra.Command{
 
 func runRemove(cmd *cobra.Command, args []string) {
 
+	if config.GetViperConfig() != nil {
+		return
+	}
+
 	// remove all models
 	if allFlag {
-		_ = config.RemoveAllModels()
+		err := config.RemoveAllModels()
+		if err == nil {
+			pterm.Success.Printfln("Operation succeeded.")
+		} else {
+			pterm.Error.Printfln("Operation failed.")
+		}
 		return
 	}
 
@@ -30,6 +39,7 @@ func runRemove(cmd *cobra.Command, args []string) {
 
 	// Check fetched models : cannot be null or empty
 	if err != nil || config.IsModelsEmpty(models) {
+		pterm.Info.Printfln("No models to remove.")
 		return
 	}
 
@@ -62,7 +72,12 @@ func runRemove(cmd *cobra.Command, args []string) {
 	}
 
 	// remove selected models
-	_ = config.RemoveModels(models, selectedModels)
+	err = config.RemoveModels(models, selectedModels)
+	if err == nil {
+		pterm.Success.Printfln("Operation succeeded.")
+	} else {
+		pterm.Error.Printfln("Operation failed.")
+	}
 }
 
 func init() {

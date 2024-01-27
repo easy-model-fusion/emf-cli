@@ -1,6 +1,7 @@
 package command
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -16,8 +17,6 @@ var rootCmd = &cobra.Command{
 }
 
 func runRoot(cmd *cobra.Command, args []string) {
-
-	logger := app.L().WithTime(false)
 
 	// Variables for the commands data
 	var commandsList []string
@@ -38,8 +37,8 @@ func runRoot(cmd *cobra.Command, args []string) {
 	// Check if the selected command exists and runs it
 	if runCommand, exists := commandsMap[selectedCommand]; exists {
 		runCommand(cmd, args)
-	} else {
-		logger.Error("Selected command '" + selectedCommand + "' not recognized")
+	} else { // technically unreachable
+		pterm.Error.Println(fmt.Sprintf("Selected command '%s' not recognized", selectedCommand))
 	}
 }
 
