@@ -9,8 +9,8 @@ import (
 	"net/url"
 )
 
-// GetModels from hugging face api
-func GetModels(limit *int, tag string, proxyURL *url.URL) ([]model.Model, error) {
+// GetModel from hugging face api
+func GetModel(id string, proxyURL *url.URL) (*model.Model, error) {
 	client := &http.Client{}
 	if proxyURL != nil {
 		client.Transport = &http.Transport{
@@ -18,12 +18,7 @@ func GetModels(limit *int, tag string, proxyURL *url.URL) ([]model.Model, error)
 		}
 	}
 
-	limitQuery := ""
-
-	if limit != nil {
-		limitQuery = fmt.Sprintf("&limit=%d", *limit)
-	}
-	apiURL := fmt.Sprintf("https://huggingface.co/api/models?config=config&pipeline_tag=%v%v", tag, limitQuery)
+	apiURL := fmt.Sprintf("https://huggingface.co/api/models?config=config&id=%v", id)
 	response, err := http.Get(apiURL)
 	if err != nil {
 		return nil, err
@@ -41,8 +36,26 @@ func GetModels(limit *int, tag string, proxyURL *url.URL) ([]model.Model, error)
 			return nil, err
 		}
 
-		return models, nil
+		if len(models) > 1 {
+			return nil, fmt.Errorf("too many models returned")
+		} else if len(models) == 0 {
+			return nil, fmt.Errorf("no model found with name = %v", id)
+		}
+
+		return &models[0], nil
 	} else {
 		return nil, fmt.Errorf("failed to fetch models. Status code: %d", response.StatusCode)
 	}
+}
+
+func ValidModel(id string) (bool, error) {
+	apiModel, err := GetModel(id, nil)
+	if err != nil {
+		return false, err
+	}
+	if apiModel == nil {
+		return false, nil
+	}
+
+	return true, nil
 }

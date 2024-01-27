@@ -1,9 +1,12 @@
 package config
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
+	"github.com/easy-model-fusion/client/internal/huggingface"
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -101,4 +104,55 @@ func RemoveModelsFromList(currentModels []model.Model, modelsToRemove []string) 
 	}
 
 	return updatedModels
+}
+
+func ModelExists(name string) (bool, error) {
+	models, err := GetModels()
+	if err != nil {
+		return false, err
+	}
+	for _, currentModel := range models {
+		println(currentModel.Name)
+		if currentModel.Name == name {
+			return true, nil
+		}
+	}
+	println(models)
+
+	return false, nil
+}
+
+// ValidModelName returns an error if the which arg is not a valid model name.
+func ValidModelName() cobra.PositionalArgs {
+	return func(cmd *cobra.Command, args []string) error {
+		if len(args) == 0 {
+			return nil
+		}
+
+		for _, name := range args {
+			valid, err := huggingface.ValidModel(name)
+			if err != nil {
+				return err
+			}
+			if !valid {
+				return fmt.Errorf("'%s' is not a valid model name", name)
+			}
+
+			// Load the configuration file
+			err = Load(".")
+			if err != nil {
+				return err
+			}
+
+			exist, err := ModelExists(name)
+			if err != nil {
+				return err
+			}
+			if exist {
+				return fmt.Errorf("'%s' model is already included in the project", name)
+			}
+		}
+
+		return nil
+	}
 }
