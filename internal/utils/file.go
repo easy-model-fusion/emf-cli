@@ -1,8 +1,11 @@
 package utils
 
 import (
+	"embed"
 	"fmt"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"os"
 	"regexp"
 )
 
@@ -34,7 +37,24 @@ func ValidFileName(which int, optional bool) cobra.PositionalArgs {
 		if !IsFileNameValid(name) {
 			return fmt.Errorf("'%s' is not a valid file name", name)
 		}
-		
+
 		return nil
+	}
+}
+
+// CopyEmbeddedFile copies an embedded file to a destination.
+func CopyEmbeddedFile(fs embed.FS, file, dst string) error {
+	content, err := fs.ReadFile(file)
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(dst, content, os.ModePerm)
+}
+
+// CloseFile closes a file and logs an error if it occurs.
+func CloseFile(file *os.File) {
+	if err := file.Close(); err != nil {
+		pterm.Error.Println(fmt.Sprintf("Error closing file: %s", err))
 	}
 }

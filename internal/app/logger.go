@@ -9,5 +9,5 @@ func L() *pterm.Logger {
 }
 
 func initLogger() {
-	logger = pterm.DefaultLogger.WithLevel(pterm.LogLevelTrace)
+	logger = pterm.DefaultLogger.WithLevel(pterm.LogLevelTrace).WithTime(false)
 }
