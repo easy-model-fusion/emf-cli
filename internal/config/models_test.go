@@ -1,9 +1,11 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/model"
+	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,10 +14,17 @@ import (
 	"github.com/spf13/viper"
 )
 
+type AlternativeStructure struct {
+	Field1 string `json:"field1"`
+	Field2 string `json:"field2"`
+	Field3 string `json:"field3"`
+}
+
 func init() {
 	app.Init("", "")
 }
 
+// TODO : remove once AddModel uses []model.Model instead of []string
 func setupConfigDirStrings(t *testing.T, initialModels []string) string {
 	// Create a temporary directory for the test
 	confDir, err := os.MkdirTemp("", "emf-cli")
@@ -32,6 +41,7 @@ func setupConfigDirStrings(t *testing.T, initialModels []string) string {
 	return confDir
 }
 
+// TODO : remove once AddModel uses []model.Model instead of []string
 func createConfigFileStrings(t *testing.T, filePath string, models []string) error {
 	file, err := os.Create(filePath)
 	defer func(file *os.File) {
@@ -61,6 +71,7 @@ func createConfigFileStrings(t *testing.T, filePath string, models []string) err
 	return nil
 }
 
+// TODO : update once AddModel uses []model.Model instead of []string
 func TestAddModel(t *testing.T) {
 	// Use the setup function
 	initialModels := []string{"model1", "model2"}
@@ -85,6 +96,7 @@ func TestAddModel(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
+// TODO : update once AddModel uses []model.Model instead of []string
 func TestAddModelOnEmptyConfFile(t *testing.T) {
 	// Use the setup function
 	initialModels := []string{}
@@ -109,6 +121,7 @@ func TestAddModelOnEmptyConfFile(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
+// TODO : update once AddModel uses []model.Model instead of []string
 func TestErrorOnAddModelWithEmptyViper(t *testing.T) {
 	// Use the setup function
 	initialModels := []string{}
@@ -123,6 +136,7 @@ func TestErrorOnAddModelWithEmptyViper(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
+// TODO : update once AddModel uses []model.Model instead of []string
 func TestGetModels_Success(t *testing.T) {
 	// Setup directory
 	confDir, initialConfigFile := setupConfigDir(t)
@@ -148,6 +162,7 @@ func TestGetModels_Success(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
+// TODO : update once AddModel uses []model.Model instead of []string
 func TestGetModels_MissingConfig(t *testing.T) {
 	// Setup directory
 	confDir, initialConfigFile := setupConfigDir(t)
@@ -275,7 +290,7 @@ func setupConfigDir(t *testing.T) (string, string) {
 	return confDir, initialConfigFile
 }
 
-// setupConfigFile creates a configuration file with specified models.
+// setupConfigFile creates a configuration file.
 func setupConfigFile(t *testing.T, filePath string, models []model.Model) error {
 	file, err := os.Create(filePath)
 	defer func(file *os.File) {
@@ -289,23 +304,61 @@ func setupConfigFile(t *testing.T, filePath string, models []model.Model) error 
 	}
 
 	if len(models) > 0 {
+
 		// Write models to the config file
-		_, err = file.WriteString("models:\n")
+		err := writeToConfigFile(file, "models", models)
 		if err != nil {
 			return err
 		}
-		for _, m := range models {
-			_, err = file.WriteString(fmt.Sprintf("  - name: %s\n    pipeline: %s\n    directorypath: %s\n    addtobinary: %t\n",
-				m.Name, m.PipeLine, m.DirectoryPath, m.AddToBinary))
-			if err != nil {
-				return err
-			}
-		}
+
 	} else {
-		_, err = file.WriteString("other:\n")
-		_, _ = file.WriteString(fmt.Sprintf("  - name: error\n    pipeline: error\n    directorypath: error\n"))
-		_, _ = file.WriteString(fmt.Sprintf("  - name: error\n    pipeline: error\n    directorypath: error\n"))
-		_, _ = file.WriteString(fmt.Sprintf("  - name: error\n    pipeline: error\n    directorypath: error\n"))
+
+		// Setting up alternative config data
+		var alternative = []AlternativeStructure{
+			{Field1: "data1", Field2: "data2", Field3: "data3"},
+		}
+
+		// Writing alternative data to the config file
+		err := writeToConfigFile(file, "alternative", alternative)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// writeToConfigFile writes the specified item to the configuration file.
+func writeToConfigFile(file *os.File, itemName string, itemData interface{}) error {
+	// Marshal models to JSON
+	jsonData, err := json.Marshal(itemData)
+	if err != nil {
+		return err
+	}
+
+	// Unmarshal JSON to YAML
+	var yamlData interface{}
+	err = yaml.Unmarshal(jsonData, &yamlData)
+	if err != nil {
+		return err
+	}
+
+	// Convert YAML data to []byte
+	yamlBytes, err := yaml.Marshal(yamlData)
+	if err != nil {
+		return err
+	}
+
+	// Write models to the config file
+	_, err = file.WriteString(fmt.Sprintf("%s:\n", itemName))
+	if err != nil {
+		return err
+	}
+
+	// Write YAML data to config file
+	_, err = file.Write(yamlBytes)
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -4,33 +4,43 @@ import (
 	"github.com/easy-model-fusion/client/test"
 	"github.com/spf13/viper"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
+// Define test structures for use in the tests
 type viperTestStructureOne struct {
 	Name string
 }
-
 type viperTestStructureTwo struct {
 	Name int
 }
 
+// TestGetViperConfig_Success tests the successful loading of the Viper configuration.
 func TestGetViperConfig_Success(t *testing.T) {
 
-	// Create file
-	file, err := os.OpenFile("config.yaml", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	// Create config file
+	file, err := os.Create(filepath.Join(".", "config.yaml"))
+	defer func(file *os.File) {
+		// Close and remove the created file after the test
+		err = file.Close()
+		if err != nil {
+			t.Error(err)
+		}
+		err = os.Remove(file.Name())
+		if err != nil {
+			t.Error(err)
+		}
+	}(file)
 
 	// Load the configuration file
 	err = GetViperConfig()
 
 	// Assert that the load method did not return an error
 	test.AssertEqual(t, err, nil, "No error should have been raised")
-
-	// Delete file
-	file.Close()
-	os.Remove(file.Name())
 }
 
+// TestGetViperConfig_Error tests the case where there is an error loading the Viper configuration.
 func TestGetViperConfig_Error(t *testing.T) {
 	// Load the configuration file
 	err := GetViperConfig()
@@ -39,6 +49,7 @@ func TestGetViperConfig_Error(t *testing.T) {
 	test.AssertNotEqual(t, err, nil, "An error should have been raised")
 }
 
+// TestGetViperItem_Success tests the successful retrieval of an item from the Viper configuration.
 func TestGetViperItem_Success(t *testing.T) {
 
 	// Set up a test Viper configuration
@@ -57,6 +68,7 @@ func TestGetViperItem_Success(t *testing.T) {
 	test.AssertEqual(t, len(result), len(testValue), "Expected the result item to be the same as the initial item.")
 }
 
+// TestGetViperItem_Error tests the case where there is an error retrieving an item from the Viper configuration.
 func TestGetViperItem_Error(t *testing.T) {
 
 	// Set up a test Viper configuration
@@ -70,14 +82,26 @@ func TestGetViperItem_Error(t *testing.T) {
 	var result []viperTestStructureTwo
 	err := GetViperItem("test", &result)
 
-	// Assert
+	// Assert that an error was raised
 	test.AssertNotEqual(t, err, nil, "Error while retrieving the config item.")
 }
 
+// TestWriteViperConfig_Success tests the successful writing of the Viper configuration.
 func TestWriteViperConfig_Success(t *testing.T) {
 
-	// Create file
-	file, err := os.OpenFile("config.yaml", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	// Create config file
+	file, err := os.Create(filepath.Join(".", "config.yaml"))
+	defer func(file *os.File) {
+		// Close and remove the created file after the test
+		err = file.Close()
+		if err != nil {
+			t.Error(err)
+		}
+		err = os.Remove(file.Name())
+		if err != nil {
+			t.Error(err)
+		}
+	}(file)
 
 	// Load the configuration file
 	viper.Reset()
@@ -86,12 +110,9 @@ func TestWriteViperConfig_Success(t *testing.T) {
 
 	// Assert that the write method did not return an error
 	test.AssertEqual(t, err, nil, "No error should have been raised")
-
-	// Delete file
-	file.Close()
-	os.Remove(file.Name())
 }
 
+// TestWriteViperConfig_Error tests the case where there is an error writing the Viper configuration.
 func TestWriteViperConfig_Error(t *testing.T) {
 	// Load the configuration file
 	viper.Reset()
