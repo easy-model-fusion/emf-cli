@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/pterm/pterm"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -64,8 +65,6 @@ PowerShell:
 
 func runCompletion(cmd *cobra.Command, args []string) {
 
-	logger := app.L().WithTime(false)
-
 	var selectedShell string
 
 	// No args, asking for a shell input
@@ -77,36 +76,36 @@ func runCompletion(cmd *cobra.Command, args []string) {
 
 	// Checks whether the input shell is handled
 	if len(selectedShell) == 0 {
-		logger.Error(fmt.Sprintf("Please provide a shell. Expected " + arguments))
+		pterm.Error.Println(fmt.Sprintf("Please provide a shell. Expected %s", arguments))
 	} else if utils.ArrayStringContainsItem(shells, selectedShell) {
 		switch selectedShell {
 		case "bash":
 			err := cmd.Root().GenBashCompletion(os.Stdout)
 			if err != nil {
-				logger.Error(err.Error())
+				pterm.Error.Println(fmt.Sprintf("Error generating script : %s", err))
 				return
 			}
 		case "zsh":
 			err := cmd.Root().GenZshCompletion(os.Stdout)
 			if err != nil {
-				logger.Error(err.Error())
+				pterm.Error.Println(fmt.Sprintf("Error generating script : %s", err))
 				return
 			}
 		case "fish":
 			err := cmd.Root().GenFishCompletion(os.Stdout, true)
 			if err != nil {
-				logger.Error(err.Error())
+				pterm.Error.Println(fmt.Sprintf("Error generating script : %s", err))
 				return
 			}
 		case "powershell":
 			err := cmd.Root().GenPowerShellCompletionWithDesc(os.Stdout)
 			if err != nil {
-				logger.Error(err.Error())
+				pterm.Error.Println(fmt.Sprintf("Error generating script : %s", err))
 				return
 			}
 		}
 	} else {
-		logger.Error(fmt.Sprintf("Shell '%s' not recognized. Expected "+arguments, selectedShell))
+		pterm.Error.Println(fmt.Sprintf("Shell '%s' not recognized. Expected %s", selectedShell, arguments))
 	}
 }
 

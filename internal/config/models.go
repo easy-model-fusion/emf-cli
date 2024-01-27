@@ -1,9 +1,9 @@
 package config
 
 import (
-	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/pterm/pterm"
 	"github.com/spf13/viper"
 )
 
@@ -21,14 +21,11 @@ func GetModels() ([]model.Model, error) {
 
 // IsModelsEmpty checks if the models slice is empty.
 func IsModelsEmpty(models []model.Model) bool {
-	logger := app.L().WithTime(false)
-
 	// No models currently downloaded
 	if len(models) == 0 {
-		logger.Error("Models list is empty. Nothing to remove.")
+		pterm.Info.Println("Models list is empty.")
 		return true
 	}
-
 	return false
 }
 
@@ -49,30 +46,57 @@ func RemoveModels(models []model.Model, modelsToRemove []string) error {
 
 	// Filter out the models to be removed
 	var updatedModels []model.Model
+	var removedModels []string
 	for _, existingModel := range models {
 		if _, exists := modelsMap[existingModel.Name]; !exists {
 			// Keep the model if it's not in the modelsToRemove list
 			updatedModels = append(updatedModels, existingModel)
+		} else {
+			// Indicate which model was effectively removed
+			removedModels = append(removedModels, existingModel.Name)
 		}
 	}
 
-	// TODO : remove the downloaded models : Issue #21
+	// Create a map for faster lookup
+	removedModelsMap := utils.MapFromArrayString(removedModels)
+
+	// Displaying if the selected models where removed or not
+	for _, modelToRemove := range modelsToRemove {
+		if _, exists := removedModelsMap[modelToRemove]; exists {
+			pterm.Success.Printfln("Model '%s' was removed.", modelToRemove)
+		} else {
+			pterm.Warning.Printfln("Model '%s' is not installed. Nothing to remove.", modelToRemove)
+		}
+	}
 
 	// Update the models
 	viper.Set("models", updatedModels)
 
 	// Attempt to write the configuration file
-	return WriteViperConfig()
+	err := WriteViperConfig()
+	if err != nil {
+		return err
+	}
+
+	// TODO : remove the downloaded models : Issue #21 => removedModels
+
+	return nil
+
 }
 
 // RemoveAllModels empties the models list and writes to the configuration file.
 func RemoveAllModels() error {
 
-	// TODO : remove all the downloaded models : Issue #21
-
 	// Empty the models
 	viper.Set("models", []string{})
 
 	// Attempt to write the configuration file
-	return WriteViperConfig()
+	err := WriteViperConfig()
+	if err != nil {
+		return err
+	}
+
+	// TODO : remove the downloaded models : Issue #21
+
+	return nil
 }

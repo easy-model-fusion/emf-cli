@@ -1,15 +1,15 @@
 package config
 
 import (
-	"github.com/easy-model-fusion/client/internal/app"
+	"fmt"
+	"github.com/pterm/pterm"
 	"github.com/spf13/viper"
 )
 
 // GetViperConfig Config loaded and return an error upon failure
 func GetViperConfig() error {
-	logger := app.L().WithTime(false)
 	if err := Load("."); err != nil {
-		logger.Error("Error loading config file:" + err.Error())
+		pterm.Error.Println(fmt.Sprintf("Error loading config file : %s", err))
 		return err
 	}
 	return nil
@@ -17,9 +17,8 @@ func GetViperConfig() error {
 
 // GetViperItem Store the key data into the target
 func GetViperItem(key string, target interface{}) error {
-	logger := app.L().WithTime(false)
 	if err := viper.UnmarshalKey(key, target); err != nil {
-		logger.Error("Error reading config file:" + err.Error())
+		pterm.Error.Println(fmt.Sprintf("Error reading config file : %s", err))
 		return err
 	}
 	return nil
@@ -27,9 +26,8 @@ func GetViperItem(key string, target interface{}) error {
 
 // WriteViperConfig Attempt to write the configuration file
 func WriteViperConfig() error {
-	logger := app.L().WithTime(false)
 	if err := viper.WriteConfig(); err != nil {
-		logger.Error("Error writing to config file:" + err.Error())
+		pterm.Error.Println(fmt.Sprintf("Error writing to config file : %s", err))
 		return err
 	}
 	return nil
