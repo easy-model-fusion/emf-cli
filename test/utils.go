@@ -4,9 +4,21 @@ import (
 	"github.com/easy-model-fusion/client/sdk"
 	"io/fs"
 	"os"
-	"path/filepath"
 	"testing"
 )
+
+// checkErrDeleteFolder Check if an error is not nil, delete the folder and fail the test
+func checkErrDeleteFolder(t *testing.T, err error, dname string) {
+	if err == nil {
+		return
+	}
+	t.Error(err)
+	err = os.RemoveAll(dname)
+	if err != nil {
+		t.Error(err)
+	}
+	t.FailNow()
+}
 
 // CreateFullTestSuite Create a full test suite
 // Please delete the directory after use (defer os.RemoveAll(dname))
@@ -19,34 +31,15 @@ func CreateFullTestSuite(t *testing.T) (directoryPath string) {
 	}
 
 	// Chdir to a temporary directory
-	//err = os.Chdir(dname)
-	//if err != nil {
-	//	t.Error(err)
-	//}
+	err = os.Chdir(dname)
+	checkErrDeleteFolder(t, err, dname)
 
-	// Create config file
-	file, err := os.Create("config.yaml")
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
-	err = file.Close()
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
-
+	// Create config file from embedded file
 	content, err := fs.ReadFile(sdk.EmbeddedFiles, "config.yaml")
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
+	checkErrDeleteFolder(t, err, dname)
 
-	err = os.WriteFile(filepath.Join(dname, "config.yaml"), content, os.ModePerm)
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
+	err = os.WriteFile("config.yaml", content, os.ModePerm)
+	checkErrDeleteFolder(t, err, dname)
 
 	return dname
 }

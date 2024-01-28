@@ -49,9 +49,7 @@ func SendUpdateSuggestion() {
 		return
 	}
 
-	pterm.DefaultHeader.Println("An update is available for the SDK\n" +
-		"Run the following command to update the SDK\n" +
-		"emf-cli update")
+	pterm.DefaultBox.Println("A new version of the SDK is available!\nTo update, run 'emf-cli update'")
 	pterm.Println()
 
 	setUpdateSuggestion(true)
