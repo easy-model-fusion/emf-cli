@@ -2,12 +2,11 @@ package config
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/huggingface"
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/utils"
-	"github.com/spf13/cobra"
 	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -23,7 +22,7 @@ func GetModels() ([]model.Model, error) {
 	return models, nil
 }
 
-// GetModels retrieves models from the configuration.
+// GetModelsNames retrieves models from the configuration.
 func GetModelsNames() ([]string, error) {
 	models, err := GetModels()
 	if err != nil {
@@ -39,8 +38,6 @@ func GetModelsNames() ([]string, error) {
 
 // IsModelsEmpty checks if the models slice is empty.
 func IsModelsEmpty(models []model.Model) bool {
-	logger := app.L().WithTime(false)
-
 	// No models currently downloaded
 	if len(models) == 0 {
 		pterm.Info.Println("Models list is empty.")
@@ -57,11 +54,18 @@ func AddModel(models []model.Model) error {
 		return err
 	}
 	// add new models
-	updatedModelsList := append(originalModelsList, models...)
-	viper.Set("models", updatedModelsList)
+	updatedModels := append(originalModelsList, models...)
+	// Update the models
+	viper.Set("models", updatedModels)
 
 	// Attempt to write the configuration file
-	return viper.WriteConfig()
+	err = WriteViperConfig()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // RemoveModels filters out specified models and writes to the configuration file.

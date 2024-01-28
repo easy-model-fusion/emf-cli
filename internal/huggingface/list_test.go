@@ -8,7 +8,7 @@ import (
 
 func TestGetModels(t *testing.T) {
 	limit := 10
-	models, err := GetModels(limit, model.TEXT_TO_IMAGE, nil)
+	models, err := GetModels(&limit, model.TEXT_TO_IMAGE, nil)
 	test.AssertEqual(t, err, nil, "The api call should've passed.")
 	test.AssertEqual(t, len(models), limit, "The api call should've passed.")
 

@@ -25,14 +25,10 @@ var displayModels bool
 
 // runAdd runs add command
 func runAdd(cmd *cobra.Command, args []string) {
-	var selectedModelNames []string
-	logger := app.L().WithTime(false)
-
-	// Load the configuration file
-	err := config.Load(".")
-	if err != nil {
-		logger.Error("Error reading config file:" + err.Error())
+	if config.GetViperConfig() != nil {
+		return
 	}
+	var selectedModelNames []string
 
 	var selectedModels []model.Model
 
@@ -72,13 +68,15 @@ func runAdd(cmd *cobra.Command, args []string) {
 	// TODO install models with addToBinary => true
 
 	// Add models to configuration file
-	err = config.AddModel(selectedModels)
-	if err != nil {
-		logger.Error("Error while adding models into config file:" + err.Error())
-	}
+	err := config.AddModel(selectedModels)
 
-	// Display the selected models
-	utils.DisplaySelectedItems(selectedModelNames)
+	if err == nil {
+		// Display the selected models
+		utils.DisplaySelectedItems(selectedModelNames)
+		pterm.Success.Printfln("Operation succeeded.")
+	} else {
+		pterm.Error.Printfln("Operation failed.")
+	}
 }
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project

@@ -1,7 +1,6 @@
 package command
 
 import (
-	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/config"
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/utils"
@@ -20,14 +19,6 @@ var removeCmd = &cobra.Command{
 }
 
 func runRemove(cmd *cobra.Command, args []string) {
-	logger := app.L().WithTime(false)
-
-	// Load the configuration file
-	test := config.Load(".")
-	if test != nil {
-		logger.Error("Error reading config file:" + test.Error())
-	}
-
 	if config.GetViperConfig() != nil {
 		return
 	}

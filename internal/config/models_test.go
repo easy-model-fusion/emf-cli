@@ -25,68 +25,47 @@ func init() {
 	app.Init("", "")
 }
 
-// TODO : remove once AddModel uses []model.Model instead of []string
-func setupConfigDirStrings(t *testing.T, initialModels []string) string {
-	// Create a temporary directory for the test
-	confDir, err := os.MkdirTemp("", "emf-cli")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Set up a temporary config file with some initial models
-	initialConfigFile := filepath.Join(confDir, "config.yaml")
-
-	err = createConfigFileStrings(t, initialConfigFile, initialModels)
-	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
-
-	return confDir
-}
-
-// TODO : remove once AddModel uses []model.Model instead of []string
-func createConfigFileStrings(t *testing.T, filePath string, models []string) error {
-	file, err := os.Create(filePath)
-	defer func(file *os.File) {
-		err = file.Close()
-		if err != nil {
-			t.Error(err)
-		}
-	}(file)
-	if err != nil {
-		return err
-	}
-
-	if len(models) > 0 {
-		// Write models to the config file
-		_, err = file.WriteString("models:\n")
-		if err != nil {
-			return err
-		}
-		for _, item := range models {
-			_, err = file.WriteString("  - " + item + "\n")
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-// TODO : update once AddModel uses []model.Model instead of []string
 func TestAddModel(t *testing.T) {
-	// Use the setup function
-	initialModels := []string{"model1", "model2"}
-	confDir := setupConfigDirStrings(t, initialModels)
+	// Setup directory
+	confDir, initialConfigFile := setupConfigDir(t)
+
+	// Setup file
+	initialModels := []model.Model{
+		{
+			Name:          "model1",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline1"}},
+			DirectoryPath: "/path/to/model1",
+			AddToBinary:   true},
+		{
+			Name:          "model2",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline2"}},
+			DirectoryPath: "/path/to/model2",
+			AddToBinary:   false},
+	}
 
 	// Call the AddModel function to add new models
-	newModels := []string{"model3", "model4"}
-	err := Load(confDir)
+	newModels := []model.Model{
+		{
+			Name:          "model3",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline3"}},
+			DirectoryPath: "/path/to/model3",
+			AddToBinary:   true},
+		{
+			Name:          "model4",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline3"}},
+			DirectoryPath: "/path/to/model4",
+			AddToBinary:   false},
+	}
+	err := setupConfigFile(t, initialConfigFile, initialModels)
+	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
+	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 	err = AddModel(newModels)
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
 
 	// Assert that the models have been updated correctly
-	updatedModels := viper.GetStringSlice("models")
+	updatedModels, err := GetModels()
+	test.AssertEqual(t, err, nil, "Error while getting updated models.")
 	expectedModels := append(initialModels, newModels...)
 	test.AssertEqual(t, len(updatedModels), len(expectedModels), "Models list length is not as expected.")
 	for i := 0; i < len(initialModels); i++ {
@@ -97,15 +76,28 @@ func TestAddModel(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
-// TODO : update once AddModel uses []model.Model instead of []string
 func TestAddModelOnEmptyConfFile(t *testing.T) {
 	// Use the setup function
-	initialModels := []string{}
-	confDir := setupConfigDirStrings(t, initialModels)
+	initialModels := []model.Model{}
+	confDir, initialConfigFile := setupConfigDir(t)
 
 	// Call the AddModel function to add new models
-	newModels := []string{"model1", "model2"}
-	err := Load(confDir)
+	newModels := []model.Model{
+		{
+			Name:          "model1",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline1"}},
+			DirectoryPath: "/path/to/model1",
+			AddToBinary:   true},
+		{
+			Name:          "model2",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline2"}},
+			DirectoryPath: "/path/to/model2",
+			AddToBinary:   false},
+	}
+
+	err := setupConfigFile(t, initialConfigFile, initialModels)
+	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
+	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 	err = AddModel(newModels)
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
@@ -122,19 +114,24 @@ func TestAddModelOnEmptyConfFile(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
-// TODO : update once AddModel uses []model.Model instead of []string
 func TestErrorOnAddModelWithEmptyViper(t *testing.T) {
-	// Use the setup function
-	initialModels := []string{}
-	confDir := setupConfigDirStrings(t, initialModels)
-
+	viper.Reset()
 	// Call the AddModel function to add new models
-	newModels := []string{"model1", "model2"}
+	newModels := []model.Model{
+		{
+			Name:          "model1",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline1"}},
+			DirectoryPath: "/path/to/model1",
+			AddToBinary:   true},
+		{
+			Name:          "model2",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline2"}},
+			DirectoryPath: "/path/to/model2",
+			AddToBinary:   false},
+	}
+
 	err := AddModel(newModels)
 	test.AssertNotEqual(t, err, nil, "Should get error while updating configuration file.")
-
-	// Clean up directory afterward
-	cleanConfDir(t, confDir)
 }
 
 // TODO : update once AddModel uses []model.Model instead of []string
@@ -144,8 +141,16 @@ func TestGetModels_Success(t *testing.T) {
 
 	// Setup file
 	initialModels := []model.Model{
-		{Name: "model1", PipeLine: "pipeline1", DirectoryPath: "/path/to/model1", AddToBinary: true},
-		{Name: "model2", PipeLine: "pipeline2", DirectoryPath: "/path/to/model2", AddToBinary: false},
+		{
+			Name:          "model1",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline1"}},
+			DirectoryPath: "/path/to/model1",
+			AddToBinary:   true},
+		{
+			Name:          "model2",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline2"}},
+			DirectoryPath: "/path/to/model2",
+			AddToBinary:   false},
 	}
 	err := setupConfigFile(t, initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
@@ -202,8 +207,16 @@ func TestIsModelsEmpty_EmptyModels(t *testing.T) {
 func TestIsModelsEmpty_NonEmptyModels(t *testing.T) {
 	// Init
 	models := []model.Model{
-		{Name: "Model1", PipeLine: "Pipeline1", DirectoryPath: "/path/to/directory1", AddToBinary: true},
-		{Name: "Model2", PipeLine: "Pipeline2", DirectoryPath: "/path/to/directory2", AddToBinary: false},
+		{
+			Name:          "model1",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline1"}},
+			DirectoryPath: "/path/to/model1",
+			AddToBinary:   true},
+		{
+			Name:          "model2",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline2"}},
+			DirectoryPath: "/path/to/model2",
+			AddToBinary:   false},
 	}
 
 	// Execute
@@ -220,8 +233,16 @@ func TestRemoveModels_Success(t *testing.T) {
 
 	// Setup file
 	initialModels := []model.Model{
-		{Name: "model1", PipeLine: "pipeline1", DirectoryPath: "/path/to/model1", AddToBinary: true},
-		{Name: "model2", PipeLine: "pipeline2", DirectoryPath: "/path/to/model2", AddToBinary: false},
+		{
+			Name:          "model1",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline1"}},
+			DirectoryPath: "/path/to/model1",
+			AddToBinary:   true},
+		{
+			Name:          "model2",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline2"}},
+			DirectoryPath: "/path/to/model2",
+			AddToBinary:   false},
 	}
 	err := setupConfigFile(t, initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
@@ -252,8 +273,16 @@ func TestRemoveAllModels_Success(t *testing.T) {
 
 	// Setup file
 	initialModels := []model.Model{
-		{Name: "model1", PipeLine: "pipeline1", DirectoryPath: "/path/to/model1", AddToBinary: true},
-		{Name: "model2", PipeLine: "pipeline2", DirectoryPath: "/path/to/model2", AddToBinary: false},
+		{
+			Name:          "model1",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline1"}},
+			DirectoryPath: "/path/to/model1",
+			AddToBinary:   true},
+		{
+			Name:          "model2",
+			Config:        model.Config{Diffusers: model.Diffusers{PipeLine: "pipeline2"}},
+			DirectoryPath: "/path/to/model2",
+			AddToBinary:   false},
 	}
 	err := setupConfigFile(t, initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
