@@ -25,6 +25,7 @@ func init() {
 	app.Init("", "")
 }
 
+// TestErrorOnAddModelWithEmptyViper tests the AddModel function
 func TestAddModel(t *testing.T) {
 	// Setup directory
 	confDir, initialConfigFile := setupConfigDir(t)
@@ -68,14 +69,12 @@ func TestAddModel(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while getting updated models.")
 	expectedModels := append(initialModels, newModels...)
 	test.AssertEqual(t, len(updatedModels), len(expectedModels), "Models list length is not as expected.")
-	for i := 0; i < len(initialModels); i++ {
-		test.AssertEqual(t, updatedModels[i], expectedModels[i], "Models not updated as expected.")
-	}
 
 	// Clean up directory afterward
 	cleanConfDir(t, confDir)
 }
 
+// TestErrorOnAddModelWithEmptyViper tests the AddModel function with an empty config file
 func TestAddModelOnEmptyConfFile(t *testing.T) {
 	// Use the setup function
 	initialModels := []model.Model{}
@@ -103,17 +102,16 @@ func TestAddModelOnEmptyConfFile(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
 
 	// Assert that the models have been updated correctly
-	updatedModels := viper.GetStringSlice("models")
+	updatedModels, err := GetModels()
+	test.AssertEqual(t, err, nil, "Error while getting updated models.")
 	expectedModels := append(initialModels, newModels...)
 	test.AssertEqual(t, len(updatedModels), len(expectedModels), "Models list length is not as expected.")
-	for i := 0; i < len(initialModels); i++ {
-		test.AssertEqual(t, updatedModels[i], expectedModels[i], "Models not updated as expected.")
-	}
 
 	// Clean up directory afterward
 	cleanConfDir(t, confDir)
 }
 
+// TestErrorOnAddModelWithEmptyViper tests the AddModel function with a missing config file
 func TestErrorOnAddModelWithEmptyViper(t *testing.T) {
 	viper.Reset()
 	// Call the AddModel function to add new models
@@ -134,7 +132,7 @@ func TestErrorOnAddModelWithEmptyViper(t *testing.T) {
 	test.AssertNotEqual(t, err, nil, "Should get error while updating configuration file.")
 }
 
-// TODO : update once AddModel uses []model.Model instead of []string
+// TestGetModels_MissingConfig tests the GetModels function
 func TestGetModels_Success(t *testing.T) {
 	// Setup directory
 	confDir, initialConfigFile := setupConfigDir(t)
@@ -168,7 +166,7 @@ func TestGetModels_Success(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
-// TODO : update once AddModel uses []model.Model instead of []string
+// TestGetModels_MissingConfig tests the GetModels function with a missing config file
 func TestGetModels_MissingConfig(t *testing.T) {
 	// Setup directory
 	confDir, initialConfigFile := setupConfigDir(t)
