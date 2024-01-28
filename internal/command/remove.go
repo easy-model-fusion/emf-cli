@@ -2,6 +2,7 @@ package command
 
 import (
 	"github.com/easy-model-fusion/client/internal/config"
+	"github.com/easy-model-fusion/client/internal/sdk"
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
@@ -22,6 +23,8 @@ func runRemove(cmd *cobra.Command, args []string) {
 	if config.GetViperConfig() != nil {
 		return
 	}
+
+	sdk.SendUpdateSuggestion()
 
 	// remove all models
 	if allFlag {
