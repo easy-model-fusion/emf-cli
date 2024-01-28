@@ -393,3 +393,15 @@ func cleanConfDir(t *testing.T, confDir string) {
 		t.Errorf("Error cleaning up temporary directory: %v", err)
 	}
 }
+
+func TestModelExists_OnExistentModel(t *testing.T) {
+	// TODO implement this after fixing writeToConfigFile
+	// bug ==> writing name and pipeline
+	// cause of bug ==> name of variables key values
+}
+
+func TestModelExists_OnNotExistentModel(t *testing.T) {
+	// TODO implement this after fixing writeToConfigFile
+	// bug ==> writing name and pipeline
+	// cause of bug ==> name of variables key values
+}

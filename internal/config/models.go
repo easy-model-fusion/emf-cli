@@ -70,22 +70,8 @@ func AddModel(models []model.Model) error {
 
 // RemoveModels filters out specified models and writes to the configuration file.
 func RemoveModels(models []model.Model, modelsToRemove []string) error {
-
-	// Create a map for faster lookup
-	modelsMap := utils.MapFromArrayString(modelsToRemove)
-
 	// Filter out the models to be removed
-	var updatedModels []model.Model
-	var removedModels []string
-	for _, existingModel := range models {
-		if _, exists := modelsMap[existingModel.Name]; !exists {
-			// Keep the model if it's not in the modelsToRemove list
-			updatedModels = append(updatedModels, existingModel)
-		} else {
-			// Indicate which model was effectively removed
-			removedModels = append(removedModels, existingModel.Name)
-		}
-	}
+	updatedModels, removedModels := RemoveModelsFromList(models, modelsToRemove)
 
 	// Create a map for faster lookup
 	removedModelsMap := utils.MapFromArrayString(removedModels)
@@ -131,22 +117,27 @@ func RemoveAllModels() error {
 	return nil
 }
 
-func RemoveModelsFromList(currentModels []model.Model, modelsToRemove []string) []model.Model {
+func RemoveModelsFromList(currentModels []model.Model, modelsToRemove []string) ([]model.Model, []string) {
 	// Create a map for faster lookup
 	modelsMap := utils.MapFromArrayString(modelsToRemove)
 
 	// Filter out the models to be removed
 	var updatedModels []model.Model
+	var removedModels []string
 	for _, existingModel := range currentModels {
 		if _, exists := modelsMap[existingModel.Name]; !exists {
 			// Keep the model if it's not in the modelsToRemove list
 			updatedModels = append(updatedModels, existingModel)
+		} else {
+			// Indicate which model was effectively removed
+			removedModels = append(removedModels, existingModel.Name)
 		}
 	}
 
-	return updatedModels
+	return updatedModels, removedModels
 }
 
+// ModelExists verifies if a model exists already in the configuration file or not
 func ModelExists(name string) (bool, error) {
 	models, err := GetModels()
 	if err != nil {
@@ -158,7 +149,6 @@ func ModelExists(name string) (bool, error) {
 			return true, nil
 		}
 	}
-	println(models)
 
 	return false, nil
 }

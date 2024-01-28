@@ -100,7 +100,7 @@ func selectModels(tags []string, currentSelectedModels []string) ([]model.Model,
 
 	// Remove existent models from list of models to add
 	// Remove already selected models from list of models to add (in case user entered add model_name -s)
-	models = config.RemoveModelsFromList(models, append(currentModelsNames, currentSelectedModels...))
+	models, _ = config.RemoveModelsFromList(models, append(currentModelsNames, currentSelectedModels...))
 
 	// Build a multiselect with each model name
 	var modelNames []string
