@@ -54,7 +54,8 @@ func runAdd(cmd *cobra.Command, args []string) {
 			runAdd(cmd, args)
 		}
 		// Get selected models
-		selectedModels, modelsNames := selectModels(selectedTags, selectedModelNames)
+		var modelsNames []string
+		selectedModels, modelsNames = selectModels(selectedTags, selectedModelNames)
 		if selectedModels == nil {
 			app.L().WithTime(false).Warn("No models selected")
 			return
