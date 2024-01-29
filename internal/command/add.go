@@ -1,7 +1,6 @@
 package command
 
 import (
-	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/config"
 	"github.com/easy-model-fusion/client/internal/huggingface"
@@ -37,7 +36,7 @@ func runAdd(cmd *cobra.Command, args []string) {
 		for _, name := range args {
 			apiModel, err := huggingface.GetModel(name, nil)
 			if err != nil {
-				app.L().WithTime(false).Error(fmt.Sprintf("while getting model %v", name))
+				pterm.Error.Println("while getting model " + name)
 				return
 			}
 			selectedModels = append(selectedModels, *apiModel)
@@ -54,13 +53,13 @@ func runAdd(cmd *cobra.Command, args []string) {
 			runAdd(cmd, args)
 		}
 		// Get selected models
-		var modelsNames []string
-		selectedModels, modelsNames = selectModels(selectedTags, selectedModelNames)
+		var modelNames []string
+		selectedModels, modelNames = selectModels(selectedTags, selectedModelNames)
 		if selectedModels == nil {
 			app.L().WithTime(false).Warn("No models selected")
 			return
 		}
-		selectedModelNames = append(selectedModelNames, modelsNames...)
+		selectedModelNames = append(selectedModelNames, modelNames...)
 	}
 
 	// User choose either to exclude or include models in binary
@@ -93,14 +92,14 @@ func selectModels(tags []string, currentSelectedModels []string) ([]model.Model,
 	}
 
 	// Get existent models from configuration file
-	currentModelsNames, err := config.GetModelsNames()
+	currentModelNames, err := config.GetModelNames()
 	if err != nil {
 		app.L().Fatal("error while getting current models")
 	}
 
 	// Remove existent models from list of models to add
 	// Remove already selected models from list of models to add (in case user entered add model_name -s)
-	models, _ = config.RemoveModelsFromList(models, append(currentModelsNames, currentSelectedModels...))
+	models, _ = config.RemoveModelsFromList(models, append(currentModelNames, currentSelectedModels...))
 
 	// Build a multiselect with each model name
 	var modelNames []string
@@ -140,11 +139,11 @@ func selectTags() []string {
 }
 
 // selectExcludedModelsFromInstall returns updated models objects with excluded/included from binary
-func selectExcludedModelsFromInstall(models []model.Model, modelsNames []string) []model.Model {
+func selectExcludedModelsFromInstall(models []model.Model, modelNames []string) []model.Model {
 	// Build a multiselect with each selected model name to exclude/include in the binary
 	message := "Please select the model(s) that you don't wish to install directly"
 	checkMark := &pterm.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")}
-	installsToExclude := utils.DisplayInteractiveMultiselect(message, modelsNames, checkMark, false)
+	installsToExclude := utils.DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
 	var updatedModels []model.Model
 	for _, currentModel := range models {
 		currentModel.AddToBinary = !utils.ArrayStringContainsItem(installsToExclude, currentModel.Name)

@@ -23,7 +23,7 @@ func GetModels(limit *int, tag string, proxyURL *url.URL) ([]model.Model, error)
 	if limit != nil {
 		limitQuery = fmt.Sprintf("&limit=%d", *limit)
 	}
-	apiURL := fmt.Sprintf("https://huggingface.co/api/models?config=config&pipeline_tag=%v%v", tag, limitQuery)
+	apiURL := fmt.Sprintf(BaseUrl+ModelEndpoint+"?config=config&pipeline_tag=%v%v", tag, limitQuery)
 	response, err := http.Get(apiURL)
 	if err != nil {
 		return nil, err

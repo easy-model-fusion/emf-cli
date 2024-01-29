@@ -22,18 +22,18 @@ func GetModels() ([]model.Model, error) {
 	return models, nil
 }
 
-// GetModelsNames retrieves models from the configuration.
-func GetModelsNames() ([]string, error) {
+// GetModelNames retrieves models from the configuration.
+func GetModelNames() ([]string, error) {
 	models, err := GetModels()
 	if err != nil {
 		return nil, err
 	}
 
-	var modelsNames []string
+	var modelNames []string
 	for _, item := range models {
-		modelsNames = append(modelsNames, item.Name)
+		modelNames = append(modelNames, item.Name)
 	}
-	return modelsNames, nil
+	return modelNames, nil
 }
 
 // IsModelsEmpty checks if the models slice is empty.

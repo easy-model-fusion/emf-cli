@@ -18,7 +18,7 @@ func GetModel(id string, proxyURL *url.URL) (*model.Model, error) {
 		}
 	}
 
-	apiURL := fmt.Sprintf("https://huggingface.co/api/models?config=config&id=%v", id)
+	apiURL := fmt.Sprintf(BaseUrl+ModelEndpoint+"?config=config&id=%v", id)
 	response, err := http.Get(apiURL)
 	if err != nil {
 		return nil, err
