@@ -1,9 +1,12 @@
 package config
 
 import (
+	"fmt"
+	"github.com/easy-model-fusion/client/internal/huggingface"
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
@@ -19,6 +22,20 @@ func GetModels() ([]model.Model, error) {
 	return models, nil
 }
 
+// GetModelNames retrieves models from the configuration.
+func GetModelNames() ([]string, error) {
+	models, err := GetModels()
+	if err != nil {
+		return nil, err
+	}
+
+	var modelNames []string
+	for _, item := range models {
+		modelNames = append(modelNames, item.Name)
+	}
+	return modelNames, nil
+}
+
 // IsModelsEmpty checks if the models slice is empty.
 func IsModelsEmpty(models []model.Model) bool {
 	// No models currently downloaded
@@ -29,33 +46,32 @@ func IsModelsEmpty(models []model.Model) bool {
 	return false
 }
 
-func AddModel(models []string) error {
-	originalModelsList := viper.GetStringSlice("models")
-	updatedModelsList := append(originalModelsList, models...)
-	viper.Set("models", updatedModelsList)
+// AddModel adds models to configuration file
+func AddModel(models []model.Model) error {
+	// get existent models
+	originalModelsList, err := GetModels()
+	if err != nil {
+		return err
+	}
+	// add new models
+	updatedModels := append(originalModelsList, models...)
+	// Update the models
+	viper.Set("models", updatedModels)
 
 	// Attempt to write the configuration file
-	return viper.WriteConfig()
+	err = WriteViperConfig()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // RemoveModels filters out specified models and writes to the configuration file.
 func RemoveModels(models []model.Model, modelsToRemove []string) error {
-
-	// Create a map for faster lookup
-	modelsMap := utils.MapFromArrayString(modelsToRemove)
-
 	// Filter out the models to be removed
-	var updatedModels []model.Model
-	var removedModels []string
-	for _, existingModel := range models {
-		if _, exists := modelsMap[existingModel.Name]; !exists {
-			// Keep the model if it's not in the modelsToRemove list
-			updatedModels = append(updatedModels, existingModel)
-		} else {
-			// Indicate which model was effectively removed
-			removedModels = append(removedModels, existingModel.Name)
-		}
-	}
+	updatedModels, removedModels := RemoveModelsFromList(models, modelsToRemove)
 
 	// Create a map for faster lookup
 	removedModelsMap := utils.MapFromArrayString(removedModels)
@@ -99,4 +115,75 @@ func RemoveAllModels() error {
 	// TODO : remove the downloaded models : Issue #21
 
 	return nil
+}
+
+func RemoveModelsFromList(currentModels []model.Model, modelsToRemove []string) ([]model.Model, []string) {
+	// Create a map for faster lookup
+	modelsMap := utils.MapFromArrayString(modelsToRemove)
+
+	// Filter out the models to be removed
+	var updatedModels []model.Model
+	var removedModels []string
+	for _, existingModel := range currentModels {
+		if _, exists := modelsMap[existingModel.Name]; !exists {
+			// Keep the model if it's not in the modelsToRemove list
+			updatedModels = append(updatedModels, existingModel)
+		} else {
+			// Indicate which model was effectively removed
+			removedModels = append(removedModels, existingModel.Name)
+		}
+	}
+
+	return updatedModels, removedModels
+}
+
+// ModelExists verifies if a model exists already in the configuration file or not
+func ModelExists(name string) (bool, error) {
+	models, err := GetModels()
+	if err != nil {
+		return false, err
+	}
+	for _, currentModel := range models {
+		println(currentModel.Name)
+		if currentModel.Name == name {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// ValidModelName returns an error if the which arg is not a valid model name.
+func ValidModelName() cobra.PositionalArgs {
+	return func(cmd *cobra.Command, args []string) error {
+		if len(args) == 0 {
+			return nil
+		}
+
+		for _, name := range args {
+			valid, err := huggingface.ValidModel(name)
+			if err != nil {
+				return err
+			}
+			if !valid {
+				return fmt.Errorf("'%s' is not a valid model name", name)
+			}
+
+			// Load the configuration file
+			err = Load(".")
+			if err != nil {
+				return err
+			}
+
+			exist, err := ModelExists(name)
+			if err != nil {
+				return err
+			}
+			if exist {
+				return fmt.Errorf("'%s' model is already included in the project", name)
+			}
+		}
+
+		return nil
+	}
 }
