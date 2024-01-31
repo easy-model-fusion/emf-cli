@@ -13,7 +13,7 @@ import (
 func (h HuggingFace) GetModel(id string) (model.Model, error) {
 	var result model.Model
 
-	getModelUrl, err := url.Parse(h.BaseUrl + ModelEndpoint)
+	getModelUrl, err := url.Parse(h.BaseUrl + modelEndpoint)
 	if err != nil {
 		return result, err
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 const BaseUrl = "https://huggingface.co/api"
-const ModelEndpoint = "/models"
+const modelEndpoint = "/models"
 
 type HuggingFace struct {
 	BaseUrl string

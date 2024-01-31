@@ -3,6 +3,7 @@ package command
 import (
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/config"
+	"github.com/easy-model-fusion/client/internal/huggingface"
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/sdk"
 	"github.com/easy-model-fusion/client/internal/utils"
@@ -31,7 +32,7 @@ func runAdd(cmd *cobra.Command, args []string) {
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
 
 	// TODO: Get flags or default values
-	app.InitHuggingFace("", "")
+	app.InitHuggingFace(huggingface.BaseUrl, "")
 
 	var selectedModelNames []string
 	var selectedModels []model.Model

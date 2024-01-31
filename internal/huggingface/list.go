@@ -11,7 +11,7 @@ import (
 
 // GetModels from hugging face api
 func (h HuggingFace) GetModels(tag string, limit int) ([]model.Model, error) {
-	getModelsUrl, err := url.Parse(h.BaseUrl + ModelEndpoint)
+	getModelsUrl, err := url.Parse(h.BaseUrl + modelEndpoint)
 	if err != nil {
 		return nil, err
 	}
