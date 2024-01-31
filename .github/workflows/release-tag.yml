@@ -1,0 +1,80 @@
+name: Client release
+
+on:
+  push:
+    tags:
+      - 'release/*'
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Installing Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.21.6
+
+    - name: Installing Go dependency
+      run: go get -v -t -d ./...
+
+    - name: Build for Windows
+      run: GOOS=windows GOARCH=amd64 go build -o client-windows-amd64.exe
+
+    - name: Build for Mac
+      run: GOOS=darwin GOARCH=amd64 go build -o client-darwin-amd64
+
+    - name: Build for Linux
+      run: GOOS=linux GOARCH=amd64 go build -o client-linux-amd64
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          Changes in this release:
+          - Describe your changes here.
+
+    - name: Upload Windows Artifact
+      id: upload-windows-artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./client-windows-amd64.exe
+        asset_name: client-windows-amd64.exe
+        asset_content_type: application/octet-stream
+
+    - name: Upload Mac Artifact
+      id: upload-mac-artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./client-darwin-amd64
+        asset_name: client-darwin-amd64
+        asset_content_type: application/octet-stream
+
+    - name: Upload Linux Artifact
+      id: upload-linux-artifact
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./client-linux-amd64
+        asset_name: client-linux-amd64
+        asset_content_type: application/octet-stream
