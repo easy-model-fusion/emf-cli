@@ -9,9 +9,6 @@ type Model struct {
 }
 
 type Config struct {
-	Diffusers Diffusers `json:"diffusers"`
-}
-
-type Diffusers struct {
-	PipeLine string `json:"class_name"`
+	ModuleName string `json:"module_name"`
+	ClassName  string `json:"class_name"`
 }
