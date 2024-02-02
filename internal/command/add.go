@@ -5,6 +5,7 @@ import (
 	"github.com/easy-model-fusion/client/internal/config"
 	"github.com/easy-model-fusion/client/internal/huggingface"
 	"github.com/easy-model-fusion/client/internal/model"
+	"github.com/easy-model-fusion/client/internal/sdk"
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -15,7 +16,7 @@ var addCmd = &cobra.Command{
 	Use:   "add <model name> [<other model names>...]",
 	Short: "Add model(s) to your project",
 	Long:  `Add model(s) to your project`,
-	Args:  config.ValidModelName(),
+	Args:  config.ValidModelName(), // TODO: Do this validation in the run function, bc proxy could not be initialized
 	Run:   runAdd,
 }
 
@@ -27,19 +28,24 @@ func runAdd(cmd *cobra.Command, args []string) {
 	if config.GetViperConfig() != nil {
 		return
 	}
-	var selectedModelNames []string
 
+	sdk.SendUpdateSuggestion() // TODO: here proxy?
+
+	// TODO: Get flags or default values
+	app.InitHuggingFace(huggingface.BaseUrl, "")
+
+	var selectedModelNames []string
 	var selectedModels []model.Model
 
 	// Add models passed in args
 	if len(args) > 0 {
 		for _, name := range args {
-			apiModel, err := huggingface.GetModel(name, nil)
+			apiModel, err := app.H().GetModel(name)
 			if err != nil {
 				pterm.Error.Println("while getting model " + name)
 				return
 			}
-			selectedModels = append(selectedModels, *apiModel)
+			selectedModels = append(selectedModels, apiModel)
 		}
 		selectedModelNames = append(selectedModelNames, args...)
 	}
@@ -84,7 +90,7 @@ func selectModels(tags []string, currentSelectedModels []string) ([]model.Model,
 	var models []model.Model
 	// Get list of models with current tags
 	for _, tag := range tags {
-		apiModels, err := huggingface.GetModels(nil, tag, nil)
+		apiModels, err := app.H().GetModels(tag, 0)
 		if err != nil {
 			app.L().Fatal("error while calling api endpoint")
 		}
