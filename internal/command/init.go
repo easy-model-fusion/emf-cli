@@ -10,7 +10,6 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 // initCmd represents the init command
@@ -33,9 +32,6 @@ func runInit(cmd *cobra.Command, args []string) {
 	}
 
 	err := createProject(projectName)
-
-	// smooth animation
-	time.Sleep(1 * time.Second)
 
 	// check for errors
 	if err != nil {
