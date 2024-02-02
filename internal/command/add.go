@@ -1,6 +1,7 @@
 package command
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/config"
 	"github.com/easy-model-fusion/client/internal/huggingface"
@@ -8,6 +9,8 @@ import (
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"os"
+	"os/exec"
 )
 
 // addCmd represents the add model(s) command
@@ -65,7 +68,24 @@ func runAdd(cmd *cobra.Command, args []string) {
 	// User choose either to exclude or include models in binary
 	selectedModels = selectExcludedModelsFromInstall(selectedModels, selectedModelNames)
 
-	// TODO install models with addToBinary => true
+	for _, selectedModel := range selectedModels {
+		// TODO : call FindVEnvPipExecutable
+		// TODO : get Config.ModuleName & Config.ClassName
+		cmd := exec.Command("python", "download.py", "model", app.ModelsDownloadPath, selectedModel.Name, selectedModel.Config.ModuleName, selectedModel.Config.ClassName)
+
+		// Redirect standard input, output, and error
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		// Run the command
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println("Error running Python script:", err)
+		}
+
+		selectedModel.DirectoryPath = app.ModelsDownloadPath
+	}
 
 	// Add models to configuration file
 	err := config.AddModel(selectedModels)
