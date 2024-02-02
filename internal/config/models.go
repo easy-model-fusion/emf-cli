@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/huggingface"
+	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
@@ -159,9 +159,12 @@ func ValidModelName() cobra.PositionalArgs {
 		if len(args) == 0 {
 			return nil
 		}
+		if app.H() == nil {
+			return fmt.Errorf("hugging face api is not initialized")
+		}
 
 		for _, name := range args {
-			valid, err := huggingface.ValidModel(name)
+			valid, err := app.H().ValidModel(name)
 			if err != nil {
 				return err
 			}
