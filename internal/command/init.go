@@ -144,7 +144,8 @@ func createProjectFiles(projectName, sdkTag string) (err error) {
 		return err
 	}
 
-	err = config.Load(projectName)
+	config.FilePath = projectName
+	err = config.Load()
 	if err != nil {
 		return err
 	}

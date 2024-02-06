@@ -39,6 +39,7 @@ func TestGetViperConfig_Success(t *testing.T) {
 		t.FailNow()
 	}
 
+	FilePath = "."
 	// Load the configuration file
 	err = GetViperConfig()
 

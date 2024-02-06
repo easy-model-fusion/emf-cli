@@ -173,7 +173,7 @@ func ValidModelName() cobra.PositionalArgs {
 			}
 
 			// Load the configuration file
-			err = Load(".")
+			err = Load()
 			if err != nil {
 				return err
 			}

@@ -8,7 +8,7 @@ import (
 
 // GetViperConfig Config loaded and return an error upon failure
 func GetViperConfig() error {
-	if err := Load("."); err != nil {
+	if err := Load(); err != nil {
 		pterm.Error.Println(fmt.Sprintf("Error loading config file : %s", err))
 		return err
 	}
