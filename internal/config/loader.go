@@ -19,7 +19,7 @@ func Load() error {
 }
 
 func UpdateConfigFilePath() {
-	FilePath = utils.AskForUsersInput("Enter the configuration path:")
+	FilePath = utils.AskForUsersInput("Enter the configuration file path")
 }
 
 func init() {

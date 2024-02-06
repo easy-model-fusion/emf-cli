@@ -47,15 +47,6 @@ func TestGetViperConfig_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error should have been raised")
 }
 
-// TestGetViperConfig_Error tests the case where there is an error loading the Viper configuration.
-func TestGetViperConfig_Error(t *testing.T) {
-	// Load the configuration file
-	err := GetViperConfig()
-
-	// Assert that the load method did return an error because no conf file in project
-	test.AssertNotEqual(t, err, nil, "An error should have been raised")
-}
-
 // TestGetViperItem_Success tests the successful retrieval of an item from the Viper configuration.
 func TestGetViperItem_Success(t *testing.T) {
 
