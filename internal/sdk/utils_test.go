@@ -34,7 +34,7 @@ func TestCheckForUpdates(t *testing.T) {
 	}
 
 	viper.Set("sdk-tag", tag)
-	tag, ok = checkForUpdates()
+	_, ok = checkForUpdates()
 	test.AssertEqual(t, ok, false, "Should return false if tag is set and there is no update")
 }
 
