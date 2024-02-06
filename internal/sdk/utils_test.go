@@ -20,14 +20,14 @@ func TestCheckForUpdates(t *testing.T) {
 	}
 
 	viper.Set("sdk-tag", "")
-	tag, ok := checkForUpdates()
+	_, ok := checkForUpdates()
 	test.AssertEqual(t, ok, false, "Should return false if no tag is set")
 
 	viper.Set("sdk-tag", "v0.0.1")
-	tag, ok = checkForUpdates()
+	_, ok = checkForUpdates()
 	test.AssertEqual(t, ok, true, "Should return true if tag is set and there is an update")
 
-	tag, err = utils.GetLatestTag("sdk")
+	tag, err := utils.GetLatestTag("sdk")
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
