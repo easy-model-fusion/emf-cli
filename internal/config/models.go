@@ -144,7 +144,6 @@ func ModelExists(name string) (bool, error) {
 		return false, err
 	}
 	for _, currentModel := range models {
-		println(currentModel.Name)
 		if currentModel.Name == name {
 			return true, nil
 		}
