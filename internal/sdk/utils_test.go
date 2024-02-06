@@ -114,3 +114,39 @@ func TestSendUpdateSuggestion(t *testing.T) {
 	SendUpdateSuggestion()
 	test.AssertEqual(t, viper.GetBool("update-suggested"), true, "Should not set update-suggested to true if there is a tag and update-suggested is true")
 }
+
+func TestUpgrade(t *testing.T) {
+	dname := test.CreateFullTestSuite(t)
+	defer os.RemoveAll(dname)
+
+	err := config.GetViperConfig()
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	viper.Set("sdk-tag", "")
+	err = Upgrade()
+	test.AssertNotEqual(t, err, nil, "Should return an error if no tag is set")
+
+	tag, err := utils.GetLatestTag("sdk")
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	viper.Set("sdk-tag", tag)
+	err = Upgrade()
+	test.AssertNotEqual(t, err, nil, "Should return an error if tag is set and there is no update")
+
+	viper.Set("sdk-tag", "v0.0.1")
+	err = Upgrade()
+	if err != nil {
+		t.Error(err)
+	}
+	test.AssertEqual(t, err, nil, "Should not return an error if tag is set and there is an update")
+
+	// check if config was written with the new tag
+	test.AssertEqual(t, viper.GetString("sdk-tag"), tag, "Should write the new tag to the config")
+
+}

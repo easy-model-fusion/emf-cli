@@ -32,11 +32,6 @@ func runUpgrade(cmd *cobra.Command, args []string) {
 	_ = sdk.Upgrade()
 }
 
-// upgradeSdk upgrades the sdk version of the project
-func upgradeSdk() {
-
-}
-
 func init() {
 	rootCmd.AddCommand(upgradeCmd)
 }
