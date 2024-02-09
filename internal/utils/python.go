@@ -44,15 +44,15 @@ func CreateVirtualEnv(pythonPath, path string) error {
 
 // FindVEnvPipExecutable searches for the 'pip' executable within a virtual environment.
 func FindVEnvPipExecutable(venvPath string) (string, error) {
-	binDir := "bin"
+	var pipPath string
 	if runtime.GOOS == "windows" {
-		binDir = "Scripts"
+		pipPath = filepath.Join(venvPath, "Scripts", "pip.exe")
+	} else {
+		pipPath = filepath.Join(venvPath, "bin", "pip")
 	}
 
-	pipPath := filepath.Join(venvPath, binDir, "pip")
-
 	if _, err := os.Stat(pipPath); os.IsNotExist(err) {
-		return "", fmt.Errorf("pip executable not found in virtual environment: %s", venvPath)
+		return "", fmt.Errorf("pip executable not found in virtual environment: %s", pipPath)
 	}
 
 	return pipPath, nil
