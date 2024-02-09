@@ -5,28 +5,27 @@ type Node interface {
 }
 
 type File struct {
-	Name      string
-	Imports   []Import
-	Functions []*Function
-	Classes   []*Class
+	Name           string
+	HeaderComments []string
+	Imports        []Import
+	Functions      []*Function
+	Classes        []*Class
 }
 
 type Function struct {
 	Name       string
 	ReturnType string
-	Imports    []Import
 	Params     []Parameter
+	Imports    []Import
 	Body       []Statement
 }
 
 type Class struct {
-	Name    string
-	Extend  string
-	Fields  []Field
-	Methods []Function
-}
-
-type Statement interface {
+	Name       string
+	Extend     string
+	Fields     []Field
+	Statements []Statement
+	Methods    []*Function
 }
 
 type Expression interface {
@@ -43,8 +42,26 @@ type Field struct {
 }
 
 type Import struct {
-	What string
-	From string
+	What  []ImportWhat
+	From  string
+	Alias string
+}
+
+type ImportWhat struct {
+	Name  string
+	Alias string
+}
+
+// Statements
+
+type Statement interface {
+	Node
+}
+
+type Assignment struct {
+	Variable string
+	Type     string
+	Value    string
 }
 
 // Accept method for File
@@ -75,4 +92,14 @@ func (p *Parameter) Accept(visitor PythonVisitor) error {
 // Accept method for Import
 func (i *Import) Accept(visitor PythonVisitor) error {
 	return visitor.VisitImport(i)
+}
+
+// Accept method for ImportWhat
+func (i *ImportWhat) Accept(visitor PythonVisitor) error {
+	return visitor.VisitImportWhat(i)
+}
+
+// Accept method for Assignment
+func (s *Assignment) Accept(visitor PythonVisitor) error {
+	return visitor.VisitAssignment(s)
 }

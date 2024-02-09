@@ -9,4 +9,7 @@ type PythonVisitor interface {
 	VisitField(*Field) error
 	VisitParameter(*Parameter) error
 	VisitImport(*Import) error
+	VisitImportWhat(*ImportWhat) error
+
+	VisitAssignment(*Assignment) error
 }
