@@ -1,7 +1,6 @@
 package command
 
 import (
-	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/config"
 	"github.com/easy-model-fusion/client/internal/huggingface"
@@ -9,8 +8,6 @@ import (
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"os"
-	"os/exec"
 )
 
 // addCmd represents the add model(s) command
@@ -68,31 +65,38 @@ func runAdd(cmd *cobra.Command, args []string) {
 	// User choose either to exclude or include models in binary
 	selectedModels = selectExcludedModelsFromInstall(selectedModels, selectedModelNames)
 
+	// Display the selected models
+	utils.DisplaySelectedItems(selectedModelNames)
+
+	// Find the python executable inside the venv to run the scripts
+	/*pythonPath, err := utils.FindVEnvExecutable(filepath.Join("aa", ".venv"), "python")
+	if err != nil {
+		pterm.Error.Println(fmt.Sprintf("Error using the venv : %s", err))
+		return
+	}*/
+
+	// Iterate over every model selected for instant download
 	for _, selectedModel := range selectedModels {
-		// TODO : call FindVEnvPipExecutable
+
 		// TODO : get Config.ModuleName & Config.ClassName
-		cmd := exec.Command("python", "download.py", "model", app.ModelsDownloadPath, selectedModel.Name, selectedModel.Config.ModuleName, selectedModel.Config.ClassName)
+		/*argsSlice := []string{"model", app.ModelsDownloadPath, selectedModel.Name, selectedModel.Config.ModuleName, selectedModel.Config.ClassName}
+		args := strings.Join(argsSlice, " ")
 
-		// Redirect standard input, output, and error
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-
-		// Run the command
-		err := cmd.Run()
+		// Run the script to download the model
+		err = utils.DownloadModel(pythonPath, "download.py", args)
 		if err != nil {
-			fmt.Println("Error running Python script:", err)
-		}
+			pterm.Error.Println(fmt.Sprintf("Error downloading the model : %s", err))
+			return
+		}*/
 
 		selectedModel.DirectoryPath = app.ModelsDownloadPath
 	}
 
+	// TODO : Upgrade to update the config after every successful download to avoid incoherent data
 	// Add models to configuration file
 	err := config.AddModel(selectedModels)
 
 	if err == nil {
-		// Display the selected models
-		utils.DisplaySelectedItems(selectedModelNames)
 		pterm.Success.Printfln("Operation succeeded.")
 	} else {
 		pterm.Error.Printfln("Operation failed.")
