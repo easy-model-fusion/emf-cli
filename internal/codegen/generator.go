@@ -168,6 +168,11 @@ func (cg *PythonCodeGenerator) VisitFunction(function *Function) error {
 		}
 	}
 
+	// If the function has no body and no imports, add a pass statement
+	if len(function.Body) == 0 && len(function.Imports) == 0 {
+		cg.appendIndented("pass\n")
+	}
+
 	cg.down()
 
 	return nil
@@ -207,6 +212,11 @@ func (cg *PythonCodeGenerator) VisitClass(class *Class) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	// If the class has no fields and no methods, add a pass statement
+	if len(class.Fields) == 0 && len(class.Methods) == 0 {
+		cg.appendIndented("pass\n")
 	}
 
 	cg.down()
@@ -293,7 +303,11 @@ func (cg *PythonCodeGenerator) VisitAssignment(assignment *Assignment) error {
 		return errors.New("assignment variable cannot be empty")
 	}
 
-	cg.appendIndented(assignment.Variable + " = ")
+	if assignment.Type != "" {
+		cg.appendIndented(assignment.Variable + ": " + assignment.Type + " = ")
+	} else {
+		cg.appendIndented(assignment.Variable + " = ")
+	}
 
 	if assignment.Value == "" {
 		return errors.New("assignment value cannot be empty")
