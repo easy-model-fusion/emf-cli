@@ -79,7 +79,7 @@ func InstallDependencies(pipPath, path string) error {
 }
 
 // DownloadModel runs the download script for a specific model
-func DownloadModel(pythonPath, downloadPath, modelName, moduleName, className string, overwrite bool) error {
+func DownloadModel(pythonPath, downloadPath, modelName, moduleName, className string, overwrite bool) (error, int) {
 
 	overwriteFlag := ""
 	if overwrite {
@@ -92,14 +92,25 @@ func DownloadModel(pythonPath, downloadPath, modelName, moduleName, className st
 	var errBuf strings.Builder
 	cmd.Stderr = &errBuf
 
+	// cmd exit code
+	exitCode := 0
+
 	err := cmd.Run()
 	if err != nil {
+
+		// If there was an error running the command, check if it's a command execution error
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			exitCode = exitErr.ExitCode()
+		}
+
+		// Log the errors back
 		errBufStr := errBuf.String()
 		if errBufStr != "" {
-			return fmt.Errorf("%s", errBufStr)
+			return fmt.Errorf("%s", errBufStr), exitCode
 		}
-		return err
+
+		return err, exitCode
 	}
 
-	return nil
+	return nil, exitCode
 }

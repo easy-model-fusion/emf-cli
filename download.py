@@ -69,11 +69,10 @@ def download(downloads_path, model_name, module_name, class_name, overwrite=Fals
         model = class_obj.from_pretrained(model_name)
         model.save_pretrained(model_path)
         # TODO : Tokenizer?
-        # TODO : Options?
 
     except Exception as e:
         print_error(f"Error while downloading model {model_name}: {e}")
-        sys.exit(1)
+        sys.exit(2)
 
 
 def parse_arguments():

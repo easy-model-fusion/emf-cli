@@ -85,7 +85,7 @@ func runAdd(cmd *cobra.Command, args []string) {
 
 	// Add models to configuration file
 	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
-	err = config.AddModel(selectedModels)
+	//err = config.AddModel(selectedModels)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
 	} else {
@@ -140,9 +140,14 @@ func downloadModels(models []model.Model) (error, []model.Model) {
 
 		// Run the script to download the model
 		spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", modelName))
-		err = utils.DownloadModel(pythonPath, downloadPath, modelName, moduleName, className, overwrite)
+		err, exitCode := utils.DownloadModel(pythonPath, downloadPath, modelName, moduleName, className, overwrite)
 		if err != nil {
 			spinner.Fail(err)
+			switch exitCode {
+			case 2:
+				// TODO : Update the log message once the command is implemented
+				pterm.Info.Println("Run the 'add --single' command to manually add the model.")
+			}
 			continue
 		}
 		spinner.Success(fmt.Sprintf("Successfully downloaded model '%s'", modelName))
