@@ -1,6 +1,7 @@
 package command
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/config"
 	"github.com/easy-model-fusion/client/internal/huggingface"
@@ -75,37 +76,45 @@ func runAdd(cmd *cobra.Command, args []string) {
 	utils.DisplaySelectedItems(selectedModelNames)
 
 	// Find the python executable inside the venv to run the scripts
-	/*pythonPath, err := utils.FindVEnvExecutable(filepath.Join("aa", ".venv"), "python")
+	pythonPath, err := utils.FindVEnvExecutable(".venv", "python")
 	if err != nil {
 		pterm.Error.Println(fmt.Sprintf("Error using the venv : %s", err))
 		return
-	}*/
-
-	// Iterate over every model selected for instant download
-	for _, selectedModel := range selectedModels {
-
-		// TODO : get Config.ModuleName & Config.ClassName
-		/*argsSlice := []string{"model", app.ModelsDownloadPath, selectedModel.Name, selectedModel.Config.ModuleName, selectedModel.Config.ClassName}
-		args := strings.Join(argsSlice, " ")
-
-		// Run the script to download the model
-		err = utils.DownloadModel(pythonPath, "download.py", args)
-		if err != nil {
-			pterm.Error.Println(fmt.Sprintf("Error downloading the model : %s", err))
-			return
-		}*/
-
-		selectedModel.DirectoryPath = app.ModelsDownloadPath
 	}
 
-	// TODO : Upgrade to update the config after every successful download to avoid incoherent data
-	// Add models to configuration file
-	err := config.AddModel(selectedModels)
+	// Iterate over every model selected for instant download
+	for i := range selectedModels {
 
-	if err == nil {
-		pterm.Success.Printfln("Operation succeeded.")
+		// TODO : get Config.ModuleName & Config.ClassName
+		downloadPath := app.ModelsDownloadPath
+		// moduleName := selectedModel.Config.ModuleName
+		// className := selectedModel.Config.ClassName
+		// moduleName := "diffusers"
+		// className := "StableDiffusionXLPipeline"
+		moduleName := "transformers"
+		className := "EncoderDecoderModel"
+		// className := ""
+
+		// Run the script to download the model
+		spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", selectedModels[i].Name))
+		err = utils.DownloadModel(pythonPath, downloadPath, selectedModels[i].Name, moduleName, className)
+		if err != nil {
+			spinner.Fail(err)
+			continue
+		}
+		spinner.Success(fmt.Sprintf("Successfully downloaded model '%s'", selectedModels[i].Name))
+
+		// Update the directory path to the model
+		selectedModels[i].DirectoryPath = downloadPath
+	}
+
+	// Add models to configuration file
+	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+	err = config.AddModel(selectedModels)
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
 	} else {
-		pterm.Error.Printfln("Operation failed.")
+		spinner.Success()
 	}
 }
 
@@ -184,6 +193,7 @@ func selectExcludedModelsFromInstall(models []model.Model, modelNames []string) 
 }
 
 func init() {
+	app.InitHuggingFace(huggingface.BaseUrl, "")
 	// Add --select flag to the add command
 	addCmd.Flags().BoolVarP(&displayModels, "select", "s", false, "Select models to add")
 	// Add the add command to the root command

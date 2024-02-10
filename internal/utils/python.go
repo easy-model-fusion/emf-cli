@@ -42,17 +42,17 @@ func CreateVirtualEnv(pythonPath, path string) error {
 	return cmd.Run()
 }
 
-// FindVEnvPipExecutable searches for the 'pip' executable within a virtual environment.
-func FindVEnvPipExecutable(venvPath string) (string, error) {
+// FindVEnvExecutable searches for the requested executable within a virtual environment.
+func FindVEnvExecutable(venvPath string, executableName string) (string, error) {
 	var pipPath string
 	if runtime.GOOS == "windows" {
-		pipPath = filepath.Join(venvPath, "Scripts", "pip.exe")
+		pipPath = filepath.Join(venvPath, "Scripts", executableName+".exe")
 	} else {
-		pipPath = filepath.Join(venvPath, "bin", "pip")
+		pipPath = filepath.Join(venvPath, "bin", executableName)
 	}
 
 	if _, err := os.Stat(pipPath); os.IsNotExist(err) {
-		return "", fmt.Errorf("pip executable not found in virtual environment: %s", pipPath)
+		return "", fmt.Errorf("'%s' executable not found in virtual environment: %s", executableName, pipPath)
 	}
 
 	return pipPath, nil
@@ -71,6 +71,26 @@ func InstallDependencies(pipPath, path string) error {
 		errBufStr := errBuf.String()
 		if errBufStr != "" {
 			return fmt.Errorf("%s: %s", err.Error(), errBufStr)
+		}
+		return err
+	}
+
+	return nil
+}
+
+// DownloadModel runs the download script for a specific model
+func DownloadModel(pythonPath, downloadPath, modelName, moduleName, className string) error {
+	cmd := exec.Command(pythonPath, "download.py", downloadPath, modelName, moduleName, className)
+
+	// bind stderr to a buffer
+	var errBuf strings.Builder
+	cmd.Stderr = &errBuf
+
+	err := cmd.Run()
+	if err != nil {
+		errBufStr := errBuf.String()
+		if errBufStr != "" {
+			return fmt.Errorf("%s", errBufStr)
 		}
 		return err
 	}
