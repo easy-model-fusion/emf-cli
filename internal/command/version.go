@@ -2,6 +2,7 @@ package command
 
 import (
 	"github.com/easy-model-fusion/client/internal/app"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +14,7 @@ var versionCmd = &cobra.Command{
 }
 
 func runVersion(cmd *cobra.Command, args []string) {
-	app.L().WithTime(false).Info("Client version: " + app.Version + " (" + app.BuildDate + ")")
+	pterm.Info.Println("Client version: " + app.Version + " (" + app.BuildDate + ")")
 }
 
 func init() {
