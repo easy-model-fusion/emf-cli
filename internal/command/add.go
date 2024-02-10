@@ -10,6 +10,8 @@ import (
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"os"
+	"path/filepath"
 )
 
 // addCmd represents the add model(s) command
@@ -75,37 +77,10 @@ func runAdd(cmd *cobra.Command, args []string) {
 	// Display the selected models
 	utils.DisplaySelectedItems(selectedModelNames)
 
-	// Find the python executable inside the venv to run the scripts
-	pythonPath, err := utils.FindVEnvExecutable(".venv", "python")
+	// Download the models
+	err, selectedModels := downloadModels(selectedModels)
 	if err != nil {
-		pterm.Error.Println(fmt.Sprintf("Error using the venv : %s", err))
 		return
-	}
-
-	// Iterate over every model selected for instant download
-	for i := range selectedModels {
-
-		// TODO : get Config.ModuleName & Config.ClassName
-		downloadPath := app.ModelsDownloadPath
-		// moduleName := selectedModel.Config.ModuleName
-		// className := selectedModel.Config.ClassName
-		// moduleName := "diffusers"
-		// className := "StableDiffusionXLPipeline"
-		moduleName := "transformers"
-		className := "EncoderDecoderModel"
-		// className := ""
-
-		// Run the script to download the model
-		spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", selectedModels[i].Name))
-		err = utils.DownloadModel(pythonPath, downloadPath, selectedModels[i].Name, moduleName, className)
-		if err != nil {
-			spinner.Fail(err)
-			continue
-		}
-		spinner.Success(fmt.Sprintf("Successfully downloaded model '%s'", selectedModels[i].Name))
-
-		// Update the directory path to the model
-		selectedModels[i].DirectoryPath = downloadPath
 	}
 
 	// Add models to configuration file
@@ -116,6 +91,67 @@ func runAdd(cmd *cobra.Command, args []string) {
 	} else {
 		spinner.Success()
 	}
+}
+
+func downloadModels(models []model.Model) (error, []model.Model) {
+
+	// Find the python executable inside the venv to run the scripts
+	pythonPath, err := utils.FindVEnvExecutable(".venv", "python")
+	if err != nil {
+		pterm.Error.Println(fmt.Sprintf("Error using the venv : %s", err))
+		return err, nil
+	}
+
+	// Iterate over every model for instant download
+	for i := range models {
+
+		// Get mandatory model data for the download script
+		modelName := models[i].Name
+		moduleName := models[i].Config.ModuleName
+		className := models[i].Config.ClassName
+		overwrite := false
+
+		// TODO : get Config.ModuleName & Config.ClassName
+		// moduleName = "diffusers"
+		// className = "StableDiffusionXLPipeline"
+		moduleName = "transformers"
+		className = "EncoderDecoderModel"
+
+		// Local path where the model will be downloaded
+		downloadPath := app.ModelsDownloadPath
+		modelPath := filepath.Join(downloadPath, modelName)
+
+		// Check if the model_path already exists
+		if _, err := os.Stat(modelPath); !os.IsNotExist(err) {
+
+			// Model path already exists : ask the user if he would like to overwrite it
+			overwrite, _ = pterm.DefaultInteractiveConfirm.Show(fmt.Sprintf("Model already exists at '%s'. Do you want to overwrite it?", modelPath))
+
+			// User does not want to overwrite : skipping to the next model
+			if !overwrite {
+				continue
+			}
+
+		} else if err != nil {
+			// Skipping model : an error occurred while verifying the non-existence of the model path
+			pterm.Error.Println(fmt.Sprintf("Error checking the existence of %s : %s", modelPath, err))
+			continue
+		}
+
+		// Run the script to download the model
+		spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", modelName))
+		err = utils.DownloadModel(pythonPath, downloadPath, modelName, moduleName, className, overwrite)
+		if err != nil {
+			spinner.Fail(err)
+			continue
+		}
+		spinner.Success(fmt.Sprintf("Successfully downloaded model '%s'", modelName))
+
+		// Update the directory path to the model
+		models[i].DirectoryPath = downloadPath
+	}
+
+	return nil, models
 }
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project

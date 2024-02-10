@@ -79,8 +79,14 @@ func InstallDependencies(pipPath, path string) error {
 }
 
 // DownloadModel runs the download script for a specific model
-func DownloadModel(pythonPath, downloadPath, modelName, moduleName, className string) error {
-	cmd := exec.Command(pythonPath, "download.py", downloadPath, modelName, moduleName, className)
+func DownloadModel(pythonPath, downloadPath, modelName, moduleName, className string, overwrite bool) error {
+
+	overwriteFlag := ""
+	if overwrite {
+		overwriteFlag = "--overwrite"
+	}
+
+	cmd := exec.Command(pythonPath, "download.py", downloadPath, modelName, moduleName, className, overwriteFlag)
 
 	// bind stderr to a buffer
 	var errBuf strings.Builder
