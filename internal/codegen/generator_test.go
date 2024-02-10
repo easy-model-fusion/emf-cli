@@ -82,7 +82,7 @@ func TestPythonCodeGenerator_Generate(t *testing.T) {
 
 	t.Logf("\n%s", code)
 
-	code, err = gen.Generate(&File{
+	_, err = gen.Generate(&File{
 		Name: "",
 		Classes: []*Class{
 			{
