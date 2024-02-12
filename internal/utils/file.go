@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"io"
 	"os"
 	"regexp"
 )
@@ -59,8 +60,8 @@ func CloseFile(file *os.File) {
 	}
 }
 
-// DirectoryExists check if the requested path exist
-func DirectoryExists(name string) (bool, error) {
+// IsExistingPath check if the requested path exists
+func IsExistingPath(name string) (bool, error) {
 	if _, err := os.Stat(name); err != nil && !os.IsNotExist(err) {
 		// An error occurred while verifying the non-existence of the path
 		pterm.Error.Println(fmt.Sprintf("Error checking the existence of %s : %s", name, err))
@@ -71,4 +72,19 @@ func DirectoryExists(name string) (bool, error) {
 	}
 	// Path does not exist
 	return false, nil
+}
+
+// IsDirectoryEmpty check if the requested directory is empty
+func IsDirectoryEmpty(name string) (bool, error) {
+	f, err := os.Open(name)
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+
+	_, err = f.Readdirnames(1) // Or f.Readdir(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return false, err // Either not empty or error, suits both cases
 }

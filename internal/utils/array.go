@@ -1,6 +1,9 @@
 package utils
 
-import "strings"
+import (
+	"path/filepath"
+	"strings"
+)
 
 // ArrayStringContainsItem checks if an item is present in a slice of strings.
 func ArrayStringContainsItem(arr []string, item string) bool {
@@ -31,4 +34,22 @@ func MapFromArrayString(items []string) map[string]struct{} {
 		stringMap[item] = struct{}{}
 	}
 	return stringMap
+}
+
+// ArrayFromPath splits a filepath into its individual elements
+func ArrayFromPath(path string) []string {
+	var elements []string
+	for {
+		dir, file := filepath.Split(path)
+		if len(dir) > 0 {
+			elements = append([]string{file}, elements...)
+			path = filepath.Clean(dir)
+		} else {
+			if len(file) > 0 {
+				elements = append([]string{file}, elements...)
+			}
+			break
+		}
+	}
+	return elements
 }

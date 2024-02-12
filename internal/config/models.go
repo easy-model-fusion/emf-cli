@@ -71,27 +71,61 @@ func AddModel(models []model.Model) error {
 }
 
 func RemoveModel(model model.Model) error {
-	if model.AddToBinary {
 
-		modelPath := filepath.Join(app.ModelsDownloadPath, model.Name)
-		spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Removing model %s...", modelPath))
+	// Nothing to remove if not downloaded
+	if !model.AddToBinary {
+		return nil
+	}
 
-		// Check if the model_path already exists
-		if exists, err := utils.DirectoryExists(modelPath); err != nil {
-			// Skipping model : an error occurred
+	// Path to the model
+	modelPath := filepath.Join(app.ModelsDownloadPath, model.Name)
+
+	// Starting client spinner animation
+	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Removing model %s...", model.Name))
+
+	// Check if the model_path already exists
+	if exists, err := utils.IsExistingPath(modelPath); err != nil {
+		// Skipping model : an error occurred
+		spinner.Fail(err)
+		return err
+	} else if exists {
+		// Model path is in the current project
+
+		// Split the path into a slice of strings
+		directories := utils.ArrayFromPath(modelPath)
+
+		// Removing model
+		err := os.RemoveAll(modelPath)
+		if err != nil {
+			spinner.Fail(err)
 			return err
-		} else if exists {
-			// Model path is in the current project
-			err := os.RemoveAll(modelPath)
-			if err != nil {
-				spinner.Fail()
-				return err
-			}
-			spinner.Success()
-		} else {
-			// Model path is in the current project
-			spinner.Info(fmt.Sprintf("%s model belongs to another project and will only be removed from this project's configuration file.", model.Name))
 		}
+
+		// Excluding the tail since it has already been removed
+		directories = directories[:len(directories)-1]
+
+		// Cleaning up : removing every empty directory on the way to the model (from tail to head)
+		for i := len(directories) - 1; i >= 0; i-- {
+			// Build path to parent directory
+			path := filepath.Join(directories[:i+1]...)
+
+			// Check if the directory is empty
+			if empty, err := utils.IsDirectoryEmpty(path); err != nil {
+				spinner.Fail(err)
+				return err
+			} else if empty {
+				// Current directory is empty : removing it
+				err := os.Remove(path)
+				if err != nil {
+					spinner.Fail(err)
+					return err
+				}
+			}
+		}
+		spinner.Success(fmt.Sprintf("Removed model %s", model.Name))
+	} else {
+		// Model path is not in the current project
+		spinner.Info(fmt.Sprintf("Model '%s' was not found in the project directory. It might have been removed manually or belongs to another project. The model will be removed from this project's configuration file.", model.Name))
 	}
 	return nil
 }
@@ -131,11 +165,13 @@ func RemoveModels(models []model.Model, modelsToRemove []string) error {
 // RemoveAllModels empties the models list and writes to the configuration file.
 func RemoveAllModels() error {
 
+	// Get the models from the configuration file
 	models, err := GetModels()
 	if err != nil {
 		return err
 	}
 
+	// Trying to remove every model
 	for _, item := range models {
 		_ = RemoveModel(item)
 	}

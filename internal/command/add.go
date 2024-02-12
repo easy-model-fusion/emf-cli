@@ -111,7 +111,7 @@ func downloadModels(models []model.Model) (error, []model.Model) {
 		overwrite := false
 
 		// TODO : get Config.ModuleName & Config.ClassName
-		// moduleName = "diffusers"
+		moduleName = "diffusers"
 		// className = "StableDiffusionXLPipeline"
 		// moduleName = "transformers"
 		// className = "AutoModelForCausalLM"
@@ -121,7 +121,7 @@ func downloadModels(models []model.Model) (error, []model.Model) {
 		modelPath := filepath.Join(downloadPath, modelName)
 
 		// Check if the model_path already exists
-		if exists, err := utils.DirectoryExists(modelPath); err != nil {
+		if exists, err := utils.IsExistingPath(modelPath); err != nil {
 			// Skipping model : an error occurred
 			continue
 		} else if exists {
