@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -42,17 +43,17 @@ func CreateVirtualEnv(pythonPath, path string) error {
 	return cmd.Run()
 }
 
-// FindVEnvPipExecutable searches for the 'pip' executable within a virtual environment.
-func FindVEnvPipExecutable(venvPath string) (string, error) {
+// FindVEnvExecutable searches for the requested executable within a virtual environment.
+func FindVEnvExecutable(venvPath string, executableName string) (string, error) {
 	var pipPath string
 	if runtime.GOOS == "windows" {
-		pipPath = filepath.Join(venvPath, "Scripts", "pip.exe")
+		pipPath = filepath.Join(venvPath, "Scripts", executableName+".exe")
 	} else {
-		pipPath = filepath.Join(venvPath, "bin", "pip")
+		pipPath = filepath.Join(venvPath, "bin", executableName)
 	}
 
 	if _, err := os.Stat(pipPath); os.IsNotExist(err) {
-		return "", fmt.Errorf("pip executable not found in virtual environment: %s", pipPath)
+		return "", fmt.Errorf("'%s' executable not found in virtual environment: %s", executableName, pipPath)
 	}
 
 	return pipPath, nil
@@ -76,4 +77,43 @@ func InstallDependencies(pipPath, path string) error {
 	}
 
 	return nil
+}
+
+// DownloadModel runs the download script for a specific model
+func DownloadModel(pythonPath, downloadPath, modelName, moduleName, className string, overwrite bool) (error, int) {
+
+	// Create command
+	var cmd *exec.Cmd
+	if overwrite {
+		cmd = exec.Command(pythonPath, "download.py", downloadPath, modelName, moduleName, className, "--overwrite")
+	} else {
+		cmd = exec.Command(pythonPath, "download.py", downloadPath, modelName, moduleName, className)
+	}
+
+	// bind stderr to a buffer
+	var errBuf strings.Builder
+	cmd.Stderr = &errBuf
+
+	// cmd exit code
+	exitCode := 0
+
+	err := cmd.Run()
+	if err != nil {
+
+		// If there was an error running the command, check if it's a command execution error
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			exitCode = exitErr.ExitCode()
+		}
+
+		// Log the errors back
+		errBufStr := errBuf.String()
+		if errBufStr != "" {
+			return fmt.Errorf("%s", errBufStr), exitCode
+		}
+
+		return err, exitCode
+	}
+
+	return nil, exitCode
 }

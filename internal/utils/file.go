@@ -58,3 +58,17 @@ func CloseFile(file *os.File) {
 		pterm.Error.Println(fmt.Sprintf("Error closing file: %s", err))
 	}
 }
+
+// DirectoryExists check if the requested path exist
+func DirectoryExists(name string) (bool, error) {
+	if _, err := os.Stat(name); err != nil && !os.IsNotExist(err) {
+		// An error occurred while verifying the non-existence of the path
+		pterm.Error.Println(fmt.Sprintf("Error checking the existence of %s : %s", name, err))
+		return false, err
+	} else if err == nil {
+		// Path already exists
+		return true, nil
+	}
+	// Path does not exist
+	return false, nil
+}

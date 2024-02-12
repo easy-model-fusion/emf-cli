@@ -10,8 +10,7 @@ import (
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"os"
-	"os/exec"
+	"path/filepath"
 )
 
 // addCmd represents the add model(s) command
@@ -74,35 +73,86 @@ func runAdd(cmd *cobra.Command, args []string) {
 	// User choose either to exclude or include models in binary
 	selectedModels = selectExcludedModelsFromInstall(selectedModels, selectedModelNames)
 
-	for _, selectedModel := range selectedModels {
-		// TODO : call FindVEnvPipExecutable
-		// TODO : get Config.ModuleName & Config.ClassName
-		cmd := exec.Command("python", "download.py", "model", app.ModelsDownloadPath, selectedModel.Name, selectedModel.Config.ModuleName, selectedModel.Config.ClassName)
+	// Display the selected models
+	utils.DisplaySelectedItems(selectedModelNames)
 
-		// Redirect standard input, output, and error
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-
-		// Run the command
-		err := cmd.Run()
-		if err != nil {
-			fmt.Println("Error running Python script:", err)
-		}
-
-		selectedModel.DirectoryPath = app.ModelsDownloadPath
+	// Download the models
+	err, selectedModels := downloadModels(selectedModels)
+	if err != nil {
+		return
 	}
 
 	// Add models to configuration file
-	err := config.AddModel(selectedModels)
-
-	if err == nil {
-		// Display the selected models
-		utils.DisplaySelectedItems(selectedModelNames)
-		pterm.Success.Printfln("Operation succeeded.")
+	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+	err = config.AddModel(selectedModels)
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
 	} else {
-		pterm.Error.Printfln("Operation failed.")
+		spinner.Success()
 	}
+}
+
+func downloadModels(models []model.Model) (error, []model.Model) {
+
+	// Find the python executable inside the venv to run the scripts
+	pythonPath, err := utils.FindVEnvExecutable(".venv", "python")
+	if err != nil {
+		pterm.Error.Println(fmt.Sprintf("Error using the venv : %s", err))
+		return err, nil
+	}
+
+	// Iterate over every model for instant download
+	for i := range models {
+
+		// Get mandatory model data for the download script
+		modelName := models[i].Name
+		moduleName := models[i].Config.ModuleName
+		className := models[i].Config.ClassName
+		overwrite := false
+
+		// TODO : get Config.ModuleName & Config.ClassName
+		// moduleName = "diffusers"
+		// className = "StableDiffusionXLPipeline"
+		// moduleName = "transformers"
+		// className = "AutoModelForCausalLM"
+
+		// Local path where the model will be downloaded
+		downloadPath := app.ModelsDownloadPath
+		modelPath := filepath.Join(downloadPath, modelName)
+
+		// Check if the model_path already exists
+		if exists, err := utils.DirectoryExists(modelPath); err != nil {
+			// Skipping model : an error occurred
+			continue
+		} else if exists {
+			// Model path already exists : ask the user if he would like to overwrite it
+			overwrite, _ = pterm.DefaultInteractiveConfirm.Show(fmt.Sprintf("Model already exists at '%s'. Do you want to overwrite it?", modelPath))
+
+			// User does not want to overwrite : skipping to the next model
+			if !overwrite {
+				continue
+			}
+		}
+
+		// Run the script to download the model
+		spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", modelName))
+		err, exitCode := utils.DownloadModel(pythonPath, downloadPath, modelName, moduleName, className, overwrite)
+		if err != nil {
+			spinner.Fail(err)
+			switch exitCode {
+			case 2:
+				// TODO : Update the log message once the command is implemented
+				pterm.Info.Println("Run the 'add --single' command to manually add the model.")
+			}
+			continue
+		}
+		spinner.Success(fmt.Sprintf("Successfully downloaded model '%s'", modelName))
+
+		// Update the directory path to the model
+		models[i].DirectoryPath = downloadPath
+	}
+
+	return nil, models
 }
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project
@@ -180,6 +230,7 @@ func selectExcludedModelsFromInstall(models []model.Model, modelNames []string) 
 }
 
 func init() {
+	app.InitHuggingFace(huggingface.BaseUrl, "")
 	// Add --select flag to the add command
 	addCmd.Flags().BoolVarP(&displayModels, "select", "s", false, "Select models to add")
 	// Add the add command to the root command

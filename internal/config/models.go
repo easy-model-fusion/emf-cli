@@ -8,6 +8,8 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
+	"path/filepath"
 )
 
 // GetModels retrieves models from the configuration.
@@ -68,6 +70,32 @@ func AddModel(models []model.Model) error {
 	return nil
 }
 
+func RemoveModel(model model.Model) error {
+	if model.AddToBinary {
+
+		modelPath := filepath.Join(app.ModelsDownloadPath, model.Name)
+		spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Removing model %s...", modelPath))
+
+		// Check if the model_path already exists
+		if exists, err := utils.DirectoryExists(modelPath); err != nil {
+			// Skipping model : an error occurred
+			return err
+		} else if exists {
+			// Model path is in the current project
+			err := os.RemoveAll(modelPath)
+			if err != nil {
+				spinner.Fail()
+				return err
+			}
+			spinner.Success()
+		} else {
+			// Model path is in the current project
+			spinner.Info(fmt.Sprintf("%s model belongs to another project and will only be removed from this project's configuration file.", model.Name))
+		}
+	}
+	return nil
+}
+
 // RemoveModels filters out specified models and writes to the configuration file.
 func RemoveModels(models []model.Model, modelsToRemove []string) error {
 	// Filter out the models to be removed
@@ -103,16 +131,23 @@ func RemoveModels(models []model.Model, modelsToRemove []string) error {
 // RemoveAllModels empties the models list and writes to the configuration file.
 func RemoveAllModels() error {
 
-	// Empty the models
-	viper.Set("models", []string{})
-
-	// Attempt to write the configuration file
-	err := WriteViperConfig()
+	models, err := GetModels()
 	if err != nil {
 		return err
 	}
 
-	// TODO : remove the downloaded models : Issue #21
+	for _, item := range models {
+		_ = RemoveModel(item)
+	}
+
+	// Empty the models
+	viper.Set("models", []string{})
+
+	// Attempt to write the configuration file
+	err = WriteViperConfig()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
