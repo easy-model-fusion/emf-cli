@@ -85,7 +85,7 @@ func runAdd(cmd *cobra.Command, args []string) {
 
 	// Add models to configuration file
 	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
-	//err = config.AddModel(selectedModels)
+	err = config.AddModel(selectedModels)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
 	} else {
@@ -114,16 +114,19 @@ func downloadModels(models []model.Model) (error, []model.Model) {
 		// TODO : get Config.ModuleName & Config.ClassName
 		// moduleName = "diffusers"
 		// className = "StableDiffusionXLPipeline"
-		moduleName = "transformers"
-		className = "EncoderDecoderModel"
+		// moduleName = "transformers"
+		// className = "AutoModelForCausalLM"
 
 		// Local path where the model will be downloaded
 		downloadPath := app.ModelsDownloadPath
 		modelPath := filepath.Join(downloadPath, modelName)
 
 		// Check if the model_path already exists
-		if _, err := os.Stat(modelPath); !os.IsNotExist(err) {
-
+		if _, err := os.Stat(modelPath); err != nil && !os.IsNotExist(err) {
+			// Skipping model : an error occurred while verifying the non-existence of the model path
+			pterm.Error.Println(fmt.Sprintf("Error checking the existence of %s : %s", modelPath, err))
+			continue
+		} else if err == nil {
 			// Model path already exists : ask the user if he would like to overwrite it
 			overwrite, _ = pterm.DefaultInteractiveConfirm.Show(fmt.Sprintf("Model already exists at '%s'. Do you want to overwrite it?", modelPath))
 
@@ -131,11 +134,6 @@ func downloadModels(models []model.Model) (error, []model.Model) {
 			if !overwrite {
 				continue
 			}
-
-		} else if err != nil {
-			// Skipping model : an error occurred while verifying the non-existence of the model path
-			pterm.Error.Println(fmt.Sprintf("Error checking the existence of %s : %s", modelPath, err))
-			continue
 		}
 
 		// Run the script to download the model

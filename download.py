@@ -6,13 +6,16 @@ import sys
 import diffusers
 import transformers
 
+DIFFUSERS = 'diffusers'
+TRANSFORMERS = 'transformers'
+
 # Authorized library names for download
-AUTHORIZED_MODULE_NAMES = {'diffusers', 'transformers'}
+AUTHORIZED_MODULE_NAMES = {DIFFUSERS, TRANSFORMERS}
 
 # Map module name to a default class name
 model_config_default_class_for_module = {
-    'diffusers': "DiffusionPipeline",
-    'transformers': "AutoModel",
+    DIFFUSERS: "DiffusionPipeline",
+    TRANSFORMERS: "AutoModel",
 }
 
 # Set up logging
@@ -66,9 +69,15 @@ def download(downloads_path, model_name, module_name, class_name, overwrite=Fals
             sys.exit(1)
 
         # Downloading the model
+        # TODO : Options?
         model = class_obj.from_pretrained(model_name)
         model.save_pretrained(model_path)
+
         # TODO : Tokenizer?
+        if module_name == TRANSFORMERS:
+            tokenizer_path = os.path.join(model_path, 'tokenizer')
+            tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
+            tokenizer.save_pretrained(tokenizer_path)
 
     except Exception as e:
         print_error(f"Error while downloading model {model_name}: {e}")
@@ -100,6 +109,8 @@ def main():
     """
 
     args = parse_arguments()
+
+    print(args.downloads_path, args.model_name, args.module_name, args.class_name, args.overwrite)
 
     # Run download with specified arguments
     download(args.downloads_path, args.model_name, args.module_name, args.class_name, args.overwrite)
