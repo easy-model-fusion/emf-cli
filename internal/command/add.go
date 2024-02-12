@@ -168,7 +168,7 @@ func selectModels(tags []string, currentSelectedModels []string) ([]model.Model,
 	}
 
 	// Get existent models from configuration file
-	currentModelNames, err := config.GetModelNames()
+	currentModelNames, err := config.GetAllModelNames()
 	if err != nil {
 		app.L().Fatal("error while getting current models")
 	}

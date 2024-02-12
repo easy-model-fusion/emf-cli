@@ -12,6 +12,48 @@ import (
 	"path/filepath"
 )
 
+// Empty checks if the models slice is empty.
+func Empty(models []model.Model) bool {
+	// No models currently downloaded
+	if len(models) == 0 {
+		pterm.Info.Println("Models list is empty.")
+		return true
+	}
+	return false
+}
+
+// Exists verifies if a model exists already in the configuration file or not
+func Exists(models []model.Model, name string) (bool, error) {
+	for _, currentModel := range models {
+		println(currentModel.Name)
+		if currentModel.Name == name {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// Contains checks if a model exists in a slice
+func Contains(models []model.Model, model model.Model) bool {
+	for _, item := range models {
+		if model == item {
+			return true
+		}
+	}
+	return false
+}
+
+// Difference returns the models in `parentSlice` that are not present in `subSlice`
+func Difference(parentSlice, subSlice []model.Model) []model.Model {
+	var difference []model.Model
+	for _, s1 := range parentSlice {
+		if !Contains(subSlice, s1) {
+			difference = append(difference, s1)
+		}
+	}
+	return difference
+}
+
 // GetModels retrieves models from the configuration.
 func GetModels() ([]model.Model, error) {
 	// Define a slice for models
@@ -24,8 +66,8 @@ func GetModels() ([]model.Model, error) {
 	return models, nil
 }
 
-// GetModelNames retrieves models from the configuration.
-func GetModelNames() ([]string, error) {
+// GetAllModelNames retrieves model names from the configuration.
+func GetAllModelNames() ([]string, error) {
 	models, err := GetModels()
 	if err != nil {
 		return nil, err
@@ -38,14 +80,23 @@ func GetModelNames() ([]string, error) {
 	return modelNames, nil
 }
 
-// IsModelsEmpty checks if the models slice is empty.
-func IsModelsEmpty(models []model.Model) bool {
-	// No models currently downloaded
-	if len(models) == 0 {
-		pterm.Info.Println("Models list is empty.")
-		return true
+// GetModelsByNames retrieves the models by their names given an input slice.
+func GetModelsByNames(models []model.Model, namesSlice []string) []model.Model {
+	// Create a map for faster lookup
+	namesMap := utils.MapFromArrayString(namesSlice)
+
+	// Slice of all the models that were found
+	var namesModels []model.Model
+
+	// Find the requested models
+	for _, existingModel := range models {
+		// Check if this model exists and adds it to the result
+		if _, exists := namesMap[existingModel.Name]; exists {
+			namesModels = append(namesModels, existingModel)
+		}
 	}
-	return false
+
+	return namesModels
 }
 
 // AddModel adds models to configuration file
@@ -157,8 +208,8 @@ func RemoveAllModels() error {
 	return nil
 }
 
-// RemoveSelectedModelsByName filters out specified models, removes them and updates the configuration file.
-func RemoveSelectedModelsByName(models []model.Model, modelsNamesToRemove []string) error {
+// RemoveModelsByNames filters out specified models, removes them and updates the configuration file.
+func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) error {
 	// Find all the models that should be removed
 	modelsToRemove := GetModelsByNames(models, modelsNamesToRemove)
 
@@ -183,22 +234,6 @@ func RemoveSelectedModelsByName(models []model.Model, modelsNamesToRemove []stri
 
 }
 
-// ModelExists verifies if a model exists already in the configuration file or not
-func ModelExists(name string) (bool, error) {
-	models, err := GetModels()
-	if err != nil {
-		return false, err
-	}
-	for _, currentModel := range models {
-		println(currentModel.Name)
-		if currentModel.Name == name {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
 // ValidModelName returns an error if the which arg is not a valid model name.
 func ValidModelName() cobra.PositionalArgs {
 	return func(cmd *cobra.Command, args []string) error {
@@ -207,6 +242,11 @@ func ValidModelName() cobra.PositionalArgs {
 		}
 		if app.H() == nil {
 			return fmt.Errorf("hugging face api is not initialized")
+		}
+
+		models, err := GetModels()
+		if err != nil {
+			return err
 		}
 
 		for _, name := range args {
@@ -224,7 +264,7 @@ func ValidModelName() cobra.PositionalArgs {
 				return err
 			}
 
-			exist, err := ModelExists(name)
+			exist, err := Exists(models, name)
 			if err != nil {
 				return err
 			}
@@ -235,43 +275,4 @@ func ValidModelName() cobra.PositionalArgs {
 
 		return nil
 	}
-}
-
-func GetModelsByNames(models []model.Model, namesSlice []string) []model.Model {
-	// Create a map for faster lookup
-	namesMap := utils.MapFromArrayString(namesSlice)
-
-	// Slice of all the models that were found
-	var namesModels []model.Model
-
-	// Find the requested models
-	for _, existingModel := range models {
-		// Check if this model exists and adds it to the result
-		if _, exists := namesMap[existingModel.Name]; exists {
-			namesModels = append(namesModels, existingModel)
-		}
-	}
-
-	return namesModels
-}
-
-// Contains checks if an element exists in a slice
-func Contains(models []model.Model, model model.Model) bool {
-	for _, item := range models {
-		if model == item {
-			return true
-		}
-	}
-	return false
-}
-
-// Difference returns the elements in `parentSlice` that are not present in `subSlice`
-func Difference(parentSlice, subSlice []model.Model) []model.Model {
-	var difference []model.Model
-	for _, s1 := range parentSlice {
-		if !Contains(subSlice, s1) {
-			difference = append(difference, s1)
-		}
-	}
-	return difference
 }

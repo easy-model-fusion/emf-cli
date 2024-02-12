@@ -189,19 +189,19 @@ func TestGetModels_MissingConfig(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
-// TestIsModelsEmpty_EmptyModels tests the IsModelsEmpty function with an empty models slice.
+// TestIsModelsEmpty_EmptyModels tests the Empty function with an empty models slice.
 func TestIsModelsEmpty_EmptyModels(t *testing.T) {
 	// Init
 	var models []model.Model
 
 	// Execute
-	isEmpty := IsModelsEmpty(models)
+	isEmpty := Empty(models)
 
 	// Assert
 	test.AssertEqual(t, isEmpty, true, "Expected true.")
 }
 
-// TestIsModelsEmpty_NonEmptyModels tests the IsModelsEmpty function with a non-empty models slice.
+// TestIsModelsEmpty_NonEmptyModels tests the Empty function with a non-empty models slice.
 func TestIsModelsEmpty_NonEmptyModels(t *testing.T) {
 	// Init
 	models := []model.Model{
@@ -218,7 +218,7 @@ func TestIsModelsEmpty_NonEmptyModels(t *testing.T) {
 	}
 
 	// Execute
-	isEmpty := IsModelsEmpty(models)
+	isEmpty := Empty(models)
 
 	// Assert
 	test.AssertEqual(t, isEmpty, false, "Expected false.")
