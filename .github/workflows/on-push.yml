@@ -106,12 +106,21 @@ jobs:
       run: |
         go test -coverprofile=coverage.out ./...
 
+    - name: Save coverage report
+      if: github.event_name == 'push'
+      run: mv coverage.out coverage.txt
+
+    - name: Calculate coverage percentages
+      if: github.event_name == 'push'
+      run: |
+        awk -F ' ' '{print $1, $2, $3, $4, ($4/$3*100)"%"}' coverage.txt > coverageP.txt
+
     - name: Upload coverage artifact
       if: github.event_name == 'push'
       uses: actions/upload-artifact@v2
       with:
         name: coverage
-        path: ./coverage.out
+        path: ./coverageP.txt
 
     - name: Download coverage artifact
       if: github.event_name == 'push'
@@ -127,4 +136,4 @@ jobs:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     - name: View code coverage report
-      run: go tool cover -func=coverage.out
+      run: go tool cover -func=coverageP.txt
