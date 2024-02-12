@@ -70,7 +70,8 @@ func AddModel(models []model.Model) error {
 	return nil
 }
 
-func RemoveModel(model model.Model) error {
+// RemoveModelPhysically only removes the model from the project's downloaded models
+func RemoveModelPhysically(model model.Model) error {
 
 	// Nothing to remove if not downloaded
 	if !model.AddToBinary {
@@ -130,39 +131,7 @@ func RemoveModel(model model.Model) error {
 	return nil
 }
 
-// RemoveModels filters out specified models and writes to the configuration file.
-func RemoveModels(models []model.Model, modelsToRemove []string) error {
-	// Filter out the models to be removed
-	updatedModels, removedModels := RemoveModelsFromList(models, modelsToRemove)
-
-	// Create a map for faster lookup
-	removedModelsMap := utils.MapFromArrayString(removedModels)
-
-	// Displaying if the selected models where removed or not
-	for _, modelToRemove := range modelsToRemove {
-		if _, exists := removedModelsMap[modelToRemove]; exists {
-			pterm.Success.Printfln("Model '%s' was removed.", modelToRemove)
-		} else {
-			pterm.Warning.Printfln("Model '%s' is not installed. Nothing to remove.", modelToRemove)
-		}
-	}
-
-	// Update the models
-	viper.Set("models", updatedModels)
-
-	// Attempt to write the configuration file
-	err := WriteViperConfig()
-	if err != nil {
-		return err
-	}
-
-	// TODO : remove the downloaded models : Issue #21 => removedModels
-
-	return nil
-
-}
-
-// RemoveAllModels empties the models list and writes to the configuration file.
+// RemoveAllModels removes all the models and updates the configuration file.
 func RemoveAllModels() error {
 
 	// Get the models from the configuration file
@@ -173,7 +142,7 @@ func RemoveAllModels() error {
 
 	// Trying to remove every model
 	for _, item := range models {
-		_ = RemoveModel(item)
+		_ = RemoveModelPhysically(item)
 	}
 
 	// Empty the models
@@ -188,24 +157,30 @@ func RemoveAllModels() error {
 	return nil
 }
 
-func RemoveModelsFromList(currentModels []model.Model, modelsToRemove []string) ([]model.Model, []string) {
-	// Create a map for faster lookup
-	modelsMap := utils.MapFromArrayString(modelsToRemove)
+// RemoveSelectedModelsByName filters out specified models, removes them and updates the configuration file.
+func RemoveSelectedModelsByName(models []model.Model, modelsNamesToRemove []string) error {
+	// Find all the models that should be removed
+	modelsToRemove := GetModelsByNames(models, modelsNamesToRemove)
 
-	// Filter out the models to be removed
-	var updatedModels []model.Model
-	var removedModels []string
-	for _, existingModel := range currentModels {
-		if _, exists := modelsMap[existingModel.Name]; !exists {
-			// Keep the model if it's not in the modelsToRemove list
-			updatedModels = append(updatedModels, existingModel)
-		} else {
-			// Indicate which model was effectively removed
-			removedModels = append(removedModels, existingModel.Name)
-		}
+	// Trying to remove the models
+	for _, item := range modelsToRemove {
+		_ = RemoveModelPhysically(item)
 	}
 
-	return updatedModels, removedModels
+	// Find all the remaining models
+	remainingModels := Difference(models, modelsToRemove)
+
+	// Update the models
+	viper.Set("models", remainingModels)
+
+	// Attempt to write the configuration file
+	err := WriteViperConfig()
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 // ModelExists verifies if a model exists already in the configuration file or not
@@ -260,4 +235,43 @@ func ValidModelName() cobra.PositionalArgs {
 
 		return nil
 	}
+}
+
+func GetModelsByNames(models []model.Model, namesSlice []string) []model.Model {
+	// Create a map for faster lookup
+	namesMap := utils.MapFromArrayString(namesSlice)
+
+	// Slice of all the models that were found
+	var namesModels []model.Model
+
+	// Find the requested models
+	for _, existingModel := range models {
+		// Check if this model exists and adds it to the result
+		if _, exists := namesMap[existingModel.Name]; exists {
+			namesModels = append(namesModels, existingModel)
+		}
+	}
+
+	return namesModels
+}
+
+// Contains checks if an element exists in a slice
+func Contains(models []model.Model, model model.Model) bool {
+	for _, item := range models {
+		if model == item {
+			return true
+		}
+	}
+	return false
+}
+
+// Difference returns the elements in `parentSlice` that are not present in `subSlice`
+func Difference(parentSlice, subSlice []model.Model) []model.Model {
+	var difference []model.Model
+	for _, s1 := range parentSlice {
+		if !Contains(subSlice, s1) {
+			difference = append(difference, s1)
+		}
+	}
+	return difference
 }

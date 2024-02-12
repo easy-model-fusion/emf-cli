@@ -2,8 +2,8 @@ package command
 
 import (
 	"github.com/easy-model-fusion/client/internal/config"
-	"github.com/easy-model-fusion/client/internal/sdk"
 	"github.com/easy-model-fusion/client/internal/model"
+	"github.com/easy-model-fusion/client/internal/sdk"
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -26,7 +26,7 @@ func runRemove(cmd *cobra.Command, args []string) {
 
 	sdk.SendUpdateSuggestion()
 
-	// remove all models
+	// Remove all models
 	if allFlag {
 		err := config.RemoveAllModels()
 		if err == nil {
@@ -52,13 +52,13 @@ func runRemove(cmd *cobra.Command, args []string) {
 		// Get selected models from multiselect
 		selectedModels = selectModelsToDelete(models)
 	} else {
-		// selected models from args
+		// Get the selected models from the args
 		selectedModels = make([]string, len(args))
 		copy(selectedModels, args)
 	}
 
-	// remove selected models
-	err = config.RemoveModels(models, selectedModels)
+	// Remove the selected models
+	err = config.RemoveSelectedModelsByName(models, selectedModels)
 	if err == nil {
 		pterm.Success.Printfln("Operation succeeded.")
 	} else {
