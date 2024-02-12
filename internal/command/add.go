@@ -10,7 +10,6 @@ import (
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"os"
 	"path/filepath"
 )
 
@@ -122,11 +121,10 @@ func downloadModels(models []model.Model) (error, []model.Model) {
 		modelPath := filepath.Join(downloadPath, modelName)
 
 		// Check if the model_path already exists
-		if _, err := os.Stat(modelPath); err != nil && !os.IsNotExist(err) {
-			// Skipping model : an error occurred while verifying the non-existence of the model path
-			pterm.Error.Println(fmt.Sprintf("Error checking the existence of %s : %s", modelPath, err))
+		if exists, err := utils.DirectoryExists(modelPath); err != nil {
+			// Skipping model : an error occurred
 			continue
-		} else if err == nil {
+		} else if exists {
 			// Model path already exists : ask the user if he would like to overwrite it
 			overwrite, _ = pterm.DefaultInteractiveConfirm.Show(fmt.Sprintf("Model already exists at '%s'. Do you want to overwrite it?", modelPath))
 
