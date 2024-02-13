@@ -100,3 +100,135 @@ func TestCloseFile(t *testing.T) {
 		t.Fatal("File should be closed")
 	}
 }
+
+// TestIsExistingPath_True tests the IsExistingPath function with an existing path.
+func TestIsExistingPath_True(t *testing.T) {
+	// Create a temporary directory for the test
+	dir, err := os.MkdirTemp("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
+
+	// Check path existence
+	exists, err := IsExistingPath(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	test.AssertEqual(t, true, exists, "Path should be found as existing.")
+}
+
+// TestIsExistingPath_False tests the IsExistingPath function with a non-existing path.
+func TestIsExistingPath_False(t *testing.T) {
+	// Create a temporary directory for the test
+	dir, err := os.MkdirTemp("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
+
+	// Check path existence
+	exists, err := IsExistingPath(filepath.Join(dir, "shouldRaiseError"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	test.AssertEqual(t, false, exists, "Path should be found as not existing.")
+}
+
+// TestIsDirectoryEmpty_True tests the IsDirectoryEmpty function with an empty directory.
+func TestIsDirectoryEmpty_True(t *testing.T) {
+	// Create a temporary directory for the test
+	dir, err := os.MkdirTemp("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
+
+	// Check directory emptiness
+	exists, err := IsDirectoryEmpty(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	test.AssertEqual(t, true, exists, "Path should be found as empty.")
+}
+
+// TestIsDirectoryEmpty_False tests the IsDirectoryEmpty function with a non-empty directory.
+func TestIsDirectoryEmpty_False(t *testing.T) {
+	// Create a temporary directory for the test
+	dir, err := os.MkdirTemp("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
+
+	// Create a temporary file in dir for the test
+	file, err := os.CreateTemp(dir, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(file.Name())
+
+	// Check directory emptiness
+	exists, err := IsDirectoryEmpty(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	test.AssertEqual(t, false, exists, "Path should be found as not empty.")
+}
+
+// TestDeleteDirectoryIfEmpty_Empty tests the DeleteDirectoryIfEmpty function with an empty directory.
+func TestDeleteDirectoryIfEmpty_Empty(t *testing.T) {
+	// Create a temporary directory for the test
+	dir, err := os.MkdirTemp("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
+
+	// Check directory emptiness
+	err = DeleteDirectoryIfEmpty(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check path existence after removal
+	exists, err := IsExistingPath(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	test.AssertEqual(t, false, exists, "Directory should have been removed.")
+}
+
+// TestDeleteDirectoryIfEmpty_NonEmpty tests the DeleteDirectoryIfEmpty function with a non-empty directory.
+func TestDeleteDirectoryIfEmpty_NonEmpty(t *testing.T) {
+	// Create a temporary directory for the test
+	dir, err := os.MkdirTemp("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
+
+	// Create a temporary file in dir for the test
+	file, err := os.CreateTemp(dir, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(file.Name())
+
+	// Check directory emptiness
+	err = DeleteDirectoryIfEmpty(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check path existence after removal
+	exists, err := IsExistingPath(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	test.AssertEqual(t, true, exists, "Directory should not have been removed.")
+}

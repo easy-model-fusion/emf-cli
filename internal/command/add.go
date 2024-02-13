@@ -168,10 +168,11 @@ func selectModels(tags []string, currentSelectedModels []string) ([]model.Model,
 	}
 
 	// Get existent models from configuration file
-	currentModelNames, err := config.GetAllModelNames()
+	models, err := config.GetModels()
 	if err != nil {
 		app.L().Fatal("error while getting current models")
 	}
+	currentModelNames := config.GetNames(models)
 
 	// Remove existent models from list of models to add
 	// Remove already selected models from list of models to add (in case user entered add model_name -s)

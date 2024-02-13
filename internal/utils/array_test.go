@@ -66,3 +66,19 @@ func TestMapFromArrayString(t *testing.T) {
 		test.AssertEqual(t, exists, true, "Key not found in the result map:", key)
 	}
 }
+
+func TestArrayFromPath(t *testing.T) {
+
+	// Init
+	expected := []string{"input", "to", "test"}
+	input := expected[0] + "/" + expected[1] + "/" + expected[2]
+
+	// Test
+	result := ArrayFromPath(input)
+
+	// Assert
+	test.AssertEqual(t, len(expected), len(result), "Lengths do not match")
+	for i := 0; i < len(expected); i++ {
+		test.AssertEqual(t, expected[i], result[i], "Values do not match")
+	}
+}

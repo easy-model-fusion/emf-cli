@@ -76,15 +76,29 @@ func IsExistingPath(name string) (bool, error) {
 
 // IsDirectoryEmpty check if the requested directory is empty
 func IsDirectoryEmpty(name string) (bool, error) {
-	f, err := os.Open(name)
+	file, err := os.Open(name)
+	defer CloseFile(file)
 	if err != nil {
 		return false, err
 	}
-	defer f.Close()
 
-	_, err = f.Readdirnames(1) // Or f.Readdir(1)
+	_, err = file.Readdirnames(1) // Or f.Readdir(1)
 	if err == io.EOF {
 		return true, nil
 	}
 	return false, err // Either not empty or error, suits both cases
+}
+
+func DeleteDirectoryIfEmpty(path string) error {
+	// Check if the directory is empty
+	if empty, err := IsDirectoryEmpty(path); err != nil {
+		return err
+	} else if empty {
+		// Current directory is empty : removing it
+		err := os.Remove(path)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

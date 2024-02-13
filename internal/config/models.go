@@ -22,21 +22,20 @@ func Empty(models []model.Model) bool {
 	return false
 }
 
-// Exists verifies if a model exists already in the configuration file or not
-func Exists(models []model.Model, name string) (bool, error) {
-	for _, currentModel := range models {
-		println(currentModel.Name)
-		if currentModel.Name == name {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-// Contains checks if a model exists in a slice
+// Contains checks if a models slice contains the requested model
 func Contains(models []model.Model, model model.Model) bool {
 	for _, item := range models {
 		if model == item {
+			return true
+		}
+	}
+	return false
+}
+
+// ContainsByName checks if a models slice contains the requested model by name
+func ContainsByName(models []model.Model, name string) bool {
+	for _, currentModel := range models {
+		if currentModel.Name == name {
 			return true
 		}
 	}
@@ -66,20 +65,6 @@ func GetModels() ([]model.Model, error) {
 	return models, nil
 }
 
-// GetAllModelNames retrieves model names from the configuration.
-func GetAllModelNames() ([]string, error) {
-	models, err := GetModels()
-	if err != nil {
-		return nil, err
-	}
-
-	var modelNames []string
-	for _, item := range models {
-		modelNames = append(modelNames, item.Name)
-	}
-	return modelNames, nil
-}
-
 // GetModelsByNames retrieves the models by their names given an input slice.
 func GetModelsByNames(models []model.Model, namesSlice []string) []model.Model {
 	// Create a map for faster lookup
@@ -97,6 +82,15 @@ func GetModelsByNames(models []model.Model, namesSlice []string) []model.Model {
 	}
 
 	return namesModels
+}
+
+// GetNames retrieves the names from the models.
+func GetNames(models []model.Model) []string {
+	var modelNames []string
+	for _, item := range models {
+		modelNames = append(modelNames, item.Name)
+	}
+	return modelNames
 }
 
 // AddModel adds models to configuration file
@@ -135,7 +129,7 @@ func RemoveModelPhysically(model model.Model) error {
 	// Starting client spinner animation
 	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Removing model %s...", model.Name))
 
-	// Check if the model_path already exists
+	// Check if the model_path exists
 	if exists, err := utils.IsExistingPath(modelPath); err != nil {
 		// Skipping model : an error occurred
 		spinner.Fail(err)
@@ -161,17 +155,10 @@ func RemoveModelPhysically(model model.Model) error {
 			// Build path to parent directory
 			path := filepath.Join(directories[:i+1]...)
 
-			// Check if the directory is empty
-			if empty, err := utils.IsDirectoryEmpty(path); err != nil {
+			// Delete directory if empty
+			err = utils.DeleteDirectoryIfEmpty(path)
+			if err != nil {
 				spinner.Fail(err)
-				return err
-			} else if empty {
-				// Current directory is empty : removing it
-				err := os.Remove(path)
-				if err != nil {
-					spinner.Fail(err)
-					return err
-				}
 			}
 		}
 		spinner.Success(fmt.Sprintf("Removed model %s", model.Name))
@@ -264,10 +251,7 @@ func ValidModelName() cobra.PositionalArgs {
 				return err
 			}
 
-			exist, err := Exists(models, name)
-			if err != nil {
-				return err
-			}
+			exist := ContainsByName(models, name)
 			if exist {
 				return fmt.Errorf("'%s' model is already included in the project", name)
 			}
