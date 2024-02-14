@@ -120,13 +120,13 @@ func processSelectedModels(selectedModels []model.Model) ([]model.Model, error) 
 	}
 
 	// Filter the requested models that have already been added
-	alreadyAdded := config.Union(configModels, selectedModels)
+	alreadyAdded := model.Union(configModels, selectedModels)
 	if len(alreadyAdded) != 0 {
-		pterm.Warning.Println(fmt.Sprintf("The following models have already been added and will be ignored : %s", config.GetNames(alreadyAdded)))
+		pterm.Warning.Println(fmt.Sprintf("The following models have already been added and will be ignored : %s", model.GetNames(alreadyAdded)))
 	}
 
 	// Filter the ones that haven't been added yet
-	toBeAdded := config.Difference(selectedModels, alreadyAdded)
+	toBeAdded := model.Difference(selectedModels, alreadyAdded)
 
 	return toBeAdded, nil
 }
@@ -148,12 +148,12 @@ func selectModels(tags []string, currentSelectedModels []string) ([]model.Model,
 	if err != nil {
 		app.L().Fatal("error while getting current models")
 	}
-	configModelNames := config.GetNames(configModels)
+	configModelNames := model.GetNames(configModels)
 
 	// Remove existent models from list of models to add
 	// Remove already selected models from list of models to add (in case user entered add model_name -s)
-	existingModels := config.GetModelsByNames(models, append(configModelNames, currentSelectedModels...))
-	models = config.Difference(models, existingModels)
+	existingModels := model.GetModelsByNames(models, append(configModelNames, currentSelectedModels...))
+	models = model.Difference(models, existingModels)
 
 	// Build a multiselect with each model name
 	var modelNames []string

@@ -42,7 +42,7 @@ func runRemove(cmd *cobra.Command, args []string) {
 	var models, err = config.GetModels()
 
 	// Check fetched models : cannot be null or empty
-	if err != nil || config.Empty(models) {
+	if err != nil || model.Empty(models) {
 		pterm.Info.Printfln("No models to remove.")
 		return
 	}

@@ -40,7 +40,7 @@ func setupConfigDir(t *testing.T) (string, string) {
 }
 
 // setupConfigFile creates a configuration file.
-func setupConfigFile(t *testing.T, filePath string, models []model.Model) error {
+func setupConfigFile(filePath string, models []model.Model) error {
 	file, err := os.Create(filePath)
 	defer utils.CloseFile(file)
 	if err != nil {
@@ -142,93 +142,6 @@ func getModel(suffix int) model.Model {
 	}
 }
 
-// TestEmpty_True tests the Empty function with an empty models slice.
-func TestEmpty_True(t *testing.T) {
-	// Init
-	var models []model.Model
-
-	// Execute
-	isEmpty := Empty(models)
-
-	// Assert
-	test.AssertEqual(t, isEmpty, true, "Expected true.")
-}
-
-// TestEmpty_False tests the Empty function with a non-empty models slice.
-func TestEmpty_False(t *testing.T) {
-	// Init
-	models := []model.Model{getModel(0), getModel(1)}
-
-	// Execute
-	isEmpty := Empty(models)
-
-	// Assert
-	test.AssertEqual(t, isEmpty, false, "Expected false.")
-}
-
-// TestContains_True tests the Contains function with an element contained by the slice.
-func TestContains_True(t *testing.T) {
-	// Init
-	models := []model.Model{getModel(0), getModel(1)}
-
-	// Execute
-	contains := Contains(models, models[0])
-
-	// Assert
-	test.AssertEqual(t, contains, true, "Expected true.")
-}
-
-// TestContains_False tests the Contains function with an element not contained by the slice.
-func TestContains_False(t *testing.T) {
-	// Init
-	models := []model.Model{getModel(0), getModel(1)}
-
-	// Execute
-	contains := Contains(models, getModel(2))
-
-	// Assert
-	test.AssertEqual(t, contains, false, "Expected false.")
-}
-
-// TestContainsByName_True tests the ContainsByName function with an element's name contained by the slice.
-func TestContainsByName_True(t *testing.T) {
-	// Init
-	models := []model.Model{getModel(0), getModel(1)}
-
-	// Execute
-	contains := ContainsByName(models, models[0].Name)
-
-	// Assert
-	test.AssertEqual(t, contains, true, "Expected true.")
-}
-
-// TestContainsByName_False tests the ContainsByName function with an element's name not contained by the slice.
-func TestContainsByName_False(t *testing.T) {
-	// Init
-	models := []model.Model{getModel(0), getModel(1)}
-
-	// Execute
-	contains := ContainsByName(models, getModel(2).Name)
-
-	// Assert
-	test.AssertEqual(t, contains, false, "Expected false.")
-}
-
-// TestDifference tests the Difference function to return the correct difference.
-func TestDifference(t *testing.T) {
-	// Init
-	models := []model.Model{getModel(0), getModel(1), getModel(2), getModel(3), getModel(4)}
-	index := 2
-	sub := models[:index]
-	expected := models[index:]
-
-	// Execute
-	difference := Difference(models, sub)
-
-	// Assert
-	test.AssertEqual(t, len(expected), len(difference), "Lengths should be equal.")
-}
-
 // TestGetModels_MissingConfig tests the GetModels function.
 func TestGetModels_Success(t *testing.T) {
 	// Setup directory
@@ -236,7 +149,7 @@ func TestGetModels_Success(t *testing.T) {
 
 	// Setup file
 	initialModels := []model.Model{getModel(0), getModel(1)}
-	err := setupConfigFile(t, initialConfigFile, initialModels)
+	err := setupConfigFile(initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 
 	// Call the GetModels function
@@ -259,7 +172,7 @@ func TestGetModels_MissingConfig(t *testing.T) {
 
 	// Setup file
 	var initialModels []model.Model
-	err := setupConfigFile(t, initialConfigFile, initialModels)
+	err := setupConfigFile(initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 
 	// Call the GetModels function
@@ -275,31 +188,6 @@ func TestGetModels_MissingConfig(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
-// TestGetModelsByNames tests the GetModelsByNames function to return the correct models.
-func TestGetModelsByNames(t *testing.T) {
-	// Init
-	models := []model.Model{getModel(0), getModel(1)}
-	names := []string{models[0].Name, models[1].Name}
-
-	// Execute
-	result := GetModelsByNames(models, names)
-
-	// Assert
-	test.AssertEqual(t, len(models), len(result), "Lengths should be equal.")
-}
-
-// TestGetNames tests the GetNames function to return the correct names.
-func TestGetNames(t *testing.T) {
-	// Init
-	models := []model.Model{getModel(0), getModel(1)}
-
-	// Execute
-	names := GetNames(models)
-
-	// Assert
-	test.AssertEqual(t, len(models), len(names), "Lengths should be equal.")
-}
-
 // TestErrorOnAddModelWithEmptyViper tests the AddModel function
 func TestAddModel(t *testing.T) {
 	// Setup directory
@@ -310,7 +198,7 @@ func TestAddModel(t *testing.T) {
 
 	// Call the AddModel function to add new models
 	newModels := []model.Model{getModel(2), getModel(3)}
-	err := setupConfigFile(t, initialConfigFile, initialModels)
+	err := setupConfigFile(initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
@@ -336,7 +224,7 @@ func TestAddModelOnEmptyConfFile(t *testing.T) {
 	// Call the AddModel function to add new models
 	newModels := []model.Model{getModel(0), getModel(1)}
 
-	err := setupConfigFile(t, initialConfigFile, initialModels)
+	err := setupConfigFile(initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
@@ -424,7 +312,7 @@ func TestRemoveAllModels_Success(t *testing.T) {
 
 	// Setup configuration directory and file
 	confDir, initialConfigFile := setupConfigDir(t)
-	err := setupConfigFile(t, initialConfigFile, models)
+	err := setupConfigFile(initialConfigFile, models)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
@@ -453,7 +341,7 @@ func TestRemoveAllModels_Success(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
-// TestRemoveModels_Success tests the RemoveModels function for successful removal of specified models.
+// TestRemoveModels_Success tests the RemoveModelsByNames function for successful removal of specified models.
 func TestRemoveModels_Success(t *testing.T) {
 	// Init the models
 	models := []model.Model{getModel(0), getModel(1), getModel(2)}
@@ -477,7 +365,7 @@ func TestRemoveModels_Success(t *testing.T) {
 
 	// Setup configuration directory and file
 	confDir, initialConfigFile := setupConfigDir(t)
-	err := setupConfigFile(t, initialConfigFile, models)
+	err := setupConfigFile(initialConfigFile, models)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
@@ -517,6 +405,7 @@ func TestRemoveModels_Success(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
+// TestDownloadModels tests the DownloadModels function exits properly.
 func TestDownloadModels(t *testing.T) {
 	// Init the models
 	models := []model.Model{getModel(0)}
@@ -539,10 +428,6 @@ func TestDownloadModels(t *testing.T) {
 	// Assert
 	test.AssertEqual(t, nil, err, "No error should have been raised.")
 	test.AssertEqual(t, len(models), len(result), "Lengths do not match")
-}
-
-func TestDownloadModels_Success(t *testing.T) {
-
 }
 
 func TestModelExists_OnExistentModel(t *testing.T) {
