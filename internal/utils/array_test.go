@@ -67,6 +67,7 @@ func TestMapFromArrayString(t *testing.T) {
 	}
 }
 
+// TestArrayFromPath tests the ArrayFromPath function.
 func TestArrayFromPath(t *testing.T) {
 
 	// Init
@@ -81,4 +82,18 @@ func TestArrayFromPath(t *testing.T) {
 	for i := 0; i < len(expected); i++ {
 		test.AssertEqual(t, expected[i], result[i], "Values do not match")
 	}
+}
+
+// TestStringRemoveDuplicates tests the StringRemoveDuplicates function.
+func TestStringRemoveDuplicates(t *testing.T) {
+
+	// Init
+	expected := []string{"input", "to", "test"}
+	input := append(expected, expected...)
+
+	// Test
+	result := StringRemoveDuplicates(input)
+
+	// Assert
+	test.AssertEqual(t, len(expected), len(result), "Lengths do not match")
 }

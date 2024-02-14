@@ -10,7 +10,6 @@ import (
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"path/filepath"
 )
 
 // addCmd represents the add model(s) command
@@ -70,14 +69,21 @@ func runAdd(cmd *cobra.Command, args []string) {
 		selectedModelNames = append(selectedModelNames, modelNames...)
 	}
 
+	// Remove all the duplicates
+	selectedModelNames = utils.StringRemoveDuplicates(selectedModelNames)
+
 	// User choose either to exclude or include models in binary
 	selectedModels = selectExcludedModelsFromInstall(selectedModels, selectedModelNames)
-
-	// Display the selected models
 	utils.DisplaySelectedItems(selectedModelNames)
 
+	// Process the models before downloading them
+	selectedModels, err := processSelectedModels(selectedModels)
+	if err != nil {
+		return
+	}
+
 	// Download the models
-	err, selectedModels := downloadModels(selectedModels)
+	err, selectedModels = config.DownloadModels(selectedModels)
 	if err != nil {
 		return
 	}
@@ -92,41 +98,24 @@ func runAdd(cmd *cobra.Command, args []string) {
 	}
 }
 
-func downloadModels(models []model.Model) (error, []model.Model) {
-
-	// Find the python executable inside the venv to run the scripts
-	pythonPath, err := utils.FindVEnvExecutable(".venv", "python")
+// processSelectedModels process the selected models and only keep the valid ones
+func processSelectedModels(selectedModels []model.Model) ([]model.Model, error) {
+	// Get the models from the configuration file
+	configModels, err := config.GetModels()
 	if err != nil {
-		pterm.Error.Println(fmt.Sprintf("Error using the venv : %s", err))
-		return err, nil
+		return nil, err
 	}
 
-	// Iterate over every model for instant download
-	for i := range models {
+	// The models that were kept
+	var processModels []model.Model
 
-		// Get mandatory model data for the download script
-		modelName := models[i].Name
-		moduleName := models[i].Config.ModuleName
-		className := models[i].Config.ClassName
-		overwrite := false
+	// Iterate over every selected model and process it
+	for _, item := range selectedModels {
 
-		// TODO : get Config.ModuleName & Config.ClassName
-		moduleName = "diffusers"
-		// className = "StableDiffusionXLPipeline"
-		// moduleName = "transformers"
-		// className = "AutoModelForCausalLM"
-
-		// Local path where the model will be downloaded
-		downloadPath := app.ModelsDownloadPath
-		modelPath := filepath.Join(downloadPath, modelName)
-
-		// Check if the model_path already exists
-		if exists, err := utils.IsExistingPath(modelPath); err != nil {
-			// Skipping model : an error occurred
-			continue
-		} else if exists {
-			// Model path already exists : ask the user if he would like to overwrite it
-			overwrite, _ = pterm.DefaultInteractiveConfirm.Show(fmt.Sprintf("Model already exists at '%s'. Do you want to overwrite it?", modelPath))
+		// Check if the model is already in the configuration file
+		if config.ContainsByName(configModels, item.Name) {
+			// Ask the user if he would like to overwrite it
+			overwrite := utils.AskForUsersConfirmation(fmt.Sprintf("Model '%s' already in the configuration file. Do you want to overwrite it?", item.Name))
 
 			// User does not want to overwrite : skipping to the next model
 			if !overwrite {
@@ -134,25 +123,10 @@ func downloadModels(models []model.Model) (error, []model.Model) {
 			}
 		}
 
-		// Run the script to download the model
-		spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", modelName))
-		err, exitCode := utils.DownloadModel(pythonPath, downloadPath, modelName, moduleName, className, overwrite)
-		if err != nil {
-			spinner.Fail(err)
-			switch exitCode {
-			case 2:
-				// TODO : Update the log message once the command is implemented
-				pterm.Info.Println("Run the 'add --single' command to manually add the model.")
-			}
-			continue
-		}
-		spinner.Success(fmt.Sprintf("Successfully downloaded model '%s'", modelName))
-
-		// Update the directory path to the model
-		models[i].DirectoryPath = downloadPath
+		// Keeping the model
+		processModels = append(processModels, item)
 	}
-
-	return nil, models
+	return processModels, nil
 }
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project
@@ -168,15 +142,15 @@ func selectModels(tags []string, currentSelectedModels []string) ([]model.Model,
 	}
 
 	// Get existent models from configuration file
-	models, err := config.GetModels()
+	configModels, err := config.GetModels()
 	if err != nil {
 		app.L().Fatal("error while getting current models")
 	}
-	currentModelNames := config.GetNames(models)
+	configModelNames := config.GetNames(configModels)
 
 	// Remove existent models from list of models to add
 	// Remove already selected models from list of models to add (in case user entered add model_name -s)
-	existingModels := config.GetModelsByNames(models, append(currentModelNames, currentSelectedModels...))
+	existingModels := config.GetModelsByNames(models, append(configModelNames, currentSelectedModels...))
 	models = config.Difference(models, existingModels)
 
 	// Build a multiselect with each model name

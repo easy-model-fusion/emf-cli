@@ -45,9 +45,9 @@ func ContainsByName(models []model.Model, name string) bool {
 // Difference returns the models in `parentSlice` that are not present in `subSlice`
 func Difference(parentSlice, subSlice []model.Model) []model.Model {
 	var difference []model.Model
-	for _, s1 := range parentSlice {
-		if !Contains(subSlice, s1) {
-			difference = append(difference, s1)
+	for _, item := range parentSlice {
+		if !ContainsByName(subSlice, item.Name) {
+			difference = append(difference, item)
 		}
 	}
 	return difference
@@ -94,16 +94,21 @@ func GetNames(models []model.Model) []string {
 }
 
 // AddModel adds models to configuration file
-func AddModel(models []model.Model) error {
-	// get existent models
-	originalModelsList, err := GetModels()
+func AddModel(updatedModels []model.Model) error {
+	// Get existent models
+	configModels, err := GetModels()
 	if err != nil {
 		return err
 	}
-	// add new models
-	updatedModels := append(originalModelsList, models...)
+
+	// Keeping those that haven't changed
+	unchangedModels := Difference(configModels, updatedModels)
+
+	// Combining the unchanged models with the updated models
+	models := append(unchangedModels, updatedModels...)
+
 	// Update the models
-	viper.Set("models", updatedModels)
+	viper.Set("models", models)
 
 	// Attempt to write the configuration file
 	err = WriteViperConfig()
@@ -219,6 +224,73 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 
 	return nil
 
+}
+
+// DownloadModels downloads physically every model in the slice.
+func DownloadModels(models []model.Model) (error, []model.Model) {
+
+	// Find the python executable inside the venv to run the scripts
+	pythonPath, err := utils.FindVEnvExecutable(".venv", "python")
+	if err != nil {
+		pterm.Error.Println(fmt.Sprintf("Error using the venv : %s", err))
+		return err, nil
+	}
+
+	// Iterate over every model for instant download
+	for i := range models {
+
+		// Exclude from download if not requested
+		if !models[i].AddToBinary {
+			continue
+		}
+
+		// Reset in case the download fails
+		models[i].AddToBinary = false
+		overwrite := false
+
+		// Get mandatory model data for the download script
+		modelName := models[i].Name
+		moduleName := models[i].Config.ModuleName
+		className := models[i].Config.ClassName
+
+		// Local path where the model will be downloaded
+		downloadPath := app.ModelsDownloadPath
+		modelPath := filepath.Join(downloadPath, modelName)
+
+		// Check if the model_path already exists
+		if exists, err := utils.IsExistingPath(modelPath); err != nil {
+			// Skipping model : an error occurred
+			continue
+		} else if exists {
+			// Model path already exists : ask the user if he would like to overwrite it
+			overwrite = utils.AskForUsersConfirmation(fmt.Sprintf("Model '%s' already downloaded at '%s'. Do you want to overwrite it?", models[i].Name, modelPath))
+
+			// User does not want to overwrite : skipping to the next model
+			if !overwrite {
+				continue
+			}
+		}
+
+		// Run the script to download the model
+		spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", modelName))
+		err, exitCode := utils.DownloadModel(pythonPath, downloadPath, modelName, moduleName, className, overwrite)
+		if err != nil {
+			spinner.Fail(err)
+			switch exitCode {
+			case 2:
+				// TODO : Update the log message once the command is implemented
+				pterm.Info.Println("Run the 'add --single' command to manually add the model.")
+			}
+			continue
+		}
+		spinner.Success(fmt.Sprintf("Successfully downloaded model '%s'", modelName))
+
+		// Update the model for the configuration file
+		models[i].DirectoryPath = downloadPath
+		models[i].AddToBinary = true
+	}
+
+	return nil, models
 }
 
 // ValidModelName returns an error if the which arg is not a valid model name.

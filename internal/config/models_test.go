@@ -461,13 +461,11 @@ func TestRemoveModels_Success(t *testing.T) {
 	// Create temporary models
 	modelPath0 := filepath.Join(app.ModelsDownloadPath, models[0].Name)
 	setupModelDirectory(t, modelPath0)
-	defer os.RemoveAll(modelPath0)
 	modelPath1 := filepath.Join(app.ModelsDownloadPath, models[1].Name)
 	setupModelDirectory(t, modelPath1)
-	defer os.RemoveAll(modelPath1)
 	modelPath2 := filepath.Join(app.ModelsDownloadPath, models[2].Name)
 	setupModelDirectory(t, modelPath2)
-	defer os.RemoveAll(modelPath2)
+	defer os.RemoveAll(app.ModelsDownloadPath)
 
 	// Models to remove
 	removeStartIndex := 1
@@ -517,6 +515,34 @@ func TestRemoveModels_Success(t *testing.T) {
 
 	// Clean up directory afterward
 	cleanConfDir(t, confDir)
+}
+
+func TestDownloadModels(t *testing.T) {
+	// Init the models
+	models := []model.Model{getModel(0)}
+
+	// Preparing venv
+	path, ok := utils.CheckForPython()
+	if !ok {
+		t.FailNow()
+	}
+	err := utils.CreateVirtualEnv(path, ".venv")
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	defer os.RemoveAll(".venv")
+
+	// Execute
+	err, result := DownloadModels(models)
+
+	// Assert
+	test.AssertEqual(t, nil, err, "No error should have been raised.")
+	test.AssertEqual(t, len(models), len(result), "Lengths do not match")
+}
+
+func TestDownloadModels_Success(t *testing.T) {
+
 }
 
 func TestModelExists_OnExistentModel(t *testing.T) {

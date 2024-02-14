@@ -53,3 +53,22 @@ func ArrayFromPath(path string) []string {
 	}
 	return elements
 }
+
+// StringRemoveDuplicates returns a slice in which every element only appears once
+func StringRemoveDuplicates(items []string) []string {
+
+	// Prepare variables
+	itemsMap := make(map[string]bool)
+	var result []string
+
+	// Looking for duplicates
+	for _, item := range items {
+		// Item not contained yet
+		if !itemsMap[item] {
+			// Adding it to the result and indicating it as seen inside the map
+			itemsMap[item] = true
+			result = append(result, item)
+		}
+	}
+	return result
+}
