@@ -6,7 +6,6 @@ import (
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
@@ -51,6 +50,17 @@ func Difference(parentSlice, subSlice []model.Model) []model.Model {
 		}
 	}
 	return difference
+}
+
+// Union returns the models present in both `slice1` and `slice2`
+func Union(slice1, slice2 []model.Model) []model.Model {
+	var union []model.Model
+	for _, item := range slice1 {
+		if ContainsByName(slice2, item.Name) {
+			union = append(union, item)
+		}
+	}
+	return union
 }
 
 // GetModels retrieves models from the configuration.
@@ -200,9 +210,11 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 	// Find all the models that should be removed
 	modelsToRemove := GetModelsByNames(models, modelsNamesToRemove)
 
-	// Indicate the models that where not found in the configuration file
+	// Indicate the models that were not found in the configuration file
 	notFoundModels := utils.StringDifference(modelsNamesToRemove, GetNames(modelsToRemove))
-	pterm.Warning.Println(fmt.Sprintf("The following models were not found in the configuration file : %s", notFoundModels))
+	if len(notFoundModels) != 0 {
+		pterm.Warning.Println(fmt.Sprintf("The following models were not found in the configuration file : %s", notFoundModels))
+	}
 
 	// Trying to remove the models
 	for _, item := range modelsToRemove {
@@ -222,7 +234,6 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 	}
 
 	return nil
-
 }
 
 // DownloadModels downloads physically every model in the slice.
@@ -290,44 +301,4 @@ func DownloadModels(models []model.Model) (error, []model.Model) {
 	}
 
 	return nil, models
-}
-
-// ValidModelName returns an error if the which arg is not a valid model name.
-func ValidModelName() cobra.PositionalArgs {
-	return func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			return nil
-		}
-		if app.H() == nil {
-			return fmt.Errorf("hugging face api is not initialized")
-		}
-
-		models, err := GetModels()
-		if err != nil {
-			return err
-		}
-
-		for _, name := range args {
-			valid, err := app.H().ValidModel(name)
-			if err != nil {
-				return err
-			}
-			if !valid {
-				return fmt.Errorf("'%s' is not a valid model name", name)
-			}
-
-			// Load the configuration file
-			err = Load(".")
-			if err != nil {
-				return err
-			}
-
-			exist := ContainsByName(models, name)
-			if exist {
-				return fmt.Errorf("'%s' model is already included in the project", name)
-			}
-		}
-
-		return nil
-	}
 }

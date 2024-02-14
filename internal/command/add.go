@@ -17,7 +17,6 @@ var addCmd = &cobra.Command{
 	Use:   "add <model name> [<other model names>...]",
 	Short: "Add model(s) to your project",
 	Long:  `Add model(s) to your project`,
-	Args:  config.ValidModelName(), // TODO: Do this validation in the run function, bc proxy could not be initialized
 	Run:   runAdd,
 }
 
@@ -40,15 +39,26 @@ func runAdd(cmd *cobra.Command, args []string) {
 
 	// Add models passed in args
 	if len(args) > 0 {
+		// Fetching the requested models
 		for _, name := range args {
 			apiModel, err := app.H().GetModel(name)
 			if err != nil {
-				pterm.Error.Println("while getting model " + name)
-				return
+				// Model not recognized : skipping to the next one
+				continue
 			}
+			// Saving the model data in the variables
 			selectedModels = append(selectedModels, apiModel)
+			selectedModelNames = append(selectedModelNames, name)
 		}
-		selectedModelNames = append(selectedModelNames, args...)
+
+		// Remove all the duplicates
+		selectedModelNames = utils.StringRemoveDuplicates(selectedModelNames)
+
+		// Indicate the models that couldn't be found
+		notFound := utils.StringDifference(args, selectedModelNames)
+		if len(notFound) != 0 {
+			pterm.Warning.Printfln(fmt.Sprintf("The following models couldn't be found and will be ignored : %s", notFound))
+		}
 	}
 
 	// If no models entered by user or if user entered -s/--select
@@ -69,18 +79,21 @@ func runAdd(cmd *cobra.Command, args []string) {
 		selectedModelNames = append(selectedModelNames, modelNames...)
 	}
 
-	// Remove all the duplicates
-	selectedModelNames = utils.StringRemoveDuplicates(selectedModelNames)
-
-	// User choose either to exclude or include models in binary
-	selectedModels = selectExcludedModelsFromInstall(selectedModels, selectedModelNames)
-	utils.DisplaySelectedItems(selectedModelNames)
-
-	// Process the models before downloading them
+	// Process the models to only keep the valid ones
 	selectedModels, err := processSelectedModels(selectedModels)
 	if err != nil {
 		return
 	}
+
+	// Check if any model is still valid
+	if len(selectedModels) == 0 {
+		pterm.Info.Println("None of the requested models can be added.")
+		return
+	}
+
+	// User choose either to exclude or include models in binary
+	selectedModels = selectExcludedModelsFromInstall(selectedModels, selectedModelNames)
+	utils.DisplaySelectedItems(selectedModelNames)
 
 	// Download the models
 	err, selectedModels = config.DownloadModels(selectedModels)
@@ -106,27 +119,16 @@ func processSelectedModels(selectedModels []model.Model) ([]model.Model, error) 
 		return nil, err
 	}
 
-	// The models that were kept
-	var processModels []model.Model
-
-	// Iterate over every selected model and process it
-	for _, item := range selectedModels {
-
-		// Check if the model is already in the configuration file
-		if config.ContainsByName(configModels, item.Name) {
-			// Ask the user if he would like to overwrite it
-			overwrite := utils.AskForUsersConfirmation(fmt.Sprintf("Model '%s' already in the configuration file. Do you want to overwrite it?", item.Name))
-
-			// User does not want to overwrite : skipping to the next model
-			if !overwrite {
-				continue
-			}
-		}
-
-		// Keeping the model
-		processModels = append(processModels, item)
+	// Filter the requested models that have already been added
+	alreadyAdded := config.Union(configModels, selectedModels)
+	if len(alreadyAdded) != 0 {
+		pterm.Warning.Println(fmt.Sprintf("The following models have already been added and will be ignored : %s", config.GetNames(alreadyAdded)))
 	}
-	return processModels, nil
+
+	// Filter the ones that haven't been added yet
+	toBeAdded := config.Difference(selectedModels, alreadyAdded)
+
+	return toBeAdded, nil
 }
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project
