@@ -123,11 +123,6 @@ func AddModel(updatedModels []model.Model) error {
 // RemoveModelPhysically only removes the model from the project's downloaded models
 func RemoveModelPhysically(model model.Model) error {
 
-	// Nothing to remove if not downloaded
-	if !model.AddToBinary {
-		return nil
-	}
-
 	// Path to the model
 	modelPath := filepath.Join(app.ModelsDownloadPath, model.Name)
 
@@ -169,7 +164,7 @@ func RemoveModelPhysically(model model.Model) error {
 		spinner.Success(fmt.Sprintf("Removed model %s", model.Name))
 	} else {
 		// Model path is not in the current project
-		spinner.Info(fmt.Sprintf("Model '%s' was not found in the project directory. It might have been removed manually or belongs to another project. The model will be removed from this project's configuration file.", model.Name))
+		spinner.Warning(fmt.Sprintf("Model '%s' was not found in the project directory. It might have been removed manually or belongs to another project. The model will be removed from this project's configuration file.", model.Name))
 	}
 	return nil
 }
@@ -204,6 +199,10 @@ func RemoveAllModels() error {
 func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) error {
 	// Find all the models that should be removed
 	modelsToRemove := GetModelsByNames(models, modelsNamesToRemove)
+
+	// Indicate the models that where not found in the configuration file
+	notFoundModels := utils.StringDifference(modelsNamesToRemove, GetNames(modelsToRemove))
+	pterm.Warning.Println(fmt.Sprintf("The following models were not found in the configuration file : %s", notFoundModels))
 
 	// Trying to remove the models
 	for _, item := range modelsToRemove {

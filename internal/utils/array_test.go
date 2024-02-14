@@ -97,3 +97,18 @@ func TestStringRemoveDuplicates(t *testing.T) {
 	// Assert
 	test.AssertEqual(t, len(expected), len(result), "Lengths do not match")
 }
+
+// TestStringDifference tests the StringDifference function to return the correct difference.
+func TestStringDifference(t *testing.T) {
+	// Init
+	elements := []string{"item0", "item1", "item2", "item3", "item4"}
+	index := 2
+	sub := elements[:index]
+	expected := elements[index:]
+
+	// Execute
+	difference := StringDifference(elements, sub)
+
+	// Assert
+	test.AssertEqual(t, len(expected), len(difference), "Lengths should be equal.")
+}

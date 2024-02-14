@@ -72,3 +72,14 @@ func StringRemoveDuplicates(items []string) []string {
 	}
 	return result
 }
+
+// StringDifference returns the elements in `parentSlice` that are not present in `subSlice`
+func StringDifference(parentSlice, subSlice []string) []string {
+	var difference []string
+	for _, item := range parentSlice {
+		if !ArrayStringContainsItem(subSlice, item) {
+			difference = append(difference, item)
+		}
+	}
+	return difference
+}
