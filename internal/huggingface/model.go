@@ -33,7 +33,7 @@ func (h HuggingFace) GetModel(id string) (model.Model, error) {
 
 	// Check response status
 	if response.StatusCode != http.StatusOK {
-		return result, fmt.Errorf("failed to fetch models. Status code: %d", response.StatusCode)
+		return result, fmt.Errorf("failed to fetch model. Status code: %d", response.StatusCode)
 	}
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -54,9 +54,7 @@ func (h HuggingFace) GetModel(id string) (model.Model, error) {
 	}
 
 	// Map API response to model.Model
-	modelObj := MapAPIResponseToModelObj(APIModelResponse[0])
-
-	return modelObj, nil
+	return MapAPIResponseToModelObj(APIModelResponse[0]), nil
 }
 
 // ValidModel checks if a model exists by id
@@ -68,6 +66,7 @@ func (h HuggingFace) ValidModel(id string) (bool, error) {
 	return true, nil
 }
 
+// MapAPIResponseToModelObj map a model API response to a model object
 func MapAPIResponseToModelObj(response APIModelResponse) model.Model {
 	var modelObj model.Model
 	modelObj.Name = response.Name
