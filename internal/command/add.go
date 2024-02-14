@@ -208,7 +208,6 @@ func selectExcludedModelsFromInstall(models []model.Model, modelNames []string) 
 }
 
 func init() {
-	app.InitHuggingFace(huggingface.BaseUrl, "")
 	// Add --select flag to the add command
 	addCmd.Flags().BoolVarP(&displayModels, "select", "s", false, "Select models to add")
 	// Add the add command to the root command
