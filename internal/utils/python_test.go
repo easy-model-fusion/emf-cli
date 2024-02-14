@@ -85,7 +85,7 @@ func TestFindVEnvPipExecutable(t *testing.T) {
 		t.FailNow()
 	}
 
-	pipPath, err := FindVEnvPipExecutable(filepath.Join(dname, "venv"))
+	pipPath, err := FindVEnvExecutable(filepath.Join(dname, "venv"), "pip")
 	test.AssertEqual(t, err, nil)
 	test.AssertNotEqual(t, pipPath, "")
 }
@@ -99,7 +99,7 @@ func TestFindVEnvPipExecutable_Fail(t *testing.T) {
 	}
 	defer os.RemoveAll(dname)
 
-	pipPath, err := FindVEnvPipExecutable(filepath.Join(dname, "venv"))
+	pipPath, err := FindVEnvExecutable(filepath.Join(dname, "venv"), "pip")
 	test.AssertNotEqual(t, err, nil, "Should return an error")
 	test.AssertEqual(t, pipPath, "")
 }

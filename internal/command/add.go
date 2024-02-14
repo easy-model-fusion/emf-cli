@@ -1,6 +1,7 @@
 package command
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/config"
 	"github.com/easy-model-fusion/client/internal/huggingface"
@@ -16,7 +17,6 @@ var addCmd = &cobra.Command{
 	Use:   "add <model name> [<other model names>...]",
 	Short: "Add model(s) to your project",
 	Long:  `Add model(s) to your project`,
-	Args:  config.ValidModelName(), // TODO: Do this validation in the run function, bc proxy could not be initialized
 	Run:   runAdd,
 }
 
@@ -39,15 +39,26 @@ func runAdd(cmd *cobra.Command, args []string) {
 
 	// Add models passed in args
 	if len(args) > 0 {
+		// Fetching the requested models
 		for _, name := range args {
 			apiModel, err := app.H().GetModel(name)
 			if err != nil {
-				pterm.Error.Println("while getting model " + name)
-				return
+				// Model not recognized : skipping to the next one
+				continue
 			}
+			// Saving the model data in the variables
 			selectedModels = append(selectedModels, apiModel)
+			selectedModelNames = append(selectedModelNames, name)
 		}
-		selectedModelNames = append(selectedModelNames, args...)
+
+		// Remove all the duplicates
+		selectedModelNames = utils.StringRemoveDuplicates(selectedModelNames)
+
+		// Indicate the models that couldn't be found
+		notFound := utils.StringDifference(args, selectedModelNames)
+		if len(notFound) != 0 {
+			pterm.Warning.Printfln(fmt.Sprintf("The following models couldn't be found and will be ignored : %s", notFound))
+		}
 	}
 
 	// If no models entered by user or if user entered -s/--select
@@ -68,21 +79,56 @@ func runAdd(cmd *cobra.Command, args []string) {
 		selectedModelNames = append(selectedModelNames, modelNames...)
 	}
 
+	// Process the models to only keep the valid ones
+	selectedModels, err := processSelectedModels(selectedModels)
+	if err != nil {
+		return
+	}
+
+	// Check if any model is still valid
+	if len(selectedModels) == 0 {
+		pterm.Info.Println("None of the requested models can be added.")
+		return
+	}
+
 	// User choose either to exclude or include models in binary
 	selectedModels = selectExcludedModelsFromInstall(selectedModels, selectedModelNames)
+	utils.DisplaySelectedItems(selectedModelNames)
 
-	// TODO install models with addToBinary => true
+	// Download the models
+	err, selectedModels = config.DownloadModels(selectedModels)
+	if err != nil {
+		return
+	}
 
 	// Add models to configuration file
-	err := config.AddModel(selectedModels)
-
-	if err == nil {
-		// Display the selected models
-		utils.DisplaySelectedItems(selectedModelNames)
-		pterm.Success.Printfln("Operation succeeded.")
+	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+	err = config.AddModel(selectedModels)
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
 	} else {
-		pterm.Error.Printfln("Operation failed.")
+		spinner.Success()
 	}
+}
+
+// processSelectedModels process the selected models and only keep the valid ones
+func processSelectedModels(selectedModels []model.Model) ([]model.Model, error) {
+	// Get the models from the configuration file
+	configModels, err := config.GetModels()
+	if err != nil {
+		return nil, err
+	}
+
+	// Filter the requested models that have already been added
+	alreadyAdded := model.Union(configModels, selectedModels)
+	if len(alreadyAdded) != 0 {
+		pterm.Warning.Println(fmt.Sprintf("The following models have already been added and will be ignored : %s", model.GetNames(alreadyAdded)))
+	}
+
+	// Filter the ones that haven't been added yet
+	toBeAdded := model.Difference(selectedModels, alreadyAdded)
+
+	return toBeAdded, nil
 }
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project
@@ -98,14 +144,16 @@ func selectModels(tags []string, currentSelectedModels []string) ([]model.Model,
 	}
 
 	// Get existent models from configuration file
-	currentModelNames, err := config.GetModelNames()
+	configModels, err := config.GetModels()
 	if err != nil {
 		app.L().Fatal("error while getting current models")
 	}
+	configModelNames := model.GetNames(configModels)
 
 	// Remove existent models from list of models to add
 	// Remove already selected models from list of models to add (in case user entered add model_name -s)
-	models, _ = config.RemoveModelsFromList(models, append(currentModelNames, currentSelectedModels...))
+	existingModels := model.GetModelsByNames(models, append(configModelNames, currentSelectedModels...))
+	models = model.Difference(models, existingModels)
 
 	// Build a multiselect with each model name
 	var modelNames []string

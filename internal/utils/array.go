@@ -1,6 +1,9 @@
 package utils
 
-import "strings"
+import (
+	"path/filepath"
+	"strings"
+)
 
 // ArrayStringContainsItem checks if an item is present in a slice of strings.
 func ArrayStringContainsItem(arr []string, item string) bool {
@@ -31,4 +34,52 @@ func MapFromArrayString(items []string) map[string]struct{} {
 		stringMap[item] = struct{}{}
 	}
 	return stringMap
+}
+
+// ArrayFromPath splits a filepath into its individual elements
+func ArrayFromPath(path string) []string {
+	var elements []string
+	for {
+		dir, file := filepath.Split(path)
+		if len(dir) > 0 {
+			elements = append([]string{file}, elements...)
+			path = filepath.Clean(dir)
+		} else {
+			if len(file) > 0 {
+				elements = append([]string{file}, elements...)
+			}
+			break
+		}
+	}
+	return elements
+}
+
+// StringRemoveDuplicates returns a slice in which every element only appears once
+func StringRemoveDuplicates(items []string) []string {
+
+	// Prepare variables
+	itemsMap := make(map[string]bool)
+	var result []string
+
+	// Looking for duplicates
+	for _, item := range items {
+		// Item not contained yet
+		if !itemsMap[item] {
+			// Adding it to the result and indicating it as seen inside the map
+			itemsMap[item] = true
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
+// StringDifference returns the elements in `parentSlice` that are not present in `subSlice`
+func StringDifference(parentSlice, subSlice []string) []string {
+	var difference []string
+	for _, item := range parentSlice {
+		if !ArrayStringContainsItem(subSlice, item) {
+			difference = append(difference, item)
+		}
+	}
+	return difference
 }

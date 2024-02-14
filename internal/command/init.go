@@ -107,7 +107,7 @@ func createProject(projectName string) (err error) {
 	spinner.Success()
 
 	// Install dependencies
-	pipPath, err := utils.FindVEnvPipExecutable(filepath.Join(projectName, ".venv"))
+	pipPath, err := utils.FindVEnvExecutable(filepath.Join(projectName, ".venv"), "pip")
 	if err != nil {
 		return err
 	}
