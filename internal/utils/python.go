@@ -98,22 +98,21 @@ func DownloadModel(pythonPath, downloadPath, modelName, moduleName, className st
 	exitCode := 0
 
 	err := cmd.Run()
-	if err != nil {
-
-		// If there was an error running the command, check if it's a command execution error
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
-			exitCode = exitErr.ExitCode()
-		}
-
-		// Log the errors back
-		errBufStr := errBuf.String()
-		if errBufStr != "" {
-			return fmt.Errorf("%s", errBufStr), exitCode
-		}
-
-		return err, exitCode
+	if err == nil {
+		return nil, exitCode
 	}
 
-	return nil, exitCode
+	// If there was an error running the command, check if it's a command execution error
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) {
+		exitCode = exitErr.ExitCode()
+	}
+
+	// Log the errors back
+	errBufStr := errBuf.String()
+	if errBufStr != "" {
+		return fmt.Errorf("%s", errBufStr), exitCode
+	}
+
+	return err, exitCode
 }
