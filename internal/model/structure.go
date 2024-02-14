@@ -1,9 +1,9 @@
 package model
 
 type Model struct {
-	Name          string `json:"modelId"`
-	Config        Config `json:"config"`
-	PipelineTag   string `json:"pipeline_tag"`
+	Name          string
+	Config        Config
+	PipelineTag   string
 	DirectoryPath string
 	AddToBinary   bool
 }
