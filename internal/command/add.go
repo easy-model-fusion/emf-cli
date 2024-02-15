@@ -91,6 +91,9 @@ func runAdd(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// Update the selected model names
+	selectedModelNames = model.GetNames(selectedModels)
+
 	// User choose either to exclude or include models in binary
 	selectedModels = selectExcludedModelsFromInstall(selectedModels, selectedModelNames)
 	utils.DisplaySelectedItems(selectedModelNames)
