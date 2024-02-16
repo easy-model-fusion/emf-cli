@@ -214,9 +214,17 @@ func DownloadModels(models []model.Model) (error, []model.Model) {
 			}
 		}
 
+		args := script.DownloadArgs{
+			DownloadPath: downloadPath,
+			ModelName:    modelName,
+			ModelModule:  moduleName,
+			ModelClass:   className,
+			Overwrite:    overwrite,
+		}
+
 		// Run the script to download the model
 		spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", modelName))
-		scriptModel, err, exitCode := script.Download(pythonPath, downloadPath, modelName, moduleName, className, overwrite)
+		scriptModel, err, exitCode := script.Download(pythonPath, args)
 		if err != nil {
 			spinner.Fail(err)
 			switch exitCode {

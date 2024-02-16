@@ -114,7 +114,9 @@ func TestStringDifference(t *testing.T) {
 	test.AssertEqual(t, len(expected), len(difference), "Lengths should be equal.")
 }
 
+// TestUniformizePath tests the UniformizePath to return uniformized paths.
 func TestUniformizePath(t *testing.T) {
+	// Init
 	items := []struct {
 		input    string
 		expected string
@@ -132,7 +134,10 @@ func TestUniformizePath(t *testing.T) {
 	}
 
 	for _, item := range items {
+		// Execute
 		result := UniformizePath(item.input)
+
+		// Assert
 		test.AssertEqual(t, result, filepath.Clean(item.expected))
 	}
 }

@@ -34,17 +34,66 @@ func IsDownloaderScriptTokenizer(dst DownloaderTokenizer) bool {
 	return dst.Path == "" && dst.Class == ""
 }
 
+// DownloadArgs represents the arguments for the Download function
+type DownloadArgs struct {
+	DownloadPath     string
+	ModelName        string
+	ModelModule      string
+	ModelClass       string
+	ModelOptions     []string
+	TokenizerClass   string
+	TokenizerOptions []string
+	Skip             string
+	Overwrite        bool
+}
+
+// Download script tags
+const TagModelClass = "--model-class"
+const TagModelOptions = "--model-options"
+const TagTokenizerClass = "--tokenizer-class"
+const TagTokenizerOptions = "--tokenizer-options"
+const TagOverwrite = "--overwrite"
+const TagSkip = "--skip"
+const TagEmfClient = "--emf-client"
+
+// ProcessArgsForDownload builds a list of arguments from DownloadArgs for the download script
+func ProcessArgsForDownload(args DownloadArgs) []string {
+
+	// Mandatory arguments
+	cmdArgs := []string{TagEmfClient, args.DownloadPath, args.ModelName, args.ModelModule}
+
+	// Optional arguments regarding the model
+	if args.ModelClass != "" {
+		cmdArgs = append(cmdArgs, TagModelClass, args.ModelClass)
+	}
+	if len(args.ModelOptions) != 0 {
+		cmdArgs = append(cmdArgs, append([]string{TagModelOptions}, args.ModelOptions...)...)
+	}
+
+	// Optional arguments regarding the model's tokenizer
+	if args.TokenizerClass != "" {
+		cmdArgs = append(cmdArgs, TagTokenizerClass, args.TokenizerClass)
+	}
+	if len(args.TokenizerOptions) != 0 {
+		cmdArgs = append(cmdArgs, append([]string{TagTokenizerOptions}, args.TokenizerOptions...)...)
+	}
+
+	// Global tags for the script
+	if args.Overwrite {
+		cmdArgs = append(cmdArgs, TagOverwrite)
+	}
+	if len(args.Skip) != 0 {
+		cmdArgs = append(cmdArgs, TagSkip, args.Skip)
+	}
+
+	return cmdArgs
+}
+
 // Download runs the download script for a specific model
-func Download(pythonPath, downloadPath, modelName, moduleName, className string, overwrite bool) (DownloaderModel, error, int) {
+func Download(pythonPath string, args DownloadArgs) (DownloaderModel, error, int) {
 
 	// Create command
-	// TODO : pass arguments
-	var cmd *exec.Cmd
-	if overwrite {
-		cmd = exec.Command(pythonPath, DownloaderName, "--emf-client", downloadPath, modelName, moduleName, "--model-class", className, "--skip", "model", "--overwrite")
-	} else {
-		cmd = exec.Command(pythonPath, DownloaderName, "--emf-client", downloadPath, modelName, moduleName, "--model-class", className, "--skip", "model")
-	}
+	var cmd = exec.Command(pythonPath, append([]string{DownloaderName}, ProcessArgsForDownload(args)...)...)
 
 	// Bind stderr to a buffer
 	var errBuf strings.Builder

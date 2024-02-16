@@ -84,6 +84,7 @@ func StringDifference(parentSlice, subSlice []string) []string {
 	return difference
 }
 
+// UniformizePath returns uniformized path regarding the device OS
 func UniformizePath(path string) string {
 	// Replace backslashes with forward slashes
 	path = strings.ReplaceAll(path, "\\", "/")

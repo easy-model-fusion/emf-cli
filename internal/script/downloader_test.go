@@ -59,3 +59,34 @@ func TestIsScriptTokenizerEmpty_False(t *testing.T) {
 	// Assert
 	test.AssertEqual(t, false, result)
 }
+
+// TestProcessArgsForDownload tests the ProcessArgsForDownload
+func TestProcessArgsForDownload(t *testing.T) {
+	// Init
+	args := DownloadArgs{
+		DownloadPath:     "/path/to/download",
+		ModelName:        "model",
+		ModelModule:      "module",
+		ModelClass:       "class",
+		ModelOptions:     []string{"opt1=val1", "opt2=val2"},
+		TokenizerClass:   "tokenizer",
+		TokenizerOptions: []string{"tok_opt1=val1"},
+		Skip:             "model",
+		Overwrite:        true,
+	}
+	expected := []string{
+		"--emf-client", "/path/to/download", "model", "module",
+		"--model-class", "class",
+		"--model-options", "opt1=val1", "opt2=val2",
+		"--tokenizer-class", "tokenizer",
+		"--tokenizer-options", "tok_opt1=val1",
+		"--skip", "model",
+		"--overwrite",
+	}
+
+	// Execute
+	result := ProcessArgsForDownload(args)
+
+	// Assert
+	test.AssertEqual(t, len(result), len(expected))
+}
