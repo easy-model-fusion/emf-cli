@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/easy-model-fusion/client/internal/script"
+	"path/filepath"
 	"testing"
 
 	"github.com/easy-model-fusion/client/test"
@@ -12,10 +13,9 @@ import (
 func getModel(suffix int) Model {
 	idStr := fmt.Sprint(suffix)
 	return Model{
-		Name:          "model" + idStr,
-		Config:        Config{Module: "module" + idStr, Class: "class" + idStr},
-		DirectoryPath: "/path/to/model" + idStr,
-		AddToBinary:   true,
+		Name:        "model" + idStr,
+		Config:      Config{Module: "module" + idStr, Class: "class" + idStr},
+		AddToBinary: true,
 	}
 }
 
@@ -168,11 +168,11 @@ func TestMapToConfigFromDownloadScriptModel_Fill(t *testing.T) {
 		},
 	}
 	expected := Config{
-		Path:   "/path/to/model",
+		Path:   filepath.Clean("/path/to/model"),
 		Module: "module_name",
 		Class:  "class_name",
 		Tokenizers: []Tokenizer{
-			{Path: "/path/to/tokenizer", Class: "tokenizer_class"},
+			{Path: filepath.Clean("/path/to/tokenizer"), Class: "tokenizer_class"},
 		},
 	}
 
@@ -195,7 +195,7 @@ func TestMapToTokenizerFromDownloaderScriptTokenizer(t *testing.T) {
 		Path:  "/path/to/tokenizer",
 		Class: "tokenizer_class",
 	}
-	expected := Tokenizer{Path: "/path/to/tokenizer", Class: "tokenizer_class"}
+	expected := Tokenizer{Path: filepath.Clean("/path/to/tokenizer"), Class: "tokenizer_class"}
 
 	// Execute
 	result := MapToTokenizerFromScriptDownloaderTokenizer(st)

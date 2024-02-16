@@ -94,8 +94,8 @@ func runAdd(cmd *cobra.Command, args []string) {
 	// Update the selected model names
 	selectedModelNames = model.GetNames(selectedModels)
 
-	// User choose either to exclude or include models in binary
-	selectedModels = selectExcludedModelsFromInstall(selectedModels, selectedModelNames)
+	// User choose the models he wishes to install now
+	selectedModels = selectModelsToInstall(selectedModels, selectedModelNames)
 	utils.DisplaySelectedItems(selectedModelNames)
 
 	// Download the models
@@ -195,15 +195,15 @@ func selectTags() []string {
 	return selectedTags
 }
 
-// selectExcludedModelsFromInstall returns updated models objects with excluded/included from binary
-func selectExcludedModelsFromInstall(models []model.Model, modelNames []string) []model.Model {
+// selectModelsToInstall returns updated models objects with excluded/included from binary
+func selectModelsToInstall(models []model.Model, modelNames []string) []model.Model {
 	// Build a multiselect with each selected model name to exclude/include in the binary
-	message := "Please select the model(s) that you don't wish to install directly"
-	checkMark := &pterm.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")}
+	message := "Please select the model(s) to install now"
+	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Blue("-")}
 	installsToExclude := utils.DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
 	var updatedModels []model.Model
 	for _, currentModel := range models {
-		currentModel.AddToBinary = !utils.ArrayStringContainsItem(installsToExclude, currentModel.Name)
+		currentModel.AddToBinary = utils.ArrayStringContainsItem(installsToExclude, currentModel.Name)
 		updatedModels = append(updatedModels, currentModel)
 	}
 

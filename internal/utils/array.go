@@ -83,3 +83,13 @@ func StringDifference(parentSlice, subSlice []string) []string {
 	}
 	return difference
 }
+
+func UniformizePath(path string) string {
+	// Replace backslashes with forward slashes
+	path = strings.ReplaceAll(path, "\\", "/")
+
+	// Resolve dots and double slashes
+	path = filepath.Clean(path)
+
+	return path
+}

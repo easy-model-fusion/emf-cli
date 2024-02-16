@@ -3,17 +3,12 @@ package model
 import (
 	"github.com/easy-model-fusion/client/internal/script"
 	"github.com/easy-model-fusion/client/internal/utils"
-	"github.com/pterm/pterm"
 )
 
 // Empty checks if the models slice is empty.
 func Empty(models []Model) bool {
 	// No models currently downloaded
-	if len(models) == 0 {
-		pterm.Info.Println("Models list is empty.")
-		return true
-	}
-	return false
+	return len(models) == 0
 }
 
 // ContainsByName checks if a models slice contains the requested model by name
@@ -81,7 +76,7 @@ func MapToConfigFromScriptDownloadModel(config Config, dsm script.DownloaderMode
 
 	// Check if ScriptModel is valid
 	if !script.IsDownloaderScriptModelEmpty(dsm) {
-		config.Path = dsm.Path
+		config.Path = utils.UniformizePath(dsm.Path)
 		config.Module = dsm.Module
 		config.Class = dsm.Class
 	}
@@ -98,7 +93,7 @@ func MapToConfigFromScriptDownloadModel(config Config, dsm script.DownloaderMode
 // MapToTokenizerFromScriptDownloaderTokenizer maps data from script.DownloaderTokenizer to Tokenizer.
 func MapToTokenizerFromScriptDownloaderTokenizer(dst script.DownloaderTokenizer) Tokenizer {
 	var modelTokenizer Tokenizer
-	modelTokenizer.Path = dst.Path
+	modelTokenizer.Path = utils.UniformizePath(dst.Path)
 	modelTokenizer.Class = dst.Class
 	return modelTokenizer
 }

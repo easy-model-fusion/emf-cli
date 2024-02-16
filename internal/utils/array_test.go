@@ -2,6 +2,7 @@ package utils
 
 import (
 	"github.com/easy-model-fusion/client/test"
+	"path/filepath"
 	"testing"
 )
 
@@ -111,4 +112,27 @@ func TestStringDifference(t *testing.T) {
 
 	// Assert
 	test.AssertEqual(t, len(expected), len(difference), "Lengths should be equal.")
+}
+
+func TestUniformizePath(t *testing.T) {
+	items := []struct {
+		input    string
+		expected string
+	}{
+		{"C:\\path\\to\\file", "C:/path/to/file"},
+		{"C:\\path\\to\\..\\file", "C:/path/file"},
+		{"C:\\path\\to\\dir\\..\\file", "C:/path/to/file"},
+		{"C:\\path\\with\\double\\\\slashes", "C:/path/with/double/slashes"},
+		{"C:\\path\\with\\dots\\..", "C:/path/with"},
+		{"C:\\path\\with\\dots\\..\\..", "C:/path"},
+		{"C:\\path\\with\\dots\\.", "C:/path/with/dots"},
+		{"C:\\path\\with\\dots\\.\\.", "C:/path/with/dots"},
+		{"C:\\path\\with\\dots\\.\\.\\..", "C:/path/with"},
+		{"C:\\path\\with\\dots\\.\\.\\..\\file", "C:/path/with/file"},
+	}
+
+	for _, item := range items {
+		result := UniformizePath(item.input)
+		test.AssertEqual(t, result, filepath.Clean(item.expected))
+	}
 }

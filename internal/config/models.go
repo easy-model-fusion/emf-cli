@@ -95,7 +95,7 @@ func RemoveModelPhysically(model model.Model) error {
 		spinner.Success(fmt.Sprintf("Removed model %s", model.Name))
 	} else {
 		// Model path is not in the current project
-		spinner.Warning(fmt.Sprintf("Model '%s' was not found in the project directory. It might have been removed manually or belongs to another project. The model will be removed from this project's configuration file.", model.Name))
+		spinner.Warning(fmt.Sprintf("Model '%s' was not found in the project directory. The model will be removed from this project's configuration file.", model.Name))
 	}
 	return nil
 }
@@ -107,6 +107,12 @@ func RemoveAllModels() error {
 	models, err := GetModels()
 	if err != nil {
 		return err
+	}
+
+	// User did not add any model yet
+	if len(models) == 0 {
+		pterm.Info.Printfln("There is no models to be removed.")
+		return nil
 	}
 
 	// Trying to remove every model
@@ -135,6 +141,12 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 	notFoundModels := utils.StringDifference(modelsNamesToRemove, model.GetNames(modelsToRemove))
 	if len(notFoundModels) != 0 {
 		pterm.Warning.Println(fmt.Sprintf("The following models were not found in the configuration file : %s", notFoundModels))
+	}
+
+	// User did not provide any input
+	if len(modelsToRemove) == 0 {
+		pterm.Info.Printfln("No valid models were inputted.")
+		return nil
 	}
 
 	// Trying to remove the models
@@ -218,7 +230,6 @@ func DownloadModels(models []model.Model) (error, []model.Model) {
 
 		// Update the model for the configuration file
 		models[i].Config = model.MapToConfigFromScriptDownloadModel(models[i].Config, scriptModel)
-		models[i].DirectoryPath = downloadPath
 		models[i].AddToBinary = true
 	}
 

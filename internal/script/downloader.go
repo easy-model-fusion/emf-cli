@@ -43,7 +43,7 @@ func Download(pythonPath, downloadPath, modelName, moduleName, className string,
 	if overwrite {
 		cmd = exec.Command(pythonPath, DownloaderName, "--emf-client", downloadPath, modelName, moduleName, "--model-class", className, "--skip", "model", "--overwrite")
 	} else {
-		cmd = exec.Command(pythonPath, DownloaderName, "--emf-client", downloadPath, modelName, moduleName, "--model-class", className, "--skip", "tokenizer")
+		cmd = exec.Command(pythonPath, DownloaderName, "--emf-client", downloadPath, modelName, moduleName, "--model-class", className, "--skip", "model")
 	}
 
 	// Bind stderr to a buffer
