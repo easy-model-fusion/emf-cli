@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -77,42 +76,4 @@ func InstallDependencies(pipPath, path string) error {
 	}
 
 	return nil
-}
-
-// DownloadModel runs the download script for a specific model
-func DownloadModel(pythonPath, downloadPath, modelName, moduleName, className string, overwrite bool) (error, int) {
-
-	// Create command
-	var cmd *exec.Cmd
-	if overwrite {
-		cmd = exec.Command(pythonPath, "download.py", downloadPath, modelName, moduleName, className, "--overwrite")
-	} else {
-		cmd = exec.Command(pythonPath, "download.py", downloadPath, modelName, moduleName, className)
-	}
-
-	// bind stderr to a buffer
-	var errBuf strings.Builder
-	cmd.Stderr = &errBuf
-
-	// cmd exit code
-	exitCode := 0
-
-	err := cmd.Run()
-	if err == nil {
-		return nil, exitCode
-	}
-
-	// If there was an error running the command, check if it's a command execution error
-	var exitErr *exec.ExitError
-	if errors.As(err, &exitErr) {
-		exitCode = exitErr.ExitCode()
-	}
-
-	// Log the errors back
-	errBufStr := errBuf.String()
-	if errBufStr != "" {
-		return fmt.Errorf("%s", errBufStr), exitCode
-	}
-
-	return err, exitCode
 }

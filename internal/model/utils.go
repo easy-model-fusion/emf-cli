@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/easy-model-fusion/client/internal/script"
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 )
@@ -11,16 +12,6 @@ func Empty(models []Model) bool {
 	if len(models) == 0 {
 		pterm.Info.Println("Models list is empty.")
 		return true
-	}
-	return false
-}
-
-// Contains checks if a models slice contains the requested model
-func Contains(models []Model, model Model) bool {
-	for _, item := range models {
-		if model == item {
-			return true
-		}
 	}
 	return false
 }
@@ -83,4 +74,31 @@ func GetModelsByNames(models []Model, namesSlice []string) []Model {
 	}
 
 	return namesModels
+}
+
+// MapToConfigFromScriptDownloadModel maps data from script.DownloaderModel to Config.
+func MapToConfigFromScriptDownloadModel(config Config, dsm script.DownloaderModel) Config {
+
+	// Check if ScriptModel is valid
+	if !script.IsDownloaderScriptModelEmpty(dsm) {
+		config.Path = dsm.Path
+		config.Module = dsm.Module
+		config.Class = dsm.Class
+	}
+
+	// Check if ScriptTokenizer is valid
+	if !script.IsDownloaderScriptTokenizer(dsm.Tokenizer) {
+		tokenizer := MapToTokenizerFromScriptDownloaderTokenizer(dsm.Tokenizer)
+		config.Tokenizers = append(config.Tokenizers, tokenizer)
+	}
+
+	return config
+}
+
+// MapToTokenizerFromScriptDownloaderTokenizer maps data from script.DownloaderTokenizer to Tokenizer.
+func MapToTokenizerFromScriptDownloaderTokenizer(dst script.DownloaderTokenizer) Tokenizer {
+	var modelTokenizer Tokenizer
+	modelTokenizer.Path = dst.Path
+	modelTokenizer.Class = dst.Class
+	return modelTokenizer
 }

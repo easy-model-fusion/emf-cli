@@ -136,7 +136,7 @@ func getModel(suffix int) model.Model {
 	idStr := fmt.Sprint(suffix)
 	return model.Model{
 		Name:          "model" + idStr,
-		Config:        model.Config{ModuleName: "module" + idStr, ClassName: "class" + idStr},
+		Config:        model.Config{Module: "module" + idStr, Class: "class" + idStr},
 		DirectoryPath: "/path/to/model" + idStr,
 		AddToBinary:   true,
 	}

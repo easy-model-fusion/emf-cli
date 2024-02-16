@@ -9,6 +9,13 @@ type Model struct {
 }
 
 type Config struct {
-	ModuleName string `json:"module_name"`
-	ClassName  string `json:"class_name"`
+	Path       string
+	Module     string
+	Class      string
+	Tokenizers []Tokenizer
+}
+
+type Tokenizer struct {
+	Path  string
+	Class string
 }

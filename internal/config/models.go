@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/model"
+	"github.com/easy-model-fusion/client/internal/script"
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/viper"
@@ -159,7 +160,7 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 // DownloadModels downloads physically every model in the slice.
 func DownloadModels(models []model.Model) (error, []model.Model) {
 
-	// Find the python executable inside the venv to run the scripts
+	// Find the python executable inside the venv to run the script
 	pythonPath, err := utils.FindVEnvExecutable(".venv", "python")
 	if err != nil {
 		pterm.Error.Println(fmt.Sprintf("Error using the venv : %s", err))
@@ -180,8 +181,8 @@ func DownloadModels(models []model.Model) (error, []model.Model) {
 
 		// Get mandatory model data for the download script
 		modelName := models[i].Name
-		moduleName := models[i].Config.ModuleName
-		className := models[i].Config.ClassName
+		moduleName := models[i].Config.Module
+		className := models[i].Config.Class
 
 		// Local path where the model will be downloaded
 		downloadPath := app.ModelsDownloadPath
@@ -203,7 +204,7 @@ func DownloadModels(models []model.Model) (error, []model.Model) {
 
 		// Run the script to download the model
 		spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", modelName))
-		err, exitCode := utils.DownloadModel(pythonPath, downloadPath, modelName, moduleName, className, overwrite)
+		scriptModel, err, exitCode := script.Download(pythonPath, downloadPath, modelName, moduleName, className, overwrite)
 		if err != nil {
 			spinner.Fail(err)
 			switch exitCode {
@@ -216,6 +217,7 @@ func DownloadModels(models []model.Model) (error, []model.Model) {
 		spinner.Success(fmt.Sprintf("Successfully downloaded model '%s'", modelName))
 
 		// Update the model for the configuration file
+		models[i].Config = model.MapToConfigFromScriptDownloadModel(models[i].Config, scriptModel)
 		models[i].DirectoryPath = downloadPath
 		models[i].AddToBinary = true
 	}
