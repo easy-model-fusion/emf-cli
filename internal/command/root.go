@@ -53,7 +53,7 @@ func getAllCommands(cmd *cobra.Command, commandsList []string, commandsMap map[s
 // hideCommands hides specified commands from the given list of commands.
 func hideCommands(commandsList []string, commandsMap map[string]func(*cobra.Command, []string), commands []string) ([]string, map[string]func(*cobra.Command, []string)) {
 	for _, command := range commands {
-		commandsList = utils.ArrayStringRemoveByValue(commandsList, command)
+		commandsList = utils.SliceRemoveValue(commandsList, command)
 		delete(commandsMap, command)
 	}
 	return commandsList, commandsMap

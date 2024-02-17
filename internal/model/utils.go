@@ -55,7 +55,7 @@ func GetNames(models []Model) []string {
 // GetModelsByNames retrieves the models by their names given an input slice.
 func GetModelsByNames(models []Model, namesSlice []string) []Model {
 	// Create a map for faster lookup
-	namesMap := utils.MapFromArrayString(namesSlice)
+	namesMap := utils.SliceToMap(namesSlice)
 
 	// Slice of all the models that were found
 	var namesModels []Model
@@ -76,7 +76,7 @@ func MapToConfigFromScriptDownloadModel(config Config, dsm script.DownloaderMode
 
 	// Check if ScriptModel is valid
 	if !script.IsDownloaderScriptModelEmpty(dsm) {
-		config.Path = utils.UniformizePath(dsm.Path)
+		config.Path = utils.PathUniformize(dsm.Path)
 		config.Module = dsm.Module
 		config.Class = dsm.Class
 	}
@@ -93,7 +93,7 @@ func MapToConfigFromScriptDownloadModel(config Config, dsm script.DownloaderMode
 // MapToTokenizerFromScriptDownloaderTokenizer maps data from script.DownloaderTokenizer to Tokenizer.
 func MapToTokenizerFromScriptDownloaderTokenizer(dst script.DownloaderTokenizer) Tokenizer {
 	var modelTokenizer Tokenizer
-	modelTokenizer.Path = utils.UniformizePath(dst.Path)
+	modelTokenizer.Path = utils.PathUniformize(dst.Path)
 	modelTokenizer.Class = dst.Class
 	return modelTokenizer
 }

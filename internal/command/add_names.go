@@ -54,10 +54,10 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 		}
 
 		// Remove all the duplicates
-		selectedModelNames = utils.StringRemoveDuplicates(selectedModelNames)
+		selectedModelNames = utils.SliceRemoveDuplicates(selectedModelNames)
 
 		// Indicate the models that couldn't be found
-		notFound := utils.StringDifference(args, selectedModelNames)
+		notFound := utils.SliceDifference(args, selectedModelNames)
 		if len(notFound) != 0 {
 			pterm.Warning.Printfln(fmt.Sprintf("The following models couldn't be found and will be ignored : %s", notFound))
 		}
@@ -177,7 +177,7 @@ func selectModels(tags []string, currentSelectedModels []string) ([]model.Model,
 	var selectedModels []model.Model
 
 	for _, currentModel := range models {
-		if utils.ArrayStringContainsItem(selectedModelNames, currentModel.Name) {
+		if utils.SliceContainsItem(selectedModelNames, currentModel.Name) {
 			selectedModels = append(selectedModels, currentModel)
 		}
 	}
@@ -205,7 +205,7 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 	installsToExclude := utils.DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
 	var updatedModels []model.Model
 	for _, currentModel := range models {
-		currentModel.AddToBinary = utils.ArrayStringContainsItem(installsToExclude, currentModel.Name)
+		currentModel.AddToBinary = utils.SliceContainsItem(installsToExclude, currentModel.Name)
 		updatedModels = append(updatedModels, currentModel)
 	}
 

@@ -69,7 +69,7 @@ func RemoveModelPhysically(model model.Model) error {
 		// Model path is in the current project
 
 		// Split the path into a slice of strings
-		directories := utils.ArrayFromPath(modelPath)
+		directories := utils.SplitPath(modelPath)
 
 		// Removing model
 		err := os.RemoveAll(modelPath)
@@ -138,7 +138,7 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 	modelsToRemove := model.GetModelsByNames(models, modelsNamesToRemove)
 
 	// Indicate the models that were not found in the configuration file
-	notFoundModels := utils.StringDifference(modelsNamesToRemove, model.GetNames(modelsToRemove))
+	notFoundModels := utils.SliceDifference(modelsNamesToRemove, model.GetNames(modelsToRemove))
 	if len(notFoundModels) != 0 {
 		pterm.Warning.Println(fmt.Sprintf("The following models were not found in the configuration file : %s", notFoundModels))
 	}
