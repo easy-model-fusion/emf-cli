@@ -94,3 +94,13 @@ func UniformizePath(path string) string {
 
 	return path
 }
+
+// ArrayStringRemoveByValue returns the slice with the specified value removed.
+func ArrayStringRemoveByValue(slice []string, value string) []string {
+	for i, item := range slice {
+		if item == value {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice
+}

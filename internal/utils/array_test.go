@@ -141,3 +141,30 @@ func TestUniformizePath(t *testing.T) {
 		test.AssertEqual(t, result, filepath.Clean(item.expected))
 	}
 }
+
+// TestArrayStringRemoveByValue_Present tests the ArrayStringRemoveByValue function with a value present in the slice.
+func TestArrayStringRemoveByValue_Present(t *testing.T) {
+	// Init
+	value := "value"
+	slice := []string{value}
+
+	// Execute
+	result := ArrayStringRemoveByValue(slice, value)
+
+	// Assert
+	test.AssertEqual(t, len(result), len(slice)-1)
+}
+
+// TestArrayStringRemoveByValue_Empty tests the ArrayStringRemoveByValue function with a value not present in the slice.
+func TestArrayStringRemoveByValue_NotPresent(t *testing.T) {
+	// Init
+	nonExistentValue := "nonExistentValue"
+	value := "value"
+	slice := []string{value}
+
+	// Execute
+	result := ArrayStringRemoveByValue(slice, nonExistentValue)
+
+	// Assert
+	test.AssertEqual(t, len(result), len(slice))
+}

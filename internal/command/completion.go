@@ -10,15 +10,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const completionUse string = "completion"
-
 var shells = []string{"bash", "zsh", "fish", "powershell"}
 
 var arguments = utils.ArrayStringAsArguments(shells)
 
 // completionCmd represents the completion command
 var completionCmd = &cobra.Command{
-	Use:   completionUse,
+	Use:   "completion",
 	Short: "Generate completion script",
 	Long: fmt.Sprintf(`To load completions:
 

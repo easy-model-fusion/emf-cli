@@ -3,10 +3,20 @@ package command
 import (
 	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
+	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"os"
 )
+
+// Execute adds all child commands to the root command and sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute() {
+	err := rootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
+}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -22,14 +32,9 @@ func runRoot(cmd *cobra.Command, args []string) {
 	var commandsList []string
 	var commandsMap = make(map[string]func(*cobra.Command, []string)) // key: command.Use; value: command.Run
 
-	// get all the commands data
-	for _, child := range cmd.Commands() {
-		// Hiding the completion command inside the root command
-		if completionUse != child.Use {
-			commandsList = append(commandsList, child.Use)
-			commandsMap[child.Use] = child.Run
-		}
-	}
+	// Build objects containing all the available commands
+	commandsList, commandsMap = getAllCommands(cmd, commandsList, commandsMap)
+	commandsList, commandsMap = hideCommands(commandsList, commandsMap, []string{completionCmd.Use, addCmd.Use})
 
 	// allow the user to choose one command
 	selectedCommand, _ := pterm.DefaultInteractiveSelect.WithOptions(commandsList).Show()
@@ -42,11 +47,19 @@ func runRoot(cmd *cobra.Command, args []string) {
 	}
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
+func getAllCommands(cmd *cobra.Command, commandsList []string, commandsMap map[string]func(*cobra.Command, []string)) ([]string, map[string]func(*cobra.Command, []string)) {
+	for _, child := range cmd.Commands() {
+		commandsList = append(commandsList, child.Use)
+		commandsMap[child.Use] = child.Run
+		commandsList, commandsMap = getAllCommands(child, commandsList, commandsMap)
 	}
+	return commandsList, commandsMap
+}
+
+func hideCommands(commandsList []string, commandsMap map[string]func(*cobra.Command, []string), commands []string) ([]string, map[string]func(*cobra.Command, []string)) {
+	for _, command := range commands {
+		commandsList = utils.ArrayStringRemoveByValue(commandsList, command)
+		delete(commandsMap, command)
+	}
+	return commandsList, commandsMap
 }
