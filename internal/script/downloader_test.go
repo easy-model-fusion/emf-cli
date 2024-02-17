@@ -63,7 +63,7 @@ func TestIsScriptTokenizerEmpty_False(t *testing.T) {
 // TestProcessArgsForDownload tests the ProcessArgsForDownload
 func TestProcessArgsForDownload(t *testing.T) {
 	// Init
-	args := DownloadArgs{
+	args := DownloaderArgs{
 		DownloadPath:     "/path/to/download",
 		ModelName:        "model",
 		ModelModule:      "module",

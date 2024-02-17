@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
+	"github.com/pterm/pterm"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -76,4 +78,59 @@ func InstallDependencies(pipPath, path string) error {
 	}
 
 	return nil
+}
+
+func ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int) {
+
+	// Find the python executable inside the venv to run the script
+	pythonPath, err := FindVEnvExecutable(venvPath, "python")
+	if err != nil {
+		pterm.Error.Println(fmt.Sprintf("Error using the venv : %s", err))
+		return nil, err, 1
+	}
+
+	// Checking that the script does exist
+	exists, err := IsExistingPath(filePath)
+	if err != nil {
+		pterm.Error.Println(fmt.Sprintf("Missing script '%s'", filePath))
+		return nil, err, 1
+	} else if !exists {
+		err = errors.New(fmt.Sprintf("Missing script '%s'", filePath))
+		return nil, err, 1
+	}
+
+	// Create command
+	var cmd = exec.Command(pythonPath, append([]string{filePath}, args...)...)
+
+	// Bind stderr to a buffer
+	var errBuf strings.Builder
+	cmd.Stderr = &errBuf
+
+	// Run command
+	output, err := cmd.Output()
+
+	// Execution was successful but nothing returned
+	if err == nil && (output == nil || len(output) == 0) {
+		return nil, nil, 0
+	}
+
+	// Execution was successful
+	if err == nil {
+		return output, nil, 0
+	}
+
+	// If there was an error running the command, check if it's a command execution error
+	var exitCode int
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) {
+		exitCode = exitErr.ExitCode()
+	}
+
+	// Log the errors back
+	errBufStr := errBuf.String()
+	if errBufStr != "" {
+		return nil, fmt.Errorf("%s", errBufStr), exitCode
+	}
+
+	return nil, err, exitCode
 }

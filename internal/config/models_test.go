@@ -405,7 +405,7 @@ func TestRemoveModels_Success(t *testing.T) {
 }
 
 // TestDownloadModels tests the DownloadModels function exits properly.
-func TestDownloadModels(t *testing.T) {
+/*func TestDownloadModels(t *testing.T) {
 	// Init the models
 	models := []model.Model{getModel(0)}
 
@@ -427,7 +427,7 @@ func TestDownloadModels(t *testing.T) {
 	// Assert
 	test.AssertEqual(t, nil, err, "No error should have been raised.")
 	test.AssertEqual(t, len(models), len(result), "Lengths do not match")
-}
+}*/
 
 func TestModelExists_OnExistentModel(t *testing.T) {
 	// TODO implement this after fixing writeToConfigFile

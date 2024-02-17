@@ -71,7 +71,7 @@ func GetModelsByNames(models []Model, namesSlice []string) []Model {
 	return namesModels
 }
 
-// MapToConfigFromScriptDownloadModel maps data from script.DownloaderModel to Config.
+// MapToConfigFromScriptDownloadModel maps data from bytes to Config.
 func MapToConfigFromScriptDownloadModel(config Config, dsm script.DownloaderModel) Config {
 
 	// Check if ScriptModel is valid

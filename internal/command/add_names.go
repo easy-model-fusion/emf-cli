@@ -101,9 +101,8 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	utils.DisplaySelectedItems(selectedModelNames)
 
 	// Download the models
-	err, selectedModels = config.DownloadModels(selectedModels)
-	if err != nil {
-		return
+	for i := range selectedModels {
+		selectedModels[i] = config.DownloadModel(selectedModels[i])
 	}
 
 	// Add models to configuration file
