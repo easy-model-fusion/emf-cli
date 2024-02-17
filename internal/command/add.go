@@ -1,8 +1,6 @@
 package command
 
 import (
-	"fmt"
-	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
 
@@ -25,15 +23,8 @@ func runAdd(cmd *cobra.Command, args []string) {
 		addByNamesCmd.Use: addByNamesCmd.Run,
 	}
 
-	// allow the user to choose one command
-	selectedCommand, _ := pterm.DefaultInteractiveSelect.WithOptions(commandsList).Show()
-
-	// Check if the selected command exists and runs it
-	if runCommand, exists := commandsMap[selectedCommand]; exists {
-		runCommand(cmd, args)
-	} else { // technically unreachable
-		pterm.Error.Println(fmt.Sprintf("Selected command '%s' not recognized", selectedCommand))
-	}
+	// Users chooses a command and runs it automatically
+	runCommandSelector(cmd, args, commandsList, commandsMap)
 }
 
 func init() {

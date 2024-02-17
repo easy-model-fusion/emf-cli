@@ -36,17 +36,11 @@ func runRoot(cmd *cobra.Command, args []string) {
 	commandsList, commandsMap = getAllCommands(cmd, commandsList, commandsMap)
 	commandsList, commandsMap = hideCommands(commandsList, commandsMap, []string{completionCmd.Use, addCmd.Use})
 
-	// allow the user to choose one command
-	selectedCommand, _ := pterm.DefaultInteractiveSelect.WithOptions(commandsList).Show()
-
-	// Check if the selected command exists and runs it
-	if runCommand, exists := commandsMap[selectedCommand]; exists {
-		runCommand(cmd, args)
-	} else { // technically unreachable
-		pterm.Error.Println(fmt.Sprintf("Selected command '%s' not recognized", selectedCommand))
-	}
+	// Users chooses a command and runs it automatically
+	runCommandSelector(cmd, args, commandsList, commandsMap)
 }
 
+// getAllCommands retrieves all commands and their subcommands recursively.
 func getAllCommands(cmd *cobra.Command, commandsList []string, commandsMap map[string]func(*cobra.Command, []string)) ([]string, map[string]func(*cobra.Command, []string)) {
 	for _, child := range cmd.Commands() {
 		commandsList = append(commandsList, child.Use)
@@ -56,10 +50,21 @@ func getAllCommands(cmd *cobra.Command, commandsList []string, commandsMap map[s
 	return commandsList, commandsMap
 }
 
+// hideCommands hides specified commands from the given list of commands.
 func hideCommands(commandsList []string, commandsMap map[string]func(*cobra.Command, []string), commands []string) ([]string, map[string]func(*cobra.Command, []string)) {
 	for _, command := range commands {
 		commandsList = utils.ArrayStringRemoveByValue(commandsList, command)
 		delete(commandsMap, command)
 	}
 	return commandsList, commandsMap
+}
+
+func runCommandSelector(cmd *cobra.Command, args []string, commandsList []string, commandsMap map[string]func(*cobra.Command, []string)) {
+	selectedCommand, _ := pterm.DefaultInteractiveSelect.WithOptions(commandsList).Show()
+
+	if runCommand, exists := commandsMap[selectedCommand]; exists {
+		runCommand(cmd, args)
+	} else {
+		pterm.Error.Println(fmt.Sprintf("Selected command '%s' not recognized", selectedCommand))
+	}
 }
