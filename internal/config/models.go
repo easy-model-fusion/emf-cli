@@ -162,8 +162,7 @@ func DownloadModels(models []model.Model) (error, []model.Model) {
 	// Find the python executable inside the venv to run the scripts
 	pythonPath, err := utils.FindVEnvExecutable(".venv", "python")
 	if err != nil {
-		pterm.Error.Println(fmt.Sprintf("Error using the venv : %s", err))
-		return err, nil
+		return fmt.Errorf("error using the venv : %s", err), nil
 	}
 
 	// Iterate over every model for instant download

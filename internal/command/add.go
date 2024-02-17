@@ -98,6 +98,7 @@ func runAdd(cmd *cobra.Command, args []string) {
 	// Download the models
 	err, selectedModels = config.DownloadModels(selectedModels)
 	if err != nil {
+		pterm.Error.Println(err.Error())
 		return
 	}
 
