@@ -1,7 +1,6 @@
 package app
 
 const Name = "emf-cli"
-const ModelsDownloadPath = "./models/"
 
 var (
 	// Version is the binary version + build number

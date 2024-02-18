@@ -1,9 +1,7 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/script"
 	"github.com/easy-model-fusion/client/internal/utils"
@@ -56,7 +54,7 @@ func AddModel(updatedModels []model.Model) error {
 func RemoveModelPhysically(model model.Model) error {
 
 	// Path to the model
-	modelPath := filepath.Join(app.ModelsDownloadPath, model.Name)
+	modelPath := filepath.Join(script.DownloadModelsPath, model.Name)
 
 	// Starting client spinner animation
 	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Removing model %s...", model.Name))
@@ -180,73 +178,24 @@ func DownloadModel(modelObj model.Model) model.Model {
 
 	// Reset in case the download fails
 	modelObj.AddToBinary = false
-	overwrite := false
-
-	// Get mandatory model data for the download script
-	modelName := modelObj.Name
-	moduleName := modelObj.Config.Module
-	className := modelObj.Config.Class
-
-	// Local path where the model will be downloaded
-	downloadPath := app.ModelsDownloadPath
-	modelPath := filepath.Join(downloadPath, modelName)
-
-	// Check if the model_path already exists
-	if exists, err := utils.IsExistingPath(modelPath); err != nil {
-		// Skipping model : an error occurred
-		return modelObj
-	} else if exists {
-		// Model path already exists : ask the user if he would like to overwrite it
-		overwrite = utils.AskForUsersConfirmation(fmt.Sprintf("Model '%s' already downloaded at '%s'. Do you want to overwrite it?", modelName, modelPath))
-
-		// User does not want to overwrite : skipping to the next model
-		if !overwrite {
-			return modelObj
-		}
-	}
 
 	// Prepare the script arguments
 	downloaderArgs := script.DownloaderArgs{
-		DownloadPath: downloadPath,
-		ModelName:    modelName,
-		ModelModule:  moduleName,
-		ModelClass:   className,
-		Overwrite:    overwrite,
+		ModelName:   modelObj.Name,
+		ModelModule: modelObj.Config.Module,
+		ModelClass:  modelObj.Config.Class,
 	}
-	args := script.ProcessArgsForDownload(downloaderArgs)
 
-	// Run the script to download the model
-	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", modelName))
-	var scriptModel, err, exitCode = utils.ExecuteScript(".venv", script.DownloaderName, args)
+	// Running the script
+	sdm, err := script.DownloaderExecute(downloaderArgs)
 
-	// An error occurred while running the script
-	if err != nil {
-		spinner.Fail(err)
-		switch exitCode {
-		case 2:
-			pterm.Info.Println("Run the 'add custom' command to manually add the model.")
-		}
+	// Something went wrong or no data was returned
+	if err != nil || sdm.IsEmpty {
 		return modelObj
 	}
-
-	// No data was returned by the script
-	if scriptModel == nil {
-		spinner.Fail(fmt.Sprintf("The script didn't return any data for '%s'", modelName))
-		return modelObj
-	}
-
-	// Unmarshall JSON response
-	var dsm script.DownloaderModel
-	err = json.Unmarshal(scriptModel, &dsm)
-	if err != nil {
-		return modelObj
-	}
-
-	// Download was successful
-	spinner.Success(fmt.Sprintf("Successfully downloaded model '%s'", modelName))
 
 	// Update the model for the configuration file
-	modelObj.Config = model.MapToConfigFromScriptDownloadModel(modelObj.Config, dsm)
+	modelObj.Config = model.MapToConfigFromScriptDownloaderModel(modelObj.Config, sdm)
 	modelObj.AddToBinary = true
 
 	return modelObj

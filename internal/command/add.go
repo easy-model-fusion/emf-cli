@@ -22,7 +22,7 @@ func runAdd(cmd *cobra.Command, args []string) {
 	// Build objects containing all the available commands
 	addSubCmd, found := utils.CobraFindSubCommand(cmd, cmdAddTitle)
 	if !found {
-		// sound be unreachable
+		// technically unreachable
 		return
 	}
 	commandsList, commandsMap := utils.CobraGetSubCommands(addSubCmd, []string{})

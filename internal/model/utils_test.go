@@ -122,8 +122,8 @@ func TestGetNames(t *testing.T) {
 	test.AssertEqual(t, len(models), len(names), "Lengths should be equal.")
 }
 
-// TestMapToConfigFromDownloadScriptModel_Empty tests the MapToConfigFromDownloadScriptModel to return the correct Config.
-func TestMapToConfigFromDownloadScriptModel_Empty(t *testing.T) {
+// TestMapToConfigFromScriptDownloaderModel_Empty tests the MapToConfigFromScriptDownloaderModel to return the correct Config.
+func TestMapToConfigFromScriptDownloaderModel_Empty(t *testing.T) {
 	// Init
 	dsm := script.DownloaderModel{
 		Path:   "",
@@ -144,7 +144,7 @@ func TestMapToConfigFromDownloadScriptModel_Empty(t *testing.T) {
 	}
 
 	// Execute
-	result := MapToConfigFromScriptDownloadModel(expected, dsm)
+	result := MapToConfigFromScriptDownloaderModel(expected, dsm)
 
 	// Assert
 	test.AssertEqual(t, expected.Path, result.Path)
@@ -155,8 +155,8 @@ func TestMapToConfigFromDownloadScriptModel_Empty(t *testing.T) {
 	test.AssertEqual(t, expected.Tokenizers[0].Class, result.Tokenizers[0].Class)
 }
 
-// TestMapToConfigFromDownloadScriptModel_Fill tests the MapToConfigFromDownloadScriptModel to return the correct Config.
-func TestMapToConfigFromDownloadScriptModel_Fill(t *testing.T) {
+// TestMapToConfigFromScriptDownloaderModel_Fill tests the MapToConfigFromScriptDownloaderModel to return the correct Config.
+func TestMapToConfigFromScriptDownloaderModel_Fill(t *testing.T) {
 	// Init
 	sm := script.DownloaderModel{
 		Path:   "/path/to/model",
@@ -177,7 +177,7 @@ func TestMapToConfigFromDownloadScriptModel_Fill(t *testing.T) {
 	}
 
 	// Execute
-	result := MapToConfigFromScriptDownloadModel(Config{}, sm)
+	result := MapToConfigFromScriptDownloaderModel(Config{}, sm)
 
 	// Assert
 	test.AssertEqual(t, expected.Path, result.Path)
