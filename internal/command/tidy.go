@@ -71,7 +71,7 @@ func getModelsToBeAddedToBinary(models []model.Model) []model.Model {
 
 // addMissingModels adds the missing models from the list of configuration file models
 func addMissingModels(models []model.Model) error {
-	pterm.Info.Println("verifying if all models are downloaded...")
+	pterm.Info.Println("Verifying if all models are downloaded...")
 	// filter the models that should be added to binary
 	models = getModelsToBeAddedToBinary(models)
 	// Search for the models that need to be downloaded
@@ -96,13 +96,13 @@ func addMissingModels(models []model.Model) error {
 
 	if len(modelsToDownload) > 0 {
 		// download missing models
-		//err, _ := config.DownloadModels(modelsToDownload)
-		//if err != nil {
-		//	return err
-		//}
-		pterm.Success.Println("added missing models", model.GetNames(modelsToDownload))
+		err, _ := config.DownloadModels(modelsToDownload)
+		if err != nil {
+			return err
+		}
+		pterm.Success.Println("Added missing models", model.GetNames(modelsToDownload))
 	} else {
-		pterm.Info.Println("all models are already downloaded")
+		pterm.Info.Println("All models are already downloaded")
 	}
 
 	return nil
@@ -111,7 +111,7 @@ func addMissingModels(models []model.Model) error {
 // missingModelConfiguration finds the downloaded models that aren't configured in the configuration file
 // and then asks the user if he wants to delete them or add them to the configuration file
 func missingModelConfiguration(models []model.Model) error {
-	pterm.Info.Println("verifying if all downloaded models are configured...")
+	pterm.Info.Println("Verifying if all downloaded models are configured...")
 	// Get the list of downloaded model names
 	downloadedModelNames, err := app.GetDownloadedModelNames()
 	if err != nil {
@@ -123,26 +123,12 @@ func missingModelConfiguration(models []model.Model) error {
 	// Find missing models from configuration file
 	missingModelNames := utils.StringDifference(downloadedModelNames, configModelNames)
 	if len(missingModelNames) > 0 {
-		// Ask user for confirmation to delete these models
-		message := fmt.Sprintf(
-			"These models %s weren't found in your configuration file. Do you wish to delete these models?",
-			strings.Join(missingModelNames, ", "))
-		yes := utils.AskForUsersConfirmation(message)
-		// Delete models if confirmed
-		if yes {
-			for _, modelName := range missingModelNames {
-				_ = config.RemoveModelPhysically(modelName)
-			}
-			pterm.Success.Println("deleted models %s", missingModelNames)
-		} else { // Add models' configurations to config file
-			err = generateModelsConfig(missingModelNames)
-			if err != nil {
-				return err
-			}
-			pterm.Success.Println("added the configurations for these models", missingModelNames)
+		err = handleModelsWithNoConfig(missingModelNames)
+		if err != nil {
+			return err
 		}
 	} else {
-		pterm.Info.Println("all downloaded models are well configured")
+		pterm.Info.Println("All downloaded models are well configured")
 	}
 
 	return nil
@@ -151,7 +137,7 @@ func missingModelConfiguration(models []model.Model) error {
 // regenerateCode generates new default python code
 func regenerateCode() error {
 	// TODO: modify this logic when code generator is completed
-	pterm.Info.Println("generating new default python code...")
+	pterm.Info.Println("Generating new default python code...")
 	//file := codegen.File{Name: "main.py"}
 
 	//generator := codegen.PythonCodeGenerator{}
@@ -159,13 +145,8 @@ func regenerateCode() error {
 	//if err != nil {
 	//	return err
 	//}
-	pterm.Success.Println("python code generated")
+	pterm.Success.Println("Python code generated")
 	return nil
-}
-
-func init() {
-	// Add the tidy command to the root command
-	rootCmd.AddCommand(tidyCmd)
 }
 
 // generateModelsConfig generates models configurations
@@ -195,4 +176,51 @@ func generateModelsConfig(modelNames []string) error {
 	}
 
 	return nil
+}
+
+// handleModelsWithNoConfig handles all the models with no configuration
+func handleModelsWithNoConfig(missingModelNames []string) error {
+	// Ask user to select the models to delete/add to configuration file
+	message := "These models weren't found in your configuration file and will be deleted. " +
+		"Please select the models that you wish to conserve"
+	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+	selectedModels := utils.DisplayInteractiveMultiselect(message, missingModelNames, checkMark, false)
+	modelsToDelete := utils.StringDifference(missingModelNames, selectedModels)
+
+	// Delete selected models
+	if len(modelsToDelete) > 0 {
+		// Ask user for confirmation to delete these models
+		message = fmt.Sprintf(
+			"Are you sure you want to delete these models [%s]?",
+			strings.Join(modelsToDelete, ", "))
+		yes := utils.AskForUsersConfirmation(message)
+		if yes {
+			// Delete models if confirmed
+			for _, modelName := range modelsToDelete {
+				err := config.RemoveModelPhysically(modelName)
+				if err != nil {
+					return err
+				}
+			}
+			pterm.Success.Println("Deleted models", modelsToDelete)
+		} else {
+			return handleModelsWithNoConfig(missingModelNames)
+		}
+	}
+
+	// Configure selected models
+	if len(selectedModels) > 0 {
+		// Add models' configurations to config file
+		err := generateModelsConfig(selectedModels)
+		if err != nil {
+			return err
+		}
+		pterm.Success.Println("Added configurations for these models", selectedModels)
+	}
+	return nil
+}
+
+func init() {
+	// Add the tidy command to the root command
+	rootCmd.AddCommand(tidyCmd)
 }
