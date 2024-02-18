@@ -71,6 +71,7 @@ func getModelsToBeAddedToBinary(models []model.Model) []model.Model {
 
 // addMissingModels adds the missing models from the list of configuration file models
 func addMissingModels(models []model.Model) error {
+	pterm.Info.Println("verifying if all models are downloaded...")
 	// filter the models that should be added to binary
 	models = getModelsToBeAddedToBinary(models)
 	// Search for the models that need to be downloaded
@@ -93,10 +94,15 @@ func addMissingModels(models []model.Model) error {
 		}
 	}
 
-	// download missing models
-	err, _ := config.DownloadModels(modelsToDownload)
-	if err != nil {
-		return err
+	if len(modelsToDownload) > 0 {
+		// download missing models
+		//err, _ := config.DownloadModels(modelsToDownload)
+		//if err != nil {
+		//	return err
+		//}
+		pterm.Success.Println("added missing models", model.GetNames(modelsToDownload))
+	} else {
+		pterm.Info.Println("all models are already downloaded")
 	}
 
 	return nil
@@ -105,6 +111,7 @@ func addMissingModels(models []model.Model) error {
 // missingModelConfiguration finds the downloaded models that aren't configured in the configuration file
 // and then asks the user if he wants to delete them or add them to the configuration file
 func missingModelConfiguration(models []model.Model) error {
+	pterm.Info.Println("verifying if all downloaded models are configured...")
 	// Get the list of downloaded model names
 	downloadedModelNames, err := app.GetDownloadedModelNames()
 	if err != nil {
@@ -126,12 +133,16 @@ func missingModelConfiguration(models []model.Model) error {
 			for _, modelName := range missingModelNames {
 				_ = config.RemoveModelPhysically(modelName)
 			}
+			pterm.Success.Println("deleted models %s", missingModelNames)
 		} else { // Add models' configurations to config file
 			err = generateModelsConfig(missingModelNames)
 			if err != nil {
 				return err
 			}
+			pterm.Success.Println("added the configurations for these models", missingModelNames)
 		}
+	} else {
+		pterm.Info.Println("all downloaded models are well configured")
 	}
 
 	return nil
@@ -140,6 +151,7 @@ func missingModelConfiguration(models []model.Model) error {
 // regenerateCode generates new default python code
 func regenerateCode() error {
 	// TODO: modify this logic when code generator is completed
+	pterm.Info.Println("generating new default python code...")
 	//file := codegen.File{Name: "main.py"}
 
 	//generator := codegen.PythonCodeGenerator{}
@@ -147,7 +159,7 @@ func regenerateCode() error {
 	//if err != nil {
 	//	return err
 	//}
-
+	pterm.Success.Println("python code generated")
 	return nil
 }
 
