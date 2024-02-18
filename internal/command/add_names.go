@@ -16,7 +16,7 @@ const cmdAddNamesTitle = "names"
 
 // addByNamesCmd represents the add model by names command
 var addByNamesCmd = &cobra.Command{
-	Use:   cmdAddTitle + " " + cmdAddNamesTitle + " <model name> [<other model names>...]",
+	Use:   cmdAddNamesTitle + " <model name> [<other model names>...]",
 	Short: "Add model(s) by name to your project",
 	Long:  `Add model(s) by name to your project`,
 	Run:   runAddByNames,

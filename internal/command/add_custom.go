@@ -12,7 +12,7 @@ const cmdAddCustomTitle = "custom"
 
 // addCustomCmd represents the add custom model command
 var addCustomCmd = &cobra.Command{
-	Use:   cmdAddTitle + " " + cmdAddCustomTitle,
+	Use:   cmdAddCustomTitle,
 	Short: "Add a customized model to your project",
 	Long:  `Add a customized model to your project by specifying properties yourself`,
 	Run:   runAddCustom,
@@ -33,6 +33,6 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	// Group the add custom subcommand to the add command
+	// Add the subcommands to the add command
 	addCmd.AddCommand(addCustomCmd)
 }

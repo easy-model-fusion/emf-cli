@@ -1,14 +1,16 @@
 package command
 
 import (
+	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/spf13/cobra"
 )
 
 const cmdAddTitle string = "add"
+const cmdAddUse string = cmdAddTitle + " (" + cmdAddCustomTitle + " | " + cmdAddNamesTitle + ")"
 
 // addCmd represents the add model(s) command
 var addCmd = &cobra.Command{
-	Use:   cmdAddTitle + " (" + cmdAddCustomTitle + " | " + cmdAddNamesTitle + ")",
+	Use:   cmdAddUse,
 	Short: "Add model(s) to your project",
 	Long:  `Add model(s) to your project`,
 	Run:   runAdd,
@@ -17,14 +19,16 @@ var addCmd = &cobra.Command{
 // runAdd runs add command
 func runAdd(cmd *cobra.Command, args []string) {
 
-	commandsList := []string{addCustomCmd.Use, addByNamesCmd.Use}
-	commandsMap := map[string]func(*cobra.Command, []string){
-		addCustomCmd.Use:  addCustomCmd.Run,
-		addByNamesCmd.Use: addByNamesCmd.Run,
+	// Build objects containing all the available commands
+	addSubCmd, found := utils.CobraFindSubCommand(cmd, cmdAddTitle)
+	if !found {
+		// sound be unreachable
+		return
 	}
+	commandsList, commandsMap := utils.CobraGetSubCommands(addSubCmd, []string{})
 
 	// Users chooses a command and runs it automatically
-	runCommandSelector(cmd, args, commandsList, commandsMap)
+	utils.CobraSelectCommandToRun(cmd, args, commandsList, commandsMap)
 }
 
 func init() {
