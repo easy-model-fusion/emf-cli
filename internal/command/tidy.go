@@ -3,7 +3,6 @@ package command
 import (
 	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
-	"github.com/easy-model-fusion/client/internal/codegen"
 	"github.com/easy-model-fusion/client/internal/config"
 	"github.com/easy-model-fusion/client/internal/huggingface"
 	"github.com/easy-model-fusion/client/internal/model"
@@ -25,6 +24,10 @@ var tidyCmd = &cobra.Command{
 // runAdd runs add command
 func runTidy(cmd *cobra.Command, args []string) {
 	// get all models from config file
+	err := config.GetViperConfig()
+	if err != nil {
+		pterm.Error.Println(err.Error())
+	}
 	models, err := config.GetModels()
 	if err != nil {
 		pterm.Error.Println(err.Error())
@@ -70,7 +73,6 @@ func getModelsToBeAddedToBinary(models []model.Model) []model.Model {
 func addMissingModels(models []model.Model) error {
 	// filter the models that should be added to binary
 	models = getModelsToBeAddedToBinary(models)
-
 	// Search for the models that need to be downloaded
 	var modelsToDownload []model.Model
 	for _, currentModel := range models {
@@ -138,13 +140,13 @@ func missingModelConfiguration(models []model.Model) error {
 // regenerateCode generates new default python code
 func regenerateCode() error {
 	// TODO: modify this logic when code generator is completed
-	file := codegen.File{Name: "main.py"}
+	//file := codegen.File{Name: "main.py"}
 
-	generator := codegen.PythonCodeGenerator{}
-	_, err := generator.Generate(&file)
-	if err != nil {
-		return err
-	}
+	//generator := codegen.PythonCodeGenerator{}
+	//_, err := generator.Generate(&file)
+	//if err != nil {
+	//	return err
+	//}
 
 	return nil
 }
@@ -169,15 +171,13 @@ func generateModelsConfig(modelNames []string) error {
 		if err != nil {
 			currentModel = model.Model{Name: modelName}
 		}
+		currentModel.AddToBinary = true
+		currentModel.DirectoryPath = app.ModelsDownloadPath
 		models = append(models, currentModel)
 	}
 
 	// Add models to the configuration file
-	err := config.GetViperConfig()
-	if err != nil {
-		return err
-	}
-	err = config.AddModels(models)
+	err := config.AddModels(models)
 	if err != nil {
 		return err
 	}
