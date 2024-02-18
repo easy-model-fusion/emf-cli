@@ -3,6 +3,7 @@ package command
 import (
 	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
+	"github.com/easy-model-fusion/client/internal/codegen"
 	"github.com/easy-model-fusion/client/internal/config"
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/utils"
@@ -36,8 +37,15 @@ func runTidy(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Add all missing models
+	// Fix missing model configurations
 	err = missingModelConfiguration(models)
+	if err != nil {
+		pterm.Error.Println(err.Error())
+		return
+	}
+
+	// Regenerate python code
+	err = regenerateCode()
 	if err != nil {
 		pterm.Error.Println(err.Error())
 		return
@@ -118,6 +126,20 @@ func missingModelConfiguration(models []model.Model) error {
 			// TODO: search for each model on hugging face
 			// TODO: if model not found add model name and the other infos will be empty
 		}
+	}
+
+	return nil
+}
+
+// regenerateCode generates new default python code
+func regenerateCode() error {
+	// TODO: modify this logic when code generator is completed
+	file := codegen.File{Name: "main.py"}
+
+	generator := codegen.PythonCodeGenerator{}
+	_, err := generator.Generate(&file)
+	if err != nil {
+		return err
 	}
 
 	return nil
