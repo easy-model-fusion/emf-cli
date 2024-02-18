@@ -23,8 +23,8 @@ func GetModels() ([]model.Model, error) {
 	return models, nil
 }
 
-// AddModel adds models to configuration file
-func AddModel(updatedModels []model.Model) error {
+// AddModels adds models to configuration file
+func AddModels(updatedModels []model.Model) error {
 	// Get existent models
 	configModels, err := GetModels()
 	if err != nil {

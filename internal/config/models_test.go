@@ -188,7 +188,7 @@ func TestGetModels_MissingConfig(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
-// TestErrorOnAddModelWithEmptyViper tests the AddModel function
+// TestErrorOnAddModelWithEmptyViper tests the AddModels function
 func TestAddModel(t *testing.T) {
 	// Setup directory
 	confDir, initialConfigFile := setupConfigDir(t)
@@ -196,13 +196,13 @@ func TestAddModel(t *testing.T) {
 	// Setup file
 	initialModels := []model.Model{getModel(0), getModel(1)}
 
-	// Call the AddModel function to add new models
+	// Call the AddModels function to add new models
 	newModels := []model.Model{getModel(2), getModel(3)}
 	err := setupConfigFile(initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
-	err = AddModel(newModels)
+	err = AddModels(newModels)
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
 
 	// Assert that the models have been updated correctly
@@ -215,20 +215,20 @@ func TestAddModel(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
-// TestErrorOnAddModelWithEmptyViper tests the AddModel function with an empty config file
+// TestErrorOnAddModelWithEmptyViper tests the AddModels function with an empty config file
 func TestAddModelOnEmptyConfFile(t *testing.T) {
 	// Use the setup function
 	var initialModels []model.Model
 	confDir, initialConfigFile := setupConfigDir(t)
 
-	// Call the AddModel function to add new models
+	// Call the AddModels function to add new models
 	newModels := []model.Model{getModel(0), getModel(1)}
 
 	err := setupConfigFile(initialConfigFile, initialModels)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
-	err = AddModel(newModels)
+	err = AddModels(newModels)
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
 
 	// Assert that the models have been updated correctly
@@ -241,13 +241,13 @@ func TestAddModelOnEmptyConfFile(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
-// TestErrorOnAddModelWithEmptyViper tests the AddModel function with a missing config file
+// TestErrorOnAddModelWithEmptyViper tests the AddModels function with a missing config file
 func TestErrorOnAddModelWithEmptyViper(t *testing.T) {
 	viper.Reset()
-	// Call the AddModel function to add new models
+	// Call the AddModels function to add new models
 	newModels := []model.Model{getModel(0), getModel(1)}
 
-	err := AddModel(newModels)
+	err := AddModels(newModels)
 	test.AssertNotEqual(t, err, nil, "Should get error while updating configuration file.")
 }
 

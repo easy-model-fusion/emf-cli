@@ -5,6 +5,7 @@ import (
 	"github.com/easy-model-fusion/client/internal/app"
 	"github.com/easy-model-fusion/client/internal/codegen"
 	"github.com/easy-model-fusion/client/internal/config"
+	"github.com/easy-model-fusion/client/internal/huggingface"
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
@@ -114,7 +115,9 @@ func missingModelConfiguration(models []model.Model) error {
 	missingModelNames := utils.StringDifference(downloadedModelNames, configModelNames)
 	if len(missingModelNames) > 0 {
 		// Ask user for confirmation to delete these models
-		message := fmt.Sprintf("These models %s weren't found in your configuration file. Do you wish to delete these models?", strings.Join(missingModelNames, ", "))
+		message := fmt.Sprintf(
+			"These models %s weren't found in your configuration file. Do you wish to delete these models?",
+			strings.Join(missingModelNames, ", "))
 		yes := utils.AskForUsersConfirmation(message)
 		// Delete models if confirmed
 		if yes {
@@ -122,9 +125,10 @@ func missingModelConfiguration(models []model.Model) error {
 				_ = config.RemoveModelPhysically(modelName)
 			}
 		} else { // Add models' configurations to config file
-			// TODO: add them to configuration file
-			// TODO: search for each model on hugging face
-			// TODO: if model not found add model name and the other infos will be empty
+			err = generateModelsConfig(missingModelNames)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -148,4 +152,35 @@ func regenerateCode() error {
 func init() {
 	// Add the tidy command to the root command
 	rootCmd.AddCommand(tidyCmd)
+}
+
+// generateModelsConfig generates models configurations
+func generateModelsConfig(modelNames []string) error {
+	// initialize hugging face url
+	app.InitHuggingFace(huggingface.BaseUrl, "")
+	// get hugging face api
+	huggingFace := app.H()
+
+	var models []model.Model
+	for _, modelName := range modelNames {
+		// Search for the model in hugging face
+		currentModel, err := huggingFace.GetModel(modelName)
+		// If not found create model configuration with only model's name
+		if err != nil {
+			currentModel = model.Model{Name: modelName}
+		}
+		models = append(models, currentModel)
+	}
+
+	// Add models to the configuration file
+	err := config.GetViperConfig()
+	if err != nil {
+		return err
+	}
+	err = config.AddModels(models)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
