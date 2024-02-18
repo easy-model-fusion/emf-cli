@@ -6,11 +6,10 @@ import (
 )
 
 const cmdAddTitle string = "add"
-const cmdAddUse string = cmdAddTitle + " (" + cmdAddCustomTitle + " | " + cmdAddNamesTitle + ")"
 
 // addCmd represents the add model(s) command
 var addCmd = &cobra.Command{
-	Use:   cmdAddUse,
+	Use:   cmdAddTitle,
 	Short: "Add model(s) to your project",
 	Long:  `Add model(s) to your project`,
 	Run:   runAdd,

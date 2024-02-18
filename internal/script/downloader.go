@@ -40,6 +40,8 @@ func IsDownloaderScriptTokenizer(dst DownloaderTokenizer) bool {
 
 // Downloader script tags
 const TagPrefix = "--"
+const ModelName = "model-name"
+const ModelModule = "model-module"
 const ModelClass = "model-class"
 const ModelOptions = "model-options"
 const TokenizerClass = "tokenizer-class"
@@ -63,12 +65,22 @@ type DownloaderArgs struct {
 
 // DownloaderArgsForCobra builds the arguments for running the cobra command
 func DownloaderArgsForCobra(cmd *cobra.Command, args *DownloaderArgs) {
-	cmd.Flags().StringVar(&args.ModelClass, ModelClass, "", "Class name within the module")
+
+	// Pseudo mandatory : allowing to customize the calling command
+	cmd.Flags().StringVarP(&args.ModelName, ModelName, "n", "", "Model name")
+	cmd.Flags().StringVarP(&args.ModelModule, ModelModule, "m", "", "Module name")
+
+	// Optional for the model
+	cmd.Flags().StringVarP(&args.ModelClass, ModelClass, "c", "", "Class name within the module")
 	cmd.Flags().StringArrayVar(&args.ModelOptions, ModelOptions, []string{}, "List of options")
-	cmd.Flags().StringVar(&args.TokenizerClass, TokenizerClass, "", "Tokenizer class name (only for transformers)")
+
+	// Optional for the tokenizer
+	cmd.Flags().StringVarP(&args.TokenizerClass, TokenizerClass, "t", "", "Tokenizer class name (only for transformers)")
 	cmd.Flags().StringArrayVar(&args.TokenizerOptions, TokenizerOptions, []string{}, "List of tokenizer options (only for transformers)")
-	cmd.Flags().BoolVar(&args.Overwrite, Overwrite, false, "Overwrite existing directories")
-	cmd.Flags().StringVar(&args.Skip, Skip, "", "Skip the download item")
+
+	// Situational
+	cmd.Flags().BoolVarP(&args.Overwrite, Overwrite, "o", false, "Overwrite existing directories")
+	cmd.Flags().StringVarP(&args.Skip, Skip, "s", "", "<model|tokenizer>")
 }
 
 // DownloaderArgsForPython builds the arguments for running the python script

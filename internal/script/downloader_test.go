@@ -58,6 +58,8 @@ func TestDownloaderArgsForCobra(t *testing.T) {
 	DownloaderArgsForCobra(cmd, args)
 
 	// Assert
+	test.AssertNotEqual(t, cmd.Flags().Lookup(ModelName), nil)
+	test.AssertNotEqual(t, cmd.Flags().Lookup(ModelModule), nil)
 	test.AssertNotEqual(t, cmd.Flags().Lookup(ModelClass), nil)
 	test.AssertNotEqual(t, cmd.Flags().Lookup(ModelOptions), nil)
 	test.AssertNotEqual(t, cmd.Flags().Lookup(TokenizerClass), nil)
@@ -65,6 +67,8 @@ func TestDownloaderArgsForCobra(t *testing.T) {
 	test.AssertNotEqual(t, cmd.Flags().Lookup(Overwrite), nil)
 	test.AssertNotEqual(t, cmd.Flags().Lookup(Skip), nil)
 
+	test.AssertEqual(t, args.ModelName, "")
+	test.AssertEqual(t, args.ModelModule, "")
 	test.AssertEqual(t, args.ModelClass, "")
 	test.AssertEqual(t, len(args.ModelOptions), 0)
 	test.AssertEqual(t, args.TokenizerClass, "")
