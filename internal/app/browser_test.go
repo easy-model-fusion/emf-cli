@@ -15,7 +15,7 @@ func TestGetDownloadedModels(t *testing.T) {
 	defer os.RemoveAll(ModelsDownloadPath)
 
 	setupTestDir(t, ModelsDownloadPath)
-	models, err := GetDownloadedModels()
+	models, err := GetDownloadedModelNames()
 	if err != nil {
 		t.Errorf("Error getting downloaded models: %v", err)
 	}

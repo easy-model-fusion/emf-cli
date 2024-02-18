@@ -258,7 +258,7 @@ func TestRemoveModelPhysically_AddToBinaryFalse(t *testing.T) {
 	modelToRemove.AddToBinary = false
 
 	// Execute
-	err := RemoveModelPhysically(modelToRemove)
+	err := RemoveModelPhysically(modelToRemove.Name)
 	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
 }
 
@@ -268,7 +268,7 @@ func TestRemoveModelPhysically_NotPhysical(t *testing.T) {
 	modelToRemove := getModel(0)
 
 	// Execute
-	err := RemoveModelPhysically(modelToRemove)
+	err := RemoveModelPhysically(modelToRemove.Name)
 	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
 }
 
@@ -283,7 +283,7 @@ func TestRemoveModelPhysically_Success(t *testing.T) {
 	defer os.RemoveAll(modelPath)
 
 	// Execute
-	err := RemoveModelPhysically(modelToRemove)
+	err := RemoveModelPhysically(modelToRemove.Name)
 	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
 
 	// Assert that the model was physically removed

@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-// GetDownloadedModels get all the downloaded models names
-func GetDownloadedModels() ([]string, error) {
+// GetDownloadedModelNames get all the downloaded models names
+func GetDownloadedModelNames() ([]string, error) {
 	var models []string
 	// Get all the models folders in the root folder
 	entries, err := os.ReadDir(ModelsDownloadPath)

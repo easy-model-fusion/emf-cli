@@ -1,8 +1,8 @@
 package main
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/client/internal/app"
-	"github.com/easy-model-fusion/client/internal/command"
 )
 
 var (
@@ -16,5 +16,9 @@ func main() {
 	app.Init(Version, BuildDate)
 
 	// Execute command
-	command.Execute()
+	models, err := app.GetDownloadedModelNames()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	fmt.Println(models)
 }
