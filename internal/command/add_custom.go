@@ -38,8 +38,8 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	app.InitHuggingFace(huggingface.BaseUrl, "")
 
 	// Searching for the currentCmd : when 'cmd' differs from 'addCustomCmd' (i.e. run through parent multiselect)
-	currentCmd := utils.CobraFindSubCommand(cmd, cmdAddCustomTitle)
-	if currentCmd == nil {
+	currentCmd, found := utils.CobraFindSubCommand(cmd, cmdAddCustomTitle)
+	if found == false {
 		pterm.Error.Println(fmt.Sprintf("Something went wrong : the '%s' command was not found. Please try again.", cmdAddTitle))
 		return
 	}
@@ -60,7 +60,6 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	utils.CobraInputAmongRemainingFlags(currentCmd)
 
 	// TODO : options : split and encapsulate
-	// TODO : unit tests
 
 	// TODO : validate model to download
 

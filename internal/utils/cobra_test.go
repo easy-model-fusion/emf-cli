@@ -27,8 +27,6 @@ func prepareRootCmd() *cobra.Command {
 func TestCobraFindSubCommand_NotFound(t *testing.T) {
 	// Init
 	rootCmd := prepareRootCmd()
-	cmd2 := prepareSubCmd("cmd2")
-	rootCmd.AddCommand(cmd2)
 
 	// Execute
 	_, found := CobraFindSubCommand(rootCmd, "afnwibqpwifubqwpb")
@@ -37,19 +35,32 @@ func TestCobraFindSubCommand_NotFound(t *testing.T) {
 	test.AssertEqual(t, found, false)
 }
 
-func TestCobraFindSubCommand_Success(t *testing.T) {
+func TestCobraFindSubCommand_FromParentSuccess(t *testing.T) {
 	// Init
 	rootCmd := prepareRootCmd()
 	cmd2 := prepareSubCmd("cmd2")
 	rootCmd.AddCommand(cmd2)
 
 	// Execute
-	result, found := CobraFindSubCommand(rootCmd, cmd2.Use)
+	resultCmd, found := CobraFindSubCommand(rootCmd, cmd2.Name())
 
 	// Assert
-	test.AssertNotEqual(t, result, nil)
-	test.AssertEqual(t, result.Use, cmd2.Use)
 	test.AssertEqual(t, found, true)
+	test.AssertEqual(t, resultCmd.Name(), cmd2.Name())
+}
+
+func TestCobraFindSubCommand_FromItselfSuccess(t *testing.T) {
+	// Init
+	rootCmd := prepareRootCmd()
+	cmd2 := prepareSubCmd("cmd2")
+	rootCmd.AddCommand(cmd2)
+
+	// Execute
+	resultCmd, found := CobraFindSubCommand(cmd2, cmd2.Name())
+
+	// Assert
+	test.AssertEqual(t, found, true)
+	test.AssertEqual(t, resultCmd.Name(), cmd2.Name())
 }
 
 func TestCobraGetSubCommands(t *testing.T) {

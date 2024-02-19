@@ -9,21 +9,20 @@ import (
 )
 
 // CobraFindSubCommand searches for a sub-command within a Cobra command.
-func CobraFindSubCommand(cmd *cobra.Command, cmdToSearch string) *cobra.Command {
+func CobraFindSubCommand(cmd *cobra.Command, cmdSearchName string) (*cobra.Command, bool) {
 
 	// Running from the searched command
-	if cmd.Name() == cmdToSearch {
-		return cmd
+	if cmd.Name() == cmdSearchName {
+		return cmd, true
 	}
 
 	for _, subCmd := range cmd.Commands() {
-		title := Split(subCmd.Use)[0]
-		if title == cmdToSearch {
-			return subCmd
+		if subCmd.Name() == cmdSearchName {
+			return subCmd, true
 		}
 	}
 
-	return nil
+	return nil, false
 }
 
 // CobraGetSubCommands retrieves sub-commands and hides the ones specified.

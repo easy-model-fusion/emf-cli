@@ -3,8 +3,6 @@ package script
 import (
 	"github.com/easy-model-fusion/client/test"
 	"github.com/spf13/cobra"
-	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -48,6 +46,21 @@ func TestIsScriptTokenizerEmpty_True(t *testing.T) {
 	test.AssertEqual(t, true, result)
 }
 
+// TestIsScriptTokenizerEmpty_False tests the IsDownloaderScriptTokenizer to return true.
+func TestIsScriptTokenizerEmpty_False(t *testing.T) {
+	// Init
+	st := DownloaderTokenizer{
+		Path:  "/path/to/tokenizer",
+		Class: "tokenizer_class",
+	}
+
+	// Execute
+	result := IsDownloaderScriptTokenizer(st)
+
+	// Assert
+	test.AssertEqual(t, false, result)
+}
+
 // TestDownloaderArgsForCobra tests the DownloaderArgsForCobra.
 func TestDownloaderArgsForCobra(t *testing.T) {
 	// Init
@@ -73,7 +86,6 @@ func TestDownloaderArgsForCobra(t *testing.T) {
 	test.AssertEqual(t, len(args.ModelOptions), 0)
 	test.AssertEqual(t, args.TokenizerClass, "")
 	test.AssertEqual(t, len(args.TokenizerOptions), 0)
-	test.AssertEqual(t, args.Overwrite, false)
 	test.AssertEqual(t, args.Skip, "")
 }
 
@@ -81,7 +93,6 @@ func TestDownloaderArgsForCobra(t *testing.T) {
 func TestDownloaderArgsForPython(t *testing.T) {
 	// Init
 	args := DownloaderArgs{
-		DownloadPath:     "/path/to/download",
 		ModelName:        "model",
 		ModelModule:      "module",
 		ModelClass:       "class",
@@ -89,7 +100,6 @@ func TestDownloaderArgsForPython(t *testing.T) {
 		TokenizerClass:   "tokenizer",
 		TokenizerOptions: []string{"tok_opt1=val1"},
 		Skip:             "model",
-		Overwrite:        true,
 	}
 	expected := []string{
 		TagPrefix + EmfClient, "/path/to/download", "model", "module",
@@ -106,21 +116,6 @@ func TestDownloaderArgsForPython(t *testing.T) {
 
 	// Assert
 	test.AssertEqual(t, len(result), len(expected))
-}
-
-// TestIsScriptTokenizerEmpty_False tests the IsDownloaderScriptTokenizer to return true.
-func TestIsScriptTokenizerEmpty_False(t *testing.T) {
-	// Init
-	st := DownloaderTokenizer{
-		Path:  "/path/to/tokenizer",
-		Class: "tokenizer_class",
-	}
-
-	// Execute
-	result := IsDownloaderScriptTokenizer(st)
-
-	// Assert
-	test.AssertEqual(t, false, result)
 }
 
 // TestDownloaderArgsValidate_MissingName tests the DownloaderArgsValidate function to return an error.
@@ -159,53 +154,6 @@ func TestDownloaderArgsValidate_Success(t *testing.T) {
 	test.AssertEqual(t, result, nil)
 }
 
-// TestDownloaderArgsProcess_ValidateFail tests the DownloaderArgsProcess function to fail.
-func TestDownloaderArgsProcess_ValidateFail(t *testing.T) {
-	// Init
-	args := DownloaderArgs{}
-
-	// Execute
-	_, err := DownloaderArgsProcess(args)
-
-	// Assert
-	test.AssertNotEqual(t, err, nil)
-}
-
-// TestDownloaderArgsProcess_OverwriteFalse tests the DownloaderArgsProcess function to succeed.
-func TestDownloaderArgsProcess_OverwriteFalse(t *testing.T) {
-	// TODO : mock utils.AskForUsersConfirmation to return false
-	t.Skip()
-
-	// Init
-	args := DownloaderArgs{ModelName: "present", ModelModule: "present"}
-	path := filepath.Join(DownloadModelsPath, args.ModelName)
-	err := os.MkdirAll(path, 0750)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(path)
-
-	// Execute
-	result, err := DownloaderArgsProcess(args)
-
-	// Assert
-	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, result, nil)
-}
-
-// TestDownloaderArgsProcess_Success tests the DownloaderArgsValidate function to succeed.
-func TestDownloaderArgsProcess_Success(t *testing.T) {
-	// Init
-	args := DownloaderArgs{ModelName: "present", ModelModule: "present"}
-
-	// Execute
-	result, err := DownloaderArgsProcess(args)
-
-	// Assert
-	test.AssertEqual(t, err, nil)
-	test.AssertNotEqual(t, result, nil)
-}
-
 // TestDownloaderExecute_ArgsInvalid tests the DownloaderExecute function with bad input.
 func TestDownloaderExecute_ArgsInvalid(t *testing.T) {
 	// Init
@@ -217,22 +165,6 @@ func TestDownloaderExecute_ArgsInvalid(t *testing.T) {
 	// Assert
 	test.AssertNotEqual(t, err, nil)
 	test.AssertEqual(t, result.IsEmpty, false)
-}
-
-// TestDownloaderExecute_OverwriteFalse tests the DownloaderExecute function with already downloaded model.
-func TestDownloaderExecute_OverwriteFalse(t *testing.T) {
-	// TODO : mock DownloaderArgsProcess to return (nil, nil)
-	t.Skip()
-
-	// Init
-	args := DownloaderArgs{ModelName: "present", ModelModule: "present"}
-
-	// Execute
-	result, err := DownloaderExecute(args)
-
-	// Assert
-	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, result.IsEmpty, true)
 }
 
 // TestDownloaderExecute_ScriptError tests the DownloaderExecute function with failing script.

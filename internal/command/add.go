@@ -21,8 +21,8 @@ var addCmd = &cobra.Command{
 func runAdd(cmd *cobra.Command, args []string) {
 
 	// Searching for the currentCmd : when 'cmd' differs from 'addCmd' (i.e. run through parent multiselect)
-	currentCmd := utils.CobraFindSubCommand(cmd, cmdAddTitle)
-	if currentCmd == nil {
+	currentCmd, found := utils.CobraFindSubCommand(cmd, cmdAddTitle)
+	if found == false {
 		pterm.Error.Println(fmt.Sprintf("Something went wrong : the '%s' command was not found. Please try again.", cmdAddTitle))
 		return
 	}
