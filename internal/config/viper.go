@@ -14,7 +14,7 @@ func GetViperConfig(confDirPath string) error {
 		err = Load(confDirPath)
 		if err != nil {
 			count++
-			UpdateConfigFilePath()
+			confDirPath = UpdateConfigFilePath()
 		} else {
 			return nil
 		}
