@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 )
 
+var allFlag bool
+
 // cleanCmd represents the clean command
 var cleanCmd = &cobra.Command{
 	Use:   	"clean",
@@ -18,7 +20,7 @@ var cleanCmd = &cobra.Command{
 	Long: 	"Clean project",
 	Run:   	runClean,
 }
-
+"""
 func runClean(cmd *cobra.Command, args []string) {
 	// extensions file removed
     extensions := []string{".exe", ".o", ".obj", ".out"}
@@ -58,9 +60,20 @@ func runClean(cmd *cobra.Command, args []string) {
 	} else {
 		pterm.Error.Printfln("Operation failed.")
 	}
-}
+}"""
 
 func runClean(cmd *cobra.Command, args []string)  {
+	if allFlag {
+
+		err := config.RemoveAllModels()
+		if err == nil {
+			pterm.Success.Printfln("Operation succeeded.")
+		} else {
+			pterm.Error.Printfln("Operation failed.")
+			return
+		}
+	}
+
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -113,6 +126,7 @@ func deleteDir(dossier string) error {
 }
 
 func init() {
+	cleanCmd.Flags().BoolVarP(&allFlag, "all", "a", false, "clean all project")
 	rootCmd.AddCommand(cleanCmd)
 }
 
