@@ -2,8 +2,6 @@ package command
 
 import (
 	"github.com/easy-model-fusion/client/internal/config"
-	"github.com/easy-model-fusion/client/internal/sdk"
-	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -12,6 +10,7 @@ import (
 )
 
 var allFlag bool
+var authorizeAll bool
 
 // cleanCmd represents the clean command
 var cleanCmd = &cobra.Command{
@@ -20,74 +19,31 @@ var cleanCmd = &cobra.Command{
 	Long: 	"Clean project",
 	Run:   	runClean,
 }
-"""
-func runClean(cmd *cobra.Command, args []string) {
-	// extensions file removed
-    extensions := []string{".exe", ".o", ".obj", ".out"}
-
-    // Get the current working directory
-    currentDir, err := os.Getwd()
-    if err != nil {
-        return err
-    }
-
-   	// Walk through all files in the current working directory
-    err = filepath.Walk(currentDir, func(path string, info os.FileInfo, err error) error {
-        if err != nil {
-            pterm.Error.Printfln("Operation failed.")
-			return
-        }
-
-        // Check if the file has one of the specified extensions to be removed
-        for _, ext := range extensions {
-            if filepath.Ext(path) == ext {
-                // Remove the file
-                err := os.Remove(path)
-                if err != nil {
-                    pterm.Error.Printfln("Operation failed.")
-					return
-                }
-				pterm.Success.Printfln("Operation succeeded, file %s\n deleted", pat)
-                break
-            }
-        }
-
-        return nil
-    })
-
-    if err == nil {
-		pterm.Success.Printfln("Operation succeeded.")
-	} else {
-		pterm.Error.Printfln("Operation failed.")
-	}
-}"""
 
 func runClean(cmd *cobra.Command, args []string)  {
+	
 	if allFlag {
-
+		if !authorizeAll{
+			yes := utils.AskForUsersConfirmation("Are you sure you want to delete all downloaded models and clean the build files of this project?")
+			if !yes {
+				return
+			}
+		}
 		err := config.RemoveAllModels()
 		if err == nil {
 			pterm.Success.Printfln("Operation succeeded.")
-		} else {
-			pterm.Error.Printfln("Operation failed.")
-			return
 		}
 	}
 
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
+			pterm.Error.Printfln("Operation failed.")
 			return err
 		}
-		if info.IsDir() && info.Name() == "build" {
-			err := deleteDir(path)
-			if err != nil {
-				pterm.Error.Printfln("Operation failed.")
-				return
-			}
-			else {
-				pterm.Success.Printfln("Operation succeeded.")
-			}
-		}
+		if err := deleteDir(path); err != nil {
+            pterm.Error.Printfln("Failed to delete directory: %v", err)
+            return err
+        }
 		return nil
 	})
 	return
@@ -116,7 +72,6 @@ func deleteDir(dossier string) error {
 			pterm.Error.Printfln("Operation failed.")
 			return
 		}
-		return nil
 	}
 	if err == nil {
 		pterm.Success.Printfln("Operation succeeded.")
@@ -127,6 +82,7 @@ func deleteDir(dossier string) error {
 
 func init() {
 	cleanCmd.Flags().BoolVarP(&allFlag, "all", "a", false, "clean all project")
+	cleanCmd.Flags().BoolVarP(&authorizeAll, "yes", "y", false, "authorize all deletions")
 	rootCmd.AddCommand(cleanCmd)
 }
 
