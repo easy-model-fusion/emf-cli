@@ -1,4 +1,4 @@
-[![codecov](https://codecov.io/gh/easy-model-fusion/client/graph/badge.svg?token=3SQXYCHS25)](https://codecov.io/gh/easy-model-fusion/client)
+[![codecov](https://codecov.io/gh/easy-model-fusion/emf-cli/graph/badge.svg?token=3SQXYCHS25)](https://codecov.io/gh/easy-model-fusion/emf-cli)
 
 # emf-bin
 
