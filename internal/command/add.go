@@ -1,7 +1,9 @@
 package command
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
 
@@ -18,16 +20,18 @@ var addCmd = &cobra.Command{
 // runAdd runs add command
 func runAdd(cmd *cobra.Command, args []string) {
 
-	// Build objects containing all the available commands
-	addSubCmd, found := utils.CobraFindSubCommand(cmd, cmdAddTitle)
-	if !found {
-		// technically unreachable
+	// Searching for the currentCmd : when 'cmd' differs from 'addCmd' (i.e. run through parent multiselect)
+	currentCmd := utils.CobraFindSubCommand(cmd, cmdAddTitle)
+	if currentCmd == nil {
+		pterm.Error.Println(fmt.Sprintf("Something went wrong : the '%s' command was not found. Please try again.", cmdAddTitle))
 		return
 	}
-	commandsList, commandsMap := utils.CobraGetSubCommands(addSubCmd, []string{})
+
+	// Retrieve all the subcommands of the current command
+	commandsList, commandsMap := utils.CobraGetSubCommands(currentCmd, []string{})
 
 	// Users chooses a command and runs it automatically
-	utils.CobraSelectCommandToRun(cmd, args, commandsList, commandsMap)
+	utils.CobraSelectCommandToRun(currentCmd, args, commandsList, commandsMap)
 }
 
 func init() {

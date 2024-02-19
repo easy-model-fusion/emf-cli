@@ -37,22 +37,28 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	// TODO: Get flags or default values
 	app.InitHuggingFace(huggingface.BaseUrl, "")
 
+	// Searching for the currentCmd : when 'cmd' differs from 'addCustomCmd' (i.e. run through parent multiselect)
+	currentCmd := utils.CobraFindSubCommand(cmd, cmdAddCustomTitle)
+	if currentCmd == nil {
+		pterm.Error.Println(fmt.Sprintf("Something went wrong : the '%s' command was not found. Please try again.", cmdAddTitle))
+		return
+	}
+
 	// Asks for the mandatory args if they are not provided
-	err := utils.CobraAskFlagInput(cmd, cmd.Flag(script.ModelName))
+	err := utils.CobraAskFlagInput(currentCmd, currentCmd.Flag(script.ModelName))
 	if err != nil {
 		pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", script.ModelName, err))
 		return
 	}
-	err = utils.CobraAskFlagInput(cmd, cmd.Flag(script.ModelModule))
+	err = utils.CobraAskFlagInput(currentCmd, currentCmd.Flag(script.ModelModule))
 	if err != nil {
 		pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", script.ModelModule, err))
 		return
 	}
 
 	// Allow the user to choose flags and specify their value
-	utils.CobraInputAmongRemainingFlags(cmd)
+	utils.CobraInputAmongRemainingFlags(currentCmd)
 
-	// TODO : get sub commands fail
 	// TODO : options : split and encapsulate
 	// TODO : unit tests
 

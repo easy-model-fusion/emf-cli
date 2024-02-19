@@ -16,9 +16,11 @@ func Execute() {
 	}
 }
 
+const cmdRootTitle string = app.Name
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   app.Name,
+	Use:   cmdRootTitle,
 	Short: "emf-cli is a command line tool to manage a EMF project easily",
 	Long:  `emf-cli is a command line tool to manage a EMF project easily.`,
 	Run:   runRoot,
