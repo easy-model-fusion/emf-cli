@@ -1,6 +1,6 @@
 package app
 
-import "github.com/easy-model-fusion/client/internal/huggingface"
+import "github.com/easy-model-fusion/emf-cli/internal/huggingface"
 
 var huggingFace *huggingface.HuggingFace
 

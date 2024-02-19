@@ -2,8 +2,8 @@ package command
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/app"
-	"github.com/easy-model-fusion/client/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"os"

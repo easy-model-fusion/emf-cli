@@ -2,15 +2,14 @@ package command
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/config"
-	"github.com/easy-model-fusion/client/internal/utils"
-	"github.com/easy-model-fusion/client/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/sdk"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 // initCmd represents the init command
@@ -33,9 +32,6 @@ func runInit(cmd *cobra.Command, args []string) {
 	}
 
 	err := createProject(projectName)
-
-	// smooth animation
-	time.Sleep(1 * time.Second)
 
 	// check for errors
 	if err != nil {
@@ -111,7 +107,7 @@ func createProject(projectName string) (err error) {
 	spinner.Success()
 
 	// Install dependencies
-	pipPath, err := utils.FindVEnvPipExecutable(filepath.Join(projectName, ".venv"))
+	pipPath, err := utils.FindVEnvExecutable(filepath.Join(projectName, ".venv"), "pip")
 	if err != nil {
 		return err
 	}

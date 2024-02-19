@@ -1,7 +1,9 @@
 package utils
 
 import (
-	"github.com/easy-model-fusion/client/test"
+	"github.com/easy-model-fusion/emf-cli/test"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -43,4 +45,61 @@ func TestCheckPythonVersion(t *testing.T) {
 	path, ok := CheckPythonVersion("anexecutablethatcouldnotexists-yeahhh")
 	test.AssertEqual(t, ok, false)
 	test.AssertEqual(t, path, "")
+}
+
+func TestCreateVirtualEnv(t *testing.T) {
+	path, ok := CheckForPython()
+	if !ok {
+		t.SkipNow()
+	}
+
+	// create temporary directory
+	dname, err := os.MkdirTemp("", "emf-cli")
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	defer os.RemoveAll(dname)
+
+	err = CreateVirtualEnv(path, filepath.Join(dname, "venv"))
+	test.AssertEqual(t, err, nil)
+}
+
+func TestFindVEnvPipExecutable(t *testing.T) {
+	path, ok := CheckForPython()
+	if !ok {
+		t.SkipNow()
+	}
+
+	// create temporary directory
+	dname, err := os.MkdirTemp("", "emf-cli")
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	defer os.RemoveAll(dname)
+
+	err = CreateVirtualEnv(path, filepath.Join(dname, "venv"))
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	pipPath, err := FindVEnvExecutable(filepath.Join(dname, "venv"), "pip")
+	test.AssertEqual(t, err, nil)
+	test.AssertNotEqual(t, pipPath, "")
+}
+
+func TestFindVEnvPipExecutable_Fail(t *testing.T) {
+	// create temporary directory
+	dname, err := os.MkdirTemp("", "emf-cli")
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	defer os.RemoveAll(dname)
+
+	pipPath, err := FindVEnvExecutable(filepath.Join(dname, "venv"), "pip")
+	test.AssertNotEqual(t, err, nil, "Should return an error")
+	test.AssertEqual(t, pipPath, "")
 }
