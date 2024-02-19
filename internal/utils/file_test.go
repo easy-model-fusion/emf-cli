@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"github.com/easy-model-fusion/client/sdk"
-	"github.com/easy-model-fusion/client/test"
+	"github.com/easy-model-fusion/emf-cli/sdk"
+	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"

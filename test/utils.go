@@ -1,7 +1,7 @@
 package test
 
 import (
-	"github.com/easy-model-fusion/client/sdk"
+	"github.com/easy-model-fusion/emf-cli/sdk"
 	"io/fs"
 	"os"
 	"testing"
