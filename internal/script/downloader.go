@@ -115,14 +115,12 @@ func DownloaderArgsValidate(args DownloaderArgs) error {
 
 	// Name validity
 	if args.ModelName == "" {
-		pterm.Error.Println("Missing a model name")
-		return errors.New("missing name")
+		return errors.New("missing name for the model")
 	}
 
 	// Module validity
 	if args.ModelModule == "" {
-		pterm.Error.Println("Missing the model's module")
-		return errors.New("missing module")
+		return errors.New("missing module for the model")
 	}
 
 	return nil
@@ -134,14 +132,12 @@ func DownloaderExecute(downloaderArgs DownloaderArgs) (DownloaderModel, error) {
 	// Check arguments validity
 	err := DownloaderArgsValidate(downloaderArgs)
 	if err != nil {
+		pterm.Error.Println(fmt.Sprintf("Arguments provided are invalid : %s", err))
 		return DownloaderModel{}, err
 	}
 
 	// Building args for the python script
 	args := DownloaderArgsForPython(downloaderArgs)
-	if args == nil {
-		return DownloaderModel{IsEmpty: true}, nil
-	}
 
 	// Run the script to download the model
 	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", downloaderArgs.ModelName))
@@ -152,7 +148,7 @@ func DownloaderExecute(downloaderArgs DownloaderArgs) (DownloaderModel, error) {
 		spinner.Fail(err)
 		switch exitCode {
 		case 2:
-			pterm.Info.Println("Run the 'add custom' command to manually add the model.")
+			pterm.Info.Println("Use command 'add custom' to customize the model to download.")
 		}
 		return DownloaderModel{}, err
 	}

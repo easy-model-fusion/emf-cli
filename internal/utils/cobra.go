@@ -80,12 +80,13 @@ func CobraMultiselectRemainingFlags(cmd *cobra.Command) (map[string]*pflag.Flag,
 	message := "Select any property you wish to set"
 	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
 	selectedFlags := DisplayInteractiveMultiselect(message, remainingFlagsUsages, checkMark, false)
+	DisplaySelectedItems(selectedFlags)
 
 	return remainingFlagsMap, selectedFlags
 }
 
 // CobraAskFlagInput prompts the user for input for a specific flag of a Cobra command.
-func CobraAskFlagInput(cmd *cobra.Command, flag *pflag.Flag) {
+func CobraAskFlagInput(cmd *cobra.Command, flag *pflag.Flag) error {
 
 	// Prepare value
 	var inputValue string
@@ -104,11 +105,7 @@ func CobraAskFlagInput(cmd *cobra.Command, flag *pflag.Flag) {
 	}
 
 	// Set the flag's value
-	err := cmd.Flags().Set(flag.Name, inputValue)
-	if err != nil {
-		pterm.Error.Println(err)
-		return
-	}
+	return cmd.Flags().Set(flag.Name, inputValue)
 }
 
 // CobraInputAmongRemainingFlags presents remaining flags for input selection.
@@ -116,10 +113,12 @@ func CobraInputAmongRemainingFlags(cmd *cobra.Command) {
 
 	// User chooses among the remaining flags
 	remainingFlagsMap, selectedFlags := CobraMultiselectRemainingFlags(cmd)
-	DisplaySelectedItems(selectedFlags)
 
 	// User inputs data for the chosen flags
 	for _, flag := range selectedFlags {
-		CobraAskFlagInput(cmd, remainingFlagsMap[flag])
+		err := CobraAskFlagInput(cmd, remainingFlagsMap[flag])
+		if err != nil {
+			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", remainingFlagsMap[flag].Name, err))
+		}
 	}
 }

@@ -38,13 +38,21 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	app.InitHuggingFace(huggingface.BaseUrl, "")
 
 	// Asks for the mandatory args if they are not provided
-	utils.CobraAskFlagInput(cmd, cmd.Flag(script.ModelName))
-	utils.CobraAskFlagInput(cmd, cmd.Flag(script.ModelModule))
+	err := utils.CobraAskFlagInput(cmd, cmd.Flag(script.ModelName))
+	if err != nil {
+		pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", script.ModelName, err))
+		return
+	}
+	err = utils.CobraAskFlagInput(cmd, cmd.Flag(script.ModelModule))
+	if err != nil {
+		pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", script.ModelModule, err))
+		return
+	}
 
 	// Allow the user to choose flags and specify their value
 	utils.CobraInputAmongRemainingFlags(cmd)
 
-	// TODO : errors
+	// TODO : get sub commands fail
 	// TODO : options : split and encapsulate
 	// TODO : unit tests
 

@@ -110,6 +110,12 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 		models = append(models, result)
 	}
 
+	// No models were downloaded : stopping there
+	if model.Empty(models) {
+		pterm.Info.Println("There isn't any model to add to the configuration file.")
+		return
+	}
+
 	// Add models to configuration file
 	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
 	err = config.AddModel(models)
