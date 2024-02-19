@@ -6,6 +6,7 @@ import (
 	"github.com/easy-model-fusion/client/internal/config"
 	"github.com/easy-model-fusion/client/internal/huggingface"
 	"github.com/easy-model-fusion/client/internal/model"
+	"github.com/easy-model-fusion/client/internal/sdk"
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -33,6 +34,8 @@ func runTidy(cmd *cobra.Command, args []string) {
 		pterm.Error.Println(err.Error())
 		return
 	}
+
+	sdk.SendUpdateSuggestion() // TODO: here proxy?
 
 	// Add all missing models
 	err = addMissingModels(models)

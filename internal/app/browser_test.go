@@ -1,21 +1,16 @@
 package app
 
 import (
+	"github.com/easy-model-fusion/client/test"
 	"os"
-	"path/filepath"
 	"testing"
 )
 
 // TestGetDownloadedModels tests GetDownloadedModels method
 func TestGetDownloadedModels(t *testing.T) {
-	err := os.Mkdir(ModelsDownloadPath, 0755)
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
+	test.CreateModelsFolderFullTestSuite(t)
 	defer os.RemoveAll(ModelsDownloadPath)
 
-	setupTestDir(t, ModelsDownloadPath)
 	models, err := GetDownloadedModelNames()
 	if err != nil {
 		t.Errorf("Error getting downloaded models: %v", err)
@@ -32,22 +27,4 @@ func TestGetDownloadedModels(t *testing.T) {
 			t.Errorf("Expected model %s, but got %s", expected[i], model)
 		}
 	}
-}
-
-// setupTestDir setups a test dir with different mock models
-func setupTestDir(t *testing.T, dir string) string {
-	err := os.MkdirAll(filepath.Join(dir, "model1", "weights"), 0755)
-	if err != nil {
-		t.Fatalf("Error creating test directory: %v", err)
-	}
-	err = os.MkdirAll(filepath.Join(dir, "model2", "weights"), 0755)
-	if err != nil {
-		t.Fatalf("Error creating test directory: %v", err)
-	}
-	err = os.MkdirAll(filepath.Join(dir, "model3"), 0755)
-	if err != nil {
-		t.Fatalf("Error creating test directory: %v", err)
-	}
-
-	return dir
 }
