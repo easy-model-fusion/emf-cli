@@ -3,7 +3,7 @@ name: Client release
 on:
   push:
     tags:
-      - 'release/*'
+      - '*'
 
 jobs:
   release:
@@ -26,13 +26,13 @@ jobs:
       run: go get -v -t -d ./...
 
     - name: Build for Windows
-      run: GOOS=windows GOARCH=amd64 go build -o client-windows-amd64.exe
+      run: GOOS=windows GOARCH=amd64 go build -o emf-cli-windows-amd64.exe
 
     - name: Build for Mac
-      run: GOOS=darwin GOARCH=amd64 go build -o client-darwin-amd64
+      run: GOOS=darwin GOARCH=amd64 go build -o emf-cli-darwin-amd64
 
     - name: Build for Linux
-      run: GOOS=linux GOARCH=amd64 go build -o client-linux-amd64
+      run: GOOS=linux GOARCH=amd64 go build -o emf-cli-linux-amd64
 
     - name: Create Release
       id: create_release
@@ -53,8 +53,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./client-windows-amd64.exe
-        asset_name: client-windows-amd64.exe
+        asset_path: ./emf-cli-windows-amd64.exe
+        asset_name: emf-cli-windows-amd64.exe
         asset_content_type: application/octet-stream
 
     - name: Upload Mac Artifact
@@ -64,8 +64,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./client-darwin-amd64
-        asset_name: client-darwin-amd64
+        asset_path: ./emf-cli-darwin-amd64
+        asset_name: emf-cli-darwin-amd64
         asset_content_type: application/octet-stream
 
     - name: Upload Linux Artifact
@@ -75,6 +75,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./client-linux-amd64
-        asset_name: client-linux-amd64
+        asset_path: ./emf-cli-linux-amd64
+        asset_name: emf-cli-linux-amd64
         asset_content_type: application/octet-stream
