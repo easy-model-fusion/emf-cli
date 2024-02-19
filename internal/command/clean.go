@@ -60,6 +60,58 @@ func runClean(cmd *cobra.Command, args []string) {
 	}
 }
 
+func runClean(cmd *cobra.Command, args []string)  {
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() && info.Name() == "build" {
+			err := deleteDir(path)
+			if err != nil {
+				pterm.Error.Printfln("Operation failed.")
+				return
+			}
+			else {
+				pterm.Success.Printfln("Operation succeeded.")
+			}
+		}
+		return nil
+	})
+	return
+}
+
+func deleteDir(dossier string) error {
+	dir, err := os.Open(dossier)
+	if err != nil {
+		pterm.Error.Printfln("Operation failed.")
+		return
+	}
+	defer dir.Close()
+
+	files, err := dir.Readdir(0)
+	if err != nil {
+		pterm.Error.Printfln("Operation failed.")
+		return
+	}
+
+	for _, file := range files {
+		fileName := file.Name()
+		filePath := filepath.Join(filePath, fileName)
+
+		err = os.RemoveAll(filePath)
+		if err != nil {
+			pterm.Error.Printfln("Operation failed.")
+			return
+		}
+		return nil
+	}
+	if err == nil {
+		pterm.Success.Printfln("Operation succeeded.")
+	} else {
+		pterm.Error.Printfln("Operation failed.")
+	}
+}
+
 func init() {
 	rootCmd.AddCommand(cleanCmd)
 }
