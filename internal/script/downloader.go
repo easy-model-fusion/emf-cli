@@ -67,20 +67,20 @@ type DownloaderArgs struct {
 func DownloaderArgsForCobra(cmd *cobra.Command, args *DownloaderArgs) {
 
 	// Pseudo mandatory : allowing to customize the calling command
-	cmd.Flags().StringVarP(&args.ModelName, ModelName, "n", "", "Model name")
-	cmd.Flags().StringVarP(&args.ModelModule, ModelModule, "m", "", "Module name")
+	cmd.Flags().StringVarP(&args.ModelName, ModelName, "n", "", "Name of the model")
+	cmd.Flags().StringVarP(&args.ModelModule, ModelModule, "m", "", "Python module used for download")
 
 	// Optional for the model
-	cmd.Flags().StringVarP(&args.ModelClass, ModelClass, "c", "", "Class name within the module")
-	cmd.Flags().StringArrayVar(&args.ModelOptions, ModelOptions, []string{}, "List of options")
+	cmd.Flags().StringVarP(&args.ModelClass, ModelClass, "c", "", "Python class within the module")
+	cmd.Flags().StringArrayVar(&args.ModelOptions, ModelOptions, []string{}, "List of model options")
 
 	// Optional for the tokenizer
-	cmd.Flags().StringVarP(&args.TokenizerClass, TokenizerClass, "t", "", "Tokenizer class name (only for transformers)")
+	cmd.Flags().StringVarP(&args.TokenizerClass, TokenizerClass, "t", "", "Tokenizer class (only for transformers)")
 	cmd.Flags().StringArrayVar(&args.TokenizerOptions, TokenizerOptions, []string{}, "List of tokenizer options (only for transformers)")
 
 	// Situational
 	cmd.Flags().BoolVarP(&args.Overwrite, Overwrite, "o", false, "Overwrite existing directories")
-	cmd.Flags().StringVarP(&args.Skip, Skip, "s", "", "<model|tokenizer>")
+	cmd.Flags().StringVarP(&args.Skip, Skip, "s", "", "Skip the model or tokenizer download")
 }
 
 // DownloaderArgsForPython builds the arguments for running the python script

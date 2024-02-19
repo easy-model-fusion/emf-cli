@@ -8,6 +8,7 @@ import (
 	"github.com/easy-model-fusion/client/internal/model"
 	"github.com/easy-model-fusion/client/internal/script"
 	"github.com/easy-model-fusion/client/internal/sdk"
+	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -36,9 +37,17 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	// TODO: Get flags or default values
 	app.InitHuggingFace(huggingface.BaseUrl, "")
 
-	// TODO : check arguments
-	// TODO : encapsulate options
-	// TODO : check existence in config
+	// Asks for the mandatory args if they are not provided
+	utils.CobraAskFlagInput(cmd, cmd.Flag(script.ModelName))
+	utils.CobraAskFlagInput(cmd, cmd.Flag(script.ModelModule))
+
+	// Allow the user to choose flags and specify those chosen
+	utils.CobraInputAmongRemainingFlags(cmd)
+
+	// TODO : options : split and encapsulate
+	// TODO : overwrite : config? download?
+	// TODO : config : check existence? write even when the download fails?
+	// TODO : mock unit tests
 
 	// Running the script
 	sdm, err := script.DownloaderExecute(downloaderArgs)

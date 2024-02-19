@@ -77,3 +77,28 @@ func TestCobraGetSubCommands(t *testing.T) {
 		}
 	}
 }
+
+// TestCobraGetNonProvidedFlags tests the CobraGetNonProvidedFlags function.
+func TestCobraGetNonProvidedFlags(t *testing.T) {
+	// Init
+	rootCmd := prepareRootCmd()
+	cmd1 := prepareSubCmd("cmd1")
+	rootCmd.AddCommand(cmd1)
+
+	// Add flags to the command
+	cmd1.Flags().Bool("flag1", false, "Test flag 1")
+	cmd1.Flags().String("flag2", "", "Test flag 2")
+	cmd1.Flags().Bool("help", false, "Help flag")
+
+	// Mark some flags as changed
+	err := cmd1.Flags().Set("flag1", "true")
+	if err != nil {
+		t.Fail()
+	}
+
+	// Execute
+	flags := CobraGetNonProvidedFlags(cmd1)
+
+	// Assert
+	test.AssertEqual(t, len(flags), 1) // skipping help and setting flag1
+}
