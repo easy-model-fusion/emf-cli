@@ -2,9 +2,9 @@ package config
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/app"
-	"github.com/easy-model-fusion/client/internal/model"
-	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/viper"
 	"os"
