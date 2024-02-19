@@ -136,4 +136,5 @@ jobs:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     - name: View code coverage report
+      if: github.event_name == 'push'
       run: go tool cover -func=coverageP.txt
