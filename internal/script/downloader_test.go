@@ -102,13 +102,13 @@ func TestDownloaderArgsForPython(t *testing.T) {
 		Skip:             "model",
 	}
 	expected := []string{
-		TagPrefix + EmfClient, "/path/to/download", "model", "module",
+		TagPrefix + EmfClient, TagPrefix + Overwrite,
+		"/path/to/download", "model", "module",
 		TagPrefix + ModelClass, "class",
 		TagPrefix + ModelOptions, "opt1=val1", "opt2=val2",
 		TagPrefix + TokenizerClass, "tokenizer",
 		TagPrefix + TokenizerOptions, "tok_opt1=val1",
 		TagPrefix + Skip, "model",
-		TagPrefix + Overwrite,
 	}
 
 	// Execute

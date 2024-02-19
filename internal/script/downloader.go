@@ -104,7 +104,7 @@ func DownloaderArgsForPython(args DownloaderArgs) []string {
 	}
 	if len(args.TokenizerOptions) != 0 {
 		var options []string
-		for _, modelOption := range args.ModelOptions {
+		for _, modelOption := range args.TokenizerOptions {
 			options = append(options, utils.ParseOptions(modelOption)...)
 		}
 		cmdArgs = append(cmdArgs, append([]string{TagPrefix + TokenizerOptions}, options...)...)
