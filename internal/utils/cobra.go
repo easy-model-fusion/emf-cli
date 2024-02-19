@@ -116,6 +116,7 @@ func CobraInputAmongRemainingFlags(cmd *cobra.Command) {
 
 	// User chooses among the remaining flags
 	remainingFlagsMap, selectedFlags := CobraMultiselectRemainingFlags(cmd)
+	DisplaySelectedItems(selectedFlags)
 
 	// User inputs data for the chosen flags
 	for _, flag := range selectedFlags {

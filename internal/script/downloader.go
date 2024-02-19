@@ -7,7 +7,6 @@ import (
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"path/filepath"
 )
 
 const DownloadModelsPath = "./models/"
@@ -52,7 +51,6 @@ const EmfClient = "emf-client"
 
 // DownloaderArgs represents the arguments for the Download function
 type DownloaderArgs struct {
-	DownloadPath     string
 	ModelName        string
 	ModelModule      string
 	ModelClass       string
@@ -60,7 +58,6 @@ type DownloaderArgs struct {
 	TokenizerClass   string
 	TokenizerOptions []string
 	Skip             string
-	Overwrite        bool
 }
 
 // DownloaderArgsForCobra builds the arguments for running the cobra command
@@ -79,15 +76,15 @@ func DownloaderArgsForCobra(cmd *cobra.Command, args *DownloaderArgs) {
 	cmd.Flags().StringArrayVar(&args.TokenizerOptions, TokenizerOptions, []string{}, "List of tokenizer options (only for transformers)")
 
 	// Situational
-	cmd.Flags().BoolVarP(&args.Overwrite, Overwrite, "o", false, "Overwrite existing directories")
 	cmd.Flags().StringVarP(&args.Skip, Skip, "s", "", "Skip the model or tokenizer download")
 }
 
-// DownloaderArgsForPython builds the arguments for running the python script
+// DownloaderArgsForPython builds the arguments for running the python script.
+// Pre-condition : certain that the user authorized the overwriting when downloading the model.
 func DownloaderArgsForPython(args DownloaderArgs) []string {
 
 	// Mandatory arguments
-	cmdArgs := []string{TagPrefix + EmfClient, args.DownloadPath, args.ModelName, args.ModelModule}
+	cmdArgs := []string{TagPrefix + EmfClient, TagPrefix + Overwrite, DownloadModelsPath, args.ModelName, args.ModelModule}
 
 	// Optional arguments regarding the model
 	if args.ModelClass != "" {
@@ -106,9 +103,6 @@ func DownloaderArgsForPython(args DownloaderArgs) []string {
 	}
 
 	// Global tags for the script
-	if args.Overwrite {
-		cmdArgs = append(cmdArgs, TagPrefix+Overwrite)
-	}
 	if len(args.Skip) != 0 {
 		cmdArgs = append(cmdArgs, TagPrefix+Skip, args.Skip)
 	}
@@ -134,48 +128,17 @@ func DownloaderArgsValidate(args DownloaderArgs) error {
 	return nil
 }
 
-// DownloaderArgsProcess builds a list of arguments from DownloadArgs for the download script
-func DownloaderArgsProcess(args DownloaderArgs) ([]string, error) {
-
-	// Check arguments validity
-	err := DownloaderArgsValidate(args)
-	if err != nil {
-		return nil, err
-	}
-
-	// Local path where the model will be downloaded
-	args.DownloadPath = filepath.Join(DownloadModelsPath, args.ModelName)
-
-	// Check if the DownloadPath already exists
-	if exists, err := utils.IsExistingPath(args.DownloadPath); err != nil {
-		// Skipping model : an error occurred
-		return nil, err
-	} else if exists {
-		// Model path already exists : ask the user if he would like to overwrite it
-		args.Overwrite = utils.AskForUsersConfirmation(fmt.Sprintf("Model '%s' already downloaded at '%s'. Do you want to overwrite it?", args.ModelName, args.DownloadPath))
-
-		// User does not want to overwrite : skipping to the next model
-		if !args.Overwrite {
-			return nil, nil
-		}
-	}
-
-	cmdArgs := DownloaderArgsForPython(args)
-
-	return cmdArgs, nil
-}
-
 // DownloaderExecute runs the downloader script and handles the result
 func DownloaderExecute(downloaderArgs DownloaderArgs) (DownloaderModel, error) {
 
-	// Processing args
-	args, err := DownloaderArgsProcess(downloaderArgs)
-
-	// Arguments are invalid
+	// Check arguments validity
+	err := DownloaderArgsValidate(downloaderArgs)
 	if err != nil {
 		return DownloaderModel{}, err
 	}
-	// Download not needed anymore
+
+	// Building args for the python script
+	args := DownloaderArgsForPython(downloaderArgs)
 	if args == nil {
 		return DownloaderModel{IsEmpty: true}, nil
 	}

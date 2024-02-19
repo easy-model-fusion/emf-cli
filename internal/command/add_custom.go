@@ -44,9 +44,8 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	// Allow the user to choose flags and specify their value
 	utils.CobraInputAmongRemainingFlags(cmd)
 
-	// TODO : remove overwrite flag
+	// TODO : hotfix path to downloader.py
 	// TODO : errors
-	// TODO : fix path
 	// TODO : options : split and encapsulate
 
 	// TODO : validate model to download

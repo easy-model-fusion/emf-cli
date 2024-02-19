@@ -171,6 +171,8 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 // DownloadModel downloads physically a model.
 func DownloadModel(modelObj model.Model) (model.Model, bool) {
 
+	// TODO : validate model to download
+
 	// Exclude from download if not requested
 	if !modelObj.AddToBinary {
 		return modelObj, true
