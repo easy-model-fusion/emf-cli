@@ -172,7 +172,7 @@ func ValidModelName() cobra.PositionalArgs {
 			}
 
 			// Load the configuration file
-			err = GetViperConfig()
+			err = GetViperConfig(FilePath)
 			if err != nil {
 				return err
 			}

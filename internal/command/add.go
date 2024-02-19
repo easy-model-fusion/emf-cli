@@ -25,7 +25,7 @@ var displayModels bool
 
 // runAdd runs add command
 func runAdd(cmd *cobra.Command, args []string) {
-	if config.GetViperConfig() != nil {
+	if config.GetViperConfig(config.FilePath) != nil {
 		return
 	}
 

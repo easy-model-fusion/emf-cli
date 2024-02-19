@@ -7,11 +7,11 @@ import (
 )
 
 // GetViperConfig Config loaded and return an error upon failure
-func GetViperConfig() error {
+func GetViperConfig(confDirPath string) error {
 	var err error
 	count := 0
 	for count < 3 {
-		err = Load()
+		err = Load(confDirPath)
 		if err != nil {
 			count++
 			UpdateConfigFilePath()

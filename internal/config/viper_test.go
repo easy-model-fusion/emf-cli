@@ -41,7 +41,7 @@ func TestGetViperConfig_Success(t *testing.T) {
 
 	FilePath = "."
 	// Load the configuration file
-	err = GetViperConfig()
+	err = GetViperConfig(FilePath)
 
 	// Assert that the load method did not return an error
 	test.AssertEqual(t, err, nil, "No error should have been raised")

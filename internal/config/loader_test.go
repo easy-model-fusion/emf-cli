@@ -16,7 +16,7 @@ func init() {
 
 func TestLoadNotExistentConfFile(t *testing.T) {
 	// Load the configuration file
-	err := Load()
+	err := Load(".")
 	// Assert that the load method did return an error because no conf file in project
 	test.AssertNotEqual(t, err, nil)
 }
@@ -43,8 +43,7 @@ func TestLoad(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while writing into conf file.")
 
 	// Load the configuration file
-	FilePath = dname
-	err = Load()
+	err = Load(dname)
 
 	// Assert that the load method did not return any error
 	test.AssertEqual(t, err, nil, "Error while loading conf file.")

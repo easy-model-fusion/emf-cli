@@ -145,7 +145,7 @@ func createProjectFiles(projectName, sdkTag string) (err error) {
 	}
 
 	config.FilePath = projectName
-	err = config.GetViperConfig()
+	err = config.GetViperConfig(config.FilePath)
 	if err != nil {
 		return err
 	}

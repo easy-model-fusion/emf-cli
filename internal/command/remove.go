@@ -2,8 +2,8 @@ package command
 
 import (
 	"github.com/easy-model-fusion/client/internal/config"
-	"github.com/easy-model-fusion/client/internal/sdk"
 	"github.com/easy-model-fusion/client/internal/model"
+	"github.com/easy-model-fusion/client/internal/sdk"
 	"github.com/easy-model-fusion/client/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -20,7 +20,7 @@ var removeCmd = &cobra.Command{
 }
 
 func runRemove(cmd *cobra.Command, args []string) {
-	if config.GetViperConfig() != nil {
+	if config.GetViperConfig(config.FilePath) != nil {
 		return
 	}
 
