@@ -169,11 +169,11 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 }
 
 // DownloadModel downloads physically a model.
-func DownloadModel(modelObj model.Model) model.Model {
+func DownloadModel(modelObj model.Model) (model.Model, bool) {
 
 	// Exclude from download if not requested
 	if !modelObj.AddToBinary {
-		return modelObj
+		return modelObj, true
 	}
 
 	// Reset in case the download fails
@@ -189,14 +189,14 @@ func DownloadModel(modelObj model.Model) model.Model {
 	// Running the script
 	sdm, err := script.DownloaderExecute(downloaderArgs)
 
-	// Something went wrong or no data was returned
+	// Something went wrong or no data has been returned
 	if err != nil || sdm.IsEmpty {
-		return modelObj
+		return model.Model{}, false
 	}
 
 	// Update the model for the configuration file
 	modelObj.Config = model.MapToConfigFromScriptDownloaderModel(modelObj.Config, sdm)
 	modelObj.AddToBinary = true
 
-	return modelObj
+	return modelObj, true
 }

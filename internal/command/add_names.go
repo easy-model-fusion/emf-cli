@@ -101,13 +101,18 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	utils.DisplaySelectedItems(selectedModelNames)
 
 	// Download the models
-	for i := range selectedModels {
-		selectedModels[i] = config.DownloadModel(selectedModels[i])
+	var models []model.Model
+	for _, item := range selectedModels {
+		result, ok := config.DownloadModel(item)
+		if !ok {
+			continue
+		}
+		models = append(models, result)
 	}
 
 	// Add models to configuration file
 	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
-	err = config.AddModel(selectedModels)
+	err = config.AddModel(models)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
 	} else {

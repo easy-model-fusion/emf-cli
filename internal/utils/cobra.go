@@ -100,7 +100,6 @@ func CobraAskFlagInput(cmd *cobra.Command, flag *pflag.Flag) {
 			break
 		default:
 			inputValue = AskForUsersInput(flag.Usage)
-
 		}
 	}
 

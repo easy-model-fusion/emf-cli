@@ -412,10 +412,11 @@ func TestDownloadModel_BinaryFalse(t *testing.T) {
 	modelToDownload.AddToBinary = false
 
 	// Execute
-	result := DownloadModel(modelToDownload)
+	result, ok := DownloadModel(modelToDownload)
 
 	// Assert
-	test.AssertEqual(t, false, result.AddToBinary)
+	test.AssertEqual(t, ok, true)
+	test.AssertEqual(t, result.AddToBinary, false)
 }
 
 // TestDownloadModel_Fail tests the DownloadModel function where the script should fail.
@@ -424,10 +425,11 @@ func TestDownloadModel_Fail(t *testing.T) {
 	modelToDownload := getModel(0)
 
 	// Execute
-	result := DownloadModel(modelToDownload)
+	result, ok := DownloadModel(modelToDownload)
 
 	// Assert
-	test.AssertEqual(t, false, result.AddToBinary)
+	test.AssertEqual(t, ok, false)
+	test.AssertEqual(t, result.AddToBinary, false)
 }
 
 // TestDownloadModel_Fail tests the DownloadModel function where the script should succeed.
@@ -439,9 +441,10 @@ func TestDownloadModel_Success(t *testing.T) {
 	sdm := script.DownloaderModel{Module: "moduleAsATest"}
 
 	// Execute
-	result := DownloadModel(modelToDownload)
+	result, ok := DownloadModel(modelToDownload)
 
 	// Assert
+	test.AssertEqual(t, ok, true)
 	test.AssertEqual(t, result.AddToBinary, true)
 	test.AssertEqual(t, result.Config.Module, sdm.Module)
 }

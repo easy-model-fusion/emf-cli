@@ -41,26 +41,27 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	utils.CobraAskFlagInput(cmd, cmd.Flag(script.ModelName))
 	utils.CobraAskFlagInput(cmd, cmd.Flag(script.ModelModule))
 
-	// Allow the user to choose flags and specify those chosen
+	// Allow the user to choose flags and specify their value
 	utils.CobraInputAmongRemainingFlags(cmd)
 
+	// TODO : remove overwrite flag
+	// TODO : errors
+	// TODO : fix path
 	// TODO : options : split and encapsulate
-	// TODO : overwrite : config? download?
-	// TODO : config : check existence? write even when the download fails?
-	// TODO : mock unit tests
+
+	// TODO : validate model to download
 
 	// Running the script
 	sdm, err := script.DownloaderExecute(downloaderArgs)
-
-	// Preparing model object to save
-	modelObj := model.Model{Name: downloaderArgs.ModelName}
-
-	// No errors or data was properly returned
-	if err == nil && !sdm.IsEmpty {
-		// Update the model for the configuration file
-		modelObj.Config = model.MapToConfigFromScriptDownloaderModel(modelObj.Config, sdm)
-		modelObj.AddToBinary = true
+	if err != nil || sdm.IsEmpty {
+		// Something went wrong or returned data is empty
+		return
 	}
+
+	// Create the model for the configuration file
+	modelObj := model.Model{Name: downloaderArgs.ModelName}
+	modelObj.Config = model.MapToConfigFromScriptDownloaderModel(modelObj.Config, sdm)
+	modelObj.AddToBinary = true
 
 	// Add models to configuration file
 	spinner, _ := pterm.DefaultSpinner.Start("Writing model to configuration file...")
