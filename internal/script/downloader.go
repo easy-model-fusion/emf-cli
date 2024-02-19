@@ -10,7 +10,7 @@ import (
 )
 
 const DownloadModelsPath = "./models/"
-const DownloaderName = "downloader.py"
+const DownloaderScriptPath = "sdk/downloader.py"
 
 // DownloaderModel represents a model obtained from the download downloader.
 type DownloaderModel struct {
@@ -145,7 +145,7 @@ func DownloaderExecute(downloaderArgs DownloaderArgs) (DownloaderModel, error) {
 
 	// Run the script to download the model
 	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", downloaderArgs.ModelName))
-	scriptModel, err, exitCode := utils.ExecuteScript(".venv", DownloaderName, args)
+	scriptModel, err, exitCode := utils.ExecuteScript(".venv", DownloaderScriptPath, args)
 
 	// An error occurred while running the script
 	if err != nil {
