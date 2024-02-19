@@ -25,14 +25,13 @@ var displayModels bool
 
 // runAdd runs add command
 func runAdd(cmd *cobra.Command, args []string) {
-	if config.GetViperConfig() != nil {
+	if config.GetViperConfig(config.FilePath) != nil {
 		return
 	}
 
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
 
 	// TODO: Get flags or default values
-	app.InitHuggingFace(huggingface.BaseUrl, "")
 
 	var selectedModelNames []string
 	var selectedModels []model.Model
@@ -208,6 +207,7 @@ func selectExcludedModelsFromInstall(models []model.Model, modelNames []string) 
 }
 
 func init() {
+	app.InitHuggingFace(huggingface.BaseUrl, "")
 	// Add --select flag to the add command
 	addCmd.Flags().BoolVarP(&displayModels, "select", "s", false, "Select models to add")
 	// Add the add command to the root command

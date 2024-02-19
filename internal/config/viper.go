@@ -7,12 +7,21 @@ import (
 )
 
 // GetViperConfig Config loaded and return an error upon failure
-func GetViperConfig() error {
-	if err := Load("."); err != nil {
-		pterm.Error.Println(fmt.Sprintf("Error loading config file : %s", err))
-		return err
+func GetViperConfig(confDirPath string) error {
+	var err error
+	count := 0
+	for count < 3 {
+		err = Load(confDirPath)
+		if err != nil {
+			count++
+			confDirPath = UpdateConfigFilePath()
+		} else {
+			return nil
+		}
 	}
-	return nil
+
+	pterm.Error.Println(fmt.Sprintf("Error loading config file after %d attempts: %s", count, err))
+	return err
 }
 
 // GetViperItem Store the key data into the target

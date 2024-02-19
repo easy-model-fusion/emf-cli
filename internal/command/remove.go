@@ -20,7 +20,7 @@ var removeCmd = &cobra.Command{
 }
 
 func runRemove(cmd *cobra.Command, args []string) {
-	if config.GetViperConfig() != nil {
+	if config.GetViperConfig(config.FilePath) != nil {
 		return
 	}
 

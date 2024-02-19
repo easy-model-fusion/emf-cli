@@ -3,6 +3,7 @@ package command
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"os"
@@ -49,4 +50,9 @@ func Execute() {
 	if err != nil {
 		os.Exit(1)
 	}
+}
+
+func init() {
+	// Add persistent flag for configuration file path
+	rootCmd.PersistentFlags().StringVar(&config.FilePath, "path", ".", "config file path")
 }
