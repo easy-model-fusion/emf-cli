@@ -52,7 +52,7 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 			return
 		}
 	}
-	if downloaderArgs.ModelName == "" {
+	if downloaderArgs.ModelModule == "" {
 		err := utils.CobraAskFlagInput(currentCmd, currentCmd.Flag(script.ModelModule))
 		if err != nil {
 			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", script.ModelModule, err))
