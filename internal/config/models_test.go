@@ -3,15 +3,15 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/app"
-	"github.com/easy-model-fusion/client/internal/model"
-	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/easy-model-fusion/client/test"
+	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/spf13/viper"
 )
 

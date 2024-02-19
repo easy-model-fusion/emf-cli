@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/easy-model-fusion/client/test"
+	"github.com/easy-model-fusion/emf-cli/test"
 )
 
 // getModel initiates a basic model with an id as suffix

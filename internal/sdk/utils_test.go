@@ -1,9 +1,9 @@
 package sdk
 
 import (
-	"github.com/easy-model-fusion/client/internal/config"
-	"github.com/easy-model-fusion/client/internal/utils"
-	"github.com/easy-model-fusion/client/test"
+	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/spf13/viper"
 	"os"
 	"testing"

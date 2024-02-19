@@ -1,8 +1,8 @@
 package huggingface
 
 import (
-	"github.com/easy-model-fusion/client/internal/model"
-	"github.com/easy-model-fusion/client/test"
+	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/test"
 	"testing"
 )
 
