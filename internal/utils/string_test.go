@@ -68,3 +68,65 @@ func TestPathUniformize(t *testing.T) {
 		test.AssertEqual(t, result, filepath.Clean(item.expected))
 	}
 }
+
+func TestParseOptions_KeyValueClassic(t *testing.T) {
+	// Init
+	option1 := "option=value"
+	input := option1
+
+	// Execute
+	result := ParseOptions(input)
+
+	// Assert
+	test.AssertEqual(t, SliceContainsItem(result, option1), true, "should work with "+option1)
+}
+
+func TestParseOptions_KeyValueStrings(t *testing.T) {
+	// Init
+	option1 := "option1=\"value 1\""
+	option2 := "option2=\"value 2 with spaces\""
+	option3 := "option3='value3'"
+	option4 := "option4='value 4 with spaces'"
+	input := option1 + " " + option2 + " " + option3 + " " + option4
+
+	// Execute
+	result := ParseOptions(input)
+
+	// Assert
+	test.AssertEqual(t, SliceContainsItem(result, option1), true, "should work with "+option1)
+	test.AssertEqual(t, SliceContainsItem(result, option2), true, "should work with "+option2)
+	test.AssertEqual(t, SliceContainsItem(result, option3), true, "should work with "+option3)
+	test.AssertEqual(t, SliceContainsItem(result, option4), true, "should work with "+option4)
+}
+
+func TestParseOptions_ValueClassic(t *testing.T) {
+	// Init
+	option1 := "option5"
+	option2 := "--option6"
+	input := option1 + " " + option2
+
+	// Execute
+	result := ParseOptions(input)
+
+	// Assert
+	test.AssertEqual(t, SliceContainsItem(result, option1), true, "should work with "+option1)
+	test.AssertEqual(t, SliceContainsItem(result, option2), true, "should work with "+option2)
+}
+
+func TestParseOptions_ValueStrings(t *testing.T) {
+	// Init
+	option1 := "\"value 1\""
+	option2 := "\"value 2 with spaces\""
+	option3 := "'value3'"
+	option4 := "'value 4 with spaces'"
+	input := option1 + " " + option2 + " " + option3 + " " + option4
+
+	// Execute
+	result := ParseOptions(input)
+
+	// Assert
+	test.AssertEqual(t, SliceContainsItem(result, option1), true, "should work with "+option1)
+	test.AssertEqual(t, SliceContainsItem(result, option2), true, "should work with "+option2)
+	test.AssertEqual(t, SliceContainsItem(result, option3), true, "should work with "+option3)
+	test.AssertEqual(t, SliceContainsItem(result, option4), true, "should work with "+option4)
+}

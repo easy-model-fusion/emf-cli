@@ -2,6 +2,7 @@ package utils
 
 import (
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -37,4 +38,39 @@ func PathUniformize(path string) string {
 	path = filepath.Clean(path)
 
 	return path
+}
+
+// ParseOptions parses a string containing options in various formats and returns a slice of strings,
+// where each string represents an option. Options can be specified in the following formats:
+func ParseOptions(input string) []string {
+	var result []string
+
+	// Regular expression to match key-value pairs
+	// Also catches value as single or double quotes strings, with or without spaces
+	re := regexp.MustCompile(`(\S+)=((?:"[^"]+")|(?:'[^']+')|\S+)`)
+	matches := re.FindAllStringSubmatch(input, -1)
+	for _, match := range matches {
+		result = append(result, match[0])
+		// Remove processed option from the input string
+		input = strings.Replace(input, match[0], "", 1)
+	}
+
+	// Find all inputs as single or double quotes strings, with or without spaces
+	reQuotes := regexp.MustCompile(`(?:"[^"]+")|(?:'[^']+')`)
+	matchesQuotes := reQuotes.FindAllStringSubmatch(input, -1)
+	for _, match := range matchesQuotes {
+		result = append(result, match[0])
+		// Remove processed option from the input string
+		input = strings.Replace(input, match[0], "", 1)
+	}
+
+	// Split the input by spaces and add any parts that are not key-value pairs
+	parts := strings.Fields(input)
+	for _, part := range parts {
+		if !strings.Contains(part, "=") {
+			result = append(result, part)
+		}
+	}
+
+	return result
 }

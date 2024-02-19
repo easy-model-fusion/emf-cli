@@ -69,11 +69,11 @@ func DownloaderArgsForCobra(cmd *cobra.Command, args *DownloaderArgs) {
 
 	// Optional for the model
 	cmd.Flags().StringVarP(&args.ModelClass, ModelClass, "c", "", "Python class within the module")
-	cmd.Flags().StringArrayVar(&args.ModelOptions, ModelOptions, []string{}, "List of model options")
+	cmd.Flags().StringSliceVarP(&args.ModelOptions, ModelOptions, "o", []string{}, "List of model options")
 
 	// Optional for the tokenizer
 	cmd.Flags().StringVarP(&args.TokenizerClass, TokenizerClass, "t", "", "Tokenizer class (only for transformers)")
-	cmd.Flags().StringArrayVar(&args.TokenizerOptions, TokenizerOptions, []string{}, "List of tokenizer options (only for transformers)")
+	cmd.Flags().StringArrayVarP(&args.TokenizerOptions, TokenizerOptions, "T", []string{}, "List of tokenizer options (only for transformers)")
 
 	// Situational
 	cmd.Flags().StringVarP(&args.Skip, Skip, "s", "", "Skip the model or tokenizer download")
@@ -91,7 +91,11 @@ func DownloaderArgsForPython(args DownloaderArgs) []string {
 		cmdArgs = append(cmdArgs, TagPrefix+ModelClass, args.ModelClass)
 	}
 	if len(args.ModelOptions) != 0 {
-		cmdArgs = append(cmdArgs, append([]string{TagPrefix + ModelOptions}, args.ModelOptions...)...)
+		var options []string
+		for _, modelOption := range args.ModelOptions {
+			options = append(options, utils.ParseOptions(modelOption)...)
+		}
+		cmdArgs = append(cmdArgs, append([]string{TagPrefix + ModelOptions}, options...)...)
 	}
 
 	// Optional arguments regarding the model's tokenizer
@@ -99,7 +103,11 @@ func DownloaderArgsForPython(args DownloaderArgs) []string {
 		cmdArgs = append(cmdArgs, TagPrefix+TokenizerClass, args.TokenizerClass)
 	}
 	if len(args.TokenizerOptions) != 0 {
-		cmdArgs = append(cmdArgs, append([]string{TagPrefix + TokenizerOptions}, args.TokenizerOptions...)...)
+		var options []string
+		for _, modelOption := range args.ModelOptions {
+			options = append(options, utils.ParseOptions(modelOption)...)
+		}
+		cmdArgs = append(cmdArgs, append([]string{TagPrefix + TokenizerOptions}, options...)...)
 	}
 
 	// Global tags for the script

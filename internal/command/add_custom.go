@@ -45,21 +45,23 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	}
 
 	// Asks for the mandatory args if they are not provided
-	err := utils.CobraAskFlagInput(currentCmd, currentCmd.Flag(script.ModelName))
-	if err != nil {
-		pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", script.ModelName, err))
-		return
+	if downloaderArgs.ModelName == "" {
+		err := utils.CobraAskFlagInput(currentCmd, currentCmd.Flag(script.ModelName))
+		if err != nil {
+			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", script.ModelName, err))
+			return
+		}
 	}
-	err = utils.CobraAskFlagInput(currentCmd, currentCmd.Flag(script.ModelModule))
-	if err != nil {
-		pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", script.ModelModule, err))
-		return
+	if downloaderArgs.ModelName == "" {
+		err := utils.CobraAskFlagInput(currentCmd, currentCmd.Flag(script.ModelModule))
+		if err != nil {
+			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", script.ModelModule, err))
+			return
+		}
 	}
 
 	// Allow the user to choose flags and specify their value
 	utils.CobraInputAmongRemainingFlags(currentCmd)
-
-	// TODO : options : split and encapsulate
 
 	// TODO : validate model to download
 
