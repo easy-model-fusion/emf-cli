@@ -61,8 +61,7 @@ func runTidy(cmd *cobra.Command, args []string) {
 }
 
 // getModelsToBeAddedToBinary returned models that needs to be added to binary
-func getModelsToBeAddedToBinary(models []model.Model) []model.Model {
-	var returnedModels []model.Model
+func getModelsToBeAddedToBinary(models []model.Model) (returnedModels []model.Model) {
 
 	for _, currentModel := range models {
 		if currentModel.AddToBinary {
