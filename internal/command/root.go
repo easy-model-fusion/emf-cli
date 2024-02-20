@@ -29,9 +29,7 @@ var rootCmd = &cobra.Command{
 	Run:   runRoot,
 }
 
-func runRoot(cmd *cobra.Command, args []string) {
-
-	// Running command as palette : allowing user to choose subcommand
+func runRoot(cmd *cobra.Command, args []string) { // Running command as palette : allowing user to choose subcommand
 	err := utils.CobraRunCommandAsPalette(cmd, args, rootCommandName, []string{completionCmd.Name()})
 	if err != nil {
 		pterm.Error.Println("Something went wrong :", err)
@@ -39,8 +37,10 @@ func runRoot(cmd *cobra.Command, args []string) {
 }
 
 func init() {
+	app.InitGit(app.Repository, "")
 	// Add persistent flag for configuration file path
 	rootCmd.PersistentFlags().StringVar(&config.FilePath, "path", ".", "config file path")
+	rootCmd.PersistentFlags().StringVar(&app.G().AuthToken, "git-auth-token", "", "Git auth token")
 
 	// Adding subcommands
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true

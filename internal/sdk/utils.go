@@ -3,7 +3,7 @@ package sdk
 import (
 	"errors"
 	"fmt"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/pterm/pterm"
 	"github.com/spf13/viper"
 	"os"
@@ -19,7 +19,7 @@ func checkForUpdates() (string, bool) {
 		return "", false
 	}
 
-	tag, err := utils.GetLatestTag("sdk")
+	tag, err := app.G().GetLatestTag("sdk")
 	if err != nil {
 		return "", false
 	}
@@ -91,7 +91,7 @@ func Upgrade() error {
 
 	// clone sdk
 	spinner, _ = pterm.DefaultSpinner.Start("Cloning latest sdk...")
-	err = utils.CloneSDK(tag, filepath.Join("sdk"))
+	err = app.G().CloneSDK(tag, filepath.Join("sdk"))
 	if err != nil {
 		spinner.Fail(err)
 		return err
