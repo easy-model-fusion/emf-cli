@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"github.com/pterm/pterm"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -79,30 +80,47 @@ func InstallDependencies(pipPath, path string) error {
 	return nil
 }
 
-// DownloadModel runs the download script for a specific model
-func DownloadModel(pythonPath, downloadPath, modelName, moduleName, className string, overwrite bool) (error, int) {
+func ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int) {
 
-	// Create command
-	var cmd *exec.Cmd
-	if overwrite {
-		cmd = exec.Command(pythonPath, "download.py", downloadPath, modelName, moduleName, className, "--overwrite")
-	} else {
-		cmd = exec.Command(pythonPath, "download.py", downloadPath, modelName, moduleName, className)
+	// Find the python executable inside the venv to run the script
+	pythonPath, err := FindVEnvExecutable(venvPath, "python")
+	if err != nil {
+		pterm.Error.Println(fmt.Sprintf("Error using the venv : %s", err))
+		return nil, err, 1
 	}
 
-	// bind stderr to a buffer
+	// Checking that the script does exist
+	exists, err := IsExistingPath(filePath)
+	if err != nil {
+		pterm.Error.Println(fmt.Sprintf("Missing script '%s'", filePath))
+		return nil, err, 1
+	} else if !exists {
+		err = fmt.Errorf("missing script '%s'", filePath)
+		return nil, err, 1
+	}
+
+	// Create command
+	var cmd = exec.Command(pythonPath, append([]string{filePath}, args...)...)
+
+	// Bind stderr to a buffer
 	var errBuf strings.Builder
 	cmd.Stderr = &errBuf
 
-	// cmd exit code
-	exitCode := 0
+	// Run command
+	output, err := cmd.Output()
 
-	err := cmd.Run()
+	// Execution was successful but nothing returned
+	if err == nil && len(output) == 0 {
+		return nil, nil, 0
+	}
+
+	// Execution was successful
 	if err == nil {
-		return nil, exitCode
+		return output, nil, 0
 	}
 
 	// If there was an error running the command, check if it's a command execution error
+	var exitCode int
 	var exitErr *exec.ExitError
 	if errors.As(err, &exitErr) {
 		exitCode = exitErr.ExitCode()
@@ -111,8 +129,8 @@ func DownloadModel(pythonPath, downloadPath, modelName, moduleName, className st
 	// Log the errors back
 	errBufStr := errBuf.String()
 	if errBufStr != "" {
-		return fmt.Errorf("%s", errBufStr), exitCode
+		return nil, fmt.Errorf("%s", errBufStr), exitCode
 	}
 
-	return err, exitCode
+	return nil, err, exitCode
 }

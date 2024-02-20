@@ -24,7 +24,7 @@ func runUpgrade(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err := config.GetViperConfig()
+	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		return
 	}

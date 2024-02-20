@@ -1,28 +1,14 @@
 package model
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/script"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
-	"github.com/pterm/pterm"
 )
 
 // Empty checks if the models slice is empty.
 func Empty(models []Model) bool {
 	// No models currently downloaded
-	if len(models) == 0 {
-		pterm.Info.Println("Models list is empty.")
-		return true
-	}
-	return false
-}
-
-// Contains checks if a models slice contains the requested model
-func Contains(models []Model, model Model) bool {
-	for _, item := range models {
-		if model == item {
-			return true
-		}
-	}
-	return false
+	return len(models) == 0
 }
 
 // ContainsByName checks if a models slice contains the requested model by name
@@ -69,7 +55,7 @@ func GetNames(models []Model) []string {
 // GetModelsByNames retrieves the models by their names given an input slice.
 func GetModelsByNames(models []Model, namesSlice []string) []Model {
 	// Create a map for faster lookup
-	namesMap := utils.MapFromArrayString(namesSlice)
+	namesMap := utils.SliceToMap(namesSlice)
 
 	// Slice of all the models that were found
 	var namesModels []Model
@@ -83,4 +69,31 @@ func GetModelsByNames(models []Model, namesSlice []string) []Model {
 	}
 
 	return namesModels
+}
+
+// MapToConfigFromScriptDownloaderModel maps data from bytes to Config.
+func MapToConfigFromScriptDownloaderModel(config Config, sdm script.DownloaderModel) Config {
+
+	// Check if ScriptModel is valid
+	if !script.IsDownloaderScriptModelEmpty(sdm) {
+		config.Path = utils.PathUniformize(sdm.Path)
+		config.Module = sdm.Module
+		config.Class = sdm.Class
+	}
+
+	// Check if ScriptTokenizer is valid
+	if !script.IsDownloaderScriptTokenizer(sdm.Tokenizer) {
+		tokenizer := MapToTokenizerFromScriptDownloaderTokenizer(sdm.Tokenizer)
+		config.Tokenizers = append(config.Tokenizers, tokenizer)
+	}
+
+	return config
+}
+
+// MapToTokenizerFromScriptDownloaderTokenizer maps data from script.DownloaderTokenizer to Tokenizer.
+func MapToTokenizerFromScriptDownloaderTokenizer(sdt script.DownloaderTokenizer) Tokenizer {
+	var modelTokenizer Tokenizer
+	modelTokenizer.Path = utils.PathUniformize(sdt.Path)
+	modelTokenizer.Class = sdt.Class
+	return modelTokenizer
 }

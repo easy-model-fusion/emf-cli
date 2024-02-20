@@ -1,14 +1,20 @@
 package model
 
 type Model struct {
-	Name          string
-	Config        Config
-	PipelineTag   string
-	DirectoryPath string
-	AddToBinary   bool
+	Name        string
+	Config      Config
+	PipelineTag string
+	AddToBinary bool
 }
 
 type Config struct {
-	ModuleName string `json:"module_name"`
-	ClassName  string `json:"class_name"`
+	Path       string
+	Module     string
+	Class      string
+	Tokenizers []Tokenizer
+}
+
+type Tokenizer struct {
+	Path  string
+	Class string
 }

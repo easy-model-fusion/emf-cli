@@ -10,15 +10,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const completionUse string = "completion"
-
 var shells = []string{"bash", "zsh", "fish", "powershell"}
 
-var arguments = utils.ArrayStringAsArguments(shells)
+var arguments = utils.SliceToArgsFormat(shells)
 
 // completionCmd represents the completion command
 var completionCmd = &cobra.Command{
-	Use:   completionUse,
+	Use:   "completion",
 	Short: "Generate completion script",
 	Long: fmt.Sprintf(`To load completions:
 
@@ -77,7 +75,7 @@ func runCompletion(cmd *cobra.Command, args []string) {
 	// Checks whether the input shell is handled
 	if len(selectedShell) == 0 {
 		pterm.Error.Println(fmt.Sprintf("Please provide a shell. Expected %s", arguments))
-	} else if utils.ArrayStringContainsItem(shells, selectedShell) {
+	} else if utils.SliceContainsItem(shells, selectedShell) {
 		switch selectedShell {
 		case "bash":
 			err := cmd.Root().GenBashCompletion(os.Stdout)

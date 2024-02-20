@@ -2,6 +2,8 @@ package model
 
 import (
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/script"
+	"path/filepath"
 	"testing"
 
 	"github.com/easy-model-fusion/emf-cli/test"
@@ -11,10 +13,9 @@ import (
 func getModel(suffix int) Model {
 	idStr := fmt.Sprint(suffix)
 	return Model{
-		Name:          "model" + idStr,
-		Config:        Config{ModuleName: "module" + idStr, ClassName: "class" + idStr},
-		DirectoryPath: "/path/to/model" + idStr,
-		AddToBinary:   true,
+		Name:        "model" + idStr,
+		Config:      Config{Module: "module" + idStr, Class: "class" + idStr},
+		AddToBinary: true,
 	}
 }
 
@@ -40,30 +41,6 @@ func TestEmpty_False(t *testing.T) {
 
 	// Assert
 	test.AssertEqual(t, isEmpty, false, "Expected false.")
-}
-
-// TestContains_True tests the Contains function with an element contained by the slice.
-func TestContains_True(t *testing.T) {
-	// Init
-	models := []Model{getModel(0), getModel(1)}
-
-	// Execute
-	contains := Contains(models, models[0])
-
-	// Assert
-	test.AssertEqual(t, contains, true, "Expected true.")
-}
-
-// TestContains_False tests the Contains function with an element not contained by the slice.
-func TestContains_False(t *testing.T) {
-	// Init
-	models := []Model{getModel(0), getModel(1)}
-
-	// Execute
-	contains := Contains(models, getModel(2))
-
-	// Assert
-	test.AssertEqual(t, contains, false, "Expected false.")
 }
 
 // TestContainsByName_True tests the ContainsByName function with an element's name contained by the slice.
@@ -143,4 +120,86 @@ func TestGetNames(t *testing.T) {
 
 	// Assert
 	test.AssertEqual(t, len(models), len(names), "Lengths should be equal.")
+}
+
+// TestMapToConfigFromScriptDownloaderModel_Empty tests the MapToConfigFromScriptDownloaderModel to return the correct Config.
+func TestMapToConfigFromScriptDownloaderModel_Empty(t *testing.T) {
+	// Init
+	dsm := script.DownloaderModel{
+		Path:   "",
+		Module: "",
+		Class:  "",
+		Tokenizer: script.DownloaderTokenizer{
+			Path:  "",
+			Class: "",
+		},
+	}
+	expected := Config{
+		Path:   "/path/to/model",
+		Module: "module_name",
+		Class:  "class_name",
+		Tokenizers: []Tokenizer{
+			{Path: "/path/to/tokenizer", Class: "tokenizer_class"},
+		},
+	}
+
+	// Execute
+	result := MapToConfigFromScriptDownloaderModel(expected, dsm)
+
+	// Assert
+	test.AssertEqual(t, expected.Path, result.Path)
+	test.AssertEqual(t, expected.Module, result.Module)
+	test.AssertEqual(t, expected.Class, result.Class)
+	test.AssertEqual(t, len(expected.Tokenizers), len(result.Tokenizers))
+	test.AssertEqual(t, expected.Tokenizers[0].Path, result.Tokenizers[0].Path)
+	test.AssertEqual(t, expected.Tokenizers[0].Class, result.Tokenizers[0].Class)
+}
+
+// TestMapToConfigFromScriptDownloaderModel_Fill tests the MapToConfigFromScriptDownloaderModel to return the correct Config.
+func TestMapToConfigFromScriptDownloaderModel_Fill(t *testing.T) {
+	// Init
+	sm := script.DownloaderModel{
+		Path:   "/path/to/model",
+		Module: "module_name",
+		Class:  "class_name",
+		Tokenizer: script.DownloaderTokenizer{
+			Path:  "/path/to/tokenizer",
+			Class: "tokenizer_class",
+		},
+	}
+	expected := Config{
+		Path:   filepath.Clean("/path/to/model"),
+		Module: "module_name",
+		Class:  "class_name",
+		Tokenizers: []Tokenizer{
+			{Path: filepath.Clean("/path/to/tokenizer"), Class: "tokenizer_class"},
+		},
+	}
+
+	// Execute
+	result := MapToConfigFromScriptDownloaderModel(Config{}, sm)
+
+	// Assert
+	test.AssertEqual(t, expected.Path, result.Path)
+	test.AssertEqual(t, expected.Module, result.Module)
+	test.AssertEqual(t, expected.Class, result.Class)
+	test.AssertEqual(t, len(expected.Tokenizers), len(result.Tokenizers))
+	test.AssertEqual(t, expected.Tokenizers[0].Path, result.Tokenizers[0].Path)
+	test.AssertEqual(t, expected.Tokenizers[0].Class, result.Tokenizers[0].Class)
+}
+
+// TestMapToTokenizerFromDownloaderScriptTokenizer tests the MapToTokenizerFromDownloaderScriptTokenizer to return the correct Tokenizer.
+func TestMapToTokenizerFromDownloaderScriptTokenizer(t *testing.T) {
+	// Init
+	st := script.DownloaderTokenizer{
+		Path:  "/path/to/tokenizer",
+		Class: "tokenizer_class",
+	}
+	expected := Tokenizer{Path: filepath.Clean("/path/to/tokenizer"), Class: "tokenizer_class"}
+
+	// Execute
+	result := MapToTokenizerFromScriptDownloaderTokenizer(st)
+
+	// Assert
+	test.AssertEqual(t, expected, result)
 }
