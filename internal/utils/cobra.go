@@ -54,11 +54,11 @@ func CobraSelectCommandToRun(cmd *cobra.Command, args []string, commandsList []s
 	}
 }
 
-// CobraGetNonProvidedFlags retrieves flags that have not been provided for a Cobra command.
-func CobraGetNonProvidedFlags(cmd *cobra.Command) []*pflag.Flag {
+// CobraGetNonProvidedLocalFlags retrieves flags that have not been provided for a Cobra command.
+func CobraGetNonProvidedLocalFlags(cmd *cobra.Command) []*pflag.Flag {
 	var nonProvided []*pflag.Flag
 
-	cmd.Flags().VisitAll(func(flag *pflag.Flag) {
+	cmd.LocalFlags().VisitAll(func(flag *pflag.Flag) {
 		if flag.Name != "help" && !flag.Changed {
 			nonProvided = append(nonProvided, flag)
 		}
@@ -71,7 +71,7 @@ func CobraGetNonProvidedFlags(cmd *cobra.Command) []*pflag.Flag {
 func CobraMultiselectRemainingFlags(cmd *cobra.Command) (map[string]*pflag.Flag, []string) {
 
 	// Get all flags that were not already provided
-	remainingFlags := CobraGetNonProvidedFlags(cmd)
+	remainingFlags := CobraGetNonProvidedLocalFlags(cmd)
 
 	// Process the flag's usage property into slice and map
 	var remainingFlagsUsages []string

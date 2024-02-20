@@ -89,8 +89,8 @@ func TestCobraGetSubCommands(t *testing.T) {
 	}
 }
 
-// TestCobraGetNonProvidedFlags tests the CobraGetNonProvidedFlags function.
-func TestCobraGetNonProvidedFlags(t *testing.T) {
+// TestCobraGetNonProvidedLocalFlags tests the CobraGetNonProvidedLocalFlags function.
+func TestCobraGetNonProvidedLocalFlags(t *testing.T) {
 	// Init
 	rootCmd := prepareRootCmd()
 	cmd1 := prepareSubCmd("cmd1")
@@ -108,7 +108,7 @@ func TestCobraGetNonProvidedFlags(t *testing.T) {
 	}
 
 	// Execute
-	flags := CobraGetNonProvidedFlags(cmd1)
+	flags := CobraGetNonProvidedLocalFlags(cmd1)
 
 	// Assert
 	test.AssertEqual(t, len(flags), 1) // skipping help and setting flag1
