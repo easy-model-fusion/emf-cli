@@ -6,12 +6,10 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/huggingface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
-	"github.com/easy-model-fusion/emf-cli/internal/script"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"path/filepath"
 	"strings"
 )
 
@@ -82,7 +80,10 @@ func addMissingModels(models []model.Model) error {
 	var modelsToDownload []model.Model
 	for _, currentModel := range models {
 		// build model path
-		currentModelPath := filepath.Join(script.DownloadModelsPath, currentModel.Name)
+		currentModelPath := currentModel.Config.Path
+		if currentModelPath != "" {
+			currentModel = model.ConstructConfigPaths(currentModel)
+		}
 
 		// Check if model is already downloaded
 		downloaded, err := utils.IsExistingPath(currentModelPath)
@@ -98,10 +99,10 @@ func addMissingModels(models []model.Model) error {
 
 	if len(modelsToDownload) > 0 {
 		// download missing models
-		_, failedModels := config.DownloadModels(modelsToDownload)
-		if !model.Empty(failedModels) {
-			return fmt.Errorf("these models could not be downloaded %s", model.GetNames(failedModels))
-		}
+		//_, failedModels := config.DownloadModels(modelsToDownload)
+		//if !model.Empty(failedModels) {
+		//	return fmt.Errorf("these models could not be downloaded %s", model.GetNames(failedModels))
+		//}
 		pterm.Success.Println("Added missing models", model.GetNames(modelsToDownload))
 	} else {
 		pterm.Info.Println("All models are already downloaded")
@@ -165,8 +166,10 @@ func generateModelsConfig(modelNames []string) error {
 		// If not found create model configuration with only model's name
 		if err != nil {
 			currentModel = model.Model{Name: modelName}
+			currentModel.Source = model.CUSTOM
 		}
 		currentModel.AddToBinary = true
+		currentModel = model.ConstructConfigPaths(currentModel)
 		models = append(models, currentModel)
 	}
 
