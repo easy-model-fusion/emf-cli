@@ -71,13 +71,12 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 			runAddByNames(cmd, args)
 		}
 		// Get selected models
-		var modelNames []string
-		selectedModels, modelNames = selectModels(selectedTags, selectedModelNames)
+		selectedModels = selectModels(selectedTags, selectedModels)
 		if selectedModels == nil {
 			app.L().WithTime(false).Warn("No models selected")
 			return
 		}
-		selectedModelNames = append(selectedModelNames, modelNames...)
+		selectedModelNames = model.GetNames(selectedModels)
 	}
 
 	// Process the models to only keep the valid ones
@@ -146,52 +145,39 @@ func processSelectedModels(selectedModels []model.Model) ([]model.Model, error) 
 }
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project
-func selectModels(tags []string, currentSelectedModels []string) ([]model.Model, []string) {
-	var models []model.Model
+func selectModels(tags []string, currentSelectedModels []model.Model) []model.Model {
+	var allModelsWithTags []model.Model
 	// Get list of models with current tags
 	for _, tag := range tags {
 		apiModels, err := app.H().GetModels(tag, 0)
 		if err != nil {
 			app.L().Fatal("error while calling api endpoint")
 		}
-		models = append(models, apiModels...)
+		allModelsWithTags = append(allModelsWithTags, apiModels...)
 	}
 
-	// Get existent models from configuration file
+	// Get available models : hiding currentSelectedModel + configuration file models
 	configModels, err := config.GetModels()
 	if err != nil {
 		app.L().Fatal("error while getting current models")
 	}
-	configModelNames := model.GetNames(configModels)
-
-	// Remove existent models from list of models to add
-	// Remove already selected models from list of models to add (in case user entered add model_name -s)
-	existingModels := model.GetModelsByNames(models, append(configModelNames, currentSelectedModels...))
-	models = model.Difference(models, existingModels)
+	existingModels := append(currentSelectedModels, configModels...)
+	availableModels := model.Difference(allModelsWithTags, existingModels)
 
 	// Build a multiselect with each model name
-	var modelNames []string
-	for _, item := range models {
-		modelNames = append(modelNames, item.Name)
-	}
-
+	availableModelNames := model.GetNames(availableModels)
 	message := "Please select the model(s) to be added"
 	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedModelNames := utils.DisplayInteractiveMultiselect(message, modelNames, checkMark, true)
+	selectedModelNames := utils.DisplayInteractiveMultiselect(message, availableModelNames, checkMark, true)
+
+	// No new model was selected : returning the input state
 	if len(selectedModelNames) == 0 {
-		return nil, nil
+		return currentSelectedModels
 	}
 
-	// Get models objects from models names
-	var selectedModels []model.Model
-
-	for _, currentModel := range models {
-		if utils.SliceContainsItem(selectedModelNames, currentModel.Name) {
-			selectedModels = append(selectedModels, currentModel)
-		}
-	}
-
-	return selectedModels, selectedModelNames
+	// Get newly selected models
+	selectedModels := model.GetModelsByNames(availableModels, selectedModelNames)
+	return append(currentSelectedModels, selectedModels...)
 }
 
 // selectTags displays a multiselect to help the user choose the model types
