@@ -71,6 +71,6 @@ func MapAPIResponseToModelObj(response APIModelResponse) model.Model {
 	var modelObj model.Model
 	modelObj.Name = response.Name
 	modelObj.PipelineTag = response.PipelineTag
-	modelObj.Config.ModuleName = response.LibraryName
+	modelObj.Config.Module = response.LibraryName
 	return modelObj
 }

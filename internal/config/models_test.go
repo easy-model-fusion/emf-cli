@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/script"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -135,10 +136,9 @@ func setupModelDirectory(t *testing.T, modelPath string) {
 func getModel(suffix int) model.Model {
 	idStr := fmt.Sprint(suffix)
 	return model.Model{
-		Name:          "model" + idStr,
-		Config:        model.Config{ModuleName: "module" + idStr, ClassName: "class" + idStr},
-		DirectoryPath: "/path/to/model" + idStr,
-		AddToBinary:   true,
+		Name:        "model" + idStr,
+		Config:      model.Config{Module: "module" + idStr, Class: "class" + idStr},
+		AddToBinary: true,
 	}
 }
 
@@ -276,7 +276,7 @@ func TestRemoveModelPhysically_NotPhysical(t *testing.T) {
 func TestRemoveModelPhysically_Success(t *testing.T) {
 	// Init
 	modelToRemove := getModel(0)
-	modelPath := filepath.Join(app.ModelsDownloadPath, modelToRemove.Name)
+	modelPath := filepath.Join(script.DownloadModelsPath, modelToRemove.Name)
 
 	// Create temporary model
 	setupModelDirectory(t, modelPath)
@@ -300,13 +300,13 @@ func TestRemoveAllModels_Success(t *testing.T) {
 	models := []model.Model{getModel(0), getModel(1), getModel(2)}
 
 	// Create temporary models
-	modelPath0 := filepath.Join(app.ModelsDownloadPath, models[0].Name)
+	modelPath0 := filepath.Join(script.DownloadModelsPath, models[0].Name)
 	setupModelDirectory(t, modelPath0)
 	defer os.RemoveAll(modelPath0)
-	modelPath1 := filepath.Join(app.ModelsDownloadPath, models[1].Name)
+	modelPath1 := filepath.Join(script.DownloadModelsPath, models[1].Name)
 	setupModelDirectory(t, modelPath1)
 	defer os.RemoveAll(modelPath1)
-	modelPath2 := filepath.Join(app.ModelsDownloadPath, models[2].Name)
+	modelPath2 := filepath.Join(script.DownloadModelsPath, models[2].Name)
 	setupModelDirectory(t, modelPath2)
 	defer os.RemoveAll(modelPath2)
 
@@ -322,7 +322,7 @@ func TestRemoveAllModels_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
 
 	// Assert that all models were physically removed
-	exists, err := utils.IsExistingPath(app.ModelsDownloadPath)
+	exists, err := utils.IsExistingPath(script.DownloadModelsPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -347,13 +347,13 @@ func TestRemoveModels_Success(t *testing.T) {
 	models := []model.Model{getModel(0), getModel(1), getModel(2)}
 
 	// Create temporary models
-	modelPath0 := filepath.Join(app.ModelsDownloadPath, models[0].Name)
+	modelPath0 := filepath.Join(script.DownloadModelsPath, models[0].Name)
 	setupModelDirectory(t, modelPath0)
-	modelPath1 := filepath.Join(app.ModelsDownloadPath, models[1].Name)
+	modelPath1 := filepath.Join(script.DownloadModelsPath, models[1].Name)
 	setupModelDirectory(t, modelPath1)
-	modelPath2 := filepath.Join(app.ModelsDownloadPath, models[2].Name)
+	modelPath2 := filepath.Join(script.DownloadModelsPath, models[2].Name)
 	setupModelDirectory(t, modelPath2)
-	defer os.RemoveAll(app.ModelsDownloadPath)
+	defer os.RemoveAll(script.DownloadModelsPath)
 
 	// Models to remove
 	removeStartIndex := 1
@@ -375,7 +375,7 @@ func TestRemoveModels_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
 
 	// Assert that all models were not physically removed
-	exists, err := utils.IsExistingPath(app.ModelsDownloadPath)
+	exists, err := utils.IsExistingPath(script.DownloadModelsPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -405,29 +405,48 @@ func TestRemoveModels_Success(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
-// TestDownloadModels tests the DownloadModels function exits properly.
-func TestDownloadModels(t *testing.T) {
-	// Init the models
-	models := []model.Model{getModel(0)}
-
-	// Preparing venv
-	path, ok := utils.CheckForPython()
-	if !ok {
-		t.FailNow()
-	}
-	err := utils.CreateVirtualEnv(path, ".venv")
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
-	defer os.RemoveAll(".venv")
+// TestDownloadModel_BinaryFalse tests the DownloadModel function for skipping when download not needed.
+func TestDownloadModel_BinaryFalse(t *testing.T) {
+	// Init
+	modelToDownload := getModel(0)
+	modelToDownload.AddToBinary = false
 
 	// Execute
-	err, result := DownloadModels(models)
+	result, ok := DownloadModel(modelToDownload)
 
 	// Assert
-	test.AssertEqual(t, nil, err, "No error should have been raised.")
-	test.AssertEqual(t, len(models), len(result), "Lengths do not match")
+	test.AssertEqual(t, ok, true)
+	test.AssertEqual(t, result.AddToBinary, false)
+}
+
+// TestDownloadModel_Fail tests the DownloadModel function where the script should fail.
+func TestDownloadModel_Fail(t *testing.T) {
+	// Init
+	modelToDownload := getModel(0)
+
+	// Execute
+	result, ok := DownloadModel(modelToDownload)
+
+	// Assert
+	test.AssertEqual(t, ok, false)
+	test.AssertEqual(t, result.AddToBinary, false)
+}
+
+// TestDownloadModel_Fail tests the DownloadModel function where the script should succeed.
+func TestDownloadModel_Success(t *testing.T) {
+	t.Skip() // TODO : mock the script.DownloaderExecute call to return (sdm, nil)
+
+	// Init
+	modelToDownload := getModel(0)
+	sdm := script.DownloaderModel{Module: "moduleAsATest"}
+
+	// Execute
+	result, ok := DownloadModel(modelToDownload)
+
+	// Assert
+	test.AssertEqual(t, ok, true)
+	test.AssertEqual(t, result.AddToBinary, true)
+	test.AssertEqual(t, result.Config.Module, sdm.Module)
 }
 
 func TestModelExists_OnExistentModel(t *testing.T) {
