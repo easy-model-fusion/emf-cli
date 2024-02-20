@@ -63,7 +63,7 @@ func runTidy(cmd *cobra.Command, args []string) {
 func getModelsToBeAddedToBinary(models []model.Model) (returnedModels []model.Model) {
 
 	for _, currentModel := range models {
-		if currentModel.IsDownloaded {
+		if currentModel.ShouldBeDownloaded {
 			returnedModels = append(returnedModels, currentModel)
 		}
 	}
@@ -168,7 +168,7 @@ func generateModelsConfig(modelNames []string) error {
 			currentModel = model.Model{Name: modelName}
 			currentModel.Source = model.CUSTOM
 		}
-		currentModel.IsDownloaded = true
+		currentModel.ShouldBeDownloaded = true
 		currentModel = model.ConstructConfigPaths(currentModel)
 		models = append(models, currentModel)
 	}

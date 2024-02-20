@@ -136,9 +136,9 @@ func setupModelDirectory(t *testing.T, modelPath string) {
 func getModel(suffix int) model.Model {
 	idStr := fmt.Sprint(suffix)
 	return model.Model{
-		Name:         "model" + idStr,
-		Config:       model.Config{Module: "module" + idStr, Class: "class" + idStr},
-		IsDownloaded: true,
+		Name:               "model" + idStr,
+		Config:             model.Config{Module: "module" + idStr, Class: "class" + idStr},
+		ShouldBeDownloaded: true,
 	}
 }
 
@@ -255,7 +255,7 @@ func TestErrorOnAddModelWithEmptyViper(t *testing.T) {
 func TestRemoveModelPhysically_AddToBinaryFalse(t *testing.T) {
 	// Init
 	modelToRemove := getModel(0)
-	modelToRemove.IsDownloaded = false
+	modelToRemove.ShouldBeDownloaded = false
 
 	// Execute
 	err := RemoveModelPhysically(modelToRemove.Name)
@@ -409,14 +409,14 @@ func TestRemoveModels_Success(t *testing.T) {
 func TestDownloadModel_BinaryFalse(t *testing.T) {
 	// Init
 	modelToDownload := getModel(0)
-	modelToDownload.IsDownloaded = false
+	modelToDownload.ShouldBeDownloaded = false
 
 	// Execute
 	result, ok := DownloadModel(modelToDownload)
 
 	// Assert
 	test.AssertEqual(t, ok, true)
-	test.AssertEqual(t, result.IsDownloaded, false)
+	test.AssertEqual(t, result.ShouldBeDownloaded, false)
 }
 
 // TestDownloadModel_Fail tests the DownloadModel function where the script should fail.
@@ -429,7 +429,7 @@ func TestDownloadModel_Fail(t *testing.T) {
 
 	// Assert
 	test.AssertEqual(t, ok, false)
-	test.AssertEqual(t, result.IsDownloaded, false)
+	test.AssertEqual(t, result.ShouldBeDownloaded, false)
 }
 
 // TestDownloadModel_Fail tests the DownloadModel function where the script should succeed.
@@ -445,7 +445,7 @@ func TestDownloadModel_Success(t *testing.T) {
 
 	// Assert
 	test.AssertEqual(t, ok, true)
-	test.AssertEqual(t, result.IsDownloaded, true)
+	test.AssertEqual(t, result.ShouldBeDownloaded, true)
 	test.AssertEqual(t, result.Config.Module, sdm.Module)
 }
 

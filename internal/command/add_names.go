@@ -31,6 +31,9 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// Initialize hugging face api
+	app.InitHuggingFace(huggingface.BaseUrl, "")
+
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
 
 	// TODO: Get flags or default values
@@ -113,14 +116,26 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	selectedModels = selectModelsToInstall(selectedModels, selectedModelNames)
 	utils.DisplaySelectedItems(selectedModelNames)
 
+	// Search for invalid models (Not configured but already downloaded,
+	// and for which the user refused to overwrite/delete)
+	invalidModels, err := searchForInvalidModels(selectedModels)
+	if err != nil {
+		pterm.Error.Println(err.Error())
+		return
+	}
+
+	// Exclude Invalid models
+	selectedModels = model.Difference(selectedModels, invalidModels)
+
 	// Download the models
 	models, failedModels := config.DownloadModels(selectedModels)
 
-	// No models were downloaded : stopping there
+	// Indicate models that failed to download
 	if !model.Empty(failedModels) {
 		pterm.Error.Println("These models couldn't be downloaded", model.GetNames(failedModels))
 		return
 	}
+	// No models were downloaded : stopping there
 	if model.Empty(models) {
 		pterm.Info.Println("There isn't any model to add to the configuration file.")
 		return
@@ -133,6 +148,12 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
 	} else {
 		spinner.Success()
+	}
+
+	// Indicate the models that were skipped and need to be treated manually
+	if invalidModels != nil && len(invalidModels) > 0 {
+		pterm.Warning.Println("These models are already downloaded "+
+			"and should be checked manually", model.GetNames(invalidModels))
 	}
 }
 
@@ -193,15 +214,63 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 	installsToExclude := utils.DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
 	var updatedModels []model.Model
 	for _, currentModel := range models {
-		currentModel.IsDownloaded = utils.SliceContainsItem(installsToExclude, currentModel.Name)
+		currentModel.ShouldBeDownloaded = utils.SliceContainsItem(installsToExclude, currentModel.Name)
 		updatedModels = append(updatedModels, currentModel)
 	}
 
 	return updatedModels
 }
 
+// alreadyDownloadedModels this function returns models that are requested to be added but are already downloaded
+func alreadyDownloadedModels(models []model.Model) (downloadedModels []model.Model, err error) {
+	for _, currentModel := range models {
+		exists, err := utils.IsExistingPath(currentModel.Name)
+		if err != nil {
+			return nil, err
+		}
+		if exists {
+			downloadedModels = append(downloadedModels, currentModel)
+		}
+	}
+
+	return downloadedModels, nil
+}
+
+// processAlreadyDownloadedModels this function processes models that are requested to be added
+// Pre-condition the models are not in the configuration file but are already downloaded
+func processAlreadyDownloadedModels(downloadedModels []model.Model) (failedModels []model.Model) {
+	for _, currentModel := range downloadedModels {
+		var message string
+		if currentModel.ShouldBeDownloaded {
+			message = fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?")
+		} else {
+			message = fmt.Sprintf("This model %s is already downloaded do you wish to delete it?")
+		}
+		yes := utils.AskForUsersConfirmation(message)
+
+		// If the user refused the proposed action, there is nothing we can do
+		// and the model should be skipped and treated manually
+		if !yes {
+			failedModels = append(failedModels, currentModel)
+		}
+	}
+
+	return failedModels
+}
+
+// searchForInvalidModels this function returns models that
+// are already downloaded and need to be skipped and treated manually
+func searchForInvalidModels(models []model.Model) (invalidModels []model.Model, err error) {
+	alreadyDownloadModels, err := alreadyDownloadedModels(models)
+	if err != nil {
+		return nil, err
+	}
+
+	invalidModels = processAlreadyDownloadedModels(alreadyDownloadModels)
+	return invalidModels, nil
+}
+
 func init() {
-	app.InitHuggingFace(huggingface.BaseUrl, "")
 	// Add --select flag to the add default command
 	addByNamesCmd.Flags().BoolVarP(&displayModels, "select", "s", false, "Select models to add")
 	// Group the add by names subcommand to the add command

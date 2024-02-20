@@ -1,11 +1,11 @@
 package model
 
 type Model struct {
-	Name         string
-	Config       Config
-	PipelineTag  string
-	Source       string
-	IsDownloaded bool
+	Name               string
+	Config             Config
+	PipelineTag        string
+	Source             string
+	ShouldBeDownloaded bool
 }
 
 type Config struct {
