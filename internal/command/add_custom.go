@@ -11,6 +11,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"path"
 )
 
 const cmdAddCustomTitle = "custom"
@@ -66,7 +67,12 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// TODO : validate model to download
+	valid, err := validateModel(downloaderArgs.ModelName)
+	if !valid {
+		pterm.Warning.Println("This model is already downloaded "+
+			"and should be checked manually", downloaderArgs.ModelName)
+		return
+	}
 
 	// Running the script
 	sdm, err := script.DownloaderExecute(downloaderArgs)
@@ -89,6 +95,19 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		spinner.Success()
 	}
 
+}
+
+func validateModel(modelName string) (bool, error) {
+	exists, err := utils.IsExistingPath(path.Join(script.DownloadModelsPath, modelName))
+	if err != nil {
+		return false, err
+	}
+	if exists {
+		message := fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?", modelName)
+		valid := utils.AskForUsersConfirmation(message)
+		return valid, nil
+	}
+	return true, nil
 }
 
 func init() {
