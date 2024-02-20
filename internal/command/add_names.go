@@ -40,6 +40,10 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 
 	// Add models passed in args
 	if len(args) > 0 {
+
+		// Remove all the duplicates
+		args = utils.SliceRemoveDuplicates(args)
+
 		// Fetching the requested models
 		for _, name := range args {
 			apiModel, err := app.H().GetModel(name)
@@ -49,14 +53,10 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 			}
 			// Saving the model data in the variables
 			selectedModels = append(selectedModels, apiModel)
-			selectedModelNames = append(selectedModelNames, name)
 		}
 
-		// Remove all the duplicates
-		selectedModelNames = utils.SliceRemoveDuplicates(selectedModelNames)
-
 		// Indicate the models that couldn't be found
-		notFound := utils.SliceDifference(args, selectedModelNames)
+		notFound := utils.SliceDifference(args, model.GetNames(selectedModels))
 		if len(notFound) != 0 {
 			pterm.Warning.Printfln(fmt.Sprintf("The following models couldn't be found and will be ignored : %s", notFound))
 		}
@@ -71,7 +71,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 			runAddByNames(cmd, args)
 		}
 		// Get selected models
-		selectedModels, selectedModelNames = selectModels(selectedTags, selectedModels, selectedModelNames)
+		selectedModels = selectModels(selectedTags, selectedModels)
 		if selectedModels == nil {
 			app.L().WithTime(false).Warn("No models selected")
 			return
@@ -144,7 +144,7 @@ func processSelectedModels(selectedModels []model.Model) ([]model.Model, error) 
 }
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project
-func selectModels(tags []string, currentSelectedModels []model.Model, currentSelectedModelNames []string) ([]model.Model, []string) {
+func selectModels(tags []string, currentSelectedModels []model.Model) []model.Model {
 	var allModelsWithTags []model.Model
 	// Get list of models with current tags
 	for _, tag := range tags {
@@ -171,14 +171,12 @@ func selectModels(tags []string, currentSelectedModels []model.Model, currentSel
 
 	// No new model was selected : returning the input state
 	if len(selectedModelNames) == 0 {
-		return currentSelectedModels, currentSelectedModelNames
+		return currentSelectedModels
 	}
 
 	// Get newly selected models
 	selectedModels := model.GetModelsByNames(availableModels, selectedModelNames)
-	selectedModels = append(currentSelectedModels, selectedModels...)
-
-	return selectedModels, selectedModelNames
+	return append(currentSelectedModels, selectedModels...)
 }
 
 // selectTags displays a multiselect to help the user choose the model types
