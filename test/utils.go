@@ -60,15 +60,15 @@ func CreateModelsFolderFullTestSuite(t *testing.T) (directoryPath string) {
 	checkErrDeleteFolder(t, err, dname)
 
 	//create models repository
-	err = os.Mkdir("models", 0755)
+	err = os.Mkdir("models", os.ModePerm)
 	checkErrDeleteFolder(t, err, dname)
 
 	// Create mock models
-	err = os.MkdirAll(filepath.Join("models", "model1", "weights"), 0755)
+	err = os.MkdirAll(filepath.Join("models", "model1", "weights"), os.ModePerm)
 	checkErrDeleteFolder(t, err, dname)
-	err = os.MkdirAll(filepath.Join("models", "model2", "weights"), 0755)
+	err = os.MkdirAll(filepath.Join("models", "model2", "weights"), os.ModePerm)
 	checkErrDeleteFolder(t, err, dname)
-	err = os.MkdirAll(filepath.Join("models", "model3"), 0755)
+	err = os.MkdirAll(filepath.Join("models", "model3"), os.ModePerm)
 	checkErrDeleteFolder(t, err, dname)
 
 	return dname
