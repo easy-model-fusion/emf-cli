@@ -8,8 +8,7 @@ import (
 )
 
 // GetDownloadedModelNames get all the downloaded models names
-func GetDownloadedModelNames() ([]string, error) {
-	var models []string
+func GetDownloadedModelNames() (models []string, err error) {
 	// Get all the models folders in the root folder
 	entries, err := os.ReadDir(script.DownloadModelsPath)
 	if err != nil {
