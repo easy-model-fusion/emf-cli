@@ -1,13 +1,13 @@
 package app
 
 import (
-	git2 "github.com/easy-model-fusion/emf-cli/internal/git"
+	"github.com/easy-model-fusion/emf-cli/internal/git"
 	"github.com/easy-model-fusion/emf-cli/internal/huggingface"
 	"github.com/pterm/pterm"
 )
 
 var huggingFace *huggingface.HuggingFace
-var git *git2.Git
+var gitInstance *git.Git
 var fatal = pterm.Fatal.Println // make it a variable, so we can mock it in tests
 
 func H() *huggingface.HuggingFace {
@@ -16,11 +16,11 @@ func H() *huggingface.HuggingFace {
 	}
 	return huggingFace
 }
-func G() *git2.Git {
-	if git == nil {
+func G() *git.Git {
+	if gitInstance == nil {
 		fatal("Git is not initialized, please run InitGit() first.")
 	}
-	return git
+	return gitInstance
 
 }
 
@@ -31,5 +31,5 @@ func InitHuggingFace(baseUrl, proxyUrl string) {
 
 // InitGit Initialize git
 func InitGit(url, authToken string) {
-	git = git2.NewGit(url, authToken)
+	gitInstance = git.NewGit(url, authToken)
 }
