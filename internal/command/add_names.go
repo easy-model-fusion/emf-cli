@@ -35,6 +35,13 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 
 	// TODO: Get flags or default values
 
+	// Get all existing models
+	existingModels, err := config.GetModels()
+	if err != nil {
+		pterm.Error.Println(err.Error())
+		return
+	}
+
 	var selectedModelNames []string
 	var selectedModels []model.Model
 
@@ -44,21 +51,40 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 		// Remove all the duplicates
 		args = utils.SliceRemoveDuplicates(args)
 
+		var notFoundModelNames []string
+		var existingModelNames []string
+
 		// Fetching the requested models
 		for _, name := range args {
-			apiModel, err := app.H().GetModel(name)
-			if err != nil {
-				// Model not recognized : skipping to the next one
+			// Verify if model already exists in the project
+			exist := model.ContainsByName(existingModels, name)
+			if exist {
+				// Model already exists : skipping to the next one
+				existingModelNames = append(existingModelNames, name)
 				continue
 			}
-			// Saving the model data in the variables
+
+			// Verify if the model is a valid hugging face model
+			apiModel, err := app.H().GetModel(name)
+			if err != nil {
+				// Model not found : skipping to the next one
+				notFoundModelNames = append(notFoundModelNames, name)
+				continue
+			}
+
+			// Adding valid models
 			selectedModels = append(selectedModels, apiModel)
 		}
 
 		// Indicate the models that couldn't be found
-		notFound := utils.SliceDifference(args, model.GetNames(selectedModels))
-		if len(notFound) != 0 {
-			pterm.Warning.Printfln(fmt.Sprintf("The following models couldn't be found and will be ignored : %s", notFound))
+		if len(notFoundModelNames) > 0 {
+			pterm.Warning.Printfln(fmt.Sprintf("The following models(s) couldn't be found "+
+				"and will be ignored : %s", notFoundModelNames))
+		}
+		// Indicate the models that already exists
+		if len(existingModelNames) > 0 {
+			pterm.Warning.Printfln(fmt.Sprintf("The following model(s) already exist(s) "+
+				"and will be ignored : %s", existingModelNames))
 		}
 	}
 
@@ -67,30 +93,20 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 		// Get selected tags
 		selectedTags := selectTags()
 		if len(selectedTags) == 0 {
-			app.L().WithTime(false).Warn("Please select a model type")
+			pterm.Warning.Println("Please select a model type")
 			runAddByNames(cmd, args)
 		}
 		// Get selected models
-		selectedModels = selectModels(selectedTags, selectedModels)
-		if selectedModels == nil {
-			app.L().WithTime(false).Warn("No models selected")
-			return
-		}
+		selectedModels, err = selectModels(selectedTags, selectedModels, existingModels)
 	}
 
-	// Process the models to only keep the valid ones
-	selectedModels, err := processSelectedModels(selectedModels)
-	if err != nil {
+	// Verify if selected models is not empty
+	if selectedModels == nil {
+		pterm.Warning.Println("No models selected")
 		return
 	}
 
-	// Check if any model is still valid
-	if len(selectedModels) == 0 {
-		pterm.Info.Println("None of the requested models can be added.")
-		return
-	}
-
-	// Update the selected model names
+	// Get all selected models names
 	selectedModelNames = model.GetNames(selectedModels)
 
 	// User choose the models he wishes to install now
@@ -98,9 +114,13 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	utils.DisplaySelectedItems(selectedModelNames)
 
 	// Download the models
-	models, _ := config.DownloadModels(selectedModels)
+	models, failedModels := config.DownloadModels(selectedModels)
 
 	// No models were downloaded : stopping there
+	if !model.Empty(failedModels) {
+		pterm.Error.Println("These models couldn't be downloaded", model.GetNames(failedModels))
+		return
+	}
 	if model.Empty(models) {
 		pterm.Info.Println("There isn't any model to add to the configuration file.")
 		return
@@ -116,45 +136,24 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	}
 }
 
-// processSelectedModels process the selected models and only keep the valid ones
-func processSelectedModels(selectedModels []model.Model) ([]model.Model, error) {
-	// Get the models from the configuration file
-	configModels, err := config.GetModels()
-	if err != nil {
-		return nil, err
-	}
-
-	// Filter the requested models that have already been added
-	alreadyAdded := model.Union(configModels, selectedModels)
-	if len(alreadyAdded) != 0 {
-		pterm.Warning.Println(fmt.Sprintf("The following models have already been added and will be ignored : %s", model.GetNames(alreadyAdded)))
-	}
-
-	// Filter the ones that haven't been added yet
-	toBeAdded := model.Difference(selectedModels, alreadyAdded)
-
-	return toBeAdded, nil
-}
-
 // selectModels displays a multiselect of models from which the user will choose to add to his project
-func selectModels(tags []string, currentSelectedModels []model.Model) []model.Model {
+func selectModels(tags []string, currentSelectedModels []model.Model, existingModels []model.Model) ([]model.Model, error) {
+	spinner, _ := pterm.DefaultSpinner.Start("Listing all models with selected tags...")
 	var allModelsWithTags []model.Model
 	// Get list of models with current tags
 	for _, tag := range tags {
 		apiModels, err := app.H().GetModels(tag, 0)
 		if err != nil {
-			app.L().Fatal("error while calling api endpoint")
+			spinner.Fail(fmt.Sprintf("Error while fetching the models from hugging face api: %s", err))
+			return nil, fmt.Errorf("error while calling api endpoint")
 		}
 		allModelsWithTags = append(allModelsWithTags, apiModels...)
 	}
+	spinner.Success()
 
-	// Get available models : hiding currentSelectedModel + configuration file models
-	configModels, err := config.GetModels()
-	if err != nil {
-		app.L().Fatal("error while getting current models")
-	}
-	existingModels := append(currentSelectedModels, configModels...)
-	availableModels := model.Difference(allModelsWithTags, existingModels)
+	// Excluding models entered in args + configuration file models
+	modelsToExclude := append(currentSelectedModels, existingModels...)
+	availableModels := model.Difference(allModelsWithTags, modelsToExclude)
 
 	// Build a multiselect with each model name
 	availableModelNames := model.GetNames(availableModels)
@@ -164,12 +163,14 @@ func selectModels(tags []string, currentSelectedModels []model.Model) []model.Mo
 
 	// No new model was selected : returning the input state
 	if len(selectedModelNames) == 0 {
-		return currentSelectedModels
+		return currentSelectedModels, nil
 	}
 
 	// Get newly selected models
 	selectedModels := model.GetModelsByNames(availableModels, selectedModelNames)
-	return append(currentSelectedModels, selectedModels...)
+
+	// returns newly selected models + models entered in args
+	return append(currentSelectedModels, selectedModels...), nil
 }
 
 // selectTags displays a multiselect to help the user choose the model types

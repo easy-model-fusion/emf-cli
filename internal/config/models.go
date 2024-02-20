@@ -209,7 +209,7 @@ func DownloadModels(models []model.Model) ([]model.Model, []model.Model) {
 	for _, currentModel := range models {
 		result, ok := DownloadModel(currentModel)
 		if !ok {
-			failedModels = append(failedModels, result)
+			failedModels = append(failedModels, currentModel)
 			continue
 		}
 		passedModels = append(passedModels, result)
