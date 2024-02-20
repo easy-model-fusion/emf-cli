@@ -23,8 +23,8 @@ func GetModels() ([]model.Model, error) {
 	return models, nil
 }
 
-// AddModel adds models to configuration file
-func AddModel(updatedModels []model.Model) error {
+// AddModels adds models to configuration file
+func AddModels(updatedModels []model.Model) error {
 	// Get existent models
 	configModels, err := GetModels()
 	if err != nil {
@@ -51,13 +51,13 @@ func AddModel(updatedModels []model.Model) error {
 }
 
 // RemoveModelPhysically only removes the model from the project's downloaded models
-func RemoveModelPhysically(model model.Model) error {
+func RemoveModelPhysically(modelName string) error {
 
 	// Path to the model
-	modelPath := filepath.Join(script.DownloadModelsPath, model.Name)
+	modelPath := filepath.Join(script.DownloadModelsPath, modelName)
 
 	// Starting client spinner animation
-	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Removing model %s...", model.Name))
+	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Removing model %s...", modelName))
 
 	// Check if the model_path exists
 	if exists, err := utils.IsExistingPath(modelPath); err != nil {
@@ -91,10 +91,10 @@ func RemoveModelPhysically(model model.Model) error {
 				spinner.Fail(err)
 			}
 		}
-		spinner.Success(fmt.Sprintf("Removed model %s", model.Name))
+		spinner.Success(fmt.Sprintf("Removed model %s", modelName))
 	} else {
 		// Model path is not in the current project
-		spinner.Warning(fmt.Sprintf("Model '%s' was not found in the project directory. The model will be removed from this project's configuration file.", model.Name))
+		spinner.Warning(fmt.Sprintf("Model '%s' was not found in the project directory. The model will be removed from this project's configuration file.", modelName))
 	}
 	return nil
 }
@@ -116,7 +116,7 @@ func RemoveAllModels() error {
 
 	// Trying to remove every model
 	for _, item := range models {
-		_ = RemoveModelPhysically(item)
+		_ = RemoveModelPhysically(item.Name)
 	}
 
 	// Empty the models
@@ -150,7 +150,7 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 
 	// Trying to remove the models
 	for _, item := range modelsToRemove {
-		_ = RemoveModelPhysically(item)
+		_ = RemoveModelPhysically(item.Name)
 	}
 
 	// Find all the remaining models
@@ -201,4 +201,18 @@ func DownloadModel(modelObj model.Model) (model.Model, bool) {
 	modelObj.AddToBinary = true
 
 	return modelObj, true
+}
+
+func DownloadModels(models []model.Model) ([]model.Model, []model.Model) {
+	var passedModels []model.Model
+	var failedModels []model.Model
+	for _, currentModel := range models {
+		result, ok := DownloadModel(currentModel)
+		if !ok {
+			failedModels = append(failedModels, result)
+			continue
+		}
+		passedModels = append(passedModels, result)
+	}
+	return passedModels, failedModels
 }

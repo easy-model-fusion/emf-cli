@@ -82,7 +82,7 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 
 	// Add models to configuration file
 	spinner, _ := pterm.DefaultSpinner.Start("Writing model to configuration file...")
-	err = config.AddModel([]model.Model{modelObj})
+	err = config.AddModels([]model.Model{modelObj})
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the model to the configuration file: %s", err))
 	} else {
