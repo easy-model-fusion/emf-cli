@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/easy-model-fusion/client/test"
+	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/magiconair/properties/assert"
 	"github.com/spf13/cobra"
 	"testing"

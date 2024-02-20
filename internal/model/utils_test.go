@@ -2,11 +2,11 @@ package model
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/script"
+	"github.com/easy-model-fusion/emf-cli/internal/script"
 	"path/filepath"
 	"testing"
 
-	"github.com/easy-model-fusion/client/test"
+	"github.com/easy-model-fusion/emf-cli/test"
 )
 
 // getModel initiates a basic model with an id as suffix

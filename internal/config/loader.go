@@ -1,8 +1,11 @@
 package config
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/spf13/viper"
 )
+
+var FilePath string
 
 // Load loads the current configuration file
 func Load(confDirPath string) error {
@@ -13,4 +16,14 @@ func Load(confDirPath string) error {
 
 	// Attempt to read the configuration file
 	return viper.ReadInConfig()
+}
+
+func UpdateConfigFilePath() string {
+	FilePath = utils.AskForUsersInput("Enter the configuration file path")
+	return FilePath
+}
+
+func init() {
+	// Default configuration file path
+	FilePath = "."
 }

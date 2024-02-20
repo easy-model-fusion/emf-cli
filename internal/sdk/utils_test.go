@@ -1,9 +1,9 @@
 package sdk
 
 import (
-	"github.com/easy-model-fusion/client/internal/config"
-	"github.com/easy-model-fusion/client/internal/utils"
-	"github.com/easy-model-fusion/client/test"
+	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/spf13/viper"
 	"os"
 	"testing"
@@ -13,7 +13,7 @@ func TestCheckForUpdates(t *testing.T) {
 	dname := test.CreateFullTestSuite(t)
 	defer os.RemoveAll(dname)
 
-	err := config.GetViperConfig()
+	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -42,7 +42,7 @@ func TestCanSendUpdateSuggestion(t *testing.T) {
 	dname := test.CreateFullTestSuite(t)
 	defer os.RemoveAll(dname)
 
-	err := config.GetViperConfig()
+	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -61,7 +61,7 @@ func TestResetUpdateSuggestion(t *testing.T) {
 	dname := test.CreateFullTestSuite(t)
 	defer os.RemoveAll(dname)
 
-	err := config.GetViperConfig()
+	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -76,7 +76,7 @@ func TestSetUpdateSuggestion(t *testing.T) {
 	dname := test.CreateFullTestSuite(t)
 	defer os.RemoveAll(dname)
 
-	err := config.GetViperConfig()
+	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -93,7 +93,7 @@ func TestSendUpdateSuggestion(t *testing.T) {
 	dname := test.CreateFullTestSuite(t)
 	defer os.RemoveAll(dname)
 
-	err := config.GetViperConfig()
+	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -119,7 +119,7 @@ func TestUpgrade(t *testing.T) {
 	dname := test.CreateFullTestSuite(t)
 	defer os.RemoveAll(dname)
 
-	err := config.GetViperConfig()
+	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()

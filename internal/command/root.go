@@ -1,8 +1,9 @@
 package command
 
 import (
-	"github.com/easy-model-fusion/client/internal/app"
-	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -33,4 +34,9 @@ func runRoot(cmd *cobra.Command, args []string) {
 
 	// Users chooses a command and runs it automatically
 	utils.CobraSelectCommandToRun(cmd, args, commandsList, commandsMap)
+}
+
+func init() {
+	// Add persistent flag for configuration file path
+	rootCmd.PersistentFlags().StringVar(&config.FilePath, "path", ".", "config file path")
 }

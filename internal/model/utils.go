@@ -1,8 +1,8 @@
 package model
 
 import (
-	"github.com/easy-model-fusion/client/internal/script"
-	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/script"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
 )
 
 // Empty checks if the models slice is empty.

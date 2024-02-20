@@ -2,12 +2,12 @@ package command
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/app"
-	"github.com/easy-model-fusion/client/internal/config"
-	"github.com/easy-model-fusion/client/internal/huggingface"
-	"github.com/easy-model-fusion/client/internal/model"
-	"github.com/easy-model-fusion/client/internal/sdk"
-	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/huggingface"
+	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -27,14 +27,13 @@ var displayModels bool
 
 // runAddByNames runs the add command for adding model by names
 func runAddByNames(cmd *cobra.Command, args []string) {
-	if config.GetViperConfig() != nil {
+	if config.GetViperConfig(config.FilePath) != nil {
 		return
 	}
 
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
 
 	// TODO: Get flags or default values
-	app.InitHuggingFace(huggingface.BaseUrl, "")
 
 	var selectedModelNames []string
 	var selectedModels []model.Model
@@ -223,6 +222,7 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 }
 
 func init() {
+	app.InitHuggingFace(huggingface.BaseUrl, "")
 	// Add --select flag to the add default command
 	addByNamesCmd.Flags().BoolVarP(&displayModels, "select", "s", false, "Select models to add")
 	// Group the add by names subcommand to the add command

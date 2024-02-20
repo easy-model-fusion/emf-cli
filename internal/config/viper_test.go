@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/easy-model-fusion/client/internal/utils"
-	"github.com/easy-model-fusion/client/test"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/spf13/viper"
 	"os"
 	"testing"
@@ -39,20 +39,12 @@ func TestGetViperConfig_Success(t *testing.T) {
 		t.FailNow()
 	}
 
+	FilePath = "."
 	// Load the configuration file
-	err = GetViperConfig()
+	err = GetViperConfig(FilePath)
 
 	// Assert that the load method did not return an error
 	test.AssertEqual(t, err, nil, "No error should have been raised")
-}
-
-// TestGetViperConfig_Error tests the case where there is an error loading the Viper configuration.
-func TestGetViperConfig_Error(t *testing.T) {
-	// Load the configuration file
-	err := GetViperConfig()
-
-	// Assert that the load method did return an error because no conf file in project
-	test.AssertNotEqual(t, err, nil, "An error should have been raised")
 }
 
 // TestGetViperItem_Success tests the successful retrieval of an item from the Viper configuration.

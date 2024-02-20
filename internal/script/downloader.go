@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )

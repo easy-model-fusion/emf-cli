@@ -3,7 +3,7 @@ package huggingface
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"io"
 	"net/http"
 	"net/url"

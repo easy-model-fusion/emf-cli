@@ -2,13 +2,13 @@ package command
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/app"
-	"github.com/easy-model-fusion/client/internal/config"
-	"github.com/easy-model-fusion/client/internal/huggingface"
-	"github.com/easy-model-fusion/client/internal/model"
-	"github.com/easy-model-fusion/client/internal/script"
-	"github.com/easy-model-fusion/client/internal/sdk"
-	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/huggingface"
+	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/script"
+	"github.com/easy-model-fusion/emf-cli/internal/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -28,7 +28,7 @@ var downloaderArgs script.DownloaderArgs
 // runAddCustom runs add command for adding a custom model
 func runAddCustom(cmd *cobra.Command, args []string) {
 
-	if config.GetViperConfig() != nil {
+	if config.GetViperConfig(config.FilePath) != nil {
 		return
 	}
 
