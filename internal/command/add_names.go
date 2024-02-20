@@ -71,12 +71,11 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 			runAddByNames(cmd, args)
 		}
 		// Get selected models
-		selectedModels = selectModels(selectedTags, selectedModels)
+		selectedModels, selectedModelNames = selectModels(selectedTags, selectedModels, selectedModelNames)
 		if selectedModels == nil {
 			app.L().WithTime(false).Warn("No models selected")
 			return
 		}
-		selectedModelNames = model.GetNames(selectedModels)
 	}
 
 	// Process the models to only keep the valid ones
@@ -145,7 +144,7 @@ func processSelectedModels(selectedModels []model.Model) ([]model.Model, error) 
 }
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project
-func selectModels(tags []string, currentSelectedModels []model.Model) []model.Model {
+func selectModels(tags []string, currentSelectedModels []model.Model, currentSelectedModelNames []string) ([]model.Model, []string) {
 	var allModelsWithTags []model.Model
 	// Get list of models with current tags
 	for _, tag := range tags {
@@ -172,12 +171,14 @@ func selectModels(tags []string, currentSelectedModels []model.Model) []model.Mo
 
 	// No new model was selected : returning the input state
 	if len(selectedModelNames) == 0 {
-		return currentSelectedModels
+		return currentSelectedModels, currentSelectedModelNames
 	}
 
 	// Get newly selected models
 	selectedModels := model.GetModelsByNames(availableModels, selectedModelNames)
-	return append(currentSelectedModels, selectedModels...)
+	selectedModels = append(currentSelectedModels, selectedModels...)
+
+	return selectedModels, selectedModelNames
 }
 
 // selectTags displays a multiselect to help the user choose the model types
