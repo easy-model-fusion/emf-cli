@@ -35,11 +35,10 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
 
 	// TODO: Get flags or default values
-	app.InitHuggingFace(huggingface.BaseUrl, "")
 
 	// Searching for the currentCmd : when 'cmd' differs from 'addCustomCmd' (i.e. run through parent multiselect)
 	currentCmd, found := utils.CobraFindSubCommand(cmd, cmdAddCustomTitle)
-	if found == false {
+	if !found {
 		pterm.Error.Println(fmt.Sprintf("Something went wrong : the '%s' command was not found. Please try again.", cmdAddTitle))
 		return
 	}
@@ -93,6 +92,8 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 }
 
 func init() {
+
+	app.InitHuggingFace(huggingface.BaseUrl, "")
 
 	// Bind cobra args to the downloader script args
 	script.DownloaderArgsForCobra(addCustomCmd, &downloaderArgs)

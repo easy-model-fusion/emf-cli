@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"fmt"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -105,7 +104,6 @@ func CobraAskFlagInput(cmd *cobra.Command, flag *pflag.Flag) error {
 		switch flag.Value.Type() {
 		case "bool":
 			inputValue = strconv.FormatBool(AskForUsersConfirmation(flag.Usage))
-			break
 		default:
 			inputValue = AskForUsersInput(flag.Usage)
 		}
@@ -125,7 +123,7 @@ func CobraInputAmongRemainingFlags(cmd *cobra.Command) error {
 	for _, flag := range selectedFlags {
 		err := CobraAskFlagInput(cmd, remainingFlagsMap[flag])
 		if err != nil {
-			return errors.New(fmt.Sprintf("Couldn't set the value for %s : %s", remainingFlagsMap[flag].Name, err))
+			return fmt.Errorf("couldn't set the value for %s : %s", remainingFlagsMap[flag].Name, err)
 		}
 	}
 

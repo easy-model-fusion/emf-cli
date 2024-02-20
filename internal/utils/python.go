@@ -95,7 +95,7 @@ func ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int
 		pterm.Error.Println(fmt.Sprintf("Missing script '%s'", filePath))
 		return nil, err, 1
 	} else if !exists {
-		err = errors.New(fmt.Sprintf("Missing script '%s'", filePath))
+		err = fmt.Errorf("missing script '%s'", filePath)
 		return nil, err, 1
 	}
 
@@ -110,7 +110,7 @@ func ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int
 	output, err := cmd.Output()
 
 	// Execution was successful but nothing returned
-	if err == nil && (output == nil || len(output) == 0) {
+	if err == nil && len(output) == 0 {
 		return nil, nil, 0
 	}
 
