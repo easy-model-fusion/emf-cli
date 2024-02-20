@@ -5,6 +5,7 @@ import (
 	commandmodel "github.com/easy-model-fusion/emf-cli/internal/command/model"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -30,11 +31,11 @@ var rootCmd = &cobra.Command{
 
 func runRoot(cmd *cobra.Command, args []string) {
 
-	// Build objects containing all the available commands
-	commandsList, commandsMap := utils.CobraGetSubCommands(cmd, []string{completionCmd.Use})
-
-	// Users chooses a command and runs it automatically
-	utils.CobraSelectCommandToRun(cmd, args, commandsList, commandsMap)
+	// Running command as palette : allowing user to choose subcommand
+	err := utils.CobraRunCommandAsPalette(cmd, args, rootCommandName, []string{completionCmd.Name()})
+	if err != nil {
+		pterm.Error.Println("Something went wrong :", err)
+	}
 }
 
 func init() {

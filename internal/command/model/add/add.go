@@ -1,7 +1,6 @@
 package add
 
 import (
-	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -20,18 +19,11 @@ var ModelAddCmd = &cobra.Command{
 // runModelAdd runs model add command
 func runModelAdd(cmd *cobra.Command, args []string) {
 
-	// Searching for the currentCmd : when 'cmd' differs from 'addCmd' (i.e. run through parent multiselect)
-	currentCmd, found := utils.CobraFindSubCommand(cmd, modelAddCommandName)
-	if !found {
-		pterm.Error.Println(fmt.Sprintf("Something went wrong : the '%s' command was not found. Please try again.", modelAddCommandName))
-		return
+	// Running command as palette : allowing user to choose subcommand
+	err := utils.CobraRunCommandAsPalette(cmd, args, modelAddCommandName, []string{})
+	if err != nil {
+		pterm.Error.Println("Something went wrong :", err)
 	}
-
-	// Retrieve all the subcommands of the current command
-	commandsList, commandsMap := utils.CobraGetSubCommands(currentCmd, []string{})
-
-	// Users chooses a command and runs it automatically
-	utils.CobraSelectCommandToRun(currentCmd, args, commandsList, commandsMap)
 }
 
 func init() {
