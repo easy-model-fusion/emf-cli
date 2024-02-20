@@ -103,4 +103,4 @@ jobs:
 
     - name: View code coverage report
       if: github.event_name == 'push'
-      run: go tool cover -func=coverage.txt
+      run: go tool cover -func=coverage.out
