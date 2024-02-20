@@ -92,7 +92,7 @@ func createProject(projectName string) (err error) {
 	spinner, _ = pterm.DefaultSpinner.Start("Cloning sdk...")
 	err = utils.CloneSDK(sdkTag, filepath.Join(projectName, "sdk"))
 	if err != nil {
-		spinner.Fail(err)
+		spinner.Fail("Unable to clone sdk", err)
 		return err
 	}
 	spinner.Success()
@@ -101,7 +101,7 @@ func createProject(projectName string) (err error) {
 	spinner, _ = pterm.DefaultSpinner.Start("Creating virtual environment...")
 	err = utils.CreateVirtualEnv(pythonPath, filepath.Join(projectName, ".venv"))
 	if err != nil {
-		spinner.Fail(err)
+		spinner.Fail("Unable to create venv", err)
 		return err
 	}
 	spinner.Success()
