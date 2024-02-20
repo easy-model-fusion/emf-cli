@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/script"
 	"os"
 	"path"
 	"strings"
@@ -10,7 +11,7 @@ import (
 func GetDownloadedModelNames() ([]string, error) {
 	var models []string
 	// Get all the models folders in the root folder
-	entries, err := os.ReadDir(ModelsDownloadPath)
+	entries, err := os.ReadDir(script.DownloadModelsPath)
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +23,7 @@ func GetDownloadedModelNames() ([]string, error) {
 			continue
 		}
 		// Construct the model name based on directory names
-		modelDirectoryPath := path.Join(ModelsDownloadPath, entry.Name())
+		modelDirectoryPath := path.Join(script.DownloadModelsPath, entry.Name())
 		err, modelFullPath := getModelFullPath(modelDirectoryPath)
 		if err != nil {
 			return nil, err

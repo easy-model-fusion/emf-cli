@@ -6,6 +6,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/huggingface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/script"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
@@ -25,7 +26,7 @@ var tidyCmd = &cobra.Command{
 // runAdd runs add command
 func runTidy(cmd *cobra.Command, args []string) {
 	// get all models from config file
-	err := config.GetViperConfig()
+	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		pterm.Error.Println(err.Error())
 	}
@@ -80,13 +81,11 @@ func addMissingModels(models []model.Model) error {
 	// Search for the models that need to be downloaded
 	var modelsToDownload []model.Model
 	for _, currentModel := range models {
-		// Check if download path is stored
-		if currentModel.DirectoryPath == "" {
-			currentModel.DirectoryPath = filepath.Join(app.ModelsDownloadPath, currentModel.Name)
-		}
+		// build model path
+		currentModelPath := filepath.Join(script.DownloadModelsPath, currentModel.Name)
 
 		// Check if model is already downloaded
-		downloaded, err := utils.IsExistingPath(currentModel.DirectoryPath)
+		downloaded, err := utils.IsExistingPath(currentModelPath)
 		if err != nil {
 			return err
 		}
@@ -99,9 +98,9 @@ func addMissingModels(models []model.Model) error {
 
 	if len(modelsToDownload) > 0 {
 		// download missing models
-		err, _ := config.DownloadModels(modelsToDownload)
-		if err != nil {
-			return err
+		_, failedModels := config.DownloadModels(modelsToDownload)
+		if !model.Empty(failedModels) {
+			return fmt.Errorf("these models could not be downloaded %s", model.GetNames(failedModels))
 		}
 		pterm.Success.Println("Added missing models", model.GetNames(modelsToDownload))
 	} else {
@@ -124,7 +123,7 @@ func missingModelConfiguration(models []model.Model) error {
 	// Get the list of configured model names
 	configModelNames := model.GetNames(models)
 	// Find missing models from configuration file
-	missingModelNames := utils.StringDifference(downloadedModelNames, configModelNames)
+	missingModelNames := utils.SliceDifference(downloadedModelNames, configModelNames)
 	if len(missingModelNames) > 0 {
 		err = handleModelsWithNoConfig(missingModelNames)
 		if err != nil {
@@ -168,7 +167,6 @@ func generateModelsConfig(modelNames []string) error {
 			currentModel = model.Model{Name: modelName}
 		}
 		currentModel.AddToBinary = true
-		currentModel.DirectoryPath = app.ModelsDownloadPath
 		models = append(models, currentModel)
 	}
 
@@ -188,7 +186,7 @@ func handleModelsWithNoConfig(missingModelNames []string) error {
 		"Please select the models that you wish to conserve"
 	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
 	selectedModels := utils.DisplayInteractiveMultiselect(message, missingModelNames, checkMark, false)
-	modelsToDelete := utils.StringDifference(missingModelNames, selectedModels)
+	modelsToDelete := utils.SliceDifference(missingModelNames, selectedModels)
 
 	// Delete selected models
 	if len(modelsToDelete) > 0 {

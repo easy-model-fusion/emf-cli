@@ -8,8 +8,8 @@ import (
 
 // TestGetDownloadedModels tests GetDownloadedModels method
 func TestGetDownloadedModels(t *testing.T) {
-	test.CreateModelsFolderFullTestSuite(t)
-	defer os.RemoveAll(ModelsDownloadPath)
+	dname := test.CreateModelsFolderFullTestSuite(t)
+	defer os.RemoveAll(dname)
 
 	models, err := GetDownloadedModelNames()
 	if err != nil {

@@ -202,3 +202,17 @@ func DownloadModel(modelObj model.Model) (model.Model, bool) {
 
 	return modelObj, true
 }
+
+func DownloadModels(models []model.Model) ([]model.Model, []model.Model) {
+	var passedModels []model.Model
+	var failedModels []model.Model
+	for _, currentModel := range models {
+		result, ok := DownloadModel(currentModel)
+		if !ok {
+			failedModels = append(failedModels, result)
+			continue
+		}
+		passedModels = append(passedModels, result)
+	}
+	return passedModels, failedModels
+}
