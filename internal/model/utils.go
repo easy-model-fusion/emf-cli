@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/script"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"path"
 )
 
 // Empty checks if the models slice is empty.
@@ -96,4 +97,18 @@ func MapToTokenizerFromScriptDownloaderTokenizer(sdt script.DownloaderTokenizer)
 	modelTokenizer.Path = utils.PathUniformize(sdt.Path)
 	modelTokenizer.Class = sdt.Class
 	return modelTokenizer
+}
+
+func ConstructConfigPaths(current Model) Model {
+	basePath := path.Join(script.DownloadModelsPath, current.Name)
+	modelPath := basePath
+	if current.Config.Module == "transformers" {
+		modelPath = path.Join(modelPath, "model")
+		for i, tokenizer := range current.Config.Tokenizers {
+			current.Config.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
+		}
+	}
+	current.Config.Path = modelPath
+
+	return current
 }
