@@ -99,10 +99,10 @@ func addMissingModels(models []model.Model) error {
 
 	if len(modelsToDownload) > 0 {
 		// download missing models
-		//_, failedModels := config.DownloadModels(modelsToDownload)
-		//if !model.Empty(failedModels) {
-		//	return fmt.Errorf("these models could not be downloaded %s", model.GetNames(failedModels))
-		//}
+		_, failedModels := config.DownloadModels(modelsToDownload)
+		if !model.Empty(failedModels) {
+			return fmt.Errorf("these models could not be downloaded %s", model.GetNames(failedModels))
+		}
 		pterm.Success.Println("Added missing models", model.GetNames(modelsToDownload))
 	} else {
 		pterm.Info.Println("All models are already downloaded")
