@@ -61,7 +61,11 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	}
 
 	// Allow the user to choose flags and specify their value
-	utils.CobraInputAmongRemainingFlags(currentCmd)
+	err := utils.CobraInputAmongRemainingFlags(currentCmd)
+	if err != nil {
+		pterm.Error.Println(err)
+		return
+	}
 
 	// TODO : validate model to download
 

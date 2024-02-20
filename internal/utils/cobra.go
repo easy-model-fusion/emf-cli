@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -115,7 +116,7 @@ func CobraAskFlagInput(cmd *cobra.Command, flag *pflag.Flag) error {
 }
 
 // CobraInputAmongRemainingFlags presents remaining flags for input selection.
-func CobraInputAmongRemainingFlags(cmd *cobra.Command) {
+func CobraInputAmongRemainingFlags(cmd *cobra.Command) error {
 
 	// User chooses among the remaining flags
 	remainingFlagsMap, selectedFlags := CobraMultiselectRemainingFlags(cmd)
@@ -124,7 +125,9 @@ func CobraInputAmongRemainingFlags(cmd *cobra.Command) {
 	for _, flag := range selectedFlags {
 		err := CobraAskFlagInput(cmd, remainingFlagsMap[flag])
 		if err != nil {
-			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", remainingFlagsMap[flag].Name, err))
+			return errors.New(fmt.Sprintf("Couldn't set the value for %s : %s", remainingFlagsMap[flag].Name, err))
 		}
 	}
+
+	return nil
 }
