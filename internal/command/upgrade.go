@@ -31,7 +31,3 @@ func runUpgrade(cmd *cobra.Command, args []string) {
 
 	_ = sdk.Upgrade()
 }
-
-func init() {
-	rootCmd.AddCommand(upgradeCmd)
-}

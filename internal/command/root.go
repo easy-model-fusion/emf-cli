@@ -2,6 +2,7 @@ package command
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	commandmodel "github.com/easy-model-fusion/emf-cli/internal/command/model"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/spf13/cobra"
@@ -17,11 +18,11 @@ func Execute() {
 	}
 }
 
-const cmdRootTitle string = app.Name
+const rootCommandName string = app.Name
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   cmdRootTitle,
+	Use:   rootCommandName,
 	Short: "emf-cli is a command line tool to manage a EMF project easily",
 	Long:  `emf-cli is a command line tool to manage a EMF project easily.`,
 	Run:   runRoot,
@@ -39,4 +40,12 @@ func runRoot(cmd *cobra.Command, args []string) {
 func init() {
 	// Add persistent flag for configuration file path
 	rootCmd.PersistentFlags().StringVar(&config.FilePath, "path", ".", "config file path")
+
+	// Adding subcommands
+	rootCmd.CompletionOptions.HiddenDefaultCmd = true
+	rootCmd.AddCommand(completionCmd)
+	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(initCmd)
+	rootCmd.AddCommand(upgradeCmd)
+	rootCmd.AddCommand(commandmodel.ModelCmd)
 }

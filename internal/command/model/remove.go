@@ -1,4 +1,4 @@
-package command
+package commandmodel
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
@@ -9,17 +9,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var allFlag bool
+var modelRemoveAllFlag bool
 
-// removeCmd represents the remove command
-var removeCmd = &cobra.Command{
+// modelRemoveCmd represents the model remove command
+var modelRemoveCmd = &cobra.Command{
 	Use:   "remove <model name> [<other model names>...]",
 	Short: "Remove one or more models",
 	Long:  "Remove one or more models",
-	Run:   runRemove,
+	Run:   runModelRemove,
 }
 
-func runRemove(cmd *cobra.Command, args []string) {
+// runModelRemove runs the model remove command
+func runModelRemove(cmd *cobra.Command, args []string) {
 	if config.GetViperConfig(config.FilePath) != nil {
 		return
 	}
@@ -27,7 +28,7 @@ func runRemove(cmd *cobra.Command, args []string) {
 	sdk.SendUpdateSuggestion()
 
 	// Remove all models
-	if allFlag {
+	if modelRemoveAllFlag {
 		err := config.RemoveAllModels()
 		if err == nil {
 			pterm.Success.Printfln("Operation succeeded.")
@@ -81,6 +82,6 @@ func selectModelsToDelete(currentModels []model.Model) []string {
 }
 
 func init() {
-	removeCmd.Flags().BoolVarP(&allFlag, "all", "a", false, "Remove all models")
-	rootCmd.AddCommand(removeCmd)
+	// Adding the command's flags
+	modelRemoveCmd.Flags().BoolVarP(&modelRemoveAllFlag, "all", "a", false, "Remove all models")
 }

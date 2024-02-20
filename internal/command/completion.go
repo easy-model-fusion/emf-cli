@@ -106,8 +106,3 @@ func runCompletion(cmd *cobra.Command, args []string) {
 		pterm.Error.Println(fmt.Sprintf("Shell '%s' not recognized. Expected %s", selectedShell, arguments))
 	}
 }
-
-func init() {
-	rootCmd.CompletionOptions.HiddenDefaultCmd = true
-	rootCmd.AddCommand(completionCmd)
-}
