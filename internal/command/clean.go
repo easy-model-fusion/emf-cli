@@ -70,7 +70,6 @@ func runClean(cmd *cobra.Command, args []string)  {
 	} else {
 		pterm.Error.Printfln("Operation failed.")
 	}
-	return
 }
 
 func deleteDir(dossier string) error {
