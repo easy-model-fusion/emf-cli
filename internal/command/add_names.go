@@ -101,6 +101,10 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 		}
 		// Get selected models
 		selectedModels, err = selectModels(selectedTags, selectedModels, existingModels)
+		if err != nil {
+			pterm.Error.Println(err.Error())
+			return
+		}
 	}
 
 	// Verify if selected models is not empty
@@ -125,7 +129,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	}
 
 	// Indicate the models that were skipped and need to be treated manually
-	if invalidModels != nil && len(invalidModels) > 0 {
+	if len(invalidModels) > 0 {
 		pterm.Warning.Println("These model(s) are already downloaded "+
 			"and should be checked manually", model.GetNames(invalidModels))
 	}
