@@ -28,13 +28,15 @@ func runTidy(cmd *cobra.Command, args []string) {
 	if err != nil {
 		pterm.Error.Println(err.Error())
 	}
+	
+	sdk.SendUpdateSuggestion() // TODO: here proxy?
+	
 	models, err := config.GetModels()
 	if err != nil {
 		pterm.Error.Println(err.Error())
 		return
 	}
 
-	sdk.SendUpdateSuggestion() // TODO: here proxy?
 
 	// Add all missing models
 	err = addMissingModels(models)
