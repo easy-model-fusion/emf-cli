@@ -124,6 +124,12 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// Indicate the models that were skipped and need to be treated manually
+	if invalidModels != nil && len(invalidModels) > 0 {
+		pterm.Warning.Println("These model(s) are already downloaded "+
+			"and should be checked manually", model.GetNames(invalidModels))
+	}
+
 	// Exclude Invalid models
 	selectedModels = model.Difference(selectedModels, invalidModels)
 
@@ -148,12 +154,6 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
 	} else {
 		spinner.Success()
-	}
-
-	// Indicate the models that were skipped and need to be treated manually
-	if invalidModels != nil && len(invalidModels) > 0 {
-		pterm.Warning.Println("These models are already downloaded "+
-			"and should be checked manually", model.GetNames(invalidModels))
 	}
 }
 
@@ -224,7 +224,8 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 // alreadyDownloadedModels this function returns models that are requested to be added but are already downloaded
 func alreadyDownloadedModels(models []model.Model) (downloadedModels []model.Model, err error) {
 	for _, currentModel := range models {
-		exists, err := utils.IsExistingPath(currentModel.Name)
+		currentModel = model.ConstructConfigPaths(currentModel)
+		exists, err := utils.IsExistingPath(currentModel.Config.Path)
 		if err != nil {
 			return nil, err
 		}
@@ -238,24 +239,28 @@ func alreadyDownloadedModels(models []model.Model) (downloadedModels []model.Mod
 
 // processAlreadyDownloadedModels this function processes models that are requested to be added
 // Pre-condition the models are not in the configuration file but are already downloaded
-func processAlreadyDownloadedModels(downloadedModels []model.Model) (failedModels []model.Model) {
+func processAlreadyDownloadedModels(downloadedModels []model.Model) (modelsToDelete []model.Model,
+	failedModels []model.Model) {
 	for _, currentModel := range downloadedModels {
 		var message string
 		if currentModel.ShouldBeDownloaded {
-			message = fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?")
+			message = fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?", currentModel.Name)
 		} else {
-			message = fmt.Sprintf("This model %s is already downloaded do you wish to delete it?")
+			message = fmt.Sprintf("This model %s is already downloaded do you wish to delete it?", currentModel.Name)
 		}
 		yes := utils.AskForUsersConfirmation(message)
 
-		// If the user refused the proposed action, there is nothing we can do
-		// and the model should be skipped and treated manually
-		if !yes {
+		if yes {
+			// If the user accepted the proposed action, the model will be deleted
+			modelsToDelete = append(modelsToDelete, currentModel)
+		} else {
+			// If the user refused the proposed action, there is nothing we can do
+			// and the model should be skipped and treated manually
 			failedModels = append(failedModels, currentModel)
 		}
 	}
 
-	return failedModels
+	return modelsToDelete, failedModels
 }
 
 // searchForInvalidModels this function returns models that
@@ -266,7 +271,17 @@ func searchForInvalidModels(models []model.Model) (invalidModels []model.Model, 
 		return nil, err
 	}
 
-	invalidModels = processAlreadyDownloadedModels(alreadyDownloadModels)
+	// Retrieve models which the user accepted/refused to delete
+	modelsToDelete, invalidModels := processAlreadyDownloadedModels(alreadyDownloadModels)
+
+	// Delete models which the user accepted to delete
+	for _, modelToDelete := range modelsToDelete {
+		err := config.RemoveModelPhysically(modelToDelete.Name)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return invalidModels, nil
 }
 
