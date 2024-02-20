@@ -174,12 +174,12 @@ func DownloadModel(modelObj model.Model) (model.Model, bool) {
 	// TODO : validate model to download
 
 	// Exclude from download if not requested
-	if !modelObj.AddToBinary {
+	if !modelObj.IsDownloaded {
 		return modelObj, true
 	}
 
 	// Reset in case the download fails
-	modelObj.AddToBinary = false
+	modelObj.IsDownloaded = false
 
 	// Prepare the script arguments
 	downloaderArgs := script.DownloaderArgs{
@@ -198,7 +198,7 @@ func DownloadModel(modelObj model.Model) (model.Model, bool) {
 
 	// Update the model for the configuration file
 	modelObj.Config = model.MapToConfigFromScriptDownloaderModel(modelObj.Config, sdm)
-	modelObj.AddToBinary = true
+	modelObj.IsDownloaded = true
 
 	return modelObj, true
 }

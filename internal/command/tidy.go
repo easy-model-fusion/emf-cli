@@ -28,15 +28,14 @@ func runTidy(cmd *cobra.Command, args []string) {
 	if err != nil {
 		pterm.Error.Println(err.Error())
 	}
-	
+
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
-	
+
 	models, err := config.GetModels()
 	if err != nil {
 		pterm.Error.Println(err.Error())
 		return
 	}
-
 
 	// Add all missing models
 	err = addMissingModels(models)
@@ -64,7 +63,7 @@ func runTidy(cmd *cobra.Command, args []string) {
 func getModelsToBeAddedToBinary(models []model.Model) (returnedModels []model.Model) {
 
 	for _, currentModel := range models {
-		if currentModel.AddToBinary {
+		if currentModel.IsDownloaded {
 			returnedModels = append(returnedModels, currentModel)
 		}
 	}
@@ -169,7 +168,7 @@ func generateModelsConfig(modelNames []string) error {
 			currentModel = model.Model{Name: modelName}
 			currentModel.Source = model.CUSTOM
 		}
-		currentModel.AddToBinary = true
+		currentModel.IsDownloaded = true
 		currentModel = model.ConstructConfigPaths(currentModel)
 		models = append(models, currentModel)
 	}

@@ -192,7 +192,7 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 	installsToExclude := utils.DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
 	var updatedModels []model.Model
 	for _, currentModel := range models {
-		currentModel.AddToBinary = utils.SliceContainsItem(installsToExclude, currentModel.Name)
+		currentModel.IsDownloaded = utils.SliceContainsItem(installsToExclude, currentModel.Name)
 		updatedModels = append(updatedModels, currentModel)
 	}
 

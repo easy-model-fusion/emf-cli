@@ -1,11 +1,11 @@
 package model
 
 var AllTags = []string{
-	TEXT_TO_TEXT,
+	TEXT_GENERATION,
 	TEXT_TO_IMAGE,
 }
 
 const (
-	TEXT_TO_TEXT  = "text2text-generation"
-	TEXT_TO_IMAGE = "text-to-image"
+	TEXT_GENERATION = "text-generation"
+	TEXT_TO_IMAGE   = "text-to-image"
 )
