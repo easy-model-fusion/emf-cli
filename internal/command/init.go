@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/easy-model-fusion/emf-cli/sdk"
@@ -73,7 +74,7 @@ func createProject(projectName string) (err error) {
 
 	// Check the latest sdk version
 	spinner, _ = pterm.DefaultSpinner.Start("Checking for latest sdk version...")
-	sdkTag, err := utils.GetLatestTag("sdk")
+	sdkTag, err := app.G().GetLatestTag("sdk")
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error checking for latest sdk version: %s", err))
 		os.Exit(1)
@@ -90,7 +91,7 @@ func createProject(projectName string) (err error) {
 
 	// Clone SDK
 	spinner, _ = pterm.DefaultSpinner.Start("Cloning sdk...")
-	err = utils.CloneSDK(sdkTag, filepath.Join(projectName, "sdk"))
+	err = app.G().CloneSDK(sdkTag, filepath.Join(projectName, "sdk"))
 	if err != nil {
 		spinner.Fail("Unable to clone sdk", err)
 		return err
