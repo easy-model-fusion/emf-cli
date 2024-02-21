@@ -3,14 +3,14 @@ package codegen
 import "testing"
 
 func TestAssignment_Accept(t *testing.T) {
-	a := &Assignment{}
+	a := &AssignmentStmt{}
 	v := newTestVisitor()
 	err := a.Accept(v)
 	if err != nil {
 		t.Error(err)
 	}
-	if !v.visits["assignment"] {
-		t.Error("VisitAssignment not called")
+	if !v.visits["assignment_stmt"] {
+		t.Error("VisitAssignmentStmt not called")
 	}
 }
 
@@ -98,6 +98,66 @@ func TestImportWhat_Accept(t *testing.T) {
 	}
 }
 
+func TestFunctionCallStmt_Accept(t *testing.T) {
+	f := &FunctionCallStmt{}
+	v := newTestVisitor()
+	err := f.Accept(v)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v.visits["function_call_stmt"] {
+		t.Error("VisitFunctionCallStmt not called")
+	}
+}
+
+func TestFunctionCallParameter_Accept(t *testing.T) {
+	f := &FunctionCallParameter{}
+	v := newTestVisitor()
+	err := f.Accept(v)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v.visits["function_call_parameter"] {
+		t.Error("VisitFunctionCallParameter not called")
+	}
+}
+
+func TestCommentStmt_Accept(t *testing.T) {
+	c := &CommentStmt{}
+	v := newTestVisitor()
+	err := c.Accept(v)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v.visits["comment_stmt"] {
+		t.Error("VisitCommentStmt not called")
+	}
+}
+
+func TestReturnStmt_Accept(t *testing.T) {
+	r := &ReturnStmt{}
+	v := newTestVisitor()
+	err := r.Accept(v)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v.visits["return_stmt"] {
+		t.Error("VisitReturnStmt not called")
+	}
+}
+
+func TestFunctionCall_Accept(t *testing.T) {
+	f := &FunctionCall{}
+	v := newTestVisitor()
+	err := f.Accept(v)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v.visits["function_call"] {
+		t.Error("VisitFunctionCall not called")
+	}
+}
+
 type testVisitor struct {
 	visits map[string]bool
 }
@@ -143,8 +203,8 @@ func (v *testVisitor) VisitImportWhat(*ImportWhat) error {
 	return nil
 }
 
-func (v *testVisitor) VisitAssignment(*Assignment) error {
-	v.visits["assignment"] = true
+func (v *testVisitor) VisitAssignmentStmt(*AssignmentStmt) error {
+	v.visits["assignment_stmt"] = true
 	return nil
 }
 
@@ -155,5 +215,30 @@ func (v *testVisitor) VisitStatement(*Statement) error {
 
 func (v *testVisitor) VisitExpression(*Expression) error {
 	v.visits["expression"] = true
+	return nil
+}
+
+func (v *testVisitor) VisitFunctionCallStmt(*FunctionCallStmt) error {
+	v.visits["function_call_stmt"] = true
+	return nil
+}
+
+func (v *testVisitor) VisitFunctionCallParameter(*FunctionCallParameter) error {
+	v.visits["function_call_parameter"] = true
+	return nil
+}
+
+func (v *testVisitor) VisitFunctionCall(*FunctionCall) error {
+	v.visits["function_call"] = true
+	return nil
+}
+
+func (v *testVisitor) VisitCommentStmt(*CommentStmt) error {
+	v.visits["comment_stmt"] = true
+	return nil
+}
+
+func (v *testVisitor) VisitReturnStmt(*ReturnStmt) error {
+	v.visits["return_stmt"] = true
 	return nil
 }

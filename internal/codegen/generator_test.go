@@ -40,9 +40,9 @@ func TestPythonCodeGenerator_Generate(t *testing.T) {
 					},
 				},
 				Body: []Statement{
-					&Assignment{
-						Variable: "a",
-						Value:    "1",
+					&AssignmentStmt{
+						Variable:    "a",
+						StringValue: "1",
 					},
 				},
 			},
@@ -65,9 +65,9 @@ func TestPythonCodeGenerator_Generate(t *testing.T) {
 							},
 						},
 						Body: []Statement{
-							&Assignment{
-								Variable: "self.a",
-								Value:    "1",
+							&AssignmentStmt{
+								Variable:    "self.a",
+								StringValue: "1",
 							},
 						},
 					},
@@ -268,6 +268,39 @@ func TestPythonCodeGenerator_VisitClass_WithMethodsError(t *testing.T) {
 	test.AssertNotEqual(t, cg.VisitClass(class), nil, "expected error")
 }
 
+func TestPythonCodeGenerator_VisitClass_WithStatementsError(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	class := &Class{
+		Name: "test",
+		Statements: []Statement{
+			&AssignmentStmt{
+				Variable:    "",
+				StringValue: "1",
+			},
+		},
+	}
+
+	test.AssertNotEqual(t, cg.VisitClass(class), nil, "expected error")
+}
+
+func TestPythonCodeGenerator_VisitClass_WithStatements(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	class := &Class{
+		Name: "test",
+		Statements: []Statement{
+			&AssignmentStmt{
+				Variable:    "a",
+				StringValue: "1",
+			},
+		},
+	}
+
+	test.AssertEqual(t, cg.VisitClass(class), nil, "no error expected")
+
+	test.AssertEqual(t, cg.sb.String(), "class test:\n    a = 1\n\n")
+
+}
+
 func TestPythonCodeGenerator_VisitClass(t *testing.T) {
 	cg := NewPythonCodeGenerator(true)
 	class := &Class{
@@ -287,9 +320,9 @@ func TestPythonCodeGenerator_VisitClass(t *testing.T) {
 					},
 				},
 				Body: []Statement{
-					&Assignment{
-						Variable: "self.a",
-						Value:    "1",
+					&AssignmentStmt{
+						Variable:    "self.a",
+						StringValue: "1",
 					},
 				},
 			},
@@ -370,9 +403,9 @@ func TestPythonCodeGenerator_VisitFunction_WithBodyAndParams(t *testing.T) {
 			},
 		},
 		Body: []Statement{
-			&Assignment{
-				Variable: "a",
-				Value:    "1",
+			&AssignmentStmt{
+				Variable:    "a",
+				StringValue: "1",
 			},
 		},
 	}
@@ -446,7 +479,7 @@ func TestPythonCodeGenerator_VisitFunction_WithBodyError(t *testing.T) {
 	function := &Function{
 		Name: "test",
 		Body: []Statement{
-			&Assignment{
+			&AssignmentStmt{
 				Variable: "a",
 				Type:     "int",
 			},
@@ -465,6 +498,26 @@ func TestPythonCodeGenerator_VisitFunction_WithReturnType(t *testing.T) {
 
 	test.AssertEqual(t, cg.VisitFunction(function), nil, "no error expected")
 	test.AssertEqual(t, cg.sb.String(), "def test() -> int:\n    pass\n")
+}
+
+func TestPythonCodeGenerator_VisitFunction_WithUnorderedDefaultParams(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	function := &Function{
+		Name: "test",
+		Params: []Parameter{
+			{
+				Name:    "args",
+				Type:    "List[str]",
+				Default: "[]",
+			},
+			{
+				Name: "kwargs",
+				Type: "Dict[str, str]",
+			},
+		},
+	}
+
+	test.AssertNotEqual(t, cg.VisitFunction(function), nil, "expected error")
 }
 
 func TestPythonCodeGenerator_VisitImport(t *testing.T) {
@@ -606,46 +659,387 @@ func TestPythonCodeGenerator_VisitParameter(t *testing.T) {
 	t.Logf("\n%s", cg.sb.String())
 }
 
+func TestPythonCodeGenerator_VisitParameter_WithDefault(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+
+	param := &Parameter{
+		Name:    "args",
+		Type:    "List[str]",
+		Default: "[]",
+	}
+
+	err := cg.VisitParameter(param)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "args: List[str] = []")
+
+	t.Logf("\n%s", cg.sb.String())
+}
+
 func TestPythonCodeGenerator_VisitAssignment(t *testing.T) {
 	cg := NewPythonCodeGenerator(true)
-	assign := &Assignment{}
-	err := cg.VisitAssignment(assign)
+	assign := &AssignmentStmt{}
+	err := cg.VisitAssignmentStmt(assign)
 
 	if err == nil {
 		t.Error("expected error")
 		t.FailNow()
 	}
 
-	assign = &Assignment{
-		Variable: "a",
-		Value:    "1",
+	assign = &AssignmentStmt{
+		Variable:    "a",
+		StringValue: "1",
 	}
 
-	test.AssertEqual(t, cg.VisitAssignment(assign), nil)
+	test.AssertEqual(t, cg.VisitAssignmentStmt(assign), nil)
 
-	assign = &Assignment{
-		Variable: "a",
-		Type:     "int",
-		Value:    "",
+	assign = &AssignmentStmt{
+		Variable:    "a",
+		Type:        "int",
+		StringValue: "",
 	}
 
-	test.AssertNotEqual(t, cg.VisitAssignment(assign), nil, "expected error")
+	test.AssertNotEqual(t, cg.VisitAssignmentStmt(assign), nil, "expected error")
 
 	cg.sb.Reset()
 
-	assign = &Assignment{
-		Variable: "a",
-		Type:     "int",
-		Value:    "1",
+	assign = &AssignmentStmt{
+		Variable:    "a",
+		Type:        "int",
+		StringValue: "1",
 	}
 
-	err = cg.VisitAssignment(assign)
+	err = cg.VisitAssignmentStmt(assign)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
 	}
 
 	test.AssertEqual(t, cg.sb.String(), "a: int = 1\n")
+
+	t.Logf("\n%s", cg.sb.String())
+}
+
+func TestPythonCodeGenerator_VisitAssignment_WithFunctionCall(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	assign := &AssignmentStmt{
+		Variable: "a",
+		FunctionCallValue: &FunctionCall{
+			Name: "test",
+			Params: []FunctionCallParameter{
+				{
+					Name:  "a",
+					Value: "1",
+				},
+			},
+		},
+	}
+
+	err := cg.VisitAssignmentStmt(assign)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "a = test(\n    a = 1\n)\n")
+
+	t.Logf("\n%s", cg.sb.String())
+}
+
+func TestPythonCodeGenerator_VisitAssignment_WithFunctionCallError(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	assign := &AssignmentStmt{
+		Variable: "a",
+		FunctionCallValue: &FunctionCall{
+			Name: "test",
+			Params: []FunctionCallParameter{
+				{
+					Name:  "a",
+					Value: "",
+				},
+			},
+		},
+	}
+
+	err := cg.VisitAssignmentStmt(assign)
+	if err == nil {
+		t.Error("expected error")
+		t.FailNow()
+	}
+}
+
+func TestPythonCodeGenerator_VisitAssignment_WithValueAndFunctionCall(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	assign := &AssignmentStmt{
+		Variable:    "a",
+		StringValue: "aa",
+		FunctionCallValue: &FunctionCall{
+			Name: "test",
+		},
+	}
+	test.AssertNotEqual(t, cg.VisitAssignmentStmt(assign), nil, "error expected")
+}
+
+func TestPythonCodeGenerator_VisitComment(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	comment := &CommentStmt{}
+	err := cg.VisitCommentStmt(comment)
+
+	if err == nil {
+		t.Error("expected error")
+		t.FailNow()
+	}
+
+	comment = &CommentStmt{
+		Lines: []string{},
+	}
+
+	err = cg.VisitCommentStmt(comment)
+	if err == nil {
+		t.Error("expected error")
+		t.FailNow()
+	}
+
+	comment = &CommentStmt{
+		Lines: []string{
+			"test",
+		},
+	}
+
+	err = cg.VisitCommentStmt(comment)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "# test\n")
+
+	cg.sb.Reset()
+
+	comment = &CommentStmt{
+		Lines: []string{
+			"test",
+			"test",
+		},
+	}
+
+	err = cg.VisitCommentStmt(comment)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "\"\"\"\ntest\ntest\n\"\"\"\n")
+
+	t.Logf("\n%s", cg.sb.String())
+}
+
+func TestPythonCodeGenerator_VisitFunctionCallStmt(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	stmt := &FunctionCallStmt{}
+	err := cg.VisitFunctionCallStmt(stmt)
+
+	if err == nil {
+		t.Error("expected error")
+		t.FailNow()
+	}
+
+	stmt = &FunctionCallStmt{
+		FunctionCall: FunctionCall{
+			Name: "",
+		},
+	}
+
+	err = cg.VisitFunctionCallStmt(stmt)
+	if err == nil {
+		t.Error("expected error")
+		t.FailNow()
+	}
+
+	stmt = &FunctionCallStmt{
+		FunctionCall{
+			Name: "test",
+			Params: []FunctionCallParameter{
+				{
+					Name:  "a",
+					Value: "1",
+				},
+			},
+		},
+	}
+
+	err = cg.VisitFunctionCallStmt(stmt)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "test(\n    a = 1\n)\n")
+
+	cg.sb.Reset()
+
+	stmt = &FunctionCallStmt{
+		FunctionCall{
+			Name: "test",
+			Params: []FunctionCallParameter{
+				{
+					Name:  "a",
+					Value: "1",
+				},
+				{
+					Name:  "b",
+					Value: "2",
+				},
+			},
+		},
+	}
+
+	err = cg.VisitFunctionCallStmt(stmt)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "test(\n    a = 1,\n    b = 2\n)\n")
+
+	t.Logf("\n%s", cg.sb.String())
+}
+
+func TestPythonCodeGenerator_VisitFunctionCallParameter(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	param := &FunctionCallParameter{}
+	err := cg.VisitFunctionCallParameter(param)
+
+	if err == nil {
+		t.Error("expected error")
+		t.FailNow()
+	}
+
+	param = &FunctionCallParameter{
+		Value: "",
+	}
+
+	err = cg.VisitFunctionCallParameter(param)
+	if err == nil {
+		t.Error("expected error")
+		t.FailNow()
+	}
+
+	param = &FunctionCallParameter{
+		Value: "1",
+	}
+
+	err = cg.VisitFunctionCallParameter(param)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "1")
+
+	cg.sb.Reset()
+
+	param = &FunctionCallParameter{
+		Name:  "a",
+		Value: "1",
+	}
+
+	err = cg.VisitFunctionCallParameter(param)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "a = 1")
+
+	t.Logf("\n%s", cg.sb.String())
+}
+
+func TestPythonCodeGenerator_VisitFunctionCall_ParamValueError(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+
+	functionCall := &FunctionCallStmt{
+		FunctionCall: FunctionCall{
+			Name: "test",
+			Params: []FunctionCallParameter{
+				{
+					Name:  "a",
+					Value: "",
+				},
+			},
+		},
+	}
+
+	err := cg.VisitFunctionCallStmt(functionCall)
+
+	test.AssertNotEqual(t, err, nil, "error expected")
+}
+
+func TestPythonCodeGenerator_VisitFunctionCall_ParamOrderError(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+
+	functionCall := &FunctionCallStmt{
+		FunctionCall: FunctionCall{
+			Name: "test",
+			Params: []FunctionCallParameter{
+				{
+					Name:  "a",
+					Value: "1",
+				},
+				{
+					Name:  "",
+					Value: "2",
+				},
+			},
+		},
+	}
+
+	err := cg.VisitFunctionCallStmt(functionCall)
+
+	test.AssertNotEqual(t, err, nil, "error expected")
+}
+
+func TestPythonCodeGenerator_VisitReturnStmt(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	stmt := &ReturnStmt{}
+	err := cg.VisitReturnStmt(stmt)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "return\n")
+
+	cg.sb.Reset()
+
+	stmt = &ReturnStmt{
+		Value: "",
+	}
+
+	err = cg.VisitReturnStmt(stmt)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "return\n")
+
+	cg.sb.Reset()
+
+	stmt = &ReturnStmt{
+		Value: "1",
+	}
+
+	err = cg.VisitReturnStmt(stmt)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "return 1\n")
 
 	t.Logf("\n%s", cg.sb.String())
 }
@@ -724,9 +1118,9 @@ func TestPythonCodeGenerator_VisitFile(t *testing.T) {
 					},
 				},
 				Body: []Statement{
-					&Assignment{
-						Variable: "a",
-						Value:    "1",
+					&AssignmentStmt{
+						Variable:    "a",
+						StringValue: "1",
 					},
 				},
 			},
@@ -749,9 +1143,9 @@ func TestPythonCodeGenerator_VisitFile(t *testing.T) {
 							},
 						},
 						Body: []Statement{
-							&Assignment{
-								Variable: "self.a",
-								Value:    "1",
+							&AssignmentStmt{
+								Variable:    "self.a",
+								StringValue: "1",
 							},
 						},
 					},
