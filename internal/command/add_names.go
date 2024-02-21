@@ -218,7 +218,7 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 	installsToExclude := utils.DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
 	var updatedModels []model.Model
 	for _, currentModel := range models {
-		currentModel.ShouldBeDownloaded = utils.SliceContainsItem(installsToExclude, currentModel.Name)
+		currentModel.AddToBinaryFile = utils.SliceContainsItem(installsToExclude, currentModel.Name)
 		updatedModels = append(updatedModels, currentModel)
 	}
 
@@ -247,7 +247,7 @@ func processAlreadyDownloadedModels(downloadedModels []model.Model) (modelsToDel
 	failedModels []model.Model) {
 	for _, currentModel := range downloadedModels {
 		var message string
-		if currentModel.ShouldBeDownloaded {
+		if currentModel.AddToBinaryFile {
 			message = fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?", currentModel.Name)
 		} else {
 			message = fmt.Sprintf("This model %s is already downloaded do you wish to delete it?", currentModel.Name)

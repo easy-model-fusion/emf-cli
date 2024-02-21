@@ -13,9 +13,9 @@ import (
 func getModel(suffix int) Model {
 	idStr := fmt.Sprint(suffix)
 	return Model{
-		Name:               "model" + idStr,
-		Config:             Config{Module: "module" + idStr, Class: "class" + idStr},
-		ShouldBeDownloaded: true,
+		Name:            "model" + idStr,
+		Config:          Config{Module: "module" + idStr, Class: "class" + idStr},
+		AddToBinaryFile: true,
 	}
 }
 
