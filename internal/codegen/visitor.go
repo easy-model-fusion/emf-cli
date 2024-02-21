@@ -11,5 +11,10 @@ type PythonVisitor interface {
 	VisitImport(*Import) error
 	VisitImportWhat(*ImportWhat) error
 
-	VisitAssignment(*Assignment) error
+	// Statements
+	VisitAssignmentStmt(*AssignmentStmt) error
+	VisitFunctionCallStmt(*FunctionCallStmt) error
+	VisitFunctionCallStmtParameter(*FunctionCallStmtParameter) error
+	VisitCommentStmt(*CommentStmt) error
+	VisitReturnStmt(*ReturnStmt) error
 }

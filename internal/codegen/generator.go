@@ -136,14 +136,26 @@ func (cg *PythonCodeGenerator) VisitFunction(function *Function) error {
 
 	cg.append(function.Name + "(")
 
+	defaultFound := false
+
 	for i, param := range function.Params {
-		if i > 0 && i < len(function.Params) {
-			cg.append(", ")
+		if param.Default != "" {
+			defaultFound = true
 		}
+
 		err := param.Accept(cg)
 		if err != nil {
 			return err
 		}
+
+		if param.Default == "" && defaultFound {
+			return errors.New("non-default argument follows default argument")
+		}
+
+		if i < len(function.Params)-1 {
+			cg.append(", ")
+		}
+
 	}
 
 	if function.ReturnType != "" {
@@ -207,6 +219,17 @@ func (cg *PythonCodeGenerator) VisitClass(class *Class) error {
 		cg.newLine()
 	}
 
+	for _, stmt := range class.Statements {
+		err := stmt.Accept(cg)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(class.Statements) > 0 {
+		cg.newLine()
+	}
+
 	for _, method := range class.Methods {
 		err := method.Accept(cg)
 		if err != nil {
@@ -215,7 +238,7 @@ func (cg *PythonCodeGenerator) VisitClass(class *Class) error {
 	}
 
 	// If the class has no fields and no methods, add a pass statement
-	if len(class.Fields) == 0 && len(class.Methods) == 0 {
+	if len(class.Fields) == 0 && len(class.Methods) == 0 && len(class.Statements) == 0 {
 		cg.appendIndented("pass\n")
 	}
 
@@ -248,6 +271,11 @@ func (cg *PythonCodeGenerator) VisitParameter(parameter *Parameter) error {
 	}
 	if parameter.Type == "" {
 		cg.append(parameter.Name)
+		return nil
+	}
+
+	if parameter.Default != "" {
+		cg.append(parameter.Name + ": " + parameter.Type + " = " + parameter.Default)
 		return nil
 	}
 
@@ -297,8 +325,8 @@ func (cg *PythonCodeGenerator) VisitImportWhat(importWhat *ImportWhat) error {
 	return nil
 }
 
-// VisitAssignment visits an Assignment node
-func (cg *PythonCodeGenerator) VisitAssignment(assignment *Assignment) error {
+// VisitAssignmentStmt visits an AssignmentStmt node
+func (cg *PythonCodeGenerator) VisitAssignmentStmt(assignment *AssignmentStmt) error {
 	if assignment.Variable == "" {
 		return errors.New("assignment variable cannot be empty")
 	}
@@ -315,6 +343,95 @@ func (cg *PythonCodeGenerator) VisitAssignment(assignment *Assignment) error {
 
 	cg.append(assignment.Value + "\n")
 
+	return nil
+}
+
+// VisitCommentStmt visits a CommentStmt node
+func (cg *PythonCodeGenerator) VisitCommentStmt(comment *CommentStmt) error {
+	if len(comment.Lines) == 0 {
+		return errors.New("comment must have at least one line")
+	}
+
+	// Single line comment
+	if len(comment.Lines) == 1 {
+		cg.appendIndented("# " + comment.Lines[0] + "\n")
+		return nil
+	}
+
+	// Multi line comment
+	cg.appendIndented("\"\"\"\n")
+
+	for _, line := range comment.Lines {
+		cg.appendIndented(line + "\n")
+	}
+
+	cg.appendIndented("\"\"\"\n")
+
+	return nil
+}
+
+// VisitFunctionCallStmt visits a FunctionCallStmt node
+func (cg *PythonCodeGenerator) VisitFunctionCallStmt(functionCall *FunctionCallStmt) error {
+	if functionCall.Name == "" {
+		return errors.New("function call name cannot be empty")
+	}
+
+	cg.append(functionCall.Name + "(\n")
+	cg.up() // cool looking code
+
+	positionalFound := false
+
+	for i, param := range functionCall.Params {
+		if param.Name != "" {
+			positionalFound = true
+		}
+		cg.appendIndented("")
+
+		err := param.Accept(cg)
+		if err != nil {
+			return err
+		}
+
+		if param.Name == "" && positionalFound {
+			return errors.New("positional argument follows keyword argument")
+		}
+
+		if i < len(functionCall.Params)-1 {
+			cg.append(",\n")
+		}
+	}
+
+	cg.down()
+	cg.newLine()
+	cg.append(")\n")
+
+	return nil
+}
+
+// VisitFunctionCallStmtParameter visits a FunctionCallStmtParameter node
+func (cg *PythonCodeGenerator) VisitFunctionCallStmtParameter(functionCallParameter *FunctionCallStmtParameter) error {
+	if functionCallParameter.Value == "" {
+		return errors.New("function call parameter value cannot be empty")
+	}
+
+	if functionCallParameter.Name == "" {
+		cg.append(functionCallParameter.Value)
+		return nil
+	}
+
+	cg.append(functionCallParameter.Name + " = " + functionCallParameter.Value)
+
+	return nil
+}
+
+// VisitReturnStmt visits a ReturnStmt node
+func (cg *PythonCodeGenerator) VisitReturnStmt(returnStmt *ReturnStmt) error {
+	if returnStmt.Value == "" {
+		cg.appendIndented("return\n")
+		return nil
+	}
+
+	cg.appendIndented("return " + returnStmt.Value + "\n")
 	return nil
 }
 
