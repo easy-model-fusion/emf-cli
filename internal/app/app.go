@@ -1,6 +1,7 @@
 package app
 
 const Name = "emf-cli"
+const Repository = "https://github.com/easy-model-fusion"
 
 var (
 	// Version is the binary version + build number

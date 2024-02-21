@@ -28,7 +28,6 @@ var rootCmd = &cobra.Command{
 }
 
 func runRoot(cmd *cobra.Command, args []string) {
-
 	// Build objects containing all the available commands
 	commandsList, commandsMap := utils.CobraGetSubCommands(cmd, []string{completionCmd.Use})
 
@@ -37,6 +36,8 @@ func runRoot(cmd *cobra.Command, args []string) {
 }
 
 func init() {
+	app.InitGit(app.Repository, "")
 	// Add persistent flag for configuration file path
 	rootCmd.PersistentFlags().StringVar(&config.FilePath, "path", ".", "config file path")
+	rootCmd.PersistentFlags().StringVar(&app.G().AuthToken, "git-auth-token", "", "Git auth token")
 }
