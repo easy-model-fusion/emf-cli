@@ -71,6 +71,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 			apiModel, err := app.H().GetModel(name)
 			if err != nil {
 				// Model not found : skipping to the next one
+				pterm.Warning.Printfln("Model %s not valid : "+err.Error(), name)
 				notFoundModelNames = append(notFoundModelNames, name)
 				continue
 			}
