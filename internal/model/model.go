@@ -91,7 +91,7 @@ func (m *Model) GenClass() *codegen.Class {
 			&codegen.AssignmentStmt{
 				Variable:    "model_name",
 				Type:        "str",
-				StringValue: m.Name,
+				StringValue: "\"" + m.Name + "\"",
 			},
 		},
 		Methods: []*codegen.Function{
@@ -109,11 +109,11 @@ func (m *Model) GenClass() *codegen.Class {
 							Params: []codegen.FunctionCallParameter{
 								{
 									Name:  "model_name",
-									Value: m.Name,
+									Value: "\"" + m.Name + "\"",
 								},
 								{
 									Name:  "model_path",
-									Value: m.Config.Path,
+									Value: "\"" + m.Config.Path + "\"",
 								},
 							},
 						},
