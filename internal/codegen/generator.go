@@ -337,11 +337,23 @@ func (cg *PythonCodeGenerator) VisitAssignmentStmt(assignment *AssignmentStmt) e
 		cg.appendIndented(assignment.Variable + " = ")
 	}
 
-	if assignment.Value == "" {
-		return errors.New("assignment value cannot be empty")
+	if assignment.FunctionCallValue != nil && assignment.StringValue != "" {
+		return errors.New("assignment cannot have both function call and string value")
 	}
 
-	cg.append(assignment.Value + "\n")
+	if assignment.FunctionCallValue == nil && assignment.StringValue == "" {
+		return errors.New("assignment must have either function call or string value")
+	}
+
+	if assignment.FunctionCallValue != nil {
+		err := assignment.FunctionCallValue.Accept(cg)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	cg.append(assignment.StringValue + "\n")
 
 	return nil
 }
@@ -372,6 +384,12 @@ func (cg *PythonCodeGenerator) VisitCommentStmt(comment *CommentStmt) error {
 
 // VisitFunctionCallStmt visits a FunctionCallStmt node
 func (cg *PythonCodeGenerator) VisitFunctionCallStmt(functionCall *FunctionCallStmt) error {
+	cg.appendIndented("")
+	return functionCall.FunctionCall.Accept(cg)
+}
+
+// VisitFunctionCall visits a FunctionCall node
+func (cg *PythonCodeGenerator) VisitFunctionCall(functionCall *FunctionCall) error {
 	if functionCall.Name == "" {
 		return errors.New("function call name cannot be empty")
 	}
@@ -408,8 +426,8 @@ func (cg *PythonCodeGenerator) VisitFunctionCallStmt(functionCall *FunctionCallS
 	return nil
 }
 
-// VisitFunctionCallStmtParameter visits a FunctionCallStmtParameter node
-func (cg *PythonCodeGenerator) VisitFunctionCallStmtParameter(functionCallParameter *FunctionCallStmtParameter) error {
+// VisitFunctionCallParameter visits a FunctionCallParameter node
+func (cg *PythonCodeGenerator) VisitFunctionCallParameter(functionCallParameter *FunctionCallParameter) error {
 	if functionCallParameter.Value == "" {
 		return errors.New("function call parameter value cannot be empty")
 	}

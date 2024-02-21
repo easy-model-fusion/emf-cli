@@ -60,19 +60,24 @@ type Statement interface {
 }
 
 type AssignmentStmt struct {
-	Variable string
-	Type     string
-	Value    string
+	Variable          string
+	Type              string
+	StringValue       string
+	FunctionCallValue *FunctionCall
+}
+
+type FunctionCall struct {
+	Name   string
+	Params []FunctionCallParameter
+}
+
+type FunctionCallParameter struct {
+	Name  string
+	Value string
 }
 
 type FunctionCallStmt struct {
-	Name   string
-	Params []FunctionCallStmtParameter
-}
-
-type FunctionCallStmtParameter struct {
-	Name  string
-	Value string
+	FunctionCall
 }
 
 // CommentStmt One line is using # and multiple lines are using """
@@ -134,9 +139,14 @@ func (s *FunctionCallStmt) Accept(visitor PythonVisitor) error {
 	return visitor.VisitFunctionCallStmt(s)
 }
 
-// Accept method for FunctionCallStmtParameter
-func (s *FunctionCallStmtParameter) Accept(visitor PythonVisitor) error {
-	return visitor.VisitFunctionCallStmtParameter(s)
+// Accept method for FunctionCall
+func (s *FunctionCall) Accept(visitor PythonVisitor) error {
+	return visitor.VisitFunctionCall(s)
+}
+
+// Accept method for FunctionCallParameter
+func (s *FunctionCallParameter) Accept(visitor PythonVisitor) error {
+	return visitor.VisitFunctionCallParameter(s)
 }
 
 // Accept method for ReturnStmt

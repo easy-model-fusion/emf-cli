@@ -9,7 +9,7 @@ func TestAssignment_Accept(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if !v.visits["assignment"] {
+	if !v.visits["assignment_stmt"] {
 		t.Error("VisitAssignmentStmt not called")
 	}
 }
@@ -105,20 +105,20 @@ func TestFunctionCallStmt_Accept(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if !v.visits["function_call"] {
+	if !v.visits["function_call_stmt"] {
 		t.Error("VisitFunctionCallStmt not called")
 	}
 }
 
-func TestFunctionCallStmtParameter_Accept(t *testing.T) {
-	f := &FunctionCallStmtParameter{}
+func TestFunctionCallParameter_Accept(t *testing.T) {
+	f := &FunctionCallParameter{}
 	v := newTestVisitor()
 	err := f.Accept(v)
 	if err != nil {
 		t.Error(err)
 	}
 	if !v.visits["function_call_parameter"] {
-		t.Error("VisitFunctionCallStmtParameter not called")
+		t.Error("VisitFunctionCallParameter not called")
 	}
 }
 
@@ -129,7 +129,7 @@ func TestCommentStmt_Accept(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if !v.visits["comment"] {
+	if !v.visits["comment_stmt"] {
 		t.Error("VisitCommentStmt not called")
 	}
 }
@@ -141,8 +141,20 @@ func TestReturnStmt_Accept(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if !v.visits["return"] {
+	if !v.visits["return_stmt"] {
 		t.Error("VisitReturnStmt not called")
+	}
+}
+
+func TestFunctionCall_Accept(t *testing.T) {
+	f := &FunctionCall{}
+	v := newTestVisitor()
+	err := f.Accept(v)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v.visits["function_call"] {
+		t.Error("VisitFunctionCall not called")
 	}
 }
 
@@ -192,7 +204,7 @@ func (v *testVisitor) VisitImportWhat(*ImportWhat) error {
 }
 
 func (v *testVisitor) VisitAssignmentStmt(*AssignmentStmt) error {
-	v.visits["assignment"] = true
+	v.visits["assignment_stmt"] = true
 	return nil
 }
 
@@ -207,21 +219,26 @@ func (v *testVisitor) VisitExpression(*Expression) error {
 }
 
 func (v *testVisitor) VisitFunctionCallStmt(*FunctionCallStmt) error {
-	v.visits["function_call"] = true
+	v.visits["function_call_stmt"] = true
 	return nil
 }
 
-func (v *testVisitor) VisitFunctionCallStmtParameter(*FunctionCallStmtParameter) error {
+func (v *testVisitor) VisitFunctionCallParameter(*FunctionCallParameter) error {
 	v.visits["function_call_parameter"] = true
 	return nil
 }
 
+func (v *testVisitor) VisitFunctionCall(*FunctionCall) error {
+	v.visits["function_call"] = true
+	return nil
+}
+
 func (v *testVisitor) VisitCommentStmt(*CommentStmt) error {
-	v.visits["comment"] = true
+	v.visits["comment_stmt"] = true
 	return nil
 }
 
 func (v *testVisitor) VisitReturnStmt(*ReturnStmt) error {
-	v.visits["return"] = true
+	v.visits["return_stmt"] = true
 	return nil
 }
