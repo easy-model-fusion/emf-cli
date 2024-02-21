@@ -6,6 +6,7 @@ type Model struct {
 	PipelineTag     string
 	Source          string
 	AddToBinaryFile bool
+	IsDownloaded    bool
 }
 
 type Config struct {

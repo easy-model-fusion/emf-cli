@@ -169,6 +169,7 @@ func generateModelsConfig(modelNames []string) error {
 			currentModel.Source = model.CUSTOM
 		}
 		currentModel.AddToBinaryFile = true
+		currentModel.IsDownloaded = true
 		currentModel = model.ConstructConfigPaths(currentModel)
 		models = append(models, currentModel)
 	}
