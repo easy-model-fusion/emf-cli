@@ -23,8 +23,8 @@ type Function struct {
 type Class struct {
 	Name       string
 	Extend     string
-	Fields     []Field
 	Statements []Statement
+	Fields     []Field
 	Methods    []*Function
 }
 
@@ -32,8 +32,9 @@ type Expression interface {
 }
 
 type Parameter struct {
-	Name string
-	Type string
+	Name    string
+	Type    string
+	Default string
 }
 
 type Field struct {
@@ -58,10 +59,50 @@ type Statement interface {
 	Node
 }
 
-type Assignment struct {
-	Variable string
-	Type     string
-	Value    string
+type AssignmentStmt struct {
+	Variable          string
+	Type              string
+	StringValue       string
+	FunctionCallValue *FunctionCall
+}
+
+type FunctionCall struct {
+	Name   string
+	Params []FunctionCallParameter
+}
+
+type FunctionCallParameter struct {
+	Name  string
+	Value string
+}
+
+type FunctionCallStmt struct {
+	FunctionCall
+}
+
+// CommentStmt One line is using # and multiple lines are using """
+type CommentStmt struct {
+	Lines []string
+}
+
+type ReturnStmt struct {
+	Value string
+}
+
+type IfStmt struct {
+	Condition string
+	Body      []Statement
+	Elifs     []*ElifStmt
+	Else      *ElseStmt
+}
+
+type ElifStmt struct {
+	Condition string
+	Body      []Statement
+}
+
+type ElseStmt struct {
+	Body []Statement
 }
 
 // Accept method for File
@@ -99,7 +140,47 @@ func (i *ImportWhat) Accept(visitor PythonVisitor) error {
 	return visitor.VisitImportWhat(i)
 }
 
-// Accept method for Assignment
-func (s *Assignment) Accept(visitor PythonVisitor) error {
-	return visitor.VisitAssignment(s)
+// Accept method for AssignmentStmt
+func (s *AssignmentStmt) Accept(visitor PythonVisitor) error {
+	return visitor.VisitAssignmentStmt(s)
+}
+
+// Accept method for FunctionComment
+func (s *CommentStmt) Accept(visitor PythonVisitor) error {
+	return visitor.VisitCommentStmt(s)
+}
+
+// Accept method for FunctionCallStmt
+func (s *FunctionCallStmt) Accept(visitor PythonVisitor) error {
+	return visitor.VisitFunctionCallStmt(s)
+}
+
+// Accept method for FunctionCall
+func (s *FunctionCall) Accept(visitor PythonVisitor) error {
+	return visitor.VisitFunctionCall(s)
+}
+
+// Accept method for FunctionCallParameter
+func (s *FunctionCallParameter) Accept(visitor PythonVisitor) error {
+	return visitor.VisitFunctionCallParameter(s)
+}
+
+// Accept method for ReturnStmt
+func (s *ReturnStmt) Accept(visitor PythonVisitor) error {
+	return visitor.VisitReturnStmt(s)
+}
+
+// Accept method for IfStmt
+func (s *IfStmt) Accept(visitor PythonVisitor) error {
+	return visitor.VisitIfStmt(s)
+}
+
+// Accept method for ElseStmt
+func (s *ElseStmt) Accept(visitor PythonVisitor) error {
+	return visitor.VisitElseStmt(s)
+}
+
+// Accept method for ElifStmt
+func (s *ElifStmt) Accept(visitor PythonVisitor) error {
+	return visitor.VisitElifStmt(s)
 }
