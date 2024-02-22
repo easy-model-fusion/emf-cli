@@ -1,4 +1,4 @@
-package command
+package cmd
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
@@ -15,8 +15,4 @@ var versionCmd = &cobra.Command{
 
 func runVersion(cmd *cobra.Command, args []string) {
 	pterm.Info.Println("Client version: " + app.Version + " (" + app.BuildDate + ")")
-}
-
-func init() {
-	rootCmd.AddCommand(versionCmd)
 }

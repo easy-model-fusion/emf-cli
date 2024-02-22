@@ -1,4 +1,4 @@
-package command
+package cmdmodel
 
 import (
 	"fmt"
@@ -13,30 +13,29 @@ import (
 	"strings"
 )
 
-// addCmd represents the add model(s) command
-var tidyCmd = &cobra.Command{
+// modelTidyCmd represents the model tidy command
+var modelTidyCmd = &cobra.Command{
 	Use:   "tidy",
 	Short: "add missing and remove unused models",
 	Long:  `add missing and remove unused models`,
-	Run:   runTidy,
+	Run:   runModelTidy,
 }
 
-// runAdd runs add command
-func runTidy(cmd *cobra.Command, args []string) {
+// runModelTidy runs the model tidy command
+func runModelTidy(cmd *cobra.Command, args []string) {
 	// get all models from config file
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		pterm.Error.Println(err.Error())
 	}
-	
+
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
-	
+
 	models, err := config.GetModels()
 	if err != nil {
 		pterm.Error.Println(err.Error())
 		return
 	}
-
 
 	// Add all missing models
 	err = addMissingModels(models)
@@ -223,9 +222,4 @@ func handleModelsWithNoConfig(missingModelNames []string) error {
 		pterm.Success.Println("Added configurations for these models", selectedModels)
 	}
 	return nil
-}
-
-func init() {
-	// Add the tidy command to the root command
-	rootCmd.AddCommand(tidyCmd)
 }

@@ -1,4 +1,4 @@
-package command
+package cmd
 
 import (
 	"fmt"
@@ -105,9 +105,4 @@ func runCompletion(cmd *cobra.Command, args []string) {
 	} else {
 		pterm.Error.Println(fmt.Sprintf("Shell '%s' not recognized. Expected %s", selectedShell, arguments))
 	}
-}
-
-func init() {
-	rootCmd.CompletionOptions.HiddenDefaultCmd = true
-	rootCmd.AddCommand(completionCmd)
 }

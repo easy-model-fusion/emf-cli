@@ -129,3 +129,21 @@ func CobraInputAmongRemainingFlags(cmd *cobra.Command) error {
 
 	return nil
 }
+
+// CobraRunCommandAsPalette allows the user to run a subcommand
+func CobraRunCommandAsPalette(cmd *cobra.Command, args []string, cmdSearchName string, cmdsToHide []string) error {
+
+	// Searching for the commandName : when 'cmd' differs from 'cmdSearchName'
+	currentCmd, found := CobraFindSubCommand(cmd, cmdSearchName)
+	if !found {
+		return fmt.Errorf("the '%s' command was not found", cmdSearchName)
+	}
+
+	// Retrieve all the subcommands of the current command
+	commandsList, commandsMap := CobraGetSubCommands(currentCmd, cmdsToHide)
+
+	// Users chooses a command and runs it automatically
+	CobraSelectCommandToRun(currentCmd, args, commandsList, commandsMap)
+
+	return nil
+}
