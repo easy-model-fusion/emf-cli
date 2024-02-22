@@ -9,18 +9,14 @@ import (
 
 type Model struct {
 	Name            string
-	Config          Config
+	Path            string
+	Module          string
+	Class           string
+	Tokenizers      []Tokenizer
 	PipelineTag     PipelineTag
 	Source          string
 	AddToBinaryFile bool
 	IsDownloaded    bool
-}
-
-type Config struct {
-	Path       string
-	Module     string
-	Class      string
-	Tokenizers []Tokenizer
 }
 
 type Tokenizer struct {
@@ -72,7 +68,7 @@ func (m *Model) GenImports() []codegen.Import {
 					Name: m.GetPipelineTagAbstractClassName(),
 				},
 			},
-			From: "models",
+			From: "sdk.models",
 		},
 		{
 			What: []codegen.ImportWhat{
@@ -128,7 +124,7 @@ func (m *Model) GenClass() *codegen.Class {
 								},
 								{
 									Name:  "model_path",
-									Value: "\"" + m.Config.Path + "\"",
+									Value: "\"" + m.Path + "\"",
 								},
 							},
 						},

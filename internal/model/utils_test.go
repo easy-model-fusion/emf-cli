@@ -15,7 +15,8 @@ func getModel(suffix int) Model {
 	idStr := fmt.Sprint(suffix)
 	return Model{
 		Name:            "model" + idStr,
-		Config:          Config{Module: "module" + idStr, Class: "class" + idStr},
+		Module:          "module" + idStr,
+		Class:           "class" + idStr,
 		AddToBinaryFile: true,
 	}
 }
@@ -132,34 +133,34 @@ func TestConstructConfigPaths_Default(t *testing.T) {
 	model = ConstructConfigPaths(model)
 
 	// Assert
-	test.AssertEqual(t, model.Config.Path, path.Join(downloader.DirectoryPath, model.Name))
+	test.AssertEqual(t, model.Path, path.Join(downloader.DirectoryPath, model.Name))
 }
 
 // TestConstructConfigPaths_Transformers tests the ConstructConfigPaths for a transformers model.
 func TestConstructConfigPaths_Transformers(t *testing.T) {
 	// Init
 	model := getModel(0)
-	model.Config.Module = "transformers"
+	model.Module = string(TRANSFORMERS)
 
 	// Execute
 	model = ConstructConfigPaths(model)
 
 	// Assert
-	test.AssertEqual(t, model.Config.Path, path.Join(downloader.DirectoryPath, model.Name, "model"))
+	test.AssertEqual(t, model.Path, path.Join(downloader.DirectoryPath, model.Name, "model"))
 }
 
 // TestConstructConfigPaths_Transformers tests the ConstructConfigPaths for a transformers model.
 func TestConstructConfigPaths_TransformersTokenizers(t *testing.T) {
 	// Init
 	model := getModel(0)
-	model.Config.Module = "transformers"
-	model.Config.Tokenizers = []Tokenizer{{Class: "tokenizer"}}
+	model.Module = string(TRANSFORMERS)
+	model.Tokenizers = []Tokenizer{{Class: "tokenizer"}}
 
 	// Execute
 	model = ConstructConfigPaths(model)
 
 	// Assert
-	test.AssertEqual(t, model.Config.Tokenizers[0].Path, path.Join(downloader.DirectoryPath, model.Name, "tokenizer"))
+	test.AssertEqual(t, model.Tokenizers[0].Path, path.Join(downloader.DirectoryPath, model.Name, "tokenizer"))
 }
 
 // TestMapToModelFromDownloaderModel_Empty tests the MapToModelFromDownloaderModel to return the correct Model.
@@ -174,8 +175,7 @@ func TestMapToModelFromDownloaderModel_Empty(t *testing.T) {
 			Class: "",
 		},
 	}
-	var expected Model
-	expected.Config = Config{
+	expected := Model{
 		Path:   "/path/to/model",
 		Module: "module_name",
 		Class:  "class_name",
@@ -188,12 +188,12 @@ func TestMapToModelFromDownloaderModel_Empty(t *testing.T) {
 	result := MapToModelFromDownloaderModel(expected, downloaderModel)
 
 	// Assert
-	test.AssertEqual(t, expected.Config.Path, result.Config.Path)
-	test.AssertEqual(t, expected.Config.Module, result.Config.Module)
-	test.AssertEqual(t, expected.Config.Class, result.Config.Class)
-	test.AssertEqual(t, len(expected.Config.Tokenizers), len(result.Config.Tokenizers))
-	test.AssertEqual(t, expected.Config.Tokenizers[0].Path, result.Config.Tokenizers[0].Path)
-	test.AssertEqual(t, expected.Config.Tokenizers[0].Class, result.Config.Tokenizers[0].Class)
+	test.AssertEqual(t, expected.Path, result.Path)
+	test.AssertEqual(t, expected.Module, result.Module)
+	test.AssertEqual(t, expected.Class, result.Class)
+	test.AssertEqual(t, len(expected.Tokenizers), len(result.Tokenizers))
+	test.AssertEqual(t, expected.Tokenizers[0].Path, result.Tokenizers[0].Path)
+	test.AssertEqual(t, expected.Tokenizers[0].Class, result.Tokenizers[0].Class)
 }
 
 // TestMapToModelFromDownloaderModel_Fill tests the MapToModelFromDownloaderModel to return the correct Config.
@@ -208,8 +208,7 @@ func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
 			Class: "tokenizer_class",
 		},
 	}
-	var expected Model
-	expected.Config = Config{
+	expected := Model{
 		Path:   filepath.Clean("/path/to/model"),
 		Module: "module_name",
 		Class:  "class_name",
@@ -222,12 +221,12 @@ func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
 	result := MapToModelFromDownloaderModel(Model{}, downloaderModel)
 
 	// Assert
-	test.AssertEqual(t, expected.Config.Path, result.Config.Path)
-	test.AssertEqual(t, expected.Config.Module, result.Config.Module)
-	test.AssertEqual(t, expected.Config.Class, result.Config.Class)
-	test.AssertEqual(t, len(expected.Config.Tokenizers), len(result.Config.Tokenizers))
-	test.AssertEqual(t, expected.Config.Tokenizers[0].Path, result.Config.Tokenizers[0].Path)
-	test.AssertEqual(t, expected.Config.Tokenizers[0].Class, result.Config.Tokenizers[0].Class)
+	test.AssertEqual(t, expected.Path, result.Path)
+	test.AssertEqual(t, expected.Module, result.Module)
+	test.AssertEqual(t, expected.Class, result.Class)
+	test.AssertEqual(t, len(expected.Tokenizers), len(result.Tokenizers))
+	test.AssertEqual(t, expected.Tokenizers[0].Path, result.Tokenizers[0].Path)
+	test.AssertEqual(t, expected.Tokenizers[0].Class, result.Tokenizers[0].Class)
 }
 
 // TestMapToTokenizerFromDownloaderTokenizer_Success tests the MapToTokenizerFromDownloaderTokenizer to return the correct Tokenizer.

@@ -76,13 +76,13 @@ func GetModelsByNames(models []Model, namesSlice []string) []Model {
 func ConstructConfigPaths(current Model) Model {
 	basePath := path.Join(downloader.DirectoryPath, current.Name)
 	modelPath := basePath
-	if current.Config.Module == TRANSFORMERS {
+	if current.Module == string(TRANSFORMERS) {
 		modelPath = path.Join(modelPath, "model")
-		for i, tokenizer := range current.Config.Tokenizers {
-			current.Config.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
+		for i, tokenizer := range current.Tokenizers {
+			current.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
 		}
 	}
-	current.Config.Path = modelPath
+	current.Path = modelPath
 
 	return current
 }
@@ -92,16 +92,16 @@ func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model 
 
 	// Check if ScriptModel is valid
 	if !downloader.EmptyModel(dlModel) {
-		model.Config.Path = utils.PathUniformize(dlModel.Path)
-		model.Config.Module = dlModel.Module
-		model.Config.Class = dlModel.Class
+		model.Path = utils.PathUniformize(dlModel.Path)
+		model.Module = dlModel.Module
+		model.Class = dlModel.Class
 	}
 
 	// Check if ScriptTokenizer is valid
 	if !downloader.EmptyTokenizer(dlModel.Tokenizer) {
 		tokenizer := MapToTokenizerFromDownloaderTokenizer(dlModel.Tokenizer)
 		// TODO : check if tokenizer already exists
-		model.Config.Tokenizers = append(model.Config.Tokenizers, tokenizer)
+		model.Tokenizers = append(model.Tokenizers, tokenizer)
 	}
 
 	return model

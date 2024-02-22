@@ -14,7 +14,7 @@ func TestGetModels(t *testing.T) {
 	test.AssertEqual(t, err, nil, "The api call should've passed.")
 
 	for _, apiModel := range models {
-		valid := utils.SliceContainsItem(model.AllModules, apiModel.Config.Module)
+		valid := utils.SliceContainsItem(model.AllModulesString(), apiModel.Module)
 		test.AssertEqual(t, valid, true, "Model's module should be valid.")
 	}
 }
@@ -22,48 +22,34 @@ func TestGetModels(t *testing.T) {
 func Test_getModelsByModules(t *testing.T) {
 	validModels := []model.Model{
 		{
-			Name: "model1",
-			Config: model.Config{
-				Module: model.DIFFUSERS,
-			},
+			Name:   "model1",
+			Module: string(model.DIFFUSERS),
 		},
 		{
-			Name: "model2",
-			Config: model.Config{
-				Module: model.TRANSFORMERS,
-			},
+			Name:   "model2",
+			Module: string(model.TRANSFORMERS),
 		},
 		{
-			Name: "model3",
-			Config: model.Config{
-				Module: model.DIFFUSERS,
-			},
+			Name:   "model3",
+			Module: string(model.DIFFUSERS),
 		},
 	}
 	invalidModels := []model.Model{
 		{
-			Name: "model1",
-			Config: model.Config{
-				Module: model.DIFFUSERS,
-			},
+			Name:   "model1",
+			Module: string(model.DIFFUSERS),
 		},
 		{
-			Name: "model2",
-			Config: model.Config{
-				Module: model.TRANSFORMERS,
-			},
+			Name:   "model2",
+			Module: string(model.TRANSFORMERS),
 		},
 		{
-			Name: "model3",
-			Config: model.Config{
-				Module: model.DIFFUSERS,
-			},
+			Name:   "model3",
+			Module: string(model.DIFFUSERS),
 		},
 		{
-			Name: "invalid_model",
-			Config: model.Config{
-				Module: "INVALID",
-			},
+			Name:   "invalid_model",
+			Module: "INVALID",
 		},
 	}
 	type args struct {

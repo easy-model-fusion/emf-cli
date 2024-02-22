@@ -87,6 +87,7 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	modelObj := model.Model{Name: addCustomDownloaderArgs.ModelName}
 	modelObj = model.MapToModelFromDownloaderModel(modelObj, dlModel)
 	modelObj.AddToBinaryFile = true
+	modelObj.IsDownloaded = true
 
 	// Add models to configuration file
 	spinner, _ := pterm.DefaultSpinner.Start("Writing model to configuration file...")

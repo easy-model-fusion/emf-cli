@@ -137,7 +137,8 @@ func getModel(suffix int) model.Model {
 	idStr := fmt.Sprint(suffix)
 	return model.Model{
 		Name:            "model" + idStr,
-		Config:          model.Config{Module: "module" + idStr, Class: "class" + idStr},
+		Module:          "module" + idStr,
+		Class:           "class" + idStr,
 		AddToBinaryFile: true,
 	}
 }
@@ -446,7 +447,7 @@ func TestDownloadModel_Success(t *testing.T) {
 	// Assert
 	test.AssertEqual(t, ok, true)
 	test.AssertEqual(t, result.AddToBinaryFile, true)
-	test.AssertEqual(t, result.Config.Module, sdm.Module)
+	test.AssertEqual(t, result.Module, sdm.Module)
 }
 
 func TestModelExists_OnExistentModel(t *testing.T) {
