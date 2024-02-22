@@ -198,7 +198,7 @@ func DownloadModel(modelObj model.Model) (model.Model, bool) {
 	}
 
 	// Update the model for the configuration file
-	modelObj.Config = model.MapToConfigFromScriptDownloaderModel(modelObj.Config, sdm)
+	modelObj = model.MapToModelFromDownloaderModel(modelObj, sdm)
 	modelObj.AddToBinaryFile = true
 	modelObj.IsDownloaded = true
 

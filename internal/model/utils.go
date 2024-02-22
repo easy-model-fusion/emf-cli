@@ -72,23 +72,24 @@ func GetModelsByNames(models []Model, namesSlice []string) []Model {
 	return namesModels
 }
 
-// MapToConfigFromScriptDownloaderModel maps data from bytes to Config.
-func MapToConfigFromScriptDownloaderModel(config Config, sdm script.DownloaderModel) Config {
+// MapToModelFromDownloaderModel maps data from downloader.Model to Model.
+func MapToModelFromDownloaderModel(model Model, downloaderModel script.DownloaderModel) Model {
 
 	// Check if ScriptModel is valid
-	if !script.IsDownloaderScriptModelEmpty(sdm) {
-		config.Path = utils.PathUniformize(sdm.Path)
-		config.Module = sdm.Module
-		config.Class = sdm.Class
+	if !script.IsDownloaderScriptModelEmpty(downloaderModel) {
+		model.Config.Path = utils.PathUniformize(downloaderModel.Path)
+		model.Config.Module = downloaderModel.Module
+		model.Config.Class = downloaderModel.Class
 	}
 
 	// Check if ScriptTokenizer is valid
-	if !script.IsDownloaderScriptTokenizer(sdm.Tokenizer) {
-		tokenizer := MapToTokenizerFromScriptDownloaderTokenizer(sdm.Tokenizer)
-		config.Tokenizers = append(config.Tokenizers, tokenizer)
+	if !script.IsDownloaderScriptTokenizer(downloaderModel.Tokenizer) {
+		tokenizer := MapToTokenizerFromScriptDownloaderTokenizer(downloaderModel.Tokenizer)
+		// TODO : check if tokenizer already exists
+		model.Config.Tokenizers = append(model.Config.Tokenizers, tokenizer)
 	}
 
-	return config
+	return model
 }
 
 // MapToTokenizerFromScriptDownloaderTokenizer maps data from script.DownloaderTokenizer to Tokenizer.
