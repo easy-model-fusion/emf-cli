@@ -1,7 +1,7 @@
 package cmdmodel
 
 import (
-	"github.com/easy-model-fusion/emf-cli/cmd/model/add"
+	cmdmodeladd "github.com/easy-model-fusion/emf-cli/cmd/model/add"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -19,6 +19,15 @@ var ModelCmd = &cobra.Command{
 	Run:   runModel,
 }
 
+func init() {
+	// Preparing to use the hugging face API
+	app.InitHuggingFace(huggingface.BaseUrl, "")
+
+	// Adding the subcommands
+	ModelCmd.AddCommand(modelRemoveCmd)
+	ModelCmd.AddCommand(cmdmodeladd.ModelAddCmd)
+}
+
 // runModel runs model command
 func runModel(cmd *cobra.Command, args []string) {
 
@@ -27,13 +36,4 @@ func runModel(cmd *cobra.Command, args []string) {
 	if err != nil {
 		pterm.Error.Println("Something went wrong :", err)
 	}
-}
-
-func init() {
-	// Preparing to use the hugging face API
-	app.InitHuggingFace(huggingface.BaseUrl, "")
-
-	// Adding the subcommands
-	ModelCmd.AddCommand(modelRemoveCmd)
-	ModelCmd.AddCommand(cmdmodeladd.ModelAddCmd)
 }

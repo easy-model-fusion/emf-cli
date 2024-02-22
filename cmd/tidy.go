@@ -15,16 +15,16 @@ import (
 	"strings"
 )
 
-// modelTidyCmd represents the model tidy command
-var modelTidyCmd = &cobra.Command{
+// tidyCmd represents the model tidy command
+var tidyCmd = &cobra.Command{
 	Use:   "tidy",
 	Short: "add missing and remove unused models",
 	Long:  `add missing and remove unused models`,
-	Run:   runModelTidy,
+	Run:   runTidy,
 }
 
-// runModelTidy runs the model tidy command
-func runModelTidy(cmd *cobra.Command, args []string) {
+// runTidy runs the model tidy command
+func runTidy(cmd *cobra.Command, args []string) {
 	// get all models from config file
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {

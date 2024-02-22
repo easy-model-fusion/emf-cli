@@ -26,6 +26,11 @@ var addCustomCmd = &cobra.Command{
 
 var addCustomDownloaderArgs downloader.Args
 
+func init() {
+	// Bind cobra args to the downloader script args
+	downloader.ArgsGetForCobra(addCustomCmd, &addCustomDownloaderArgs)
+}
+
 // runAddCustom runs add command to add a custom model
 func runAddCustom(cmd *cobra.Command, args []string) {
 
@@ -113,9 +118,4 @@ func validateModel(modelName string) (bool, error) {
 		return valid, nil
 	}
 	return true, nil
-}
-
-func init() {
-	// Bind cobra args to the downloader script args
-	downloader.ArgsGetForCobra(addCustomCmd, &addCustomDownloaderArgs)
 }

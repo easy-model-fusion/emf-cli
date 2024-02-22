@@ -16,6 +16,12 @@ var ModelAddCmd = &cobra.Command{
 	Run:   runModelAdd,
 }
 
+func init() {
+	// Adding subcommands
+	ModelAddCmd.AddCommand(addCustomCmd)
+	ModelAddCmd.AddCommand(addByNamesCmd)
+}
+
 // runModelAdd runs model add command
 func runModelAdd(cmd *cobra.Command, args []string) {
 
@@ -24,10 +30,4 @@ func runModelAdd(cmd *cobra.Command, args []string) {
 	if err != nil {
 		pterm.Error.Println("Something went wrong :", err)
 	}
-}
-
-func init() {
-	// Adding subcommands
-	ModelAddCmd.AddCommand(addCustomCmd)
-	ModelAddCmd.AddCommand(addByNamesCmd)
 }

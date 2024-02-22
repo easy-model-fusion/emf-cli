@@ -19,6 +19,11 @@ var modelRemoveCmd = &cobra.Command{
 	Run:   runModelRemove,
 }
 
+func init() {
+	// Adding the command's flags
+	modelRemoveCmd.Flags().BoolVarP(&modelRemoveAllFlag, "all", "a", false, "Remove all models")
+}
+
 // runModelRemove runs the model remove command
 func runModelRemove(cmd *cobra.Command, args []string) {
 	if config.GetViperConfig(config.FilePath) != nil {
@@ -79,9 +84,4 @@ func selectModelsToDelete(currentModels []model.Model) []string {
 	modelsToDelete := ptermutil.DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
 	ptermutil.DisplaySelectedItems(modelsToDelete)
 	return modelsToDelete
-}
-
-func init() {
-	// Adding the command's flags
-	modelRemoveCmd.Flags().BoolVarP(&modelRemoveAllFlag, "all", "a", false, "Remove all models")
 }

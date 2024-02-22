@@ -25,6 +25,11 @@ var addByNamesCmd = &cobra.Command{
 // displayModels indicates if the multiselect of models should be displayed or not
 var displayModels bool
 
+func init() {
+	// Add --select flag to the model add command
+	addByNamesCmd.Flags().BoolVarP(&displayModels, "select", "s", false, "Select models to add")
+}
+
 // runAddByNames runs the add command to add models by name
 func runAddByNames(cmd *cobra.Command, args []string) {
 	if config.GetViperConfig(config.FilePath) != nil {
@@ -293,9 +298,4 @@ func searchForInvalidModels(models []model.Model) (invalidModels []model.Model, 
 	}
 
 	return invalidModels, nil
-}
-
-func init() {
-	// Add --select flag to the model add command
-	addByNamesCmd.Flags().BoolVarP(&displayModels, "select", "s", false, "Select models to add")
 }

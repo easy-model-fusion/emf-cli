@@ -73,7 +73,7 @@ func createProject(projectName string) (err error) {
 	spinner.Success()
 
 	// Check if user has python installed
-	pythonPath, ok := ptermutil.CheckAskForPython()
+	pythonPath, ok := python.CheckAskForPython()
 	if !ok {
 		os.Exit(1)
 	}

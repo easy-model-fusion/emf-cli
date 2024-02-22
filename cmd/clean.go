@@ -22,6 +22,11 @@ var cleanCmd = &cobra.Command{
 	Run:   runClean,
 }
 
+func init() {
+	cleanCmd.Flags().BoolVarP(&allFlagDelete, "all", "a", false, "clean all project")
+	cleanCmd.Flags().BoolVarP(&authorizeAllDelete, "yes", "y", false, "authorize all deletions")
+}
+
 func runClean(cmd *cobra.Command, args []string) {
 	// Delete all models if flag --all
 	if allFlagDelete {
@@ -63,10 +68,4 @@ func runClean(cmd *cobra.Command, args []string) {
 	} else {
 		pterm.Error.Printfln("Operation failed.")
 	}
-}
-
-func init() {
-	cleanCmd.Flags().BoolVarP(&allFlagDelete, "all", "a", false, "clean all project")
-	cleanCmd.Flags().BoolVarP(&authorizeAllDelete, "yes", "y", false, "authorize all deletions")
-	rootCmd.AddCommand(cleanCmd)
 }
