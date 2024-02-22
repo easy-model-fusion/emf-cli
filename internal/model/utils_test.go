@@ -14,7 +14,8 @@ func getModel(suffix int) Model {
 	idStr := fmt.Sprint(suffix)
 	return Model{
 		Name:            "model" + idStr,
-		Config:          Config{Module: "module" + idStr, Class: "class" + idStr},
+		Module:          "module" + idStr,
+		Class:           "class" + idStr,
 		AddToBinaryFile: true,
 	}
 }
@@ -135,7 +136,7 @@ func TestMapToModelFromDownloaderModel_Empty(t *testing.T) {
 		},
 	}
 	var expected Model
-	expected.Config = Config{
+	expected = Model{
 		Path:   "/path/to/model",
 		Module: "module_name",
 		Class:  "class_name",
@@ -148,15 +149,15 @@ func TestMapToModelFromDownloaderModel_Empty(t *testing.T) {
 	result := MapToModelFromDownloaderModel(expected, downloaderModel)
 
 	// Assert
-	test.AssertEqual(t, expected.Config.Path, result.Config.Path)
-	test.AssertEqual(t, expected.Config.Module, result.Config.Module)
-	test.AssertEqual(t, expected.Config.Class, result.Config.Class)
-	test.AssertEqual(t, len(expected.Config.Tokenizers), len(result.Config.Tokenizers))
-	test.AssertEqual(t, expected.Config.Tokenizers[0].Path, result.Config.Tokenizers[0].Path)
-	test.AssertEqual(t, expected.Config.Tokenizers[0].Class, result.Config.Tokenizers[0].Class)
+	test.AssertEqual(t, expected.Path, result.Path)
+	test.AssertEqual(t, expected.Module, result.Module)
+	test.AssertEqual(t, expected.Class, result.Class)
+	test.AssertEqual(t, len(expected.Tokenizers), len(result.Tokenizers))
+	test.AssertEqual(t, expected.Tokenizers[0].Path, result.Tokenizers[0].Path)
+	test.AssertEqual(t, expected.Tokenizers[0].Class, result.Tokenizers[0].Class)
 }
 
-// TestMapToModelFromDownloaderModel_Fill tests the MapToModelFromDownloaderModel to return the correct Config.
+// TestMapToModelFromDownloaderModel_Fill tests the MapToModelFromDownloaderModel to return the correct Model.
 func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
 	// Init
 	downloaderModel := script.DownloaderModel{
@@ -169,7 +170,7 @@ func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
 		},
 	}
 	var expected Model
-	expected.Config = Config{
+	expected = Model{
 		Path:   filepath.Clean("/path/to/model"),
 		Module: "module_name",
 		Class:  "class_name",
@@ -182,12 +183,12 @@ func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
 	result := MapToModelFromDownloaderModel(Model{}, downloaderModel)
 
 	// Assert
-	test.AssertEqual(t, expected.Config.Path, result.Config.Path)
-	test.AssertEqual(t, expected.Config.Module, result.Config.Module)
-	test.AssertEqual(t, expected.Config.Class, result.Config.Class)
-	test.AssertEqual(t, len(expected.Config.Tokenizers), len(result.Config.Tokenizers))
-	test.AssertEqual(t, expected.Config.Tokenizers[0].Path, result.Config.Tokenizers[0].Path)
-	test.AssertEqual(t, expected.Config.Tokenizers[0].Class, result.Config.Tokenizers[0].Class)
+	test.AssertEqual(t, expected.Path, result.Path)
+	test.AssertEqual(t, expected.Module, result.Module)
+	test.AssertEqual(t, expected.Class, result.Class)
+	test.AssertEqual(t, len(expected.Tokenizers), len(result.Tokenizers))
+	test.AssertEqual(t, expected.Tokenizers[0].Path, result.Tokenizers[0].Path)
+	test.AssertEqual(t, expected.Tokenizers[0].Class, result.Tokenizers[0].Class)
 }
 
 // TestMapToTokenizerFromDownloaderScriptTokenizer tests the MapToTokenizerFromDownloaderScriptTokenizer to return the correct Tokenizer.

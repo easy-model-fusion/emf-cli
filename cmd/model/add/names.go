@@ -226,7 +226,7 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 func alreadyDownloadedModels(models []model.Model) (downloadedModels []model.Model, err error) {
 	for _, currentModel := range models {
 		currentModel = model.ConstructConfigPaths(currentModel)
-		exists, err := utils.IsExistingPath(currentModel.Config.Path)
+		exists, err := utils.IsExistingPath(currentModel.Path)
 		if err != nil {
 			return nil, err
 		}
