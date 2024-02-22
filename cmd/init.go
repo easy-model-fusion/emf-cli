@@ -97,7 +97,7 @@ func createProject(projectName string) (err error) {
 	spinner, _ = pterm.DefaultSpinner.Start("Cloning sdk...")
 	err = app.G().CloneSDK(sdkTag, filepath.Join(projectName, "sdk"))
 	if err != nil {
-		spinner.Fail("Unable to clone sdk", err)
+		spinner.Fail("Unable to clone sdk: ", err)
 		return err
 	}
 	spinner.Success()
@@ -106,7 +106,7 @@ func createProject(projectName string) (err error) {
 	spinner, _ = pterm.DefaultSpinner.Start("Creating virtual environment...")
 	err = utils.CreateVirtualEnv(pythonPath, filepath.Join(projectName, ".venv"))
 	if err != nil {
-		spinner.Fail("Unable to create venv", err)
+		spinner.Fail("Unable to create venv: ", err)
 		return err
 	}
 	spinner.Success()
@@ -119,13 +119,17 @@ func createProject(projectName string) (err error) {
 
 	spinner, _ = pterm.DefaultSpinner.Start("Installing dependencies...")
 
-	fileName := "requirements.txt"
 	if useTorchCuda {
-		fileName = "requirements_cuda.txt"
+		err = utils.ExecutePip(pipPath, []string{"install", "torch", "-f", "https://download.pytorch.org/whl/cu111/torch_stable.html"})
+		if err != nil {
+			spinner.Fail("Unable to install torch cuda: ", err)
+			return err
+		}
 	}
 
-	err = utils.InstallDependencies(pipPath, filepath.Join(projectName, "sdk", fileName))
+	err = utils.InstallDependencies(pipPath, filepath.Join(projectName, "sdk", "requirements.txt"))
 	if err != nil {
+		spinner.Fail("Unable to install dependencies: ", err)
 		return err
 	}
 	spinner.Success()
