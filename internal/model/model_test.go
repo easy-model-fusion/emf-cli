@@ -9,9 +9,7 @@ import (
 func TestModel_GenClass(t *testing.T) {
 	model := Model{
 		Name: "stabilityai/sdxl-turbo",
-		Config: Config{
-			Path: "build/stabilityai/sdxl-turbo",
-		},
+		Path: "build/stabilityai/sdxl-turbo",
 	}
 
 	class := model.GenClass()
@@ -31,10 +29,8 @@ func TestModel_GenClass(t *testing.T) {
 
 func TestModel_GenFile(t *testing.T) {
 	model := Model{
-		Name: "stabilityai/sdxl-turbo",
-		Config: Config{
-			Path: "build/stabilityai/sdxl-turbo",
-		},
+		Name:        "stabilityai/sdxl-turbo",
+		Path:        "build/stabilityai/sdxl-turbo",
 		PipelineTag: TextToImage,
 	}
 

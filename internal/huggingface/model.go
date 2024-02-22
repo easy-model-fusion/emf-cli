@@ -56,9 +56,9 @@ func (h HuggingFace) GetModel(id string) (model.Model, error) {
 
 	// Map API response to model.Model
 	foundedModel := MapAPIResponseToModelObj(APIModelResponse[0])
-	if !utils.SliceContainsItem(model.AllModules, foundedModel.Config.Module) {
+	if !utils.SliceContainsItem(model.AllModulesString(), foundedModel.Module) {
 		return foundedModel, fmt.Errorf("model found with %s module. "+
-			"Only %s modules are handled", foundedModel.Config.Module, model.AllModules)
+			"Only %s modules are handled", foundedModel.Module, model.AllModulesString())
 	}
 	return foundedModel, nil
 }
@@ -77,7 +77,7 @@ func MapAPIResponseToModelObj(response APIModelResponse) model.Model {
 	var modelObj model.Model
 	modelObj.Name = response.Name
 	modelObj.PipelineTag = model.PipelineTag(response.PipelineTag)
-	modelObj.Config.Module = response.LibraryName
+	modelObj.Module = response.LibraryName
 	modelObj.Source = model.HUGGING_FACE
 	modelObj.IsDownloaded = false
 	return modelObj
