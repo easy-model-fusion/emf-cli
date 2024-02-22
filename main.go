@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/easy-model-fusion/emf-cli/cmd"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/command"
 )
 
 var (
@@ -16,5 +16,5 @@ func main() {
 	app.Init(Version, BuildDate)
 
 	// Execute command
-	command.Execute()
+	cmd.Execute()
 }

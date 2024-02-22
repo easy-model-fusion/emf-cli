@@ -1,4 +1,4 @@
-package add
+package cmdmodeladd
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/utils"

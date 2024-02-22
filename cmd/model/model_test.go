@@ -1,4 +1,4 @@
-package commandmodel
+package cmdmodel
 
 import "testing"
 

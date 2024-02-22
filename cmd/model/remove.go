@@ -1,4 +1,4 @@
-package commandmodel
+package cmdmodel
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"

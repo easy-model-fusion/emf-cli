@@ -1,8 +1,8 @@
-package commandmodel
+package cmdmodel
 
 import (
+	"github.com/easy-model-fusion/emf-cli/cmd/model/add"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/command/model/add"
 	"github.com/easy-model-fusion/emf-cli/internal/huggingface"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
@@ -36,5 +36,5 @@ func init() {
 	// Adding the subcommands
 	ModelCmd.AddCommand(modelRemoveCmd)
 	ModelCmd.AddCommand(modelTidyCmd)
-	ModelCmd.AddCommand(add.ModelAddCmd)
+	ModelCmd.AddCommand(cmdmodeladd.ModelAddCmd)
 }
