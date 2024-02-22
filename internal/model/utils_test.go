@@ -135,8 +135,7 @@ func TestMapToModelFromDownloaderModel_Empty(t *testing.T) {
 			Class: "",
 		},
 	}
-	var expected Model
-	expected = Model{
+	expected := Model{
 		Path:   "/path/to/model",
 		Module: "module_name",
 		Class:  "class_name",
@@ -169,8 +168,7 @@ func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
 			Class: "tokenizer_class",
 		},
 	}
-	var expected Model
-	expected = Model{
+	expected := Model{
 		Path:   filepath.Clean("/path/to/model"),
 		Module: "module_name",
 		Class:  "class_name",

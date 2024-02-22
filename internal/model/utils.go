@@ -103,7 +103,7 @@ func MapToTokenizerFromScriptDownloaderTokenizer(sdt script.DownloaderTokenizer)
 func ConstructConfigPaths(current Model) Model {
 	basePath := path.Join(script.DownloadModelsPath, current.Name)
 	modelPath := basePath
-	if current.Module == "transformers" {
+	if current.Module == string(TRANSFORMERS) {
 		modelPath = path.Join(modelPath, "model")
 		for i, tokenizer := range current.Tokenizers {
 			current.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
