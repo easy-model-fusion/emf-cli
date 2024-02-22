@@ -70,9 +70,8 @@ func runBuild(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	if buildCompress {
-
-	}
+	// if buildCompress {
+	// }
 
 	pterm.Success.Println("Project built successfully!")
 }
