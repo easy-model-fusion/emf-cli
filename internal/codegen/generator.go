@@ -421,7 +421,7 @@ func (cg *PythonCodeGenerator) VisitFunctionCall(functionCall *FunctionCall) err
 
 	cg.down()
 	cg.newLine()
-	cg.append(")\n")
+	cg.appendIndented(")\n")
 
 	return nil
 }
@@ -450,6 +450,99 @@ func (cg *PythonCodeGenerator) VisitReturnStmt(returnStmt *ReturnStmt) error {
 	}
 
 	cg.appendIndented("return " + returnStmt.Value + "\n")
+	return nil
+}
+
+// VisitIfStmt visits an IfStmt node
+func (cg *PythonCodeGenerator) VisitIfStmt(ifStmt *IfStmt) error {
+	cg.appendIndented("if ")
+
+	if ifStmt.Condition == "" {
+		return errors.New("if statement condition cannot be empty")
+	}
+
+	cg.append(ifStmt.Condition + ":\n")
+
+	cg.up()
+
+	for _, stmt := range ifStmt.Body {
+		err := stmt.Accept(cg)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(ifStmt.Body) == 0 {
+		cg.appendIndented("pass\n")
+	}
+
+	cg.down()
+
+	for _, elseIf := range ifStmt.Elifs {
+		err := elseIf.Accept(cg)
+		if err != nil {
+			return err
+		}
+	}
+
+	if ifStmt.Else == nil {
+		return nil
+	}
+
+	err := ifStmt.Else.Accept(cg)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// VisitElifStmt visits an ElifStmt node
+func (cg *PythonCodeGenerator) VisitElifStmt(elifStmt *ElifStmt) error {
+	cg.appendIndented("elif ")
+
+	if elifStmt.Condition == "" {
+		return errors.New("elif statement condition cannot be empty")
+	}
+
+	cg.append(elifStmt.Condition + ":\n")
+	cg.up()
+
+	for _, stmt := range elifStmt.Body {
+		err := stmt.Accept(cg)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(elifStmt.Body) == 0 {
+		cg.appendIndented("pass\n")
+	}
+
+	cg.down()
+
+	return nil
+}
+
+// VisitElseStmt visits an ElseStmt node
+func (cg *PythonCodeGenerator) VisitElseStmt(elseStmt *ElseStmt) error {
+	cg.appendIndented("else:\n")
+
+	cg.up()
+
+	for _, stmt := range elseStmt.Body {
+		err := stmt.Accept(cg)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(elseStmt.Body) == 0 {
+		cg.appendIndented("pass\n")
+	}
+
+	cg.down()
+
 	return nil
 }
 
