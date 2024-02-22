@@ -65,14 +65,14 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	valid, err := validateModel(downloaderArgs.ModelName)
+	valid, err := validateModel(addCustomDownloaderArgs.ModelName)
 	if err != nil {
 		pterm.Error.Println(err)
 		return
 	}
 	if !valid {
 		pterm.Warning.Println("This model is already downloaded "+
-			"and should be checked manually", downloaderArgs.ModelName)
+			"and should be checked manually", addCustomDownloaderArgs.ModelName)
 		return
 	}
 
