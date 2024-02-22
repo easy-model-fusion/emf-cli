@@ -1,4 +1,4 @@
-package command
+package cmd
 
 import (
 	"fmt"
@@ -162,8 +162,4 @@ func createProjectFiles(projectName, sdkTag string) (err error) {
 	}
 
 	return nil
-}
-
-func init() {
-	rootCmd.AddCommand(initCmd)
 }

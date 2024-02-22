@@ -1,10 +1,9 @@
-package command
+package cmdmodeladd
 
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/huggingface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
@@ -12,11 +11,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const cmdAddNamesTitle = "names"
-
 // addByNamesCmd represents the add model by names command
 var addByNamesCmd = &cobra.Command{
-	Use:   cmdAddNamesTitle + " <model name> [<other model names>...]",
+	Use:   "names <model name> [<other model names>...]",
 	Short: "Add model(s) by name to your project",
 	Long:  `Add model(s) by name to your project`,
 	Run:   runAddByNames,
@@ -25,7 +22,7 @@ var addByNamesCmd = &cobra.Command{
 // displayModels indicates if the multiselect of models should be displayed or not
 var displayModels bool
 
-// runAddByNames runs the add command for adding model by names
+// runAddByNames runs the add command to add models by name
 func runAddByNames(cmd *cobra.Command, args []string) {
 	if config.GetViperConfig(config.FilePath) != nil {
 		return
@@ -200,9 +197,6 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 }
 
 func init() {
-	app.InitHuggingFace(huggingface.BaseUrl, "")
-	// Add --select flag to the add default command
+	// Add --select flag to the model add command
 	addByNamesCmd.Flags().BoolVarP(&displayModels, "select", "s", false, "Select models to add")
-	// Group the add by names subcommand to the add command
-	addCmd.AddCommand(addByNamesCmd)
 }
