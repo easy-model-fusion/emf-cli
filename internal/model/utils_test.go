@@ -3,6 +3,8 @@ package model
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
+	"github.com/pterm/pterm"
 	"path"
 	"path/filepath"
 	"testing"
@@ -15,7 +17,7 @@ func getModel(suffix int) Model {
 	idStr := fmt.Sprint(suffix)
 	return Model{
 		Name:            "model" + idStr,
-		Module:          "module" + idStr,
+		Module:          huggingface.Module("module" + idStr),
 		Class:           "class" + idStr,
 		AddToBinaryFile: true,
 	}
@@ -140,7 +142,7 @@ func TestConstructConfigPaths_Default(t *testing.T) {
 func TestConstructConfigPaths_Transformers(t *testing.T) {
 	// Init
 	model := getModel(0)
-	model.Module = string(TRANSFORMERS)
+	model.Module = huggingface.TRANSFORMERS
 
 	// Execute
 	model = ConstructConfigPaths(model)
@@ -153,7 +155,7 @@ func TestConstructConfigPaths_Transformers(t *testing.T) {
 func TestConstructConfigPaths_TransformersTokenizers(t *testing.T) {
 	// Init
 	model := getModel(0)
-	model.Module = string(TRANSFORMERS)
+	model.Module = huggingface.TRANSFORMERS
 	model.Tokenizers = []Tokenizer{{Class: "tokenizer"}}
 
 	// Execute
@@ -243,4 +245,24 @@ func TestMapToTokenizerFromDownloaderTokenizer_Success(t *testing.T) {
 
 	// Assert
 	test.AssertEqual(t, expected, result)
+}
+
+// TestMapToModelFromHuggingfaceModel_Success tests the MapToModelFromHuggingfaceModel to return the correct Model.
+func TestMapToModelFromHuggingfaceModel_Success(t *testing.T) {
+	// Init
+	huggingfaceModel := huggingface.Model{
+		Name:        "name",
+		PipelineTag: "pipeline",
+		LibraryName: "library",
+	}
+
+	// Execute
+	model := MapToModelFromHuggingfaceModel(huggingfaceModel)
+
+	pterm.Info.Println(model.Module)
+	// Assert
+	test.AssertEqual(t, model.Name, huggingfaceModel.Name)
+	test.AssertEqual(t, model.PipelineTag, huggingfaceModel.PipelineTag)
+	test.AssertEqual(t, model.Module, huggingfaceModel.LibraryName)
+	test.AssertEqual(t, model.Source, HUGGING_FACE)
 }

@@ -3,6 +3,7 @@ package model
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"path"
 )
 
@@ -76,7 +77,7 @@ func GetModelsByNames(models []Model, namesSlice []string) []Model {
 func ConstructConfigPaths(current Model) Model {
 	basePath := path.Join(downloader.DirectoryPath, current.Name)
 	modelPath := basePath
-	if current.Module == string(TRANSFORMERS) {
+	if current.Module == huggingface.TRANSFORMERS {
 		modelPath = path.Join(modelPath, "model")
 		for i, tokenizer := range current.Tokenizers {
 			current.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
@@ -93,7 +94,7 @@ func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model 
 	// Check if ScriptModel is valid
 	if !downloader.EmptyModel(dlModel) {
 		model.Path = utils.PathUniformize(dlModel.Path)
-		model.Module = dlModel.Module
+		model.Module = huggingface.Module(dlModel.Module)
 		model.Class = dlModel.Class
 	}
 
@@ -113,4 +114,14 @@ func MapToTokenizerFromDownloaderTokenizer(dlTokenizer downloader.Tokenizer) Tok
 	modelTokenizer.Path = utils.PathUniformize(dlTokenizer.Path)
 	modelTokenizer.Class = dlTokenizer.Class
 	return modelTokenizer
+}
+
+// MapToModelFromHuggingfaceModel map the Huggingface API model to a model
+func MapToModelFromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
+	var model Model
+	model.Name = huggingfaceModel.Name
+	model.PipelineTag = huggingface.PipelineTag(huggingfaceModel.PipelineTag)
+	model.Module = huggingfaceModel.LibraryName
+	model.Source = HUGGING_FACE
+	return model
 }

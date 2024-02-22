@@ -7,6 +7,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
@@ -137,7 +138,7 @@ func getModel(suffix int) model.Model {
 	idStr := fmt.Sprint(suffix)
 	return model.Model{
 		Name:            "model" + idStr,
-		Module:          "module" + idStr,
+		Module:          huggingface.Module("module" + idStr),
 		Class:           "class" + idStr,
 		AddToBinaryFile: true,
 	}

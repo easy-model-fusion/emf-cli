@@ -185,7 +185,7 @@ func DownloadModel(modelObj model.Model) (model.Model, bool) {
 	// Prepare the script arguments
 	downloaderArgs := downloader.Args{
 		ModelName:   modelObj.Name,
-		ModelModule: modelObj.Module,
+		ModelModule: string(modelObj.Module),
 		ModelClass:  modelObj.Class,
 	}
 

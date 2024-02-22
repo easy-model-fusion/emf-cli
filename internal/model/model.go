@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/codegen"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"strings"
@@ -10,10 +11,10 @@ import (
 type Model struct {
 	Name            string
 	Path            string
-	Module          string
+	Module          huggingface.Module
 	Class           string
 	Tokenizers      []Tokenizer
-	PipelineTag     PipelineTag
+	PipelineTag     huggingface.PipelineTag
 	Source          string
 	AddToBinaryFile bool
 	IsDownloaded    bool
@@ -23,6 +24,12 @@ type Tokenizer struct {
 	Path  string
 	Class string
 }
+
+// Sources
+const (
+	HUGGING_FACE = "hugging_face"
+	CUSTOM       = "custom"
+)
 
 // GetFormattedModelName format the model name in CapsWord
 func (m *Model) GetFormattedModelName() string {
@@ -50,9 +57,9 @@ func (m *Model) GenFile() *codegen.File {
 // GetPipelineTagAbstractClassName returns the abstract class name for the given model
 func (m *Model) GetPipelineTagAbstractClassName() string {
 	switch m.PipelineTag {
-	case TextToImage:
+	case huggingface.TextToImage:
 		return "ModelTextToImage"
-	case TextGeneration:
+	case huggingface.TextGeneration:
 		return "ModelTextToText"
 	default:
 		return ""

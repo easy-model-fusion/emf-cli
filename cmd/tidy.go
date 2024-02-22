@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/huggingface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"strings"
@@ -161,11 +161,15 @@ func generateModelsConfig(modelNames []string) error {
 	var models []model.Model
 	for _, modelName := range modelNames {
 		// Search for the model in hugging face
-		currentModel, err := huggingFace.GetModel(modelName)
+		huggingfaceModel, err := huggingFace.GetModelById(modelName)
+		var currentModel model.Model
 		// If not found create model configuration with only model's name
 		if err != nil {
 			currentModel = model.Model{Name: modelName}
 			currentModel.Source = model.CUSTOM
+		} else {
+			// Found : Map API response to model.Model
+			currentModel = model.MapToModelFromHuggingfaceModel(huggingfaceModel)
 		}
 		currentModel.AddToBinaryFile = true
 		currentModel.IsDownloaded = true

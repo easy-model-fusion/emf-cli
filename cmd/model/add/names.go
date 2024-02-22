@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/huggingface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -66,16 +66,17 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 			}
 
 			// Verify if the model is a valid hugging face model
-			apiModel, err := app.H().GetModel(name)
+			huggingfaceModel, err := app.H().GetModelById(name)
 			if err != nil {
 				// Model not found : skipping to the next one
 				pterm.Warning.Printfln("Model %s not valid : "+err.Error(), name)
 				notFoundModelNames = append(notFoundModelNames, name)
 				continue
 			}
-
-			// Adding valid models
-			selectedModels = append(selectedModels, apiModel)
+			// Map API response to model.Model
+			modelMapped := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+			// Saving the model data in the variables
+			selectedModels = append(selectedModels, modelMapped)
 		}
 
 		// Indicate the models that couldn't be found
@@ -166,12 +167,18 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 	var allModelsWithTags []model.Model
 	// Get list of models with current tags
 	for _, tag := range tags {
-		apiModels, err := app.H().GetModels(tag, 0)
+		huggingfaceModels, err := app.H().GetModelsByPipelineTag(huggingface.PipelineTag(tag), 0)
 		if err != nil {
 			spinner.Fail(fmt.Sprintf("Error while fetching the models from hugging face api: %s", err))
 			return nil, fmt.Errorf("error while calling api endpoint")
 		}
-		allModelsWithTags = append(allModelsWithTags, apiModels...)
+		// Map API responses to []model.Model
+		var mappedModels []model.Model
+		for _, huggingfaceModel := range huggingfaceModels {
+			mappedModel := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+			mappedModels = append(mappedModels, mappedModel)
+		}
+		allModelsWithTags = append(allModelsWithTags, mappedModels...)
 	}
 	spinner.Success()
 
@@ -202,7 +209,7 @@ func selectTags() []string {
 	// Build a multiselect with each tag name
 	message := "Please select the type of models you want to add"
 	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedTags := utils.DisplayInteractiveMultiselect(message, model.AllTagsString(), checkMark, true)
+	selectedTags := utils.DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, true)
 
 	return selectedTags
 }
