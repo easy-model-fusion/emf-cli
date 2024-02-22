@@ -28,15 +28,14 @@ func runTidy(cmd *cobra.Command, args []string) {
 	if err != nil {
 		pterm.Error.Println(err.Error())
 	}
-	
+
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
-	
+
 	models, err := config.GetModels()
 	if err != nil {
 		pterm.Error.Println(err.Error())
 		return
 	}
-
 
 	// Add all missing models
 	err = addMissingModels(models)
@@ -53,7 +52,7 @@ func runTidy(cmd *cobra.Command, args []string) {
 	}
 
 	// Regenerate python code
-	err = regenerateCode()
+	err = regenerateCode(models)
 	if err != nil {
 		pterm.Error.Println(err.Error())
 		return
@@ -139,16 +138,15 @@ func missingModelConfiguration(models []model.Model) error {
 }
 
 // regenerateCode generates new default python code
-func regenerateCode() error {
+func regenerateCode(models []model.Model) error {
 	// TODO: modify this logic when code generator is completed
 	pterm.Info.Println("Generating new default python code...")
-	//file := codegen.File{Name: "main.py"}
 
-	//generator := codegen.PythonCodeGenerator{}
-	//_, err := generator.Generate(&file)
-	//if err != nil {
-	//	return err
-	//}
+	err := config.GenerateModelsPythonCode(models)
+	if err != nil {
+		return err
+	}
+
 	pterm.Success.Println("Python code generated")
 	return nil
 }

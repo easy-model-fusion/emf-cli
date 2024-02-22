@@ -2,6 +2,57 @@ package codegen
 
 import "testing"
 
+func TestImport_Equals(t *testing.T) {
+	i1 := &Import{
+		From:  "from",
+		Alias: "alias",
+	}
+	i2 := &Import{
+		From:  "from",
+		Alias: "alias",
+	}
+	if !i1.Equals(i2) {
+		t.Error("i1 should equal i2")
+	}
+
+	i1.What = []ImportWhat{
+		{
+			Name:  "name",
+			Alias: "alias",
+		},
+		{
+			Name:  "test",
+			Alias: "testalias",
+		},
+	}
+
+	if i1.Equals(i2) {
+		t.Error("i1 should not equal i2")
+	}
+
+	i2.What = []ImportWhat{
+		{
+			Name:  "name",
+			Alias: "alias",
+		},
+		{
+			Name:  "test",
+			Alias: "testalias",
+		},
+	}
+
+	if !i1.Equals(i2) {
+		t.Error("i1 should equal i2")
+	}
+
+	i1.What[1].Alias = "alias"
+
+	if i1.Equals(i2) {
+		t.Error("i1 should not equal i2")
+	}
+
+}
+
 func TestAssignment_Accept(t *testing.T) {
 	a := &AssignmentStmt{}
 	v := newTestVisitor()

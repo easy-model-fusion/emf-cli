@@ -460,3 +460,7 @@ func TestModelExists_OnNotExistentModel(t *testing.T) {
 	// bug ==> writing name and pipeline
 	// cause of bug ==> name of variables key values
 }
+
+func TestGenerateModelsPythonCode(t *testing.T) {
+	// TODO: implement this
+}
