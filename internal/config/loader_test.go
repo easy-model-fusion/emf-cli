@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/easy-model-fusion/client/internal/app"
-	"github.com/easy-model-fusion/client/test"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/test"
 	"os"
 	"path/filepath"
 	"testing"

@@ -1,4 +1,4 @@
-module github.com/easy-model-fusion/client
+module github.com/easy-model-fusion/emf-cli
 
 go 1.21
 

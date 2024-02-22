@@ -27,3 +27,10 @@ func NewHuggingFace(baseUrl, proxyUrl string) *HuggingFace {
 		Client:  client,
 	}
 }
+
+// APIModelResponse Define a struct to match the JSON response
+type APIModelResponse struct {
+	Name        string `json:"modelId"`
+	PipelineTag string `json:"pipeline_tag"`
+	LibraryName string `json:"library_name"`
+}

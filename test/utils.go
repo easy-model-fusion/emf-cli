@@ -1,9 +1,10 @@
 package test
 
 import (
-	"github.com/easy-model-fusion/client/sdk"
+	"github.com/easy-model-fusion/emf-cli/sdk"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -39,6 +40,35 @@ func CreateFullTestSuite(t *testing.T) (directoryPath string) {
 	checkErrDeleteFolder(t, err, dname)
 
 	err = os.WriteFile("config.yaml", content, os.ModePerm)
+	checkErrDeleteFolder(t, err, dname)
+
+	return dname
+}
+
+// CreateFullTestSuite Create a full test suite
+// Please delete the directory after use (defer os.RemoveAll(dname))
+func CreateModelsFolderFullTestSuite(t *testing.T) (directoryPath string) {
+	// Create temporary directory
+	dname, err := os.MkdirTemp("", "emf-cli")
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	// Chdir to a temporary directory
+	err = os.Chdir(dname)
+	checkErrDeleteFolder(t, err, dname)
+
+	//create models repository
+	err = os.Mkdir("models", os.ModePerm)
+	checkErrDeleteFolder(t, err, dname)
+
+	// Create mock models
+	err = os.MkdirAll(filepath.Join("models", "model1", "weights"), os.ModePerm)
+	checkErrDeleteFolder(t, err, dname)
+	err = os.MkdirAll(filepath.Join("models", "model2", "weights"), os.ModePerm)
+	checkErrDeleteFolder(t, err, dname)
+	err = os.MkdirAll(filepath.Join("models", "model3"), os.ModePerm)
 	checkErrDeleteFolder(t, err, dname)
 
 	return dname

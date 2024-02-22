@@ -2,12 +2,13 @@ package config
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/app"
-	"github.com/easy-model-fusion/client/internal/model"
-	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/script"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
-	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
+	"path/filepath"
 )
 
 // GetModels retrieves models from the configuration.
@@ -22,41 +23,22 @@ func GetModels() ([]model.Model, error) {
 	return models, nil
 }
 
-// GetModelNames retrieves models from the configuration.
-func GetModelNames() ([]string, error) {
-	models, err := GetModels()
-	if err != nil {
-		return nil, err
-	}
-
-	var modelNames []string
-	for _, item := range models {
-		modelNames = append(modelNames, item.Name)
-	}
-	return modelNames, nil
-}
-
-// IsModelsEmpty checks if the models slice is empty.
-func IsModelsEmpty(models []model.Model) bool {
-	// No models currently downloaded
-	if len(models) == 0 {
-		pterm.Info.Println("Models list is empty.")
-		return true
-	}
-	return false
-}
-
-// AddModel adds models to configuration file
-func AddModel(models []model.Model) error {
-	// get existent models
-	originalModelsList, err := GetModels()
+// AddModels adds models to configuration file
+func AddModels(updatedModels []model.Model) error {
+	// Get existent models
+	configModels, err := GetModels()
 	if err != nil {
 		return err
 	}
-	// add new models
-	updatedModels := append(originalModelsList, models...)
+
+	// Keeping those that haven't changed
+	unchangedModels := model.Difference(configModels, updatedModels)
+
+	// Combining the unchanged models with the updated models
+	models := append(unchangedModels, updatedModels...)
+
 	// Update the models
-	viper.Set("models", updatedModels)
+	viper.Set("models", models)
 
 	// Attempt to write the configuration file
 	err = WriteViperConfig()
@@ -68,125 +50,168 @@ func AddModel(models []model.Model) error {
 	return nil
 }
 
-// RemoveModels filters out specified models and writes to the configuration file.
-func RemoveModels(models []model.Model, modelsToRemove []string) error {
-	// Filter out the models to be removed
-	updatedModels, removedModels := RemoveModelsFromList(models, modelsToRemove)
+// RemoveModelPhysically only removes the model from the project's downloaded models
+func RemoveModelPhysically(modelName string) error {
 
-	// Create a map for faster lookup
-	removedModelsMap := utils.MapFromArrayString(removedModels)
+	// Path to the model
+	modelPath := filepath.Join(script.DownloadModelsPath, modelName)
 
-	// Displaying if the selected models where removed or not
-	for _, modelToRemove := range modelsToRemove {
-		if _, exists := removedModelsMap[modelToRemove]; exists {
-			pterm.Success.Printfln("Model '%s' was removed.", modelToRemove)
-		} else {
-			pterm.Warning.Printfln("Model '%s' is not installed. Nothing to remove.", modelToRemove)
+	// Starting client spinner animation
+	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Removing model %s...", modelName))
+
+	// Check if the model_path exists
+	if exists, err := utils.IsExistingPath(modelPath); err != nil {
+		// Skipping model : an error occurred
+		spinner.Fail(err)
+		return err
+	} else if exists {
+		// Model path is in the current project
+
+		// Split the path into a slice of strings
+		directories := utils.SplitPath(modelPath)
+
+		// Removing model
+		err := os.RemoveAll(modelPath)
+		if err != nil {
+			spinner.Fail(err)
+			return err
 		}
+
+		// Excluding the tail since it has already been removed
+		directories = directories[:len(directories)-1]
+
+		// Cleaning up : removing every empty directory on the way to the model (from tail to head)
+		for i := len(directories) - 1; i >= 0; i-- {
+			// Build path to parent directory
+			path := filepath.Join(directories[:i+1]...)
+
+			// Delete directory if empty
+			err = utils.DeleteDirectoryIfEmpty(path)
+			if err != nil {
+				spinner.Fail(err)
+			}
+		}
+		spinner.Success(fmt.Sprintf("Removed model %s", modelName))
+	} else {
+		// Model path is not in the current project
+		spinner.Warning(fmt.Sprintf("Model '%s' was not found in the project directory. The model will be removed from this project's configuration file.", modelName))
 	}
+	return nil
+}
 
-	// Update the models
-	viper.Set("models", updatedModels)
+// RemoveAllModels removes all the models and updates the configuration file.
+func RemoveAllModels() error {
 
-	// Attempt to write the configuration file
-	err := WriteViperConfig()
+	// Get the models from the configuration file
+	models, err := GetModels()
 	if err != nil {
 		return err
 	}
 
-	// TODO : remove the downloaded models : Issue #21 => removedModels
+	// User did not add any model yet
+	if len(models) == 0 {
+		pterm.Info.Printfln("There is no models to be removed.")
+		return nil
+	}
 
-	return nil
-
-}
-
-// RemoveAllModels empties the models list and writes to the configuration file.
-func RemoveAllModels() error {
+	// Trying to remove every model
+	for _, item := range models {
+		_ = RemoveModelPhysically(item.Name)
+	}
 
 	// Empty the models
 	viper.Set("models", []string{})
 
 	// Attempt to write the configuration file
+	err = WriteViperConfig()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RemoveModelsByNames filters out specified models, removes them and updates the configuration file.
+func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) error {
+	// Find all the models that should be removed
+	modelsToRemove := model.GetModelsByNames(models, modelsNamesToRemove)
+
+	// Indicate the models that were not found in the configuration file
+	notFoundModels := utils.SliceDifference(modelsNamesToRemove, model.GetNames(modelsToRemove))
+	if len(notFoundModels) != 0 {
+		pterm.Warning.Println(fmt.Sprintf("The following models were not found in the configuration file : %s", notFoundModels))
+	}
+
+	// User did not provide any input
+	if len(modelsToRemove) == 0 {
+		pterm.Info.Printfln("No valid models were inputted.")
+		return nil
+	}
+
+	// Trying to remove the models
+	for _, item := range modelsToRemove {
+		_ = RemoveModelPhysically(item.Name)
+	}
+
+	// Find all the remaining models
+	remainingModels := model.Difference(models, modelsToRemove)
+
+	// Update the models
+	viper.Set("models", remainingModels)
+
+	// Attempt to write the configuration file
 	err := WriteViperConfig()
 	if err != nil {
 		return err
 	}
 
-	// TODO : remove the downloaded models : Issue #21
-
 	return nil
 }
 
-func RemoveModelsFromList(currentModels []model.Model, modelsToRemove []string) ([]model.Model, []string) {
-	// Create a map for faster lookup
-	modelsMap := utils.MapFromArrayString(modelsToRemove)
+// DownloadModel downloads physically a model.
+func DownloadModel(modelObj model.Model) (model.Model, bool) {
 
-	// Filter out the models to be removed
-	var updatedModels []model.Model
-	var removedModels []string
-	for _, existingModel := range currentModels {
-		if _, exists := modelsMap[existingModel.Name]; !exists {
-			// Keep the model if it's not in the modelsToRemove list
-			updatedModels = append(updatedModels, existingModel)
-		} else {
-			// Indicate which model was effectively removed
-			removedModels = append(removedModels, existingModel.Name)
-		}
+	// TODO : validate model to download
+
+	// Exclude from download if not requested
+	if !modelObj.AddToBinary {
+		return modelObj, true
 	}
 
-	return updatedModels, removedModels
+	// Reset in case the download fails
+	modelObj.AddToBinary = false
+
+	// Prepare the script arguments
+	downloaderArgs := script.DownloaderArgs{
+		ModelName:   modelObj.Name,
+		ModelModule: modelObj.Config.Module,
+		ModelClass:  modelObj.Config.Class,
+	}
+
+	// Running the script
+	sdm, err := script.DownloaderExecute(downloaderArgs)
+
+	// Something went wrong or no data has been returned
+	if err != nil || sdm.IsEmpty {
+		return model.Model{}, false
+	}
+
+	// Update the model for the configuration file
+	modelObj.Config = model.MapToConfigFromScriptDownloaderModel(modelObj.Config, sdm)
+	modelObj.AddToBinary = true
+
+	return modelObj, true
 }
 
-// ModelExists verifies if a model exists already in the configuration file or not
-func ModelExists(name string) (bool, error) {
-	models, err := GetModels()
-	if err != nil {
-		return false, err
-	}
+// DownloadModels downloads physically a list of models.
+func DownloadModels(models []model.Model) (passedModels []model.Model, failedModels []model.Model) {
 	for _, currentModel := range models {
-		println(currentModel.Name)
-		if currentModel.Name == name {
-			return true, nil
+		result, ok := DownloadModel(currentModel)
+		if !ok {
+			failedModels = append(failedModels, result)
+			continue
 		}
+		passedModels = append(passedModels, result)
 	}
-
-	return false, nil
-}
-
-// ValidModelName returns an error if the which arg is not a valid model name.
-func ValidModelName() cobra.PositionalArgs {
-	return func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			return nil
-		}
-		if app.H() == nil {
-			return fmt.Errorf("hugging face api is not initialized")
-		}
-
-		for _, name := range args {
-			valid, err := app.H().ValidModel(name)
-			if err != nil {
-				return err
-			}
-			if !valid {
-				return fmt.Errorf("'%s' is not a valid model name", name)
-			}
-
-			// Load the configuration file
-			err = Load(".")
-			if err != nil {
-				return err
-			}
-
-			exist, err := ModelExists(name)
-			if err != nil {
-				return err
-			}
-			if exist {
-				return fmt.Errorf("'%s' model is already included in the project", name)
-			}
-		}
-
-		return nil
-	}
+	return passedModels, failedModels
 }

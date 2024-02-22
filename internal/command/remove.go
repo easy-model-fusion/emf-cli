@@ -1,10 +1,10 @@
 package command
 
 import (
-	"github.com/easy-model-fusion/client/internal/config"
-	"github.com/easy-model-fusion/client/internal/sdk"
-	"github.com/easy-model-fusion/client/internal/model"
-	"github.com/easy-model-fusion/client/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -20,13 +20,13 @@ var removeCmd = &cobra.Command{
 }
 
 func runRemove(cmd *cobra.Command, args []string) {
-	if config.GetViperConfig() != nil {
+	if config.GetViperConfig(config.FilePath) != nil {
 		return
 	}
 
 	sdk.SendUpdateSuggestion()
 
-	// remove all models
+	// Remove all models
 	if allFlag {
 		err := config.RemoveAllModels()
 		if err == nil {
@@ -42,8 +42,8 @@ func runRemove(cmd *cobra.Command, args []string) {
 	var models, err = config.GetModels()
 
 	// Check fetched models : cannot be null or empty
-	if err != nil || config.IsModelsEmpty(models) {
-		pterm.Info.Printfln("No models to remove.")
+	if err != nil || model.Empty(models) {
+		pterm.Info.Printfln("There is no models to be removed.")
 		return
 	}
 
@@ -52,13 +52,13 @@ func runRemove(cmd *cobra.Command, args []string) {
 		// Get selected models from multiselect
 		selectedModels = selectModelsToDelete(models)
 	} else {
-		// selected models from args
+		// Get the selected models from the args
 		selectedModels = make([]string, len(args))
 		copy(selectedModels, args)
 	}
 
-	// remove selected models
-	err = config.RemoveModels(models, selectedModels)
+	// Remove the selected models
+	err = config.RemoveModelsByNames(models, selectedModels)
 	if err == nil {
 		pterm.Success.Printfln("Operation succeeded.")
 	} else {

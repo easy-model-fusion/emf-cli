@@ -60,7 +60,6 @@ jobs:
     - name: Code compilation
       run: go build ./...
 
-
   coverage:
     runs-on: ${{ matrix.os }}
     needs: build
@@ -103,4 +102,5 @@ jobs:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     - name: View code coverage report
+      if: github.event_name == 'push'
       run: go tool cover -func=coverage.out

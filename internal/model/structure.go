@@ -1,17 +1,21 @@
 package model
 
 type Model struct {
-	Name          string `json:"modelId"`
-	Config        Config `json:"config"`
-	PipelineTag   string `json:"pipeline_tag"`
-	DirectoryPath string
-	AddToBinary   bool
+	Name        string
+	Config      Config
+	PipelineTag string
+	Source      string
+	AddToBinary bool
 }
 
 type Config struct {
-	Diffusers Diffusers `json:"diffusers"`
+	Path       string
+	Module     string
+	Class      string
+	Tokenizers []Tokenizer
 }
 
-type Diffusers struct {
-	PipeLine string `json:"class_name"`
+type Tokenizer struct {
+	Path  string
+	Class string
 }

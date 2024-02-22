@@ -2,9 +2,10 @@ package command
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/client/internal/config"
-	"github.com/easy-model-fusion/client/internal/utils"
-	"github.com/easy-model-fusion/client/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/sdk"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -73,7 +74,7 @@ func createProject(projectName string) (err error) {
 
 	// Check the latest sdk version
 	spinner, _ = pterm.DefaultSpinner.Start("Checking for latest sdk version...")
-	sdkTag, err := utils.GetLatestTag("sdk")
+	sdkTag, err := app.G().GetLatestTag("sdk")
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error checking for latest sdk version: %s", err))
 		os.Exit(1)
@@ -90,9 +91,9 @@ func createProject(projectName string) (err error) {
 
 	// Clone SDK
 	spinner, _ = pterm.DefaultSpinner.Start("Cloning sdk...")
-	err = utils.CloneSDK(sdkTag, filepath.Join(projectName, "sdk"))
+	err = app.G().CloneSDK(sdkTag, filepath.Join(projectName, "sdk"))
 	if err != nil {
-		spinner.Fail(err)
+		spinner.Fail("Unable to clone sdk", err)
 		return err
 	}
 	spinner.Success()
@@ -101,13 +102,13 @@ func createProject(projectName string) (err error) {
 	spinner, _ = pterm.DefaultSpinner.Start("Creating virtual environment...")
 	err = utils.CreateVirtualEnv(pythonPath, filepath.Join(projectName, ".venv"))
 	if err != nil {
-		spinner.Fail(err)
+		spinner.Fail("Unable to create venv", err)
 		return err
 	}
 	spinner.Success()
 
 	// Install dependencies
-	pipPath, err := utils.FindVEnvPipExecutable(filepath.Join(projectName, ".venv"))
+	pipPath, err := utils.FindVEnvExecutable(filepath.Join(projectName, ".venv"), "pip")
 	if err != nil {
 		return err
 	}
@@ -140,7 +141,7 @@ func createProjectFiles(projectName, sdkTag string) (err error) {
 		return err
 	}
 
-	err = config.Load(projectName)
+	err = config.GetViperConfig(projectName)
 	if err != nil {
 		return err
 	}
