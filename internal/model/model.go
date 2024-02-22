@@ -72,7 +72,7 @@ func (m *Model) GenImports() []codegen.Import {
 					Name: m.GetPipelineTagAbstractClassName(),
 				},
 			},
-			From: "models",
+			From: "sdk.models",
 		},
 		{
 			What: []codegen.ImportWhat{
