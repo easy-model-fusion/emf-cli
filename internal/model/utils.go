@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/script"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"path"
 )
@@ -72,37 +72,11 @@ func GetModelsByNames(models []Model, namesSlice []string) []Model {
 	return namesModels
 }
 
-// MapToConfigFromScriptDownloaderModel maps data from bytes to Config.
-func MapToConfigFromScriptDownloaderModel(config Config, sdm script.DownloaderModel) Config {
-
-	// Check if ScriptModel is valid
-	if !script.IsDownloaderScriptModelEmpty(sdm) {
-		config.Path = utils.PathUniformize(sdm.Path)
-		config.Module = sdm.Module
-		config.Class = sdm.Class
-	}
-
-	// Check if ScriptTokenizer is valid
-	if !script.IsDownloaderScriptTokenizer(sdm.Tokenizer) {
-		tokenizer := MapToTokenizerFromScriptDownloaderTokenizer(sdm.Tokenizer)
-		config.Tokenizers = append(config.Tokenizers, tokenizer)
-	}
-
-	return config
-}
-
-// MapToTokenizerFromScriptDownloaderTokenizer maps data from script.DownloaderTokenizer to Tokenizer.
-func MapToTokenizerFromScriptDownloaderTokenizer(sdt script.DownloaderTokenizer) Tokenizer {
-	var modelTokenizer Tokenizer
-	modelTokenizer.Path = utils.PathUniformize(sdt.Path)
-	modelTokenizer.Class = sdt.Class
-	return modelTokenizer
-}
-
+// ConstructConfigPaths to update the model's path to elements accordingly to its configuration.
 func ConstructConfigPaths(current Model) Model {
-	basePath := path.Join(script.DownloadModelsPath, current.Name)
+	basePath := path.Join(downloader.DirectoryPath, current.Name)
 	modelPath := basePath
-	if current.Config.Module == "transformers" {
+	if current.Config.Module == TRANSFORMERS {
 		modelPath = path.Join(modelPath, "model")
 		for i, tokenizer := range current.Config.Tokenizers {
 			current.Config.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
@@ -111,4 +85,32 @@ func ConstructConfigPaths(current Model) Model {
 	current.Config.Path = modelPath
 
 	return current
+}
+
+// MapToModelFromDownloaderModel maps data from downloader.Model to Model.
+func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model {
+
+	// Check if ScriptModel is valid
+	if !downloader.EmptyModel(dlModel) {
+		model.Config.Path = utils.PathUniformize(dlModel.Path)
+		model.Config.Module = dlModel.Module
+		model.Config.Class = dlModel.Class
+	}
+
+	// Check if ScriptTokenizer is valid
+	if !downloader.EmptyTokenizer(dlModel.Tokenizer) {
+		tokenizer := MapToTokenizerFromDownloaderTokenizer(dlModel.Tokenizer)
+		// TODO : check if tokenizer already exists
+		model.Config.Tokenizers = append(model.Config.Tokenizers, tokenizer)
+	}
+
+	return model
+}
+
+// MapToTokenizerFromDownloaderTokenizer maps data from downloader.Tokenizer to Tokenizer.
+func MapToTokenizerFromDownloaderTokenizer(dlTokenizer downloader.Tokenizer) Tokenizer {
+	var modelTokenizer Tokenizer
+	modelTokenizer.Path = utils.PathUniformize(dlTokenizer.Path)
+	modelTokenizer.Class = dlTokenizer.Class
+	return modelTokenizer
 }

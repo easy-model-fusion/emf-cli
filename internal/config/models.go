@@ -3,8 +3,8 @@ package config
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/codegen"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
-	"github.com/easy-model-fusion/emf-cli/internal/script"
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/viper"
@@ -55,7 +55,7 @@ func AddModels(updatedModels []model.Model) error {
 func RemoveModelPhysically(modelName string) error {
 
 	// Path to the model
-	modelPath := filepath.Join(script.DownloadModelsPath, modelName)
+	modelPath := filepath.Join(downloader.DirectoryPath, modelName)
 
 	// Starting client spinner animation
 	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Removing model %s...", modelName))
@@ -183,24 +183,23 @@ func DownloadModel(modelObj model.Model) (model.Model, bool) {
 	modelObj.AddToBinaryFile = false
 
 	// Prepare the script arguments
-	downloaderArgs := script.DownloaderArgs{
+	downloaderArgs := downloader.Args{
 		ModelName:   modelObj.Name,
 		ModelModule: modelObj.Config.Module,
 		ModelClass:  modelObj.Config.Class,
 	}
 
 	// Running the script
-	sdm, err := script.DownloaderExecute(downloaderArgs)
+	dlModel, err := downloader.Execute(downloaderArgs)
 
 	// Something went wrong or no data has been returned
-	if err != nil || sdm.IsEmpty {
+	if err != nil || dlModel.IsEmpty {
 		return model.Model{}, false
 	}
 
 	// Update the model for the configuration file
-	modelObj.Config = model.MapToConfigFromScriptDownloaderModel(modelObj.Config, sdm)
+	modelObj = model.MapToModelFromDownloaderModel(modelObj, dlModel)
 	modelObj.AddToBinaryFile = true
-	modelObj.IsDownloaded = true
 
 	return modelObj, true
 }
