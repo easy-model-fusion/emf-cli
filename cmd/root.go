@@ -49,5 +49,6 @@ func init() {
 	rootCmd.AddCommand(versionCmd)
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(upgradeCmd)
+	rootCmd.AddCommand(modelTidyCmd)
 	rootCmd.AddCommand(cmdmodel.ModelCmd)
 }
