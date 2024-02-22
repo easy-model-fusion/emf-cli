@@ -9,7 +9,7 @@ import (
 func TestGetModels(t *testing.T) {
 	limit := 10
 	h := NewHuggingFace(BaseUrl, "")
-	models, err := h.GetModels(model.TEXT_TO_IMAGE, 10)
+	models, err := h.GetModels(string(model.TextToImage), 10)
 	test.AssertEqual(t, err, nil, "The api call should've passed.")
 	test.AssertEqual(t, len(models), limit, "The api call should've returned 10 models.")
 

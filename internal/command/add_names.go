@@ -175,11 +175,9 @@ func selectModels(tags []string, currentSelectedModels []model.Model) []model.Mo
 // selectTags displays a multiselect to help the user choose the model types
 func selectTags() []string {
 	// Build a multiselect with each tag name
-	tags := model.AllTags
-
 	message := "Please select the type of models you want to add"
 	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedTags := utils.DisplayInteractiveMultiselect(message, tags, checkMark, true)
+	selectedTags := utils.DisplayInteractiveMultiselect(message, model.AllTagsString(), checkMark, true)
 
 	return selectedTags
 }
