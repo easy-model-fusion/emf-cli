@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 	"github.com/easy-model-fusion/emf-cli/sdk"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -22,7 +24,7 @@ var initCmd = &cobra.Command{
 	Use:   "init <project name>",
 	Short: "Initialize a EMF project",
 	Long:  `Initialize a EMF project.`,
-	Args:  utils.ValidFileName(1, true),
+	Args:  fileutil.ValidFileName(1, true),
 	Run:   runInit,
 }
 
@@ -31,7 +33,7 @@ func runInit(cmd *cobra.Command, args []string) {
 
 	// No args, check projectName in pterm
 	if len(args) == 0 {
-		projectName = utils.AskForUsersInput("Enter a project name")
+		projectName = ptermutil.AskForUsersInput("Enter a project name")
 	} else {
 		projectName = args[0]
 	}
@@ -71,7 +73,7 @@ func createProject(projectName string) (err error) {
 	spinner.Success()
 
 	// Check if user has python installed
-	pythonPath, ok := utils.CheckAskForPython()
+	pythonPath, ok := ptermutil.CheckAskForPython()
 	if !ok {
 		os.Exit(1)
 	}
@@ -104,7 +106,7 @@ func createProject(projectName string) (err error) {
 
 	// Create virtual environment
 	spinner, _ = pterm.DefaultSpinner.Start("Creating virtual environment...")
-	err = utils.CreateVirtualEnv(pythonPath, filepath.Join(projectName, ".venv"))
+	err = python.CreateVirtualEnv(pythonPath, filepath.Join(projectName, ".venv"))
 	if err != nil {
 		spinner.Fail("Unable to create venv", err)
 		return err
@@ -112,7 +114,7 @@ func createProject(projectName string) (err error) {
 	spinner.Success()
 
 	// Install dependencies
-	pipPath, err := utils.FindVEnvExecutable(filepath.Join(projectName, ".venv"), "pip")
+	pipPath, err := python.FindVEnvExecutable(filepath.Join(projectName, ".venv"), "pip")
 	if err != nil {
 		return err
 	}
@@ -124,7 +126,7 @@ func createProject(projectName string) (err error) {
 		fileName = "requirements_cuda.txt"
 	}
 
-	err = utils.InstallDependencies(pipPath, filepath.Join(projectName, "sdk", fileName))
+	err = python.InstallDependencies(pipPath, filepath.Join(projectName, "sdk", fileName))
 	if err != nil {
 		return err
 	}
@@ -136,17 +138,17 @@ func createProject(projectName string) (err error) {
 // createProjectFiles creates the project files (main.py, config.yaml, .gitignore)
 func createProjectFiles(projectName, sdkTag string) (err error) {
 	// Copy main.py, config.yaml & .gitignore
-	err = utils.CopyEmbeddedFile(sdk.EmbeddedFiles, "main.py", filepath.Join(projectName, "main.py"))
+	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "main.py", filepath.Join(projectName, "main.py"))
 	if err != nil {
 		return err
 	}
 
-	err = utils.CopyEmbeddedFile(sdk.EmbeddedFiles, "config.yaml", filepath.Join(projectName, "config.yaml"))
+	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "config.yaml", filepath.Join(projectName, "config.yaml"))
 	if err != nil {
 		return err
 	}
 
-	err = utils.CopyEmbeddedFile(sdk.EmbeddedFiles, ".gitignore", filepath.Join(projectName, ".gitignore"))
+	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, ".gitignore", filepath.Join(projectName, ".gitignore"))
 	if err != nil {
 		return err
 	}

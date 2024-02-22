@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/spf13/viper"
 	"os"
@@ -33,7 +33,7 @@ func TestGetViperConfig_Success(t *testing.T) {
 
 	// Create config file
 	file, err := os.Create("config.yaml")
-	utils.CloseFile(file)
+	fileutil.CloseFile(file)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -101,7 +101,7 @@ func TestWriteViperConfig_Success(t *testing.T) {
 
 	// Create config file
 	file, err := os.Create("config.yaml")
-	utils.CloseFile(file)
+	fileutil.CloseFile(file)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()

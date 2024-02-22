@@ -6,7 +6,9 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"path"
@@ -36,7 +38,7 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	// TODO: Get flags or default values
 
 	// Searching for the currentCmd : when 'cmd' differs from 'addCustomCmd' (i.e. run through parent multiselect)
-	currentCmd, found := utils.CobraFindSubCommand(cmd, addCustomCommandName)
+	currentCmd, found := cobrautil.FindSubCommand(cmd, addCustomCommandName)
 	if !found {
 		pterm.Error.Println(fmt.Sprintf("Something went wrong : the '%s' command was not found. Please try again.", addCustomCommandName))
 		return
@@ -44,14 +46,14 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 
 	// Asks for the mandatory args if they are not provided
 	if addCustomDownloaderArgs.ModelName == "" {
-		err := utils.CobraAskFlagInput(currentCmd, currentCmd.Flag(downloader.ModelName))
+		err := cobrautil.AskFlagInput(currentCmd, currentCmd.Flag(downloader.ModelName))
 		if err != nil {
 			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", downloader.ModelName, err))
 			return
 		}
 	}
 	if addCustomDownloaderArgs.ModelModule == "" {
-		err := utils.CobraAskFlagInput(currentCmd, currentCmd.Flag(downloader.ModelModule))
+		err := cobrautil.AskFlagInput(currentCmd, currentCmd.Flag(downloader.ModelModule))
 		if err != nil {
 			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", downloader.ModelModule, err))
 			return
@@ -59,7 +61,7 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	}
 
 	// Allow the user to choose flags and specify their value
-	err := utils.CobraInputAmongRemainingFlags(currentCmd)
+	err := cobrautil.AllowInputAmongRemainingFlags(currentCmd)
 	if err != nil {
 		pterm.Error.Println(err)
 		return
@@ -101,13 +103,13 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 }
 
 func validateModel(modelName string) (bool, error) {
-	exists, err := utils.IsExistingPath(path.Join(downloader.DirectoryPath, modelName))
+	exists, err := fileutil.IsExistingPath(path.Join(downloader.DirectoryPath, modelName))
 	if err != nil {
 		return false, err
 	}
 	if exists {
 		message := fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?", modelName)
-		valid := utils.AskForUsersConfirmation(message)
+		valid := ptermutil.AskForUsersConfirmation(message)
 		return valid, nil
 	}
 	return true, nil

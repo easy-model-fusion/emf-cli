@@ -3,7 +3,7 @@ package cmdmodel
 import (
 	"github.com/easy-model-fusion/emf-cli/cmd/model/add"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -23,7 +23,7 @@ var ModelCmd = &cobra.Command{
 func runModel(cmd *cobra.Command, args []string) {
 
 	// Running command as palette : allowing user to choose subcommand
-	err := utils.CobraRunCommandAsPalette(cmd, args, modelCommandName, []string{})
+	err := cobrautil.RunCommandAsPalette(cmd, args, modelCommandName, []string{})
 	if err != nil {
 		pterm.Error.Println("Something went wrong :", err)
 	}

@@ -2,7 +2,7 @@ package model
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"path"
 )
@@ -57,7 +57,7 @@ func GetNames(models []Model) []string {
 // GetModelsByNames retrieves the models by their names given an input slice.
 func GetModelsByNames(models []Model, namesSlice []string) []Model {
 	// Create a map for faster lookup
-	namesMap := utils.SliceToMap(namesSlice)
+	namesMap := stringutil.SliceToMap(namesSlice)
 
 	// Slice of all the models that were found
 	var namesModels []Model
@@ -93,7 +93,7 @@ func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model 
 
 	// Check if ScriptModel is valid
 	if !downloader.EmptyModel(dlModel) {
-		model.Path = utils.PathUniformize(dlModel.Path)
+		model.Path = stringutil.PathUniformize(dlModel.Path)
 		model.Module = huggingface.Module(dlModel.Module)
 		model.Class = dlModel.Class
 	}
@@ -111,7 +111,7 @@ func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model 
 // MapToTokenizerFromDownloaderTokenizer maps data from downloader.Tokenizer to Tokenizer.
 func MapToTokenizerFromDownloaderTokenizer(dlTokenizer downloader.Tokenizer) Tokenizer {
 	var modelTokenizer Tokenizer
-	modelTokenizer.Path = utils.PathUniformize(dlTokenizer.Path)
+	modelTokenizer.Path = stringutil.PathUniformize(dlTokenizer.Path)
 	modelTokenizer.Class = dlTokenizer.Class
 	return modelTokenizer
 }

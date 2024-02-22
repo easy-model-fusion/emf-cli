@@ -3,7 +3,7 @@ package downloader
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 	"github.com/pterm/pterm"
 )
 
@@ -63,7 +63,7 @@ func Execute(downloaderArgs Args) (Model, error) {
 
 	// Run the script to download the model
 	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", downloaderArgs.ModelName))
-	scriptModel, err, exitCode := utils.ExecuteScript(".venv", ScriptPath, args)
+	scriptModel, err, exitCode := python.Execute(".venv", ScriptPath, args)
 
 	// An error occurred while running the script
 	if err != nil {

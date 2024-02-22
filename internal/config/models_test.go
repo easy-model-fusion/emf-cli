@@ -6,7 +6,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -44,7 +44,7 @@ func setupConfigDir(t *testing.T) (string, string) {
 // setupConfigFile creates a configuration file.
 func setupConfigFile(filePath string, models []model.Model) error {
 	file, err := os.Create(filePath)
-	defer utils.CloseFile(file)
+	defer fileutil.CloseFile(file)
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func setupModelDirectory(t *testing.T, modelPath string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	utils.CloseFile(file)
+	fileutil.CloseFile(file)
 }
 
 // getModel initiates a basic model with an id as suffix
@@ -289,7 +289,7 @@ func TestRemoveModelPhysically_Success(t *testing.T) {
 	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
 
 	// Assert that the model was physically removed
-	exists, err := utils.IsExistingPath(modelPath)
+	exists, err := fileutil.IsExistingPath(modelPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -324,7 +324,7 @@ func TestRemoveAllModels_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
 
 	// Assert that all models were physically removed
-	exists, err := utils.IsExistingPath(downloader.DirectoryPath)
+	exists, err := fileutil.IsExistingPath(downloader.DirectoryPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -377,19 +377,19 @@ func TestRemoveModels_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
 
 	// Assert that all models were not physically removed
-	exists, err := utils.IsExistingPath(downloader.DirectoryPath)
+	exists, err := fileutil.IsExistingPath(downloader.DirectoryPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 	test.AssertEqual(t, true, exists, "All models should not have been removed.")
 
 	// Assert that the request models were physically removed
-	exists, err = utils.IsExistingPath(modelPath1)
+	exists, err = fileutil.IsExistingPath(modelPath1)
 	if err != nil {
 		t.Fatal(err)
 	}
 	test.AssertEqual(t, false, exists, "Model 1 should not have been removed.")
-	exists, err = utils.IsExistingPath(modelPath2)
+	exists, err = fileutil.IsExistingPath(modelPath2)
 	if err != nil {
 		t.Fatal(err)
 	}

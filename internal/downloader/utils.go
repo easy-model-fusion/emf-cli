@@ -2,7 +2,7 @@ package downloader
 
 import (
 	"errors"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/spf13/cobra"
 )
 
@@ -65,7 +65,7 @@ func ArgsProcessForPython(args Args) []string {
 	if len(args.ModelOptions) != 0 {
 		var options []string
 		for _, modelOption := range args.ModelOptions {
-			options = append(options, utils.ParseOptions(modelOption)...)
+			options = append(options, stringutil.ParseOptions(modelOption)...)
 		}
 		cmdArgs = append(cmdArgs, append([]string{TagPrefix + ModelOptions}, options...)...)
 	}
@@ -77,7 +77,7 @@ func ArgsProcessForPython(args Args) []string {
 	if len(args.TokenizerOptions) != 0 {
 		var options []string
 		for _, modelOption := range args.TokenizerOptions {
-			options = append(options, utils.ParseOptions(modelOption)...)
+			options = append(options, stringutil.ParseOptions(modelOption)...)
 		}
 		cmdArgs = append(cmdArgs, append([]string{TagPrefix + TokenizerOptions}, options...)...)
 	}

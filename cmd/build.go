@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"os"
@@ -50,7 +50,7 @@ func runBuild(cmd *cobra.Command, args []string) {
 	}
 
 	// Install dependencies
-	pythonPath, err := utils.FindVEnvExecutable(".venv", "python")
+	pythonPath, err := python.FindVEnvExecutable(".venv", "python")
 	if err != nil {
 		pterm.Error.Println("Error finding python executable")
 		return

@@ -5,7 +5,8 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/codegen"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/viper"
 	"os"
@@ -61,7 +62,7 @@ func RemoveModelPhysically(modelName string) error {
 	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Removing model %s...", modelName))
 
 	// Check if the model_path exists
-	if exists, err := utils.IsExistingPath(modelPath); err != nil {
+	if exists, err := fileutil.IsExistingPath(modelPath); err != nil {
 		// Skipping model : an error occurred
 		spinner.Fail(err)
 		return err
@@ -69,7 +70,7 @@ func RemoveModelPhysically(modelName string) error {
 		// Model path is in the current project
 
 		// Split the path into a slice of strings
-		directories := utils.SplitPath(modelPath)
+		directories := stringutil.SplitPath(modelPath)
 
 		// Removing model
 		err = os.RemoveAll(modelPath)
@@ -87,7 +88,7 @@ func RemoveModelPhysically(modelName string) error {
 			path := filepath.Join(directories[:i+1]...)
 
 			// Delete directory if empty
-			err = utils.DeleteDirectoryIfEmpty(path)
+			err = fileutil.DeleteDirectoryIfEmpty(path)
 			if err != nil {
 				spinner.Fail(err)
 			}
@@ -138,7 +139,7 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 	modelsToRemove := model.GetModelsByNames(models, modelsNamesToRemove)
 
 	// Indicate the models that were not found in the configuration file
-	notFoundModels := utils.SliceDifference(modelsNamesToRemove, model.GetNames(modelsToRemove))
+	notFoundModels := stringutil.SliceDifference(modelsNamesToRemove, model.GetNames(modelsToRemove))
 	if len(notFoundModels) != 0 {
 		pterm.Warning.Println(fmt.Sprintf("The following models were not found in the configuration file : %s", notFoundModels))
 	}

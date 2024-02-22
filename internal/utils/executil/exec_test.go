@@ -1,4 +1,4 @@
-package utils
+package executil
 
 import (
 	"github.com/easy-model-fusion/emf-cli/test"
