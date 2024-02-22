@@ -1,11 +1,22 @@
 package model
 
-var AllTags = []string{
-	TEXT_GENERATION,
-	TEXT_TO_IMAGE,
+var AllTags = []PipelineTag{
+	TextGeneration,
+	TextToImage,
 }
 
+type PipelineTag string
+
 const (
-	TEXT_GENERATION = "text-generation"
-	TEXT_TO_IMAGE   = "text-to-image"
+	TextGeneration PipelineTag = "text-generation"
+	TextToImage    PipelineTag = "text-to-image"
 )
+
+// AllTagsString returns all tags as a string slice
+func AllTagsString() []string {
+	var tags []string
+	for _, tag := range AllTags {
+		tags = append(tags, string(tag))
+	}
+	return tags
+}

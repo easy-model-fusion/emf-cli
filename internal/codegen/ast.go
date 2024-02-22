@@ -105,6 +105,20 @@ type ElseStmt struct {
 	Body []Statement
 }
 
+// Equals method for Import
+func (i *Import) Equals(other *Import) bool {
+	if len(i.What) != len(other.What) {
+		return false
+	}
+	for j, w := range i.What {
+		otherW := other.What[j]
+		if w.Name != otherW.Name || w.Alias != otherW.Alias {
+			return false
+		}
+	}
+	return i.From == other.From && i.Alias == other.Alias
+}
+
 // Accept method for File
 func (m *File) Accept(visitor PythonVisitor) error {
 	return visitor.VisitFile(m)

@@ -10,7 +10,7 @@ import (
 
 func TestGetModels(t *testing.T) {
 	h := NewHuggingFace(BaseUrl, "")
-	models, err := h.GetModels(model.TEXT_TO_IMAGE, 10)
+	models, err := h.GetModels(string(model.TextToImage), 10)
 	test.AssertEqual(t, err, nil, "The api call should've passed.")
 
 	for _, apiModel := range models {

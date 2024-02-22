@@ -76,7 +76,7 @@ func (h HuggingFace) ValidModel(id string) (bool, error) {
 func MapAPIResponseToModelObj(response APIModelResponse) model.Model {
 	var modelObj model.Model
 	modelObj.Name = response.Name
-	modelObj.PipelineTag = response.PipelineTag
+	modelObj.PipelineTag = model.PipelineTag(response.PipelineTag)
 	modelObj.Config.Module = response.LibraryName
 	modelObj.Source = model.HUGGING_FACE
 	modelObj.IsDownloaded = false
