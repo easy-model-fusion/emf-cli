@@ -1,4 +1,4 @@
-package command
+package cmd
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
@@ -30,8 +30,4 @@ func runUpgrade(cmd *cobra.Command, args []string) {
 	}
 
 	_ = sdk.Upgrade()
-}
-
-func init() {
-	rootCmd.AddCommand(upgradeCmd)
 }
