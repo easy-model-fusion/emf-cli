@@ -9,6 +9,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"path"
 )
 
 const addCustomCommandName = "custom"
@@ -64,7 +65,16 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// TODO : validate model to download
+	valid, err := validateModel(addCustomDownloaderArgs.ModelName)
+	if err != nil {
+		pterm.Error.Println(err)
+		return
+	}
+	if !valid {
+		pterm.Warning.Println("This model is already downloaded "+
+			"and should be checked manually", addCustomDownloaderArgs.ModelName)
+		return
+	}
 
 	// Running the script
 	sdm, err := script.DownloaderExecute(addCustomDownloaderArgs)
@@ -76,7 +86,7 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	// Create the model for the configuration file
 	modelObj := model.Model{Name: addCustomDownloaderArgs.ModelName}
 	modelObj.Config = model.MapToConfigFromScriptDownloaderModel(modelObj.Config, sdm)
-	modelObj.AddToBinary = true
+	modelObj.AddToBinaryFile = true
 
 	// Add models to configuration file
 	spinner, _ := pterm.DefaultSpinner.Start("Writing model to configuration file...")
@@ -87,6 +97,19 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		spinner.Success()
 	}
 
+}
+
+func validateModel(modelName string) (bool, error) {
+	exists, err := utils.IsExistingPath(path.Join(script.DownloadModelsPath, modelName))
+	if err != nil {
+		return false, err
+	}
+	if exists {
+		message := fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?", modelName)
+		valid := utils.AskForUsersConfirmation(message)
+		return valid, nil
+	}
+	return true, nil
 }
 
 func init() {

@@ -69,7 +69,7 @@ func TestModel_GetPipelineTagAbstractClassName(t *testing.T) {
 
 	test.AssertEqual(t, model.GetPipelineTagAbstractClassName(), "ModelTextToImage", "The model name should be formatted correctly.")
 
-	model.PipelineTag = TextToText
+	model.PipelineTag = TextGeneration
 
 	test.AssertEqual(t, model.GetPipelineTagAbstractClassName(), "ModelTextToText", "The model name should be formatted correctly.")
 

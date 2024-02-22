@@ -1,15 +1,15 @@
 package model
 
 var AllTags = []PipelineTag{
-	TextToText,
+	TextGeneration,
 	TextToImage,
 }
 
 type PipelineTag string
 
 const (
-	TextToText  PipelineTag = "text2text-generation"
-	TextToImage PipelineTag = "text-to-image"
+	TextGeneration PipelineTag = "text-generation"
+	TextToImage    PipelineTag = "text-to-image"
 )
 
 // AllTagsString returns all tags as a string slice

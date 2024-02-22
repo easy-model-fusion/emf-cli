@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"io"
 	"net/http"
 	"net/url"
@@ -53,5 +54,20 @@ func (h HuggingFace) GetModels(tag string, limit int) ([]model.Model, error) {
 		models = append(models, MapAPIResponseToModelObj(item))
 	}
 
+	// Filter models with handled modules
+	models = getModelsByModules(models)
+
 	return models, nil
+}
+
+// getModelsByModules filters a list of models and return only the models with handled module types
+func getModelsByModules(models []model.Model) (returnedModels []model.Model) {
+	modules := model.AllModules
+	for _, currentModel := range models {
+		if utils.SliceContainsItem(modules, currentModel.Config.Module) {
+			returnedModels = append(returnedModels, currentModel)
+		}
+	}
+
+	return returnedModels
 }

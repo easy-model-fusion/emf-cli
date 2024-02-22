@@ -8,11 +8,12 @@ import (
 )
 
 type Model struct {
-	Name        string
-	Config      Config
-	PipelineTag PipelineTag
-	Source      string
-	AddToBinary bool
+	Name            string
+	Config          Config
+	PipelineTag     PipelineTag
+	Source          string
+	AddToBinaryFile bool
+	IsDownloaded    bool
 }
 
 type Config struct {
@@ -55,7 +56,7 @@ func (m *Model) GetPipelineTagAbstractClassName() string {
 	switch m.PipelineTag {
 	case TextToImage:
 		return "ModelTextToImage"
-	case TextToText:
+	case TextGeneration:
 		return "ModelTextToText"
 	default:
 		return ""
