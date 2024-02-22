@@ -14,7 +14,8 @@ func getModel(suffix int) Model {
 	idStr := fmt.Sprint(suffix)
 	return Model{
 		Name:            "model" + idStr,
-		Config:          Config{Module: "module" + idStr, Class: "class" + idStr},
+		Module:          "module" + idStr,
+		Class:           "class" + idStr,
 		AddToBinaryFile: true,
 	}
 }
@@ -122,10 +123,10 @@ func TestGetNames(t *testing.T) {
 	test.AssertEqual(t, len(models), len(names), "Lengths should be equal.")
 }
 
-// TestMapToConfigFromScriptDownloaderModel_Empty tests the MapToConfigFromScriptDownloaderModel to return the correct Config.
-func TestMapToConfigFromScriptDownloaderModel_Empty(t *testing.T) {
+// TestMapToModelFromDownloaderModel_Empty tests the MapToModelFromDownloaderModel to return the correct Model.
+func TestMapToModelFromDownloaderModel_Empty(t *testing.T) {
 	// Init
-	dsm := script.DownloaderModel{
+	downloaderModel := script.DownloaderModel{
 		Path:   "",
 		Module: "",
 		Class:  "",
@@ -134,7 +135,7 @@ func TestMapToConfigFromScriptDownloaderModel_Empty(t *testing.T) {
 			Class: "",
 		},
 	}
-	expected := Config{
+	expected := Model{
 		Path:   "/path/to/model",
 		Module: "module_name",
 		Class:  "class_name",
@@ -144,7 +145,7 @@ func TestMapToConfigFromScriptDownloaderModel_Empty(t *testing.T) {
 	}
 
 	// Execute
-	result := MapToConfigFromScriptDownloaderModel(expected, dsm)
+	result := MapToModelFromDownloaderModel(expected, downloaderModel)
 
 	// Assert
 	test.AssertEqual(t, expected.Path, result.Path)
@@ -155,10 +156,10 @@ func TestMapToConfigFromScriptDownloaderModel_Empty(t *testing.T) {
 	test.AssertEqual(t, expected.Tokenizers[0].Class, result.Tokenizers[0].Class)
 }
 
-// TestMapToConfigFromScriptDownloaderModel_Fill tests the MapToConfigFromScriptDownloaderModel to return the correct Config.
-func TestMapToConfigFromScriptDownloaderModel_Fill(t *testing.T) {
+// TestMapToModelFromDownloaderModel_Fill tests the MapToModelFromDownloaderModel to return the correct Model.
+func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
 	// Init
-	sm := script.DownloaderModel{
+	downloaderModel := script.DownloaderModel{
 		Path:   "/path/to/model",
 		Module: "module_name",
 		Class:  "class_name",
@@ -167,7 +168,7 @@ func TestMapToConfigFromScriptDownloaderModel_Fill(t *testing.T) {
 			Class: "tokenizer_class",
 		},
 	}
-	expected := Config{
+	expected := Model{
 		Path:   filepath.Clean("/path/to/model"),
 		Module: "module_name",
 		Class:  "class_name",
@@ -177,7 +178,7 @@ func TestMapToConfigFromScriptDownloaderModel_Fill(t *testing.T) {
 	}
 
 	// Execute
-	result := MapToConfigFromScriptDownloaderModel(Config{}, sm)
+	result := MapToModelFromDownloaderModel(Model{}, downloaderModel)
 
 	// Assert
 	test.AssertEqual(t, expected.Path, result.Path)

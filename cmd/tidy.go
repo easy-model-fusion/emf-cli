@@ -80,7 +80,7 @@ func addMissingModels(models []model.Model) error {
 	var modelsToDownload []model.Model
 	for _, currentModel := range models {
 		// build model path
-		currentModelPath := currentModel.Config.Path
+		currentModelPath := currentModel.Path
 		if currentModelPath != "" {
 			currentModel = model.ConstructConfigPaths(currentModel)
 		}

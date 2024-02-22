@@ -62,9 +62,9 @@ func (h HuggingFace) GetModels(tag string, limit int) ([]model.Model, error) {
 
 // getModelsByModules filters a list of models and return only the models with handled module types
 func getModelsByModules(models []model.Model) (returnedModels []model.Model) {
-	modules := model.AllModules
+	modules := model.AllModulesString()
 	for _, currentModel := range models {
-		if utils.SliceContainsItem(modules, currentModel.Config.Module) {
+		if utils.SliceContainsItem(modules, currentModel.Module) {
 			returnedModels = append(returnedModels, currentModel)
 		}
 	}
