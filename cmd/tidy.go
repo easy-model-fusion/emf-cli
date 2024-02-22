@@ -1,4 +1,4 @@
-package cmdmodel
+package cmd
 
 import (
 	"fmt"
