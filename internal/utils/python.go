@@ -80,6 +80,26 @@ func InstallDependencies(pipPath, path string) error {
 	return nil
 }
 
+// ExecutePip runs pip with the given arguments
+func ExecutePip(pipPath string, args []string) error {
+	cmd := exec.Command(pipPath, args...)
+
+	// bind stderr to a buffer
+	var errBuf strings.Builder
+	cmd.Stderr = &errBuf
+
+	err := cmd.Run()
+	if err != nil {
+		errBufStr := errBuf.String()
+		if errBufStr != "" {
+			return fmt.Errorf("%s: %s", err.Error(), errBufStr)
+		}
+		return err
+	}
+
+	return nil
+}
+
 func ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int) {
 
 	// Find the python executable inside the venv to run the script
