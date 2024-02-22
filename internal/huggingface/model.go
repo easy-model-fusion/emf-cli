@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"io"
 	"net/http"
 	"net/url"
@@ -54,7 +55,12 @@ func (h HuggingFace) GetModel(id string) (model.Model, error) {
 	}
 
 	// Map API response to model.Model
-	return MapAPIResponseToModelObj(APIModelResponse[0]), nil
+	foundedModel := MapAPIResponseToModelObj(APIModelResponse[0])
+	if !utils.SliceContainsItem(model.AllModules, foundedModel.Config.Module) {
+		return foundedModel, fmt.Errorf("model found with %s module. "+
+			"Only %s modules are handled", foundedModel.Config.Module, model.AllModules)
+	}
+	return foundedModel, nil
 }
 
 // ValidModel checks if a model exists by id
@@ -73,5 +79,6 @@ func MapAPIResponseToModelObj(response APIModelResponse) model.Model {
 	modelObj.PipelineTag = response.PipelineTag
 	modelObj.Config.Module = response.LibraryName
 	modelObj.Source = model.HUGGING_FACE
+	modelObj.IsDownloaded = false
 	return modelObj
 }

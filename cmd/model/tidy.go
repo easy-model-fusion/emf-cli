@@ -59,11 +59,11 @@ func runModelTidy(cmd *cobra.Command, args []string) {
 	}
 }
 
-// getModelsToBeAddedToBinary returned models that needs to be added to binary
-func getModelsToBeAddedToBinary(models []model.Model) (returnedModels []model.Model) {
+// getModelsToBeAddedToBinaryFile returned models that needs to be added to binary
+func getModelsToBeAddedToBinaryFile(models []model.Model) (returnedModels []model.Model) {
 
 	for _, currentModel := range models {
-		if currentModel.AddToBinary {
+		if currentModel.AddToBinaryFile {
 			returnedModels = append(returnedModels, currentModel)
 		}
 	}
@@ -75,7 +75,7 @@ func getModelsToBeAddedToBinary(models []model.Model) (returnedModels []model.Mo
 func addMissingModels(models []model.Model) error {
 	pterm.Info.Println("Verifying if all models are downloaded...")
 	// filter the models that should be added to binary
-	models = getModelsToBeAddedToBinary(models)
+	models = getModelsToBeAddedToBinaryFile(models)
 	// Search for the models that need to be downloaded
 	var modelsToDownload []model.Model
 	for _, currentModel := range models {
@@ -168,7 +168,8 @@ func generateModelsConfig(modelNames []string) error {
 			currentModel = model.Model{Name: modelName}
 			currentModel.Source = model.CUSTOM
 		}
-		currentModel.AddToBinary = true
+		currentModel.AddToBinaryFile = true
+		currentModel.IsDownloaded = true
 		currentModel = model.ConstructConfigPaths(currentModel)
 		models = append(models, currentModel)
 	}
