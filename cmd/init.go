@@ -161,5 +161,11 @@ func createProjectFiles(projectName, sdkTag string) (err error) {
 		return err
 	}
 
+	// Create models folder
+	err = os.Mkdir(filepath.Join(projectName, "models"), os.ModePerm)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
