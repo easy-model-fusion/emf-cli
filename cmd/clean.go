@@ -1,4 +1,4 @@
-package command
+package cmd
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
