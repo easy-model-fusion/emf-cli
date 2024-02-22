@@ -13,6 +13,10 @@ import (
 	"path/filepath"
 )
 
+var (
+	useTorchCuda bool
+)
+
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init <project name>",
@@ -114,7 +118,13 @@ func createProject(projectName string) (err error) {
 	}
 
 	spinner, _ = pterm.DefaultSpinner.Start("Installing dependencies...")
-	err = utils.InstallDependencies(pipPath, filepath.Join(projectName, "sdk", "requirements.txt"))
+
+	fileName := "requirements.txt"
+	if useTorchCuda {
+		fileName = "requirements_cuda.txt"
+	}
+
+	err = utils.InstallDependencies(pipPath, filepath.Join(projectName, "sdk", fileName))
 	if err != nil {
 		return err
 	}
@@ -168,4 +178,8 @@ func createProjectFiles(projectName, sdkTag string) (err error) {
 	}
 
 	return nil
+}
+
+func init() {
+	initCmd.Flags().BoolVarP(&useTorchCuda, "cuda", "c", false, "Use torch with cuda")
 }
