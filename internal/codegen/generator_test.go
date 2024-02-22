@@ -1044,6 +1044,234 @@ func TestPythonCodeGenerator_VisitReturnStmt(t *testing.T) {
 	t.Logf("\n%s", cg.sb.String())
 }
 
+func TestPythonCodeGenerator_VisitIfStmt_WithEmptyCondition(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	stmt := &IfStmt{}
+	err := cg.VisitIfStmt(stmt)
+	test.AssertNotEqual(t, err, nil, "expected error")
+}
+
+func TestPythonCodeGenerator_VisitIfStmt(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	stmt := &IfStmt{}
+	err := cg.VisitIfStmt(stmt)
+
+	test.AssertNotEqual(t, err, nil, "expected error")
+	cg.sb.Reset()
+
+	stmt = &IfStmt{
+		Condition: "a == 1",
+		Body: []Statement{
+			&AssignmentStmt{
+				Variable:    "a",
+				StringValue: "1",
+			},
+		},
+	}
+
+	err = cg.VisitIfStmt(stmt)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "if a == 1:\n    a = 1\n")
+
+	t.Logf("\n%s", cg.sb.String())
+}
+
+func TestPythonCodeGenerator_VisitIfStmt_WithBodyError(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	stmt := &IfStmt{
+		Condition: "a == 1",
+		Body: []Statement{
+			&AssignmentStmt{
+				Variable:    "",
+				StringValue: "1",
+			},
+		},
+	}
+
+	err := cg.VisitIfStmt(stmt)
+	test.AssertNotEqual(t, err, nil, "expected error")
+}
+
+func TestPythonCodeGenerator_VisitIfStmt_WithEmptyBody(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	stmt := &IfStmt{
+		Condition: "a == 1",
+	}
+
+	err := cg.VisitIfStmt(stmt)
+	test.AssertEqual(t, err, nil, "no error expected")
+	test.AssertEqual(t, cg.sb.String(), "if a == 1:\n    pass\n")
+}
+
+func TestPythonCodeGenerator_VisitIfStmt_WithElifsError(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	stmt := &IfStmt{
+		Condition: "a == 1",
+		Elifs: []*ElifStmt{
+			{
+				Condition: "a == 1",
+				Body: []Statement{
+					&AssignmentStmt{
+						Variable:    "",
+						StringValue: "1",
+					},
+				},
+			},
+		},
+	}
+
+	err := cg.VisitIfStmt(stmt)
+	test.AssertNotEqual(t, err, nil, "expected error")
+}
+
+func TestPythonCodeGenerator_VisitIfStmt_WithElse(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	stmt := &IfStmt{
+		Condition: "a == 1",
+		Body: []Statement{
+			&AssignmentStmt{
+				Variable:    "a",
+				StringValue: "1",
+			},
+		},
+		Else: &ElseStmt{
+			Body: []Statement{
+				&AssignmentStmt{
+					StringValue: "2",
+				},
+			},
+		},
+	}
+
+	test.AssertNotEqual(t, cg.VisitIfStmt(stmt), nil, "expected error")
+
+	cg.reset()
+
+	// correct else statement
+	stmt.Else.Body[0] = &AssignmentStmt{
+		Variable:    "a",
+		StringValue: "2",
+	}
+
+	err := cg.VisitIfStmt(stmt)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "if a == 1:\n    a = 1\nelse:\n    a = 2\n")
+
+	t.Logf("\n%s", cg.sb.String())
+}
+
+func TestPythonCodeGenerator_VisitElifStmt(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	stmt := &ElifStmt{}
+	err := cg.VisitElifStmt(stmt)
+
+	test.AssertNotEqual(t, err, nil, "expected error")
+	cg.reset()
+
+	stmt = &ElifStmt{
+		Condition: "a == 1",
+		Body: []Statement{
+			&AssignmentStmt{
+				Variable:    "a",
+				StringValue: "1",
+			},
+		},
+	}
+
+	err = cg.VisitElifStmt(stmt)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "elif a == 1:\n    a = 1\n")
+
+	t.Logf("\n%s", cg.sb.String())
+}
+
+func TestPythonCodeGenerator_VisitElifStmt_WithEmptyBody(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	stmt := &ElifStmt{
+		Condition: "a == 1",
+	}
+
+	err := cg.VisitElifStmt(stmt)
+	test.AssertEqual(t, err, nil, "no error expected")
+	test.AssertEqual(t, cg.sb.String(), "elif a == 1:\n    pass\n")
+}
+
+func TestPythonCodeGenerator_VisitElifStmt_WithBodyError(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	stmt := &ElifStmt{
+		Condition: "a == 1",
+		Body: []Statement{
+			&AssignmentStmt{
+				Variable:    "",
+				StringValue: "1",
+			},
+		},
+	}
+
+	err := cg.VisitElifStmt(stmt)
+	test.AssertNotEqual(t, err, nil, "expected error")
+}
+
+func TestPythonCodeGenerator_VisitElseStmt(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	stmt := &ElseStmt{}
+	err := cg.VisitElseStmt(stmt)
+
+	test.AssertEqual(t, cg.indentLevel, 0)
+
+	test.AssertEqual(t, err, nil, "no error expected")
+
+	test.AssertEqual(t, cg.sb.String(), "else:\n    pass\n")
+
+	cg.sb.Reset()
+
+	stmt = &ElseStmt{
+		Body: []Statement{
+			&AssignmentStmt{
+				Variable:    "a",
+				StringValue: "1",
+			},
+		},
+	}
+
+	err = cg.VisitElseStmt(stmt)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, cg.sb.String(), "else:\n    a = 1\n")
+
+	t.Logf("\n%s", cg.sb.String())
+}
+
+func TestPythonCodeGenerator_VisitElseStmt_WithBodyError(t *testing.T) {
+	cg := NewPythonCodeGenerator(true)
+	stmt := &ElseStmt{
+		Body: []Statement{
+			&AssignmentStmt{
+				Variable:    "",
+				StringValue: "1",
+			},
+		},
+	}
+
+	err := cg.VisitElseStmt(stmt)
+	test.AssertNotEqual(t, err, nil, "expected error")
+}
+
 func TestPythonCodeGenerator_VisitFile(t *testing.T) {
 	cg := NewPythonCodeGenerator(true)
 

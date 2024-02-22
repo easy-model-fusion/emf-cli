@@ -18,4 +18,7 @@ type PythonVisitor interface {
 	VisitFunctionCallStmt(*FunctionCallStmt) error
 	VisitCommentStmt(*CommentStmt) error
 	VisitReturnStmt(*ReturnStmt) error
+	VisitIfStmt(*IfStmt) error
+	VisitElifStmt(*ElifStmt) error
+	VisitElseStmt(*ElseStmt) error
 }
