@@ -1,7 +1,6 @@
 package huggingface
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -33,34 +32,29 @@ func NewHuggingFace(baseUrl, proxyUrl string) *HuggingFace {
 
 // Model Define a model to match the JSON response from the API
 type Model struct {
-	Name        string      `json:"modelId"`
-	PipelineTag PipelineTag `json:"pipeline_tag"`
-	LibraryName Module      `json:"library_name"`
+	Name         string      `json:"modelId"`
+	PipelineTag  PipelineTag `json:"pipeline_tag"`
+	LibraryName  Module      `json:"library_name"`
+	LastModified string      `json:"lastModified"`
 }
 
-// APIGet performs an HTTP GET request to the specified URL and returns a list of models or an error.
-func (h HuggingFace) APIGet(getModelUrl *url.URL) ([]Model, error) {
+// APIGet performs an HTTP GET request to the specified URL.
+func (h HuggingFace) APIGet(getModelUrl *url.URL) ([]byte, error) {
 	// Execute API call
 	var response, err = h.Client.Get(getModelUrl.String())
 	if err != nil {
-		return []Model{}, err
+		return nil, err
 	}
 	defer response.Body.Close()
 
 	// Check response status
 	if response.StatusCode != http.StatusOK {
-		return []Model{}, fmt.Errorf("failed to fetch model. Status code: %d", response.StatusCode)
+		return nil, fmt.Errorf("failed to fetch model. Status code: %d", response.StatusCode)
 	}
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return []Model{}, err
+		return nil, err
 	}
 
-	// Unmarshal API response
-	var models []Model
-	if err = json.Unmarshal(body, &models); err != nil {
-		return []Model{}, err
-	}
-
-	return models, nil
+	return body, nil
 }

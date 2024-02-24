@@ -1,6 +1,7 @@
 package huggingface
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 )
@@ -22,35 +23,36 @@ func (h HuggingFace) GetModelsByPipelineTag(tag PipelineTag, limit int) ([]Model
 	getModelsUrl.RawQuery = q.Encode()
 
 	// Execute API call
-	return h.APIGet(getModelsUrl)
+	response, err := h.APIGet(getModelsUrl)
+
+	// Unmarshal API response
+	var models []Model
+	if err = json.Unmarshal(response, &models); err != nil {
+		return []Model{}, err
+	}
+
+	// Execute API call
+	return models, err
 }
 
 // GetModelById from hugging face api by id
 func (h HuggingFace) GetModelById(id string) (Model, error) {
 
-	getModelUrl, err := url.Parse(h.BaseUrl + modelEndpoint)
+	getModelUrl, err := url.Parse(h.BaseUrl + modelEndpoint + "/" + id)
 	if err != nil {
 		return Model{}, err
 	}
 
-	// Prepare API call
-	q := getModelUrl.Query()
-	q.Add("config", "config")
-	q.Add("id", id)
-	getModelUrl.RawQuery = q.Encode()
-
 	// Execute API call
-	models, err := h.APIGet(getModelUrl)
+	response, err := h.APIGet(getModelUrl)
 
-	// Check response validity
-	if len(models) == 0 {
-		return Model{}, fmt.Errorf("no model found with name = %v", id)
-	}
-	if len(models) > 1 {
-		return Model{}, fmt.Errorf("too many models returned")
+	// Unmarshal API response
+	var model Model
+	if err = json.Unmarshal(response, &model); err != nil {
+		return Model{}, err
 	}
 
-	return models[0], nil
+	return model, nil
 }
 
 // ValidModel checks if a model exists by id

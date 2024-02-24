@@ -49,7 +49,7 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Asks for the mandatory args if they are not provided
+	// Model name is mandatory
 	if addCustomDownloaderArgs.ModelName == "" {
 		err := cobrautil.AskFlagInput(currentCmd, currentCmd.Flag(downloader.ModelName))
 		if err != nil {
@@ -57,7 +57,12 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 			return
 		}
 	}
+
+	// TODO : model API call to HF : need the default module + class + version
+
+	// Module not provided : get it through the API
 	if addCustomDownloaderArgs.ModelModule == "" {
+		// TODO : determine module through API and issue 61
 		err := cobrautil.AskFlagInput(currentCmd, currentCmd.Flag(downloader.ModelModule))
 		if err != nil {
 			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", downloader.ModelModule, err))
@@ -71,6 +76,8 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		pterm.Error.Println(err)
 		return
 	}
+
+	// TODO : determine class through API and issue 61
 
 	valid, err := validateModel(addCustomDownloaderArgs.ModelName)
 	if err != nil {

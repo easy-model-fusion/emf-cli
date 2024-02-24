@@ -18,6 +18,7 @@ type Model struct {
 	Source          string
 	AddToBinaryFile bool
 	IsDownloaded    bool
+	Version         string
 }
 
 type Tokenizer struct {

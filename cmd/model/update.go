@@ -25,9 +25,11 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 	// TODO : if args : get config model by names
 	// TODO : else : get all models from config
 
-	// TODO : for each config model by name, call to HF and see if a new version is available
-	// TODO : yes? offer to overwrite the model => yes? download
-	// TODO : else? skip
+	// TODO : for each config model by name
+	// TODO : check if downloaded etc => HOW TO HANDLE THOSE NOT DOWNLOADED?
+	// TODO : if source HF : call to HF and see if a new version is available
+	// TODO : yes? then offer to overwrite the model
+	// TODO : yes again? then download
 	// TODO : if any updates : update the configuration file
 
 }

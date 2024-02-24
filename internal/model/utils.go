@@ -120,8 +120,9 @@ func MapToTokenizerFromDownloaderTokenizer(dlTokenizer downloader.Tokenizer) Tok
 func MapToModelFromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 	var model Model
 	model.Name = huggingfaceModel.Name
-	model.PipelineTag = huggingface.PipelineTag(huggingfaceModel.PipelineTag)
+	model.PipelineTag = huggingfaceModel.PipelineTag
 	model.Module = huggingfaceModel.LibraryName
 	model.Source = HUGGING_FACE
+	model.Version = huggingfaceModel.LastModified
 	return model
 }
