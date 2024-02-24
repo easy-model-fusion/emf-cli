@@ -2,6 +2,7 @@ package cmdmodeladd
 
 import (
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
@@ -58,27 +59,17 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// TODO : model API call to HF : need the default module + class + version
-
-	// Module not provided : get it through the API
-	if addCustomDownloaderArgs.ModelModule == "" {
-		// TODO : determine module through API and issue 61
-		err := cobrautil.AskFlagInput(currentCmd, currentCmd.Flag(downloader.ModelModule))
-		if err != nil {
-			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", downloader.ModelModule, err))
-			return
-		}
-	}
-
-	// Allow the user to choose flags and specify their value
-	err := cobrautil.AllowInputAmongRemainingFlags(currentCmd)
+	// Get model from huggingface : verify its existence and get mandatory data
+	huggingfaceModel, err := app.H().GetModelById(addCustomDownloaderArgs.ModelName)
 	if err != nil {
-		pterm.Error.Println(err)
+		// Model not found
+		pterm.Warning.Printfln("Model %s not valid : "+err.Error(), addCustomDownloaderArgs.ModelName)
 		return
 	}
+	// Map API response to model.Model
+	modelObj := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
 
-	// TODO : determine class through API and issue 61
-
+	// Validate the model
 	valid, err := validateModel(addCustomDownloaderArgs.ModelName)
 	if err != nil {
 		pterm.Error.Println(err)
@@ -90,6 +81,23 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// Allow the user to choose flags and set their values
+	err = cobrautil.AllowInputAmongRemainingFlags(currentCmd)
+	if err != nil {
+		pterm.Error.Println(err)
+		return
+	}
+
+	// Module not provided : get it from the API
+	if addCustomDownloaderArgs.ModelModule == "" {
+		addCustomDownloaderArgs.ModelModule = string(modelObj.Module)
+	}
+
+	// Class not provided : get it from the API
+	if addCustomDownloaderArgs.ModelClass == "" {
+		addCustomDownloaderArgs.ModelClass = modelObj.Class
+	}
+
 	// Running the script
 	dlModel, err := downloader.Execute(addCustomDownloaderArgs)
 	if err != nil || dlModel.IsEmpty {
@@ -98,7 +106,6 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	}
 
 	// Create the model for the configuration file
-	modelObj := model.Model{Name: addCustomDownloaderArgs.ModelName}
 	modelObj = model.MapToModelFromDownloaderModel(modelObj, dlModel)
 	modelObj.AddToBinaryFile = true
 	modelObj.IsDownloaded = true
