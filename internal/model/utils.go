@@ -126,3 +126,23 @@ func MapToModelFromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 	model.Version = huggingfaceModel.LastModified
 	return model
 }
+
+func GetModelsWithSourceHuggingface(models []Model) []Model {
+	var huggingfaceModels []Model
+	for _, current := range models {
+		if current.Source == HUGGING_FACE {
+			huggingfaceModels = append(huggingfaceModels, current)
+		}
+	}
+	return huggingfaceModels
+}
+
+func GetModelsWithIsDownloadedTrue(models []Model) []Model {
+	var downloadedModels []Model
+	for _, current := range models {
+		if current.IsDownloaded {
+			downloadedModels = append(downloadedModels, current)
+		}
+	}
+	return downloadedModels
+}
