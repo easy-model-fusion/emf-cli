@@ -35,5 +35,6 @@ func init() {
 
 	// Adding the subcommands
 	ModelCmd.AddCommand(modelRemoveCmd)
+	ModelCmd.AddCommand(modelUpdateCmd)
 	ModelCmd.AddCommand(cmdmodeladd.ModelAddCmd)
 }
