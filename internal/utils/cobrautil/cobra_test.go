@@ -1,4 +1,4 @@
-package utils
+package cobrautil
 
 import (
 	"github.com/easy-model-fusion/emf-cli/test"
@@ -7,6 +7,7 @@ import (
 	"testing"
 )
 
+// prepareSubCmd creates a mock sub-command for testing purposes.
 func prepareSubCmd(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:   name,
@@ -15,6 +16,7 @@ func prepareSubCmd(name string) *cobra.Command {
 	}
 }
 
+// prepareRootCmd creates a mock root command for testing purposes.
 func prepareRootCmd() *cobra.Command {
 	// Init : prepare commands
 	rootCmd := &cobra.Command{
@@ -24,46 +26,50 @@ func prepareRootCmd() *cobra.Command {
 	return rootCmd
 }
 
-func TestCobraFindSubCommand_NotFound(t *testing.T) {
+// TestFindSubCommand_NotFound tests the FindSubCommand function when the sub-command is not found.
+func TestFindSubCommand_NotFound(t *testing.T) {
 	// Init
 	rootCmd := prepareRootCmd()
 
 	// Execute
-	_, found := CobraFindSubCommand(rootCmd, "afnwibqpwifubqwpb")
+	_, found := FindSubCommand(rootCmd, "afnwibqpwifubqwpb")
 
 	// Assert
 	test.AssertEqual(t, found, false)
 }
 
-func TestCobraFindSubCommand_FromParentSuccess(t *testing.T) {
+// TestFindSubCommand_FromParentSuccess tests the FindSubCommand function when the sub-command is found under the parent command.
+func TestFindSubCommand_FromParentSuccess(t *testing.T) {
 	// Init
 	rootCmd := prepareRootCmd()
 	cmd2 := prepareSubCmd("cmd2")
 	rootCmd.AddCommand(cmd2)
 
 	// Execute
-	resultCmd, found := CobraFindSubCommand(rootCmd, cmd2.Name())
+	resultCmd, found := FindSubCommand(rootCmd, cmd2.Name())
 
 	// Assert
 	test.AssertEqual(t, found, true)
 	test.AssertEqual(t, resultCmd.Name(), cmd2.Name())
 }
 
-func TestCobraFindSubCommand_FromItselfSuccess(t *testing.T) {
+// TestFindSubCommand_AsItselfSuccess tests the FindSubCommand function when the sub-command is found as itself.
+func TestFindSubCommand_AsItselfSuccess(t *testing.T) {
 	// Init
 	rootCmd := prepareRootCmd()
 	cmd2 := prepareSubCmd("cmd2")
 	rootCmd.AddCommand(cmd2)
 
 	// Execute
-	resultCmd, found := CobraFindSubCommand(cmd2, cmd2.Name())
+	resultCmd, found := FindSubCommand(cmd2, cmd2.Name())
 
 	// Assert
 	test.AssertEqual(t, found, true)
 	test.AssertEqual(t, resultCmd.Name(), cmd2.Name())
 }
 
-func TestCobraGetSubCommands(t *testing.T) {
+// TestGetSubCommands_Success tests the GetSubCommands function for retrieving sub-commands.
+func TestGetSubCommands_Success(t *testing.T) {
 	// Init
 	rootCmd := prepareRootCmd()
 	cmd1 := prepareSubCmd("cmd1")
@@ -74,7 +80,7 @@ func TestCobraGetSubCommands(t *testing.T) {
 	rootCmd.AddCommand(cmd3)
 
 	// Execute
-	commandsList, commandsMap := CobraGetSubCommands(rootCmd, []string{cmd2.Use})
+	commandsList, commandsMap := GetSubCommands(rootCmd, []string{cmd2.Use})
 
 	// Assert
 	expectedList := []string{cmd1.Use, cmd3.Use}
@@ -89,8 +95,8 @@ func TestCobraGetSubCommands(t *testing.T) {
 	}
 }
 
-// TestCobraGetNonProvidedLocalFlags tests the CobraGetNonProvidedLocalFlags function.
-func TestCobraGetNonProvidedLocalFlags(t *testing.T) {
+// TestGetNonProvidedLocalFlags_Success tests the GetNonProvidedLocalFlags function for retrieving non-provided flags.
+func TestGetNonProvidedLocalFlags_Success(t *testing.T) {
 	// Init
 	rootCmd := prepareRootCmd()
 	cmd1 := prepareSubCmd("cmd1")
@@ -108,7 +114,7 @@ func TestCobraGetNonProvidedLocalFlags(t *testing.T) {
 	}
 
 	// Execute
-	flags := CobraGetNonProvidedLocalFlags(cmd1)
+	flags := GetNonProvidedLocalFlags(cmd1)
 
 	// Assert
 	test.AssertEqual(t, len(flags), 1) // skipping help and setting flag1

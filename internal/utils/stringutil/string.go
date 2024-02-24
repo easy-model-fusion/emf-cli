@@ -1,4 +1,4 @@
-package utils
+package stringutil
 
 import (
 	"path/filepath"
@@ -40,8 +40,8 @@ func PathUniformize(path string) string {
 	return path
 }
 
-// ParseOptions parses a string containing options in various formats and returns a slice of strings,
-// where each string represents an option. Options can be specified in the following formats:
+// ParseOptions parses a string containing options in various formats
+// Returns a slice of strings where each string represents an option.
 func ParseOptions(input string) []string {
 	var result []string
 

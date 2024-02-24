@@ -3,10 +3,12 @@ package cmdmodeladd
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
-	"github.com/easy-model-fusion/emf-cli/internal/script"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"path"
@@ -22,7 +24,12 @@ var addCustomCmd = &cobra.Command{
 	Run:   runAddCustom,
 }
 
-var addCustomDownloaderArgs script.DownloaderArgs
+var addCustomDownloaderArgs downloader.Args
+
+func init() {
+	// Bind cobra args to the downloader script args
+	downloader.ArgsGetForCobra(addCustomCmd, &addCustomDownloaderArgs)
+}
 
 // runAddCustom runs add command to add a custom model
 func runAddCustom(cmd *cobra.Command, args []string) {
@@ -36,7 +43,7 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	// TODO: Get flags or default values
 
 	// Searching for the currentCmd : when 'cmd' differs from 'addCustomCmd' (i.e. run through parent multiselect)
-	currentCmd, found := utils.CobraFindSubCommand(cmd, addCustomCommandName)
+	currentCmd, found := cobrautil.FindSubCommand(cmd, addCustomCommandName)
 	if !found {
 		pterm.Error.Println(fmt.Sprintf("Something went wrong : the '%s' command was not found. Please try again.", addCustomCommandName))
 		return
@@ -44,22 +51,22 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 
 	// Asks for the mandatory args if they are not provided
 	if addCustomDownloaderArgs.ModelName == "" {
-		err := utils.CobraAskFlagInput(currentCmd, currentCmd.Flag(script.ModelName))
+		err := cobrautil.AskFlagInput(currentCmd, currentCmd.Flag(downloader.ModelName))
 		if err != nil {
-			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", script.ModelName, err))
+			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", downloader.ModelName, err))
 			return
 		}
 	}
 	if addCustomDownloaderArgs.ModelModule == "" {
-		err := utils.CobraAskFlagInput(currentCmd, currentCmd.Flag(script.ModelModule))
+		err := cobrautil.AskFlagInput(currentCmd, currentCmd.Flag(downloader.ModelModule))
 		if err != nil {
-			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", script.ModelModule, err))
+			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", downloader.ModelModule, err))
 			return
 		}
 	}
 
 	// Allow the user to choose flags and specify their value
-	err := utils.CobraInputAmongRemainingFlags(currentCmd)
+	err := cobrautil.AllowInputAmongRemainingFlags(currentCmd)
 	if err != nil {
 		pterm.Error.Println(err)
 		return
@@ -77,15 +84,15 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	}
 
 	// Running the script
-	sdm, err := script.DownloaderExecute(addCustomDownloaderArgs)
-	if err != nil || sdm.IsEmpty {
+	dlModel, err := downloader.Execute(addCustomDownloaderArgs)
+	if err != nil || dlModel.IsEmpty {
 		// Something went wrong or returned data is empty
 		return
 	}
 
 	// Create the model for the configuration file
 	modelObj := model.Model{Name: addCustomDownloaderArgs.ModelName}
-	modelObj = model.MapToModelFromDownloaderModel(modelObj, sdm)
+	modelObj = model.MapToModelFromDownloaderModel(modelObj, dlModel)
 	modelObj.AddToBinaryFile = true
 	modelObj.IsDownloaded = true
 
@@ -101,19 +108,14 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 }
 
 func validateModel(modelName string) (bool, error) {
-	exists, err := utils.IsExistingPath(path.Join(script.DownloadModelsPath, modelName))
+	exists, err := fileutil.IsExistingPath(path.Join(downloader.DirectoryPath, modelName))
 	if err != nil {
 		return false, err
 	}
 	if exists {
 		message := fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?", modelName)
-		valid := utils.AskForUsersConfirmation(message)
+		valid := ptermutil.AskForUsersConfirmation(message)
 		return valid, nil
 	}
 	return true, nil
-}
-
-func init() {
-	// Bind cobra args to the downloader script args
-	script.DownloaderArgsForCobra(addCustomCmd, &addCustomDownloaderArgs)
 }

@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
-	"github.com/easy-model-fusion/emf-cli/internal/script"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
@@ -43,7 +44,7 @@ func setupConfigDir(t *testing.T) (string, string) {
 // setupConfigFile creates a configuration file.
 func setupConfigFile(filePath string, models []model.Model) error {
 	file, err := os.Create(filePath)
-	defer utils.CloseFile(file)
+	defer fileutil.CloseFile(file)
 	if err != nil {
 		return err
 	}
@@ -129,7 +130,7 @@ func setupModelDirectory(t *testing.T, modelPath string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	utils.CloseFile(file)
+	fileutil.CloseFile(file)
 }
 
 // getModel initiates a basic model with an id as suffix
@@ -137,7 +138,7 @@ func getModel(suffix int) model.Model {
 	idStr := fmt.Sprint(suffix)
 	return model.Model{
 		Name:            "model" + idStr,
-		Module:          "module" + idStr,
+		Module:          huggingface.Module("module" + idStr),
 		Class:           "class" + idStr,
 		AddToBinaryFile: true,
 	}
@@ -277,7 +278,7 @@ func TestRemoveModelPhysically_NotPhysical(t *testing.T) {
 func TestRemoveModelPhysically_Success(t *testing.T) {
 	// Init
 	modelToRemove := getModel(0)
-	modelPath := filepath.Join(script.DownloadModelsPath, modelToRemove.Name)
+	modelPath := filepath.Join(downloader.DirectoryPath, modelToRemove.Name)
 
 	// Create temporary model
 	setupModelDirectory(t, modelPath)
@@ -288,7 +289,7 @@ func TestRemoveModelPhysically_Success(t *testing.T) {
 	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
 
 	// Assert that the model was physically removed
-	exists, err := utils.IsExistingPath(modelPath)
+	exists, err := fileutil.IsExistingPath(modelPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -301,13 +302,13 @@ func TestRemoveAllModels_Success(t *testing.T) {
 	models := []model.Model{getModel(0), getModel(1), getModel(2)}
 
 	// Create temporary models
-	modelPath0 := filepath.Join(script.DownloadModelsPath, models[0].Name)
+	modelPath0 := filepath.Join(downloader.DirectoryPath, models[0].Name)
 	setupModelDirectory(t, modelPath0)
 	defer os.RemoveAll(modelPath0)
-	modelPath1 := filepath.Join(script.DownloadModelsPath, models[1].Name)
+	modelPath1 := filepath.Join(downloader.DirectoryPath, models[1].Name)
 	setupModelDirectory(t, modelPath1)
 	defer os.RemoveAll(modelPath1)
-	modelPath2 := filepath.Join(script.DownloadModelsPath, models[2].Name)
+	modelPath2 := filepath.Join(downloader.DirectoryPath, models[2].Name)
 	setupModelDirectory(t, modelPath2)
 	defer os.RemoveAll(modelPath2)
 
@@ -323,7 +324,7 @@ func TestRemoveAllModels_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
 
 	// Assert that all models were physically removed
-	exists, err := utils.IsExistingPath(script.DownloadModelsPath)
+	exists, err := fileutil.IsExistingPath(downloader.DirectoryPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -348,13 +349,13 @@ func TestRemoveModels_Success(t *testing.T) {
 	models := []model.Model{getModel(0), getModel(1), getModel(2)}
 
 	// Create temporary models
-	modelPath0 := filepath.Join(script.DownloadModelsPath, models[0].Name)
+	modelPath0 := filepath.Join(downloader.DirectoryPath, models[0].Name)
 	setupModelDirectory(t, modelPath0)
-	modelPath1 := filepath.Join(script.DownloadModelsPath, models[1].Name)
+	modelPath1 := filepath.Join(downloader.DirectoryPath, models[1].Name)
 	setupModelDirectory(t, modelPath1)
-	modelPath2 := filepath.Join(script.DownloadModelsPath, models[2].Name)
+	modelPath2 := filepath.Join(downloader.DirectoryPath, models[2].Name)
 	setupModelDirectory(t, modelPath2)
-	defer os.RemoveAll(script.DownloadModelsPath)
+	defer os.RemoveAll(downloader.DirectoryPath)
 
 	// Models to remove
 	removeStartIndex := 1
@@ -376,19 +377,19 @@ func TestRemoveModels_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
 
 	// Assert that all models were not physically removed
-	exists, err := utils.IsExistingPath(script.DownloadModelsPath)
+	exists, err := fileutil.IsExistingPath(downloader.DirectoryPath)
 	if err != nil {
 		t.Fatal(err)
 	}
 	test.AssertEqual(t, true, exists, "All models should not have been removed.")
 
 	// Assert that the request models were physically removed
-	exists, err = utils.IsExistingPath(modelPath1)
+	exists, err = fileutil.IsExistingPath(modelPath1)
 	if err != nil {
 		t.Fatal(err)
 	}
 	test.AssertEqual(t, false, exists, "Model 1 should not have been removed.")
-	exists, err = utils.IsExistingPath(modelPath2)
+	exists, err = fileutil.IsExistingPath(modelPath2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -439,7 +440,7 @@ func TestDownloadModel_Success(t *testing.T) {
 
 	// Init
 	modelToDownload := getModel(0)
-	sdm := script.DownloaderModel{Module: "moduleAsATest"}
+	sdm := downloader.Model{Module: "moduleAsATest"}
 
 	// Execute
 	result, ok := DownloadModel(modelToDownload)

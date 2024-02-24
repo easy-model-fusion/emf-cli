@@ -1,4 +1,4 @@
-package model
+package huggingface
 
 import (
 	"github.com/easy-model-fusion/emf-cli/test"
@@ -11,7 +11,7 @@ func TestAllTagsString(t *testing.T) {
 	test.AssertEqual(t, len(tags), len(AllTags), "The number of tags should be equal to the number of AllTags")
 
 	for i, tag := range tags {
-		test.AssertEqual(t, tag, string(AllTags[i]), "The tag should be equal to TextGeneration")
+		test.AssertEqual(t, tag, string(AllTags[i]))
 	}
 
 }

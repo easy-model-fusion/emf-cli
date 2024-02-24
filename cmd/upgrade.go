@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -19,7 +19,7 @@ var upgradeCmd = &cobra.Command{
 func runUpgrade(cmd *cobra.Command, args []string) {
 	pterm.Warning.Println("All the files in the folder sdk will be replaced with the latest version of the sdk.")
 	pterm.Warning.Println("Be sure to not have any custom files in the sdk folder, as they will be deleted.")
-	yes := utils.AskForUsersConfirmation("Are you sure you want to upgrade the sdk version of this project?")
+	yes := ptermutil.AskForUsersConfirmation("Are you sure you want to upgrade the sdk version of this project?")
 	if !yes {
 		return
 	}

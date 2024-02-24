@@ -4,7 +4,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -17,6 +17,11 @@ var modelRemoveCmd = &cobra.Command{
 	Short: "Remove one or more models",
 	Long:  "Remove one or more models",
 	Run:   runModelRemove,
+}
+
+func init() {
+	// Adding the command's flags
+	modelRemoveCmd.Flags().BoolVarP(&modelRemoveAllFlag, "all", "a", false, "Remove all models")
 }
 
 // runModelRemove runs the model remove command
@@ -76,12 +81,7 @@ func selectModelsToDelete(currentModels []model.Model) []string {
 
 	checkMark := &pterm.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")}
 	message := "Please select the model(s) to be deleted"
-	modelsToDelete := utils.DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
-	utils.DisplaySelectedItems(modelsToDelete)
+	modelsToDelete := ptermutil.DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
+	ptermutil.DisplaySelectedItems(modelsToDelete)
 	return modelsToDelete
-}
-
-func init() {
-	// Adding the command's flags
-	modelRemoveCmd.Flags().BoolVarP(&modelRemoveAllFlag, "all", "a", false, "Remove all models")
 }

@@ -1,4 +1,4 @@
-package model
+package huggingface
 
 var AllTags = []PipelineTag{
 	TextGeneration,
