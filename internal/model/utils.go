@@ -146,3 +146,20 @@ func GetModelsWithIsDownloadedTrue(models []Model) []Model {
 	}
 	return downloadedModels
 }
+
+// ModelsToMap creates a map from a slice of models for faster lookup.
+func ModelsToMap(models []Model) map[string]Model {
+	modelsMap := make(map[string]Model)
+	for _, current := range models {
+		modelsMap[current.Name] = current
+	}
+	return modelsMap
+}
+
+func GetTokenizerNames(model Model) []string {
+	var names []string
+	for _, current := range model.Tokenizers {
+		names = append(names, current.Class)
+	}
+	return names
+}
