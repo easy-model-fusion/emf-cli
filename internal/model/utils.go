@@ -127,6 +127,7 @@ func MapToModelFromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 	return model
 }
 
+// GetModelsWithSourceHuggingface return a sub-slice of models sourcing from huggingface.
 func GetModelsWithSourceHuggingface(models []Model) []Model {
 	var huggingfaceModels []Model
 	for _, current := range models {
@@ -137,6 +138,7 @@ func GetModelsWithSourceHuggingface(models []Model) []Model {
 	return huggingfaceModels
 }
 
+// GetModelsWithIsDownloadedTrue return a sub-slice of models with isdownloaded to true.
 func GetModelsWithIsDownloadedTrue(models []Model) []Model {
 	var downloadedModels []Model
 	for _, current := range models {
@@ -156,6 +158,7 @@ func ModelsToMap(models []Model) map[string]Model {
 	return modelsMap
 }
 
+// GetTokenizerNames retrieves the tokenizer names from a model.
 func GetTokenizerNames(model Model) []string {
 	var names []string
 	for _, current := range model.Tokenizers {
