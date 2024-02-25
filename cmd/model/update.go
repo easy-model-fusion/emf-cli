@@ -110,6 +110,8 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 	// Bind config models to a map for faster lookup
 	mapConfigModels := model.ModelsToMap(configModels)
 
+	var downloadedModels []model.Model
+
 	// Processing all the remaining models for an update
 	for _, current := range modelsToUpdate {
 
@@ -156,6 +158,8 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 			ptermutil.DisplaySelectedItems(tokenizerNames)
 		}
 
+		// TODO : if model was already configured : reuse the class and options
+
 		// Prepare the script arguments
 		downloaderArgs := downloader.Args{
 			ModelName:   current.Name,
@@ -176,10 +180,20 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 		current.AddToBinaryFile = true
 		current.IsDownloaded = true
 
+		downloadedModels = append(downloadedModels, current)
+
 		// TODO : download tokenizers => Waiting for issue 55 to be completed : [Client] Edit downloader execute
+		// TODO : also inquire about the tokenizer options
 
 	}
 
-	// TODO : if any updates : update the configuration file
+	// Add models to configuration file
+	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+	err = config.AddModels(downloadedModels)
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
+	} else {
+		spinner.Success()
+	}
 
 }
