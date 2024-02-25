@@ -158,8 +158,7 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 			ptermutil.DisplaySelectedItems(tokenizerNames)
 		}
 
-		// TODO : if model was already configured : reuse the class and options
-
+		// TODO : options model and tokenizer => Waiting for issue 74 to be completed : [Client] Model options to config
 		// Prepare the script arguments
 		downloaderArgs := downloader.Args{
 			ModelName:   current.Name,
@@ -183,8 +182,6 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 		downloadedModels = append(downloadedModels, current)
 
 		// TODO : download tokenizers => Waiting for issue 55 to be completed : [Client] Edit downloader execute
-		// TODO : also inquire about the tokenizer options
-
 	}
 
 	// Add models to configuration file
