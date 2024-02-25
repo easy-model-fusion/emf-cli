@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/git"
-	"github.com/easy-model-fusion/emf-cli/internal/huggingface"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/pterm/pterm"
 	"testing"

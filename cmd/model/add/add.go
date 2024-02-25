@@ -1,7 +1,7 @@
 package cmdmodeladd
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -16,18 +16,18 @@ var ModelAddCmd = &cobra.Command{
 	Run:   runModelAdd,
 }
 
-// runModelAdd runs model add command
-func runModelAdd(cmd *cobra.Command, args []string) {
-
-	// Running command as palette : allowing user to choose subcommand
-	err := utils.CobraRunCommandAsPalette(cmd, args, modelAddCommandName, []string{})
-	if err != nil {
-		pterm.Error.Println("Something went wrong :", err)
-	}
-}
-
 func init() {
 	// Adding subcommands
 	ModelAddCmd.AddCommand(addCustomCmd)
 	ModelAddCmd.AddCommand(addByNamesCmd)
+}
+
+// runModelAdd runs model add command
+func runModelAdd(cmd *cobra.Command, args []string) {
+
+	// Running command as palette : allowing user to choose subcommand
+	err := cobrautil.RunCommandAsPalette(cmd, args, modelAddCommandName, []string{})
+	if err != nil {
+		pterm.Error.Println("Something went wrong :", err)
+	}
 }

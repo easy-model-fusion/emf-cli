@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"os"
@@ -22,12 +22,17 @@ var cleanCmd = &cobra.Command{
 	Run:   runClean,
 }
 
+func init() {
+	cleanCmd.Flags().BoolVarP(&allFlagDelete, "all", "a", false, "clean all project")
+	cleanCmd.Flags().BoolVarP(&authorizeAllDelete, "yes", "y", false, "authorize all deletions")
+}
+
 func runClean(cmd *cobra.Command, args []string) {
 	// Delete all models if flag --all
 	if allFlagDelete {
 		// Ask for confirmation
 		if !authorizeAllDelete {
-			yes := utils.AskForUsersConfirmation("Are you sure you want to delete all downloaded models and clean the build files of this project?")
+			yes := ptermutil.AskForUsersConfirmation("Are you sure you want to delete all downloaded models and clean the build files of this project?")
 			if !yes {
 				return
 			}
@@ -63,10 +68,4 @@ func runClean(cmd *cobra.Command, args []string) {
 	} else {
 		pterm.Error.Printfln("Operation failed.")
 	}
-}
-
-func init() {
-	cleanCmd.Flags().BoolVarP(&allFlagDelete, "all", "a", false, "clean all project")
-	cleanCmd.Flags().BoolVarP(&authorizeAllDelete, "yes", "y", false, "authorize all deletions")
-	rootCmd.AddCommand(cleanCmd)
 }

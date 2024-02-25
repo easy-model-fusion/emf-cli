@@ -1,4 +1,4 @@
-package utils
+package fileutil
 
 import (
 	"embed"
@@ -89,6 +89,7 @@ func IsDirectoryEmpty(name string) (bool, error) {
 	return false, err // Either not empty or error, suits both cases
 }
 
+// DeleteDirectoryIfEmpty checks if the specified directory is empty. If it is empty, the directory is removed.
 func DeleteDirectoryIfEmpty(path string) error {
 	// Check if the directory is empty
 	if empty, err := IsDirectoryEmpty(path); err != nil {

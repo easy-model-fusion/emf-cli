@@ -4,25 +4,27 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/huggingface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"strings"
 )
 
-// modelTidyCmd represents the model tidy command
-var modelTidyCmd = &cobra.Command{
+// tidyCmd represents the model tidy command
+var tidyCmd = &cobra.Command{
 	Use:   "tidy",
 	Short: "add missing and remove unused models",
 	Long:  `add missing and remove unused models`,
-	Run:   runModelTidy,
+	Run:   runTidy,
 }
 
-// runModelTidy runs the model tidy command
-func runModelTidy(cmd *cobra.Command, args []string) {
+// runTidy runs the model tidy command
+func runTidy(cmd *cobra.Command, args []string) {
 	// get all models from config file
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
@@ -86,7 +88,7 @@ func addMissingModels(models []model.Model) error {
 		}
 
 		// Check if model is already downloaded
-		downloaded, err := utils.IsExistingPath(currentModelPath)
+		downloaded, err := fileutil.IsExistingPath(currentModelPath)
 		if err != nil {
 			return err
 		}
@@ -124,7 +126,7 @@ func missingModelConfiguration(models []model.Model) error {
 	// Get the list of configured model names
 	configModelNames := model.GetNames(models)
 	// Find missing models from configuration file
-	missingModelNames := utils.SliceDifference(downloadedModelNames, configModelNames)
+	missingModelNames := stringutil.SliceDifference(downloadedModelNames, configModelNames)
 	if len(missingModelNames) > 0 {
 		err = handleModelsWithNoConfig(missingModelNames)
 		if err != nil {
@@ -161,11 +163,15 @@ func generateModelsConfig(modelNames []string) error {
 	var models []model.Model
 	for _, modelName := range modelNames {
 		// Search for the model in hugging face
-		currentModel, err := huggingFace.GetModel(modelName)
+		huggingfaceModel, err := huggingFace.GetModelById(modelName)
+		var currentModel model.Model
 		// If not found create model configuration with only model's name
 		if err != nil {
 			currentModel = model.Model{Name: modelName}
 			currentModel.Source = model.CUSTOM
+		} else {
+			// Found : Map API response to model.Model
+			currentModel = model.MapToModelFromHuggingfaceModel(huggingfaceModel)
 		}
 		currentModel.AddToBinaryFile = true
 		currentModel.IsDownloaded = true
@@ -188,8 +194,8 @@ func handleModelsWithNoConfig(missingModelNames []string) error {
 	message := "These models weren't found in your configuration file and will be deleted. " +
 		"Please select the models that you wish to conserve"
 	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedModels := utils.DisplayInteractiveMultiselect(message, missingModelNames, checkMark, false)
-	modelsToDelete := utils.SliceDifference(missingModelNames, selectedModels)
+	selectedModels := ptermutil.DisplayInteractiveMultiselect(message, missingModelNames, checkMark, false)
+	modelsToDelete := stringutil.SliceDifference(missingModelNames, selectedModels)
 
 	// Delete selected models
 	if len(modelsToDelete) > 0 {
@@ -197,7 +203,7 @@ func handleModelsWithNoConfig(missingModelNames []string) error {
 		message = fmt.Sprintf(
 			"Are you sure you want to delete these models [%s]?",
 			strings.Join(modelsToDelete, ", "))
-		yes := utils.AskForUsersConfirmation(message)
+		yes := ptermutil.AskForUsersConfirmation(message)
 		if yes {
 			// Delete models if confirmed
 			for _, modelName := range modelsToDelete {

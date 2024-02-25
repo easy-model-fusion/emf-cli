@@ -1,4 +1,4 @@
-package utils
+package fileutil
 
 import (
 	"github.com/easy-model-fusion/emf-cli/sdk"

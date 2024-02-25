@@ -1,4 +1,4 @@
-package model
+package huggingface
 
 var AllModules = []Module{
 	DIFFUSERS,

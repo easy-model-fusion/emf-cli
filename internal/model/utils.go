@@ -1,8 +1,9 @@
 package model
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/script"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"path"
 )
 
@@ -56,7 +57,7 @@ func GetNames(models []Model) []string {
 // GetModelsByNames retrieves the models by their names given an input slice.
 func GetModelsByNames(models []Model, namesSlice []string) []Model {
 	// Create a map for faster lookup
-	namesMap := utils.SliceToMap(namesSlice)
+	namesMap := stringutil.SliceToMap(namesSlice)
 
 	// Slice of all the models that were found
 	var namesModels []Model
@@ -72,38 +73,11 @@ func GetModelsByNames(models []Model, namesSlice []string) []Model {
 	return namesModels
 }
 
-// MapToModelFromDownloaderModel maps data from downloader.Model to Model.
-func MapToModelFromDownloaderModel(model Model, downloaderModel script.DownloaderModel) Model {
-
-	// Check if ScriptModel is valid
-	if !script.IsDownloaderScriptModelEmpty(downloaderModel) {
-		model.Path = utils.PathUniformize(downloaderModel.Path)
-		model.Module = downloaderModel.Module
-		model.Class = downloaderModel.Class
-	}
-
-	// Check if ScriptTokenizer is valid
-	if !script.IsDownloaderScriptTokenizer(downloaderModel.Tokenizer) {
-		tokenizer := MapToTokenizerFromScriptDownloaderTokenizer(downloaderModel.Tokenizer)
-		// TODO : check if tokenizer already exists
-		model.Tokenizers = append(model.Tokenizers, tokenizer)
-	}
-
-	return model
-}
-
-// MapToTokenizerFromScriptDownloaderTokenizer maps data from script.DownloaderTokenizer to Tokenizer.
-func MapToTokenizerFromScriptDownloaderTokenizer(sdt script.DownloaderTokenizer) Tokenizer {
-	var modelTokenizer Tokenizer
-	modelTokenizer.Path = utils.PathUniformize(sdt.Path)
-	modelTokenizer.Class = sdt.Class
-	return modelTokenizer
-}
-
+// ConstructConfigPaths to update the model's path to elements accordingly to its configuration.
 func ConstructConfigPaths(current Model) Model {
-	basePath := path.Join(script.DownloadModelsPath, current.Name)
+	basePath := path.Join(downloader.DirectoryPath, current.Name)
 	modelPath := basePath
-	if current.Module == string(TRANSFORMERS) {
+	if current.Module == huggingface.TRANSFORMERS {
 		modelPath = path.Join(modelPath, "model")
 		for i, tokenizer := range current.Tokenizers {
 			current.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
@@ -112,4 +86,83 @@ func ConstructConfigPaths(current Model) Model {
 	current.Path = modelPath
 
 	return current
+}
+
+// MapToModelFromDownloaderModel maps data from downloader.Model to Model.
+func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model {
+
+	// Check if ScriptModel is valid
+	if !downloader.EmptyModel(dlModel) {
+		model.Path = stringutil.PathUniformize(dlModel.Path)
+		model.Module = huggingface.Module(dlModel.Module)
+		model.Class = dlModel.Class
+	}
+
+	// Check if ScriptTokenizer is valid
+	if !downloader.EmptyTokenizer(dlModel.Tokenizer) {
+		tokenizer := MapToTokenizerFromDownloaderTokenizer(dlModel.Tokenizer)
+		// TODO : check if tokenizer already exists
+		model.Tokenizers = append(model.Tokenizers, tokenizer)
+	}
+
+	return model
+}
+
+// MapToTokenizerFromDownloaderTokenizer maps data from downloader.Tokenizer to Tokenizer.
+func MapToTokenizerFromDownloaderTokenizer(dlTokenizer downloader.Tokenizer) Tokenizer {
+	var modelTokenizer Tokenizer
+	modelTokenizer.Path = stringutil.PathUniformize(dlTokenizer.Path)
+	modelTokenizer.Class = dlTokenizer.Class
+	return modelTokenizer
+}
+
+// MapToModelFromHuggingfaceModel map the Huggingface API model to a model
+func MapToModelFromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
+	var model Model
+	model.Name = huggingfaceModel.Name
+	model.PipelineTag = huggingfaceModel.PipelineTag
+	model.Module = huggingfaceModel.LibraryName
+	model.Source = HUGGING_FACE
+	model.Version = huggingfaceModel.LastModified
+	return model
+}
+
+// GetModelsWithSourceHuggingface return a sub-slice of models sourcing from huggingface.
+func GetModelsWithSourceHuggingface(models []Model) []Model {
+	var huggingfaceModels []Model
+	for _, current := range models {
+		if current.Source == HUGGING_FACE {
+			huggingfaceModels = append(huggingfaceModels, current)
+		}
+	}
+	return huggingfaceModels
+}
+
+// GetModelsWithIsDownloadedTrue return a sub-slice of models with isdownloaded to true.
+func GetModelsWithIsDownloadedTrue(models []Model) []Model {
+	var downloadedModels []Model
+	for _, current := range models {
+		if current.IsDownloaded {
+			downloadedModels = append(downloadedModels, current)
+		}
+	}
+	return downloadedModels
+}
+
+// ModelsToMap creates a map from a slice of models for faster lookup.
+func ModelsToMap(models []Model) map[string]Model {
+	modelsMap := make(map[string]Model)
+	for _, current := range models {
+		modelsMap[current.Name] = current
+	}
+	return modelsMap
+}
+
+// GetTokenizerNames retrieves the tokenizer names from a model.
+func GetTokenizerNames(model Model) []string {
+	var names []string
+	for _, current := range model.Tokenizers {
+		names = append(names, current.Class)
+	}
+	return names
 }

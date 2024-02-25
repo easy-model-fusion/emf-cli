@@ -1,10 +1,11 @@
-package utils
+package stringutil
 
 import (
 	"strings"
 )
 
 // SliceContainsItem checks if an item is present in a slice of strings.
+// True if the item is found, otherwise false.
 func SliceContainsItem(slice []string, item string) bool {
 	for _, element := range slice {
 		if element == item {
@@ -28,7 +29,7 @@ func SliceToMap(slice []string) map[string]struct{} {
 	return stringMap
 }
 
-// SliceRemoveDuplicates returns a slice in which every element only appears once.
+// SliceRemoveDuplicates returns a slice with all duplicates removed.
 func SliceRemoveDuplicates(slice []string) []string {
 
 	// Prepare variables

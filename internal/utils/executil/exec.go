@@ -1,4 +1,4 @@
-package utils
+package executil
 
 import (
 	"os/exec"

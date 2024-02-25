@@ -1,8 +1,11 @@
-package utils
+package python
 
 import (
 	"errors"
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/executil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/pterm/pterm"
 	"os"
 	"os/exec"
@@ -15,7 +18,7 @@ import (
 // version flag to check if it works, and returns path to python executable and true if so.
 // If python is not found, the function returns false.
 func CheckPythonVersion(name string) (string, bool) {
-	path, ok := CheckForExecutable(name)
+	path, ok := executil.CheckForExecutable(name)
 	if !ok {
 		return "", false
 	}
@@ -100,6 +103,7 @@ func ExecutePip(pipPath string, args []string) error {
 	return nil
 }
 
+// ExecuteScript runs the requested python file with the requested arguments
 func ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int) {
 
 	// Find the python executable inside the venv to run the script
@@ -110,7 +114,7 @@ func ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int
 	}
 
 	// Checking that the script does exist
-	exists, err := IsExistingPath(filePath)
+	exists, err := fileutil.IsExistingPath(filePath)
 	if err != nil {
 		pterm.Error.Println(fmt.Sprintf("Missing script '%s'", filePath))
 		return nil, err, 1
@@ -153,4 +157,43 @@ func ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int
 	}
 
 	return nil, err, exitCode
+}
+
+// CheckAskForPython checks if python is available in the PATH
+// If python is not available, a message is printed to the user and asks to specify the path to python
+// Returns true if python is available and the PATH
+// Returns false if python is not available
+func CheckAskForPython() (string, bool) {
+	pterm.Info.Println("Checking for Python...")
+	path, ok := CheckForPython()
+	if ok {
+		pterm.Success.Println("Python executable found! (" + path + ")")
+		return path, true
+	}
+
+	pterm.Warning.Println("Python is not installed or not available in the PATH")
+
+	if ptermutil.AskForUsersConfirmation("Do you want to specify the path to python?") {
+		result := ptermutil.AskForUsersInput("Enter python PATH")
+
+		if result == "" {
+			pterm.Error.Println("Please enter a valid path")
+			return "", false
+		}
+
+		path, ok := CheckPythonVersion(result)
+		if ok {
+			pterm.Success.Println("Python executable found! (" + path + ")")
+			return path, true
+		}
+
+		pterm.Error.Println("Could not run python with the --version flag, please check the path to python")
+		return "", false
+	}
+
+	pterm.Warning.Println("Please install Python 3.10 or higher and add it to the PATH")
+	pterm.Warning.Println("You can download Python here: https://www.python.org/downloads/")
+	pterm.Warning.Println("If you have already installed Python, please add it to the PATH")
+
+	return "", false
 }
