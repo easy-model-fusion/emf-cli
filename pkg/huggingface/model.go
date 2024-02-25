@@ -24,6 +24,9 @@ func (h HuggingFace) GetModelsByPipelineTag(tag PipelineTag, limit int) ([]Model
 
 	// Execute API call
 	response, err := h.APIGet(getModelsUrl)
+	if err != nil {
+		return []Model{}, err
+	}
 
 	// Unmarshal API response
 	var models []Model
@@ -45,6 +48,9 @@ func (h HuggingFace) GetModelById(id string) (Model, error) {
 
 	// Execute API call
 	response, err := h.APIGet(getModelUrl)
+	if err != nil {
+		return Model{}, err
+	}
 
 	// Unmarshal API response
 	var model Model
