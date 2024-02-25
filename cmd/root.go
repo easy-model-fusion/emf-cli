@@ -51,4 +51,5 @@ func init() {
 	rootCmd.AddCommand(upgradeCmd)
 	rootCmd.AddCommand(modelTidyCmd)
 	rootCmd.AddCommand(cmdmodel.ModelCmd)
+	rootCmd.AddCommand(buildCmd)
 }
