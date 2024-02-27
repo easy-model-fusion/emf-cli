@@ -25,6 +25,15 @@ func getModel(suffix int) Model {
 	}
 }
 
+// getTokenizer initiates a basic tokenizer with an id as suffix
+func getTokenizer(suffix int) Tokenizer {
+	idStr := fmt.Sprint(suffix)
+	return Tokenizer{
+		Class: "tokenizer" + idStr,
+		Path:  "path" + idStr,
+	}
+}
+
 // TestEmpty_True tests the Empty function with an empty models slice.
 func TestEmpty_True(t *testing.T) {
 	// Init
@@ -103,6 +112,83 @@ func TestUnion(t *testing.T) {
 	test.AssertEqual(t, len(expected), len(union), "Lengths should be equal.")
 }
 
+// TestModelsToMap_Success tests the ModelsToMap function to return a map from a slice of models.
+func TestModelsToMap_Success(t *testing.T) {
+	// Init
+	models := []Model{getModel(0), getModel(1), getModel(2)}
+	expected := map[string]Model{
+		models[0].Name: models[0],
+		models[1].Name: models[1],
+		models[2].Name: models[2],
+	}
+
+	// Execute
+	result := ModelsToMap(models)
+
+	// Check if lengths match
+	test.AssertEqual(t, len(result), len(expected), "Lengths of maps do not match")
+
+	// Check each key
+	for key := range expected {
+		_, exists := result[key]
+		test.AssertEqual(t, exists, true, "Key not found in the result map:", key)
+	}
+}
+
+// TestTokenizersToMap_Success tests the TokenizersToMap function to return a map from a slice of tokenizers.
+func TestTokenizersToMap_Success(t *testing.T) {
+	// Init
+	model := getModel(0)
+	model.Tokenizers = []Tokenizer{getTokenizer(0), getTokenizer(1), getTokenizer(2)}
+	expected := map[string]Tokenizer{
+		model.Tokenizers[0].Class: model.Tokenizers[0],
+		model.Tokenizers[1].Class: model.Tokenizers[1],
+		model.Tokenizers[2].Class: model.Tokenizers[2],
+	}
+
+	// Execute
+	result := TokenizersToMap(model)
+
+	// Check if lengths match
+	test.AssertEqual(t, len(result), len(expected), "Lengths of maps do not match")
+
+	// Check each key
+	for key := range expected {
+		_, exists := result[key]
+		test.AssertEqual(t, exists, true, "Key not found in the result map:", key)
+	}
+}
+
+// TestGetNames_Success tests the GetNames function to return the correct model names.
+func TestGetNames_Success(t *testing.T) {
+	// Init
+	models := []Model{getModel(0), getModel(1)}
+
+	// Execute
+	names := GetNames(models)
+
+	// Assert
+	test.AssertEqual(t, len(models), len(names), "Lengths should be equal.")
+}
+
+// TestGetTokenizerNames_Success tests the GetNames function to return the correct names.
+func TestGetTokenizerNames_Success(t *testing.T) {
+	// Init
+	input := getModel(0)
+	input.Tokenizers = []Tokenizer{{Class: "tokenizer1"}, {Class: "tokenizer2"}, {Class: "tokenizer3"}}
+	expected := []string{
+		input.Tokenizers[0].Class,
+		input.Tokenizers[1].Class,
+		input.Tokenizers[2].Class,
+	}
+
+	// Execute
+	names := GetTokenizerNames(input)
+
+	// Assert
+	test.AssertEqual(t, len(expected), len(names), "Lengths should be equal.")
+}
+
 // TestGetModelsByNames tests the GetModelsByNames function to return the correct models.
 func TestGetModelsByNames(t *testing.T) {
 	// Init
@@ -116,16 +202,32 @@ func TestGetModelsByNames(t *testing.T) {
 	test.AssertEqual(t, len(models), len(result), "Lengths should be equal.")
 }
 
-// TestGetNames tests the GetNames function to return the correct names.
-func TestGetNames(t *testing.T) {
+// TestGetModelsWithSourceHuggingface_Success tests the GetModelsWithSourceHuggingface to return the sub-slice.
+func TestGetModelsWithSourceHuggingface_Success(t *testing.T) {
 	// Init
 	models := []Model{getModel(0), getModel(1)}
+	models[0].Source = ""
+	expected := []Model{models[1]}
 
 	// Execute
-	names := GetNames(models)
+	result := GetModelsWithSourceHuggingface(models)
 
 	// Assert
-	test.AssertEqual(t, len(models), len(names), "Lengths should be equal.")
+	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
+}
+
+// TestGetModelsWithIsDownloadedTrue_Success tests the GetModelsWithIsDownloadedTrue to return the sub-slice.
+func TestGetModelsWithIsDownloadedTrue_Success(t *testing.T) {
+	// Init
+	models := []Model{getModel(0), getModel(1)}
+	models[0].IsDownloaded = false
+	expected := []Model{models[1]}
+
+	// Execute
+	result := GetModelsWithIsDownloadedTrue(models)
+
+	// Assert
+	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
 }
 
 // TestConstructConfigPaths_Default tests the ConstructConfigPaths for a default model.
@@ -200,7 +302,7 @@ func TestMapToModelFromDownloaderModel_Empty(t *testing.T) {
 	test.AssertEqual(t, expected.Tokenizers[0].Class, result.Tokenizers[0].Class)
 }
 
-// TestMapToModelFromDownloaderModel_Fill tests the MapToModelFromDownloaderModel to return the correct Config.
+// TestMapToModelFromDownloaderModel_Fill tests the MapToModelFromDownloaderModel to return the correct Model.
 func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
 	// Init
 	downloaderModel := downloader.Model{
@@ -223,6 +325,39 @@ func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
 
 	// Execute
 	result := MapToModelFromDownloaderModel(Model{}, downloaderModel)
+
+	// Assert
+	test.AssertEqual(t, expected.Path, result.Path)
+	test.AssertEqual(t, expected.Module, result.Module)
+	test.AssertEqual(t, expected.Class, result.Class)
+	test.AssertEqual(t, len(expected.Tokenizers), len(result.Tokenizers))
+	test.AssertEqual(t, expected.Tokenizers[0].Path, result.Tokenizers[0].Path)
+	test.AssertEqual(t, expected.Tokenizers[0].Class, result.Tokenizers[0].Class)
+}
+
+// TestMapToModelFromDownloaderModel_ReplaceTokenizer tests the MapToModelFromDownloaderModel to return the correct Model.
+func TestMapToModelFromDownloaderModel_ReplaceTokenizer(t *testing.T) {
+	// Init
+	downloaderModel := downloader.Model{
+		Path:   "/path/to/model",
+		Module: "module_name",
+		Class:  "class_name",
+		Tokenizer: downloader.Tokenizer{
+			Path:  "/path/to/tokenizer",
+			Class: "tokenizer_class",
+		},
+	}
+	expected := Model{
+		Path:   filepath.Clean("/path/to/model"),
+		Module: "module_name",
+		Class:  "class_name",
+		Tokenizers: []Tokenizer{
+			{Path: filepath.Clean("/path/to/tokenizer"), Class: "tokenizer_class"},
+		},
+	}
+
+	// Execute
+	result := MapToModelFromDownloaderModel(expected, downloaderModel)
 
 	// Assert
 	test.AssertEqual(t, expected.Path, result.Path)
@@ -267,73 +402,4 @@ func TestMapToModelFromHuggingfaceModel_Success(t *testing.T) {
 	test.AssertEqual(t, model.PipelineTag, huggingfaceModel.PipelineTag)
 	test.AssertEqual(t, model.Module, huggingfaceModel.LibraryName)
 	test.AssertEqual(t, model.Source, HUGGING_FACE)
-}
-
-// TestGetModelsWithSourceHuggingface_Success tests the GetModelsWithSourceHuggingface to return the sub-slice.
-func TestGetModelsWithSourceHuggingface_Success(t *testing.T) {
-	// Init
-	models := []Model{getModel(0), getModel(1)}
-	models[0].Source = ""
-	expected := []Model{models[1]}
-
-	// Execute
-	result := GetModelsWithSourceHuggingface(models)
-
-	// Assert
-	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
-}
-
-// TestGetModelsWithIsDownloadedTrue_Success tests the GetModelsWithIsDownloadedTrue to return the sub-slice.
-func TestGetModelsWithIsDownloadedTrue_Success(t *testing.T) {
-	// Init
-	models := []Model{getModel(0), getModel(1)}
-	models[0].IsDownloaded = false
-	expected := []Model{models[1]}
-
-	// Execute
-	result := GetModelsWithIsDownloadedTrue(models)
-
-	// Assert
-	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
-}
-
-// TestModelsToMap_Success tests the ModelsToMap function to return a map from a slice of models.
-func TestModelsToMap_Success(t *testing.T) {
-	// Init
-	models := []Model{getModel(0), getModel(1), getModel(2)}
-	expected := map[string]Model{
-		models[0].Name: models[0],
-		models[1].Name: models[1],
-		models[2].Name: models[2],
-	}
-
-	// Execute
-	result := ModelsToMap(models)
-
-	// Check if lengths match
-	test.AssertEqual(t, len(result), len(expected), "Lengths of maps do not match")
-
-	// Check each key
-	for key := range expected {
-		_, exists := result[key]
-		test.AssertEqual(t, exists, true, "Key not found in the result map:", key)
-	}
-}
-
-// TestGetTokenizerNames_Success tests the GetNames function to return the correct names.
-func TestGetTokenizerNames_Success(t *testing.T) {
-	// Init
-	input := getModel(0)
-	input.Tokenizers = []Tokenizer{{Class: "tokenizer1"}, {Class: "tokenizer2"}, {Class: "tokenizer3"}}
-	expected := []string{
-		input.Tokenizers[0].Class,
-		input.Tokenizers[1].Class,
-		input.Tokenizers[2].Class,
-	}
-
-	// Execute
-	names := GetTokenizerNames(input)
-
-	// Assert
-	test.AssertEqual(t, len(expected), len(names), "Lengths should be equal.")
 }
