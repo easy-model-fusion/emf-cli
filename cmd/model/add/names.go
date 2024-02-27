@@ -197,7 +197,7 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 	availableModelNames := model.GetNames(availableModels)
 	message := "Please select the model(s) to be added"
 	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedModelNames := ptermutil.DisplayInteractiveMultiselect(message, availableModelNames, checkMark, true)
+	selectedModelNames := ptermutil.DisplayInteractiveMultiselect(message, availableModelNames, []string{}, checkMark, true)
 
 	// No new model was selected : returning the input state
 	if len(selectedModelNames) == 0 {
@@ -216,7 +216,7 @@ func selectTags() []string {
 	// Build a multiselect with each tag name
 	message := "Please select the type of models you want to add"
 	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedTags := ptermutil.DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, true)
+	selectedTags := ptermutil.DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), []string{}, checkMark, true)
 
 	return selectedTags
 }
@@ -226,7 +226,7 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 	// Build a multiselect with each selected model name to exclude/include in the binary
 	message := "Please select the model(s) to install now"
 	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Blue("-")}
-	installsToExclude := ptermutil.DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
+	installsToExclude := ptermutil.DisplayInteractiveMultiselect(message, modelNames, []string{}, checkMark, false)
 	var updatedModels []model.Model
 	for _, currentModel := range models {
 		currentModel.AddToBinaryFile = stringutil.SliceContainsItem(installsToExclude, currentModel.Name)

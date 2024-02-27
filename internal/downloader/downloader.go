@@ -35,6 +35,8 @@ const TokenizerClass = "tokenizer-class"
 const TokenizerOptions = "tokenizer-options"
 const Overwrite = "overwrite"
 const Skip = "skip"
+const SkipValueModel = "model"
+const SkipValueTokenizer = "tokenizer"
 const EmfClient = "emf-client"
 
 // Args represents the arguments for the script
@@ -61,8 +63,17 @@ func Execute(downloaderArgs Args) (Model, error) {
 	// Building args for the python script
 	args := ArgsProcessForPython(downloaderArgs)
 
+	// Preparing spinner message
+	var downloaderItemMessage string
+	switch downloaderArgs.Skip {
+	case SkipValueModel:
+		downloaderItemMessage = fmt.Sprintf("tokenizer '%s' for model '%s'...", downloaderArgs.TokenizerClass, downloaderArgs.ModelName)
+	default:
+		downloaderItemMessage = fmt.Sprintf("model '%s'...", downloaderArgs.ModelName)
+	}
+
 	// Run the script to download the model
-	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", downloaderArgs.ModelName))
+	spinner, _ := pterm.DefaultSpinner.Start("Downloading " + downloaderItemMessage)
 	scriptModel, err, exitCode := python.ExecuteScript(".venv", ScriptPath, args)
 
 	// An error occurred while running the script
@@ -70,14 +81,14 @@ func Execute(downloaderArgs Args) (Model, error) {
 		spinner.Fail(err)
 		switch exitCode {
 		case 2:
-			pterm.Info.Println("Use command 'add custom' to customize the model to download.")
+			pterm.Info.Println("Use command 'model add custom' to customize the model to download.")
 		}
 		return Model{}, err
 	}
 
 	// No data was returned by the script
 	if scriptModel == nil {
-		spinner.Fail(fmt.Sprintf("The script didn't return any data for '%s'", downloaderArgs.ModelName))
+		spinner.Fail("The script didn't return any data when downloading " + downloaderItemMessage)
 		return Model{IsEmpty: true}, nil
 	}
 
@@ -89,7 +100,7 @@ func Execute(downloaderArgs Args) (Model, error) {
 	}
 
 	// Download was successful
-	spinner.Success(fmt.Sprintf("Successfully downloaded model '%s'", downloaderArgs.ModelName))
+	spinner.Success("Successfully downloaded " + downloaderItemMessage)
 
 	return model, nil
 }

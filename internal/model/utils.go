@@ -152,12 +152,20 @@ func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model 
 		tokenizer := MapToTokenizerFromDownloaderTokenizer(dlModel.Tokenizer)
 
 		// Check if tokenizer already configured and replace it
+		var replaced bool
 		for i := range model.Tokenizers {
 			if model.Tokenizers[i].Class == tokenizer.Class {
 				model.Tokenizers[i] = tokenizer
+				replaced = true
 			}
 		}
 
+		// Tokenizer was already found and replaced : nothing to append
+		if replaced {
+			return model
+		}
+
+		// Tokenizer not found : adding it to the list
 		model.Tokenizers = append(model.Tokenizers, tokenizer)
 	}
 

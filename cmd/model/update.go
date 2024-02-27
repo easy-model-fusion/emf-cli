@@ -38,22 +38,20 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Keep the models coming from huggingface
-	hfModels := model.GetModelsWithSourceHuggingface(configModels)
-
 	// Keep the downloaded models coming from huggingface (i.e. those that could potentially be updated)
+	hfModels := model.GetModelsWithSourceHuggingface(configModels)
 	hfModelsAvailable := model.GetModelsWithIsDownloadedTrue(hfModels)
 	hfModelAvailableNames := model.GetNames(hfModelsAvailable)
 
 	// Storing the names of those wished to be updated
 	var selectedModelNames []string
 
-	// Get models to update
+	// Get models to update : through args or through a multiselect of models already downloaded from huggingface
 	if len(args) == 0 {
 		// No argument provided : multiselect among the downloaded models coming from huggingface
 		message := "Please select the model(s) to be updated"
 		checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		selectedModelNames = ptermutil.DisplayInteractiveMultiselect(message, hfModelAvailableNames, checkMark, true)
+		selectedModelNames = ptermutil.DisplayInteractiveMultiselect(message, hfModelAvailableNames, []string{}, checkMark, true)
 		ptermutil.DisplaySelectedItems(selectedModelNames)
 	} else {
 		// Remove all the duplicates
@@ -61,6 +59,7 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 	}
 
 	// Bind the downloaded models coming from huggingface to a map for faster lookup
+	// Used to check whether a model has already been downloaded
 	mapHfModelsAvailable := model.ModelsToMap(hfModelsAvailable)
 
 	var modelsToUpdate []model.Model
@@ -73,11 +72,12 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 		// Fetching model from huggingface
 		huggingfaceModel, err := app.H().GetModelById(name)
 		if err != nil {
-			// Model not found : skipping to the next one
+			// Model not found : nothing more to do here, skipping to the next one
 			notFoundModelNames = append(notFoundModelNames, name)
 			continue
 		}
 
+		// Fetching succeeded : processing the response
 		// Map API response to model.Model
 		modelMapped := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
 
@@ -85,13 +85,14 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 		configModel, exists := mapHfModelsAvailable[name]
 
 		if !exists {
-			// Model not configured yet
+			// Model not configured yet, offering to download it later on
 			modelsToUpdate = append(modelsToUpdate, modelMapped)
 		} else if configModel.Version != modelMapped.Version {
 			// Model already configured but not up-to-date
+			configModel.Version = modelMapped.Version
 			modelsToUpdate = append(modelsToUpdate, configModel)
 		} else {
-			// Model already up-to-date
+			// Model already up-to-date, nothing more to do here
 			updatedModelNames = append(updatedModelNames, name)
 		}
 	}
@@ -108,6 +109,7 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 	}
 
 	// Bind config models to a map for faster lookup
+	// Used to get the model's path and check if it's already configured
 	mapConfigModels := model.ModelsToMap(configModels)
 
 	var downloadedModels []model.Model
@@ -125,9 +127,8 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 			continue
 		}
 
-		install := false
-
 		// Process internal state of the model
+		install := false
 		if !configured && !downloaded {
 			install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be added. "+
 				"Would you like to add it?", current.Name))
@@ -143,27 +144,34 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 				"Would you like to overwrite its old version?", current.Name))
 		}
 
-		// Model will not be downloaded
+		// Model will not be downloaded or overwritten, nothing more to do here
 		if !install {
 			continue
 		}
 
-		// Downloader to skip the tokenizer if none selected
+		// Downloader script to skip the tokenizers download process if none selected
 		var skip string
 
-		// If transformers : select the tokenizers to update through a multiselect
+		// If transformers : select the tokenizers to update using a multiselect
 		var tokenizerNames []string
 		if current.Module == huggingface.TRANSFORMERS {
-			tokenizerNames = model.GetTokenizerNames(current)
-			message := "Please select the tokenizer(s) to be updated"
-			checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-			// TODO : select all values by default
-			tokenizerNames = ptermutil.DisplayInteractiveMultiselect(message, tokenizerNames, checkMark, true)
-			ptermutil.DisplaySelectedItems(tokenizerNames)
 
-			// No tokenizer is selected : skipping so that it doesn't overwrite the default one
-			if len(tokenizerNames) > 0 {
-				skip = "tokenizer"
+			// Get tokenizer names for the model
+			availableNames := model.GetTokenizerNames(current)
+
+			// Allow to select only if at least one tokenizer is available
+			if len(availableNames) > 0 {
+
+				// Prepare the tokenizers multiselect
+				message := "Please select the tokenizer(s) to be updated"
+				checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+				tokenizerNames = ptermutil.DisplayInteractiveMultiselect(message, availableNames, availableNames, checkMark, true)
+				ptermutil.DisplaySelectedItems(tokenizerNames)
+
+				// No tokenizer is selected : skipping so that it doesn't overwrite the default one
+				if len(tokenizerNames) > 0 {
+					skip = downloader.SkipValueTokenizer
+				}
 			}
 		}
 
@@ -198,11 +206,11 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 
 			// TODO : options tokenizer => Waiting for issue 74 to be completed : [Client] Model options to config
 			// Building downloader args for the tokenizer
-			downloaderArgs.Skip = "model"
+			downloaderArgs.Skip = downloader.SkipValueModel
 			downloaderArgs.TokenizerClass = tokenizer.Class
 			downloaderArgs.TokenizerOptions = []string{}
 
-			// Running the script for the tokenizer
+			// Running the script for the tokenizer only
 			dlModelTokenizer, err := downloader.Execute(downloaderArgs)
 
 			// Something went wrong or no data has been returned

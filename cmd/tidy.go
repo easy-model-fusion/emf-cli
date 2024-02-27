@@ -194,7 +194,7 @@ func handleModelsWithNoConfig(missingModelNames []string) error {
 	message := "These models weren't found in your configuration file and will be deleted. " +
 		"Please select the models that you wish to conserve"
 	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedModels := ptermutil.DisplayInteractiveMultiselect(message, missingModelNames, checkMark, false)
+	selectedModels := ptermutil.DisplayInteractiveMultiselect(message, missingModelNames, []string{}, checkMark, false)
 	modelsToDelete := stringutil.SliceDifference(missingModelNames, selectedModels)
 
 	// Delete selected models

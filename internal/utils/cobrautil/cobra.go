@@ -87,7 +87,7 @@ func MultiselectRemainingFlags(cmd *cobra.Command) (map[string]*pflag.Flag, []st
 	// User multi-selects the flags he wishes to use
 	message := "Select any property you wish to set"
 	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedFlags := ptermutil.DisplayInteractiveMultiselect(message, remainingFlagsUsages, checkMark, false)
+	selectedFlags := ptermutil.DisplayInteractiveMultiselect(message, remainingFlagsUsages, []string{}, checkMark, false)
 	ptermutil.DisplaySelectedItems(selectedFlags)
 
 	return remainingFlagsMap, selectedFlags
