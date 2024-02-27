@@ -45,6 +45,24 @@ func Union(slice1, slice2 []Model) []Model {
 	return union
 }
 
+// ModelsToMap creates a map from a slice of models for faster lookup.
+func ModelsToMap(models []Model) map[string]Model {
+	modelsMap := make(map[string]Model)
+	for _, current := range models {
+		modelsMap[current.Name] = current
+	}
+	return modelsMap
+}
+
+// TokenizersToMap creates a map from a slice of tokenizers for faster lookup.
+func TokenizersToMap(model Model) map[string]Tokenizer {
+	tokenizersMap := make(map[string]Tokenizer)
+	for _, current := range model.Tokenizers {
+		tokenizersMap[current.Class] = current
+	}
+	return tokenizersMap
+}
+
 // GetNames retrieves the names from the models.
 func GetNames(models []Model) []string {
 	var modelNames []string
@@ -52,6 +70,15 @@ func GetNames(models []Model) []string {
 		modelNames = append(modelNames, item.Name)
 	}
 	return modelNames
+}
+
+// GetTokenizerNames retrieves the tokenizer names from a model.
+func GetTokenizerNames(model Model) []string {
+	var names []string
+	for _, current := range model.Tokenizers {
+		names = append(names, current.Class)
+	}
+	return names
 }
 
 // GetModelsByNames retrieves the models by their names given an input slice.
@@ -71,6 +98,28 @@ func GetModelsByNames(models []Model, namesSlice []string) []Model {
 	}
 
 	return namesModels
+}
+
+// GetModelsWithSourceHuggingface return a sub-slice of models sourcing from huggingface.
+func GetModelsWithSourceHuggingface(models []Model) []Model {
+	var huggingfaceModels []Model
+	for _, current := range models {
+		if current.Source == HUGGING_FACE {
+			huggingfaceModels = append(huggingfaceModels, current)
+		}
+	}
+	return huggingfaceModels
+}
+
+// GetModelsWithIsDownloadedTrue return a sub-slice of models with isdownloaded to true.
+func GetModelsWithIsDownloadedTrue(models []Model) []Model {
+	var downloadedModels []Model
+	for _, current := range models {
+		if current.IsDownloaded {
+			downloadedModels = append(downloadedModels, current)
+		}
+	}
+	return downloadedModels
 }
 
 // ConstructConfigPaths to update the model's path to elements accordingly to its configuration.
@@ -101,7 +150,14 @@ func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model 
 	// Check if ScriptTokenizer is valid
 	if !downloader.EmptyTokenizer(dlModel.Tokenizer) {
 		tokenizer := MapToTokenizerFromDownloaderTokenizer(dlModel.Tokenizer)
-		// TODO : check if tokenizer already exists
+
+		// Check if tokenizer already configured and replace it
+		for i := range model.Tokenizers {
+			if model.Tokenizers[i].Class == tokenizer.Class {
+				model.Tokenizers[i] = tokenizer
+			}
+		}
+
 		model.Tokenizers = append(model.Tokenizers, tokenizer)
 	}
 
@@ -125,44 +181,4 @@ func MapToModelFromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 	model.Source = HUGGING_FACE
 	model.Version = huggingfaceModel.LastModified
 	return model
-}
-
-// GetModelsWithSourceHuggingface return a sub-slice of models sourcing from huggingface.
-func GetModelsWithSourceHuggingface(models []Model) []Model {
-	var huggingfaceModels []Model
-	for _, current := range models {
-		if current.Source == HUGGING_FACE {
-			huggingfaceModels = append(huggingfaceModels, current)
-		}
-	}
-	return huggingfaceModels
-}
-
-// GetModelsWithIsDownloadedTrue return a sub-slice of models with isdownloaded to true.
-func GetModelsWithIsDownloadedTrue(models []Model) []Model {
-	var downloadedModels []Model
-	for _, current := range models {
-		if current.IsDownloaded {
-			downloadedModels = append(downloadedModels, current)
-		}
-	}
-	return downloadedModels
-}
-
-// ModelsToMap creates a map from a slice of models for faster lookup.
-func ModelsToMap(models []Model) map[string]Model {
-	modelsMap := make(map[string]Model)
-	for _, current := range models {
-		modelsMap[current.Name] = current
-	}
-	return modelsMap
-}
-
-// GetTokenizerNames retrieves the tokenizer names from a model.
-func GetTokenizerNames(model Model) []string {
-	var names []string
-	for _, current := range model.Tokenizers {
-		names = append(names, current.Class)
-	}
-	return names
 }

@@ -148,22 +148,33 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 			continue
 		}
 
+		// Downloader to skip the tokenizer if none selected
+		var skip string
+
 		// If transformers : select the tokenizers to update through a multiselect
 		var tokenizerNames []string
 		if current.Module == huggingface.TRANSFORMERS {
 			tokenizerNames = model.GetTokenizerNames(current)
 			message := "Please select the tokenizer(s) to be updated"
 			checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+			// TODO : select all values by default
 			tokenizerNames = ptermutil.DisplayInteractiveMultiselect(message, tokenizerNames, checkMark, true)
 			ptermutil.DisplaySelectedItems(tokenizerNames)
+
+			// No tokenizer is selected : skipping so that it doesn't overwrite the default one
+			if len(tokenizerNames) > 0 {
+				skip = "tokenizer"
+			}
 		}
 
-		// TODO : options model and tokenizer => Waiting for issue 74 to be completed : [Client] Model options to config
+		// TODO : options model => Waiting for issue 74 to be completed : [Client] Model options to config
 		// Prepare the script arguments
 		downloaderArgs := downloader.Args{
-			ModelName:   current.Name,
-			ModelModule: string(current.Module),
-			ModelClass:  current.Class,
+			ModelName:    current.Name,
+			ModelModule:  string(current.Module),
+			ModelClass:   current.Class,
+			ModelOptions: []string{},
+			Skip:         skip,
 		}
 
 		// Running the script
@@ -179,9 +190,31 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 		current.AddToBinaryFile = true
 		current.IsDownloaded = true
 
-		downloadedModels = append(downloadedModels, current)
+		// Bind the model tokenizers to a map for faster lookup
+		mapModelTokenizers := model.TokenizersToMap(current)
 
-		// TODO : download tokenizers => Waiting for issue 55 to be completed : [Client] Edit downloader execute
+		for _, tokenizerName := range tokenizerNames {
+			tokenizer := mapModelTokenizers[tokenizerName]
+
+			// TODO : options tokenizer => Waiting for issue 74 to be completed : [Client] Model options to config
+			// Building downloader args for the tokenizer
+			downloaderArgs.Skip = "model"
+			downloaderArgs.TokenizerClass = tokenizer.Class
+			downloaderArgs.TokenizerOptions = []string{}
+
+			// Running the script for the tokenizer
+			dlModelTokenizer, err := downloader.Execute(downloaderArgs)
+
+			// Something went wrong or no data has been returned
+			if err != nil || dlModelTokenizer.IsEmpty {
+				continue
+			}
+
+			// Update the model with the tokenizer for the configuration file
+			current = model.MapToModelFromDownloaderModel(current, dlModelTokenizer)
+		}
+
+		downloadedModels = append(downloadedModels, current)
 	}
 
 	// Add models to configuration file
