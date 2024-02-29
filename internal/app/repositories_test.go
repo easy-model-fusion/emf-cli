@@ -12,14 +12,13 @@ func TestInitHuggingFace(t *testing.T) {
 	InitHuggingFace("http://localhost:8080", "")
 	test.AssertNotEqual(t, huggingFace, nil, "Should not be nil if huggingface is initialized")
 	test.AssertNotEqual(t, H(), nil, "Should not be nil if huggingface is initialized")
-	test.AssertEqual(t, H().BaseUrl, "http://localhost:8080", "Should be equal to the base url")
 	huggingFace = nil
 	fatalCalled := false
 	fatal = func(a ...interface{}) *pterm.TextPrinter {
 		fatalCalled = true
 		return nil
 	}
-	var h *huggingface.HuggingFace
+	var h huggingface.HuggingFace
 	test.AssertEqual(t, H(), h)
 	test.AssertEqual(t, fatalCalled, true, "Should call the fatal function")
 }

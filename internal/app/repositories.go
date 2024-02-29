@@ -6,11 +6,11 @@ import (
 	"github.com/pterm/pterm"
 )
 
-var huggingFace *huggingface.HuggingFace
+var huggingFace huggingface.HuggingFace
 var gitInstance *git.Git
 var fatal = pterm.Fatal.Println // make it a variable, so we can mock it in tests
 
-func H() *huggingface.HuggingFace {
+func H() huggingface.HuggingFace {
 	if huggingFace == nil {
 		fatal("HuggingFace is not initialized, please run InitHuggingFace() first.")
 	}

@@ -7,7 +7,7 @@ import (
 )
 
 // GetModelsByPipelineTag from hugging face api by pipeline tag
-func (h HuggingFace) GetModelsByPipelineTag(tag PipelineTag, limit int) ([]Model, error) {
+func (h huggingFace) GetModelsByPipelineTag(tag PipelineTag, limit int) ([]Model, error) {
 	getModelsUrl, err := url.Parse(h.BaseUrl + modelEndpoint)
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func (h HuggingFace) GetModelsByPipelineTag(tag PipelineTag, limit int) ([]Model
 	getModelsUrl.RawQuery = q.Encode()
 
 	// Execute API call
-	response, err := h.APIGet(getModelsUrl)
+	response, err := h.apiGet(getModelsUrl)
 	if err != nil {
 		return []Model{}, err
 	}
@@ -39,7 +39,7 @@ func (h HuggingFace) GetModelsByPipelineTag(tag PipelineTag, limit int) ([]Model
 }
 
 // GetModelById from hugging face api by id
-func (h HuggingFace) GetModelById(id string) (Model, error) {
+func (h huggingFace) GetModelById(id string) (Model, error) {
 
 	getModelUrl, err := url.Parse(h.BaseUrl + modelEndpoint + "/" + id)
 	if err != nil {
@@ -47,7 +47,7 @@ func (h HuggingFace) GetModelById(id string) (Model, error) {
 	}
 
 	// Execute API call
-	response, err := h.APIGet(getModelUrl)
+	response, err := h.apiGet(getModelUrl)
 	if err != nil {
 		return Model{}, err
 	}
@@ -62,7 +62,7 @@ func (h HuggingFace) GetModelById(id string) (Model, error) {
 }
 
 // ValidModel checks if a model exists by id
-func (h HuggingFace) ValidModel(id string) (bool, error) {
+func (h huggingFace) ValidModel(id string) (bool, error) {
 	_, err := h.GetModelById(id)
 	if err != nil {
 		return false, err
