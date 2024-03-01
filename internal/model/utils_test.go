@@ -230,6 +230,20 @@ func TestGetModelsWithIsDownloadedTrue_Success(t *testing.T) {
 	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
 }
 
+// TestGetModelsWithAddToBinaryFileTrue_Success tests the GetModelsWithAddToBinaryFileTrue to return the sub-slice.
+func TestGetModelsWithAddToBinaryFileTrue_Success(t *testing.T) {
+	// Init
+	models := []Model{getModel(0), getModel(1)}
+	models[0].AddToBinaryFile = false
+	expected := []Model{models[1]}
+
+	// Execute
+	result := GetModelsWithAddToBinaryFileTrue(models)
+
+	// Assert
+	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
+}
+
 // TestConstructConfigPaths_Default tests the ConstructConfigPaths for a default model.
 func TestConstructConfigPaths_Default(t *testing.T) {
 	// Init

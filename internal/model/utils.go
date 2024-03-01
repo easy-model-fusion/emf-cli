@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"path"
@@ -122,6 +123,17 @@ func GetModelsWithIsDownloadedTrue(models []Model) []Model {
 	return downloadedModels
 }
 
+// GetModelsWithAddToBinaryFileTrue return a sub-slice of models with AddToBinaryFile to true.
+func GetModelsWithAddToBinaryFileTrue(models []Model) []Model {
+	var downloadedModels []Model
+	for _, current := range models {
+		if current.AddToBinaryFile {
+			downloadedModels = append(downloadedModels, current)
+		}
+	}
+	return downloadedModels
+}
+
 // ConstructConfigPaths to update the model's path to elements accordingly to its configuration.
 func ConstructConfigPaths(current Model) Model {
 	basePath := path.Join(downloader.DirectoryPath, current.Name)
@@ -189,4 +201,62 @@ func MapToModelFromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 	model.Source = HUGGING_FACE
 	model.Version = huggingfaceModel.LastModified
 	return model
+}
+
+// ModelDownloadedOnDevice returns true if the model is physically present on the device.
+func ModelDownloadedOnDevice(model Model) (bool, error) {
+
+	// Check if model is already downloaded
+	downloaded, err := fileutil.IsExistingPath(model.Path)
+	if err != nil {
+		// An error occurred
+		return false, err
+	} else if !downloaded {
+		// Model is not downloaded on the device
+		return false, nil
+	}
+
+	// Check if the model directory is empty
+	empty, err := fileutil.IsDirectoryEmpty(model.Path)
+	if err != nil {
+		// An error occurred
+		return false, err
+	} else if empty {
+		// Model is not downloaded on the device
+		return false, nil
+	}
+
+	// Model is downloaded on the device
+	return true, nil
+}
+
+func TokenizersNotDownloadedOnDevice(model Model) []Tokenizer {
+	var notDownloadedTokenizers []Tokenizer
+	for _, tokenizer := range model.Tokenizers {
+
+		// Check if tokenizer is already downloaded
+		downloaded, err := fileutil.IsExistingPath(tokenizer.Path)
+		if err != nil {
+			// An error occurred
+			continue
+		} else if downloaded {
+			// Tokenizer is downloaded on the device
+			continue
+		}
+
+		// Check if the tokenizer directory is empty
+		empty, err := fileutil.IsDirectoryEmpty(model.Path)
+		if err != nil {
+			// An error occurred
+			continue
+		} else if !empty {
+			// Tokenizer is downloaded on the device
+			continue
+		}
+
+		// Tokenizer is not downloaded on the device
+		notDownloadedTokenizers = append(notDownloadedTokenizers, tokenizer)
+	}
+
+	return notDownloadedTokenizers
 }

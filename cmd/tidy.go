@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -61,54 +61,132 @@ func runTidy(cmd *cobra.Command, args []string) {
 	}
 }
 
-// getModelsToBeAddedToBinaryFile returned models that needs to be added to binary
-func getModelsToBeAddedToBinaryFile(models []model.Model) (returnedModels []model.Model) {
+/*
 
-	for _, currentModel := range models {
-		if currentModel.AddToBinaryFile {
-			returnedModels = append(returnedModels, currentModel)
-		}
-	}
+TODO : when can a model be downloaded ?
+commands : add, update, tidy
 
-	return returnedModels
-}
+TODO : model add : DIFFUSERS
+downloaded => confirmation to overwrite the model => download the model
+!downloaded => download the model
+
+TODO : model add : TRANSFORMERS
+!modelDownloaded && !tokenizerDownloaded => download the model with tokenizer
+!modelDownloaded && tokenizerDownloaded => confirmation to overwrite the tokenizer => download the model with or without the --skip tokenizer
+modelDownloaded && !tokenizerDownloaded => confirmation to overwrite the model => download the tokenizer with or without the --skip model
+modelDownloaded && tokenizerDownloaded => confirmation to overwrite the model => confirmation to overwrite the tokenizer => download the model/tokenizer with or without the --skip model/tokenizer
+
+TODO : model update
+!modelConfigured && !modelDownloaded => confirmation to add the model => download the model with or without the --skip tokenizer
+!modelConfigured && modelDownloaded => confirmation to overwrite the model => download the model with or without the --skip tokenizer
+modelConfigured && !modelDownloaded => confirmation to download the model => download the model with or without the --skip tokenizer
+modelConfigured && modelDownloaded => confirmation to upload the model => download the model with or without the --skip tokenizer
+tokenizersConfigured => multiselect those to reinstall => download the selected tokenizers by overwriting them
+
+TODO : tidy
+!modelConfigured && modelDownloaded => get on device models => confirmation to configure them (else removed from device)
+!modelConfigured && tokenizers => get on device tokenizers => !configured => confirmation to configure them (else removed from device)
+modelConfigured && !modelDownloaded => confirmation to download the model => download the model
+modelConfigured && tokenizers => !downloaded => confirmation to download the tokenizers => download the tokenizers
+*/
 
 // addMissingModels adds the missing models from the list of configuration file models
 func addMissingModels(models []model.Model) error {
 	pterm.Info.Println("Verifying if all models are downloaded...")
 	// filter the models that should be added to binary
-	models = getModelsToBeAddedToBinaryFile(models)
+	models = model.GetModelsWithAddToBinaryFileTrue(models)
+
 	// Search for the models that need to be downloaded
-	var modelsToDownload []model.Model
-	for _, currentModel := range models {
-		// build model path
-		currentModelPath := currentModel.Path
-		if currentModelPath != "" {
-			currentModel = model.ConstructConfigPaths(currentModel)
-		}
+	var downloadedModels []model.Model
+	var failedModels []string
+	var failedTokenizersForModels []string
 
-		// Check if model is already downloaded
-		downloaded, err := fileutil.IsExistingPath(currentModelPath)
+	// Tidying the configured but not downloaded models and tokenizers
+	for _, current := range models {
+
+		// TODO : what if there is a correct custom path that the user provided? how about the tokenizer paths?
+		// Check if model is physically present on the device
+		current = model.ConstructConfigPaths(current)
+		downloaded, err := model.ModelDownloadedOnDevice(current)
 		if err != nil {
-			return err
+			failedModels = append(failedModels, current.Name)
+			continue
 		}
 
-		// Add missing models to the list of models to be downloaded
+		// TODO : options model => Waiting for issue 74 to be completed : [Client] Model options to config
+		// Prepare the script arguments
+		downloaderArgs := downloader.Args{
+			ModelName:    current.Name,
+			ModelModule:  string(current.Module),
+			ModelClass:   current.Class,
+			ModelOptions: []string{},
+		}
+
+		// Get all the configured but not downloaded tokenizers
+		missingTokenizers := model.TokenizersNotDownloadedOnDevice(current)
+
+		// Model has yet to be downloaded
 		if !downloaded {
-			modelsToDownload = append(modelsToDownload, currentModel)
+
+			// If at least one tokenizer is already installed : skipping the default tokenizer
+			if len(current.Tokenizers) != len(missingTokenizers) {
+				downloaderArgs.Skip = downloader.SkipValueTokenizer
+			}
+
+			// Running the script
+			dlModel, err := downloader.Execute(downloaderArgs)
+
+			// Something went wrong or no data has been returned
+			if err != nil || dlModel.IsEmpty {
+				failedModels = append(failedModels, current.Name)
+				continue
+			}
+
+			// Update the model for the configuration file
+			current = model.MapToModelFromDownloaderModel(current, dlModel)
+			current.AddToBinaryFile = true
+			current.IsDownloaded = true
 		}
+
+		// Downloading the missing tokenizers
+		var failedTokenizers []string
+		for _, tokenizer := range missingTokenizers {
+
+			// TODO : options tokenizer => Waiting for issue 74 to be completed : [Client] Model options to config
+			// Building downloader args for the tokenizer
+			downloaderArgs.Skip = downloader.SkipValueModel
+			downloaderArgs.TokenizerClass = tokenizer.Class
+			downloaderArgs.TokenizerOptions = []string{}
+
+			// Running the script for the tokenizer only
+			dlModelTokenizer, err := downloader.Execute(downloaderArgs)
+
+			// Something went wrong or no data has been returned
+			if err != nil || dlModelTokenizer.IsEmpty {
+				failedTokenizers = append(failedTokenizers, tokenizer.Class)
+				continue
+			}
+
+			// Update the model with the tokenizer for the configuration file
+			current = model.MapToModelFromDownloaderModel(current, dlModelTokenizer)
+		}
+
+		if len(failedTokenizers) > 0 {
+			failedTokenizersForModels = append(failedModels, fmt.Sprintf("These tokenizers could not be downloaded for '%s': %s", current.Name, failedTokenizers))
+		}
+
+		downloadedModels = append(downloadedModels, current)
 	}
 
-	if len(modelsToDownload) > 0 {
-		// download missing models
-		_, failedModels := config.DownloadModels(modelsToDownload)
-		if !model.Empty(failedModels) {
-			return fmt.Errorf("these models could not be downloaded %s", model.GetNames(failedModels))
-		}
-		pterm.Success.Println("Added missing models", model.GetNames(modelsToDownload))
-	} else {
-		pterm.Info.Println("All models are already downloaded")
+	// Displaying the downloads that failed
+	if len(failedModels) > 0 {
+		pterm.Error.Println(fmt.Sprintf("These models could not be downloaded : %s", failedModels))
 	}
+	for _, failedTokenizers := range failedTokenizersForModels {
+		pterm.Error.Println(failedTokenizers)
+	}
+
+	// TODO : update configuration file
 
 	return nil
 }
@@ -122,6 +200,8 @@ func missingModelConfiguration(models []model.Model) error {
 	if err != nil {
 		return err
 	}
+
+	// TODO : check for every tokenizer of the model if it's downloaded
 
 	// Get the list of configured model names
 	configModelNames := model.GetNames(models)

@@ -7,7 +7,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -113,6 +112,8 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 	mapConfigModels := model.ModelsToMap(configModels)
 
 	var downloadedModels []model.Model
+	var failedModels []string
+	var failedTokenizersForModels []string
 
 	// Processing all the remaining models for an update
 	for _, current := range modelsToUpdate {
@@ -120,10 +121,12 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 		// Checking if the model is already configured
 		_, configured := mapConfigModels[current.Name]
 
-		// Checking if the model is already physically downloaded
+		// TODO : what if there is a correct custom path that the user provided? how about the tokenizer paths?
+		// Check if model is physically present on the device
 		current = model.ConstructConfigPaths(current)
-		downloaded, err := fileutil.IsExistingPath(current.Path)
+		downloaded, err := model.ModelDownloadedOnDevice(current)
 		if err != nil {
+			failedModels = append(failedModels, current.Name)
 			continue
 		}
 
@@ -190,6 +193,7 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 
 		// Something went wrong or no data has been returned
 		if err != nil || dlModel.IsEmpty {
+			failedModels = append(failedModels, current.Name)
 			continue
 		}
 
@@ -201,6 +205,7 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 		// Bind the model tokenizers to a map for faster lookup
 		mapModelTokenizers := model.TokenizersToMap(current)
 
+		var failedTokenizers []string
 		for _, tokenizerName := range tokenizerNames {
 			tokenizer := mapModelTokenizers[tokenizerName]
 
@@ -215,6 +220,7 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 
 			// Something went wrong or no data has been returned
 			if err != nil || dlModelTokenizer.IsEmpty {
+				failedTokenizers = append(failedTokenizers, tokenizer.Class)
 				continue
 			}
 
@@ -222,7 +228,19 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 			current = model.MapToModelFromDownloaderModel(current, dlModelTokenizer)
 		}
 
+		if len(failedTokenizers) > 0 {
+			failedTokenizersForModels = append(failedModels, fmt.Sprintf("These tokenizers could not be downloaded for '%s': %s", current.Name, failedTokenizers))
+		}
+
 		downloadedModels = append(downloadedModels, current)
+	}
+
+	// Displaying the downloads that failed
+	if len(failedModels) > 0 {
+		pterm.Error.Println(fmt.Sprintf("These models could not be downloaded : %s", failedModels))
+	}
+	for _, failedTokenizers := range failedTokenizersForModels {
+		pterm.Error.Println(failedTokenizers)
 	}
 
 	// Add models to configuration file
