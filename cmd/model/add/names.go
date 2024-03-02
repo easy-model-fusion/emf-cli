@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
@@ -145,7 +146,36 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	selectedModels = model.Difference(selectedModels, invalidModels)
 
 	// Download the models
-	models, failedModels := config.DownloadModels(selectedModels)
+	var models []model.Model
+	var failedModels []model.Model
+	for _, currentModel := range models {
+
+		// TODO : validate model to download
+
+		// Exclude from download if not requested
+		if !currentModel.AddToBinaryFile {
+			models = append(models, currentModel)
+			continue
+		}
+
+		// Reset in case the download fails
+		currentModel.AddToBinaryFile = false
+
+		// Prepare the script arguments
+		downloaderArgs := downloader.Args{
+			ModelName:   currentModel.Name,
+			ModelModule: string(currentModel.Module),
+			ModelClass:  currentModel.Class,
+		}
+
+		// Downloading model
+		result, success := model.Download(currentModel, downloaderArgs)
+		if !success {
+			failedModels = append(failedModels, currentModel)
+		} else {
+			models = append(models, result)
+		}
+	}
 
 	// Indicate models that failed to download
 	if !model.Empty(failedModels) {
@@ -241,6 +271,7 @@ func alreadyDownloadedModels(models []model.Model) (downloadedModels []model.Mod
 	for _, currentModel := range models {
 		currentModel = model.ConstructConfigPaths(currentModel)
 		exists, err := fileutil.IsExistingPath(currentModel.Path)
+		// TODO : also check if model is empty
 		if err != nil {
 			return nil, err
 		}

@@ -369,3 +369,42 @@ func BuildModelsFromDevice() []Model {
 
 	return models
 }
+
+func Download(model Model, downloaderArgs downloader.Args) (Model, bool) {
+	// Running the script
+	dlModel, err := downloader.Execute(downloaderArgs)
+
+	// Something went wrong or no data has been returned
+	if err != nil || dlModel.IsEmpty {
+		return model, false
+	}
+
+	// Update the model for the configuration file
+	model = MapToModelFromDownloaderModel(model, dlModel)
+	model.AddToBinaryFile = true
+	model.IsDownloaded = true
+
+	return model, true
+}
+
+func DownloadTokenizer(model Model, tokenizer Tokenizer, downloaderArgs downloader.Args) (Model, bool) {
+
+	// TODO : options tokenizer => Waiting for issue 74 to be completed : [Client] Model options to config
+	// Building downloader args for the tokenizer
+	downloaderArgs.Skip = downloader.SkipValueModel
+	downloaderArgs.TokenizerClass = tokenizer.Class
+	downloaderArgs.TokenizerOptions = []string{}
+
+	// Running the script for the tokenizer only
+	dlModelTokenizer, err := downloader.Execute(downloaderArgs)
+
+	// Something went wrong or no data has been returned
+	if err != nil || dlModelTokenizer.IsEmpty {
+		return model, false
+	}
+
+	// Update the model with the tokenizer for the configuration file
+	model = MapToModelFromDownloaderModel(model, dlModelTokenizer)
+
+	return model, true
+}

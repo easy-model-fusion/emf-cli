@@ -76,7 +76,6 @@ func tidyModelsConfiguredButNotDownloaded(models []model.Model) error {
 	// Tidying the configured but not downloaded models and tokenizers
 	for _, current := range models {
 
-		// TODO : what if there is a correct custom path that the user provided?
 		// Check if model is physically present on the device
 		current = model.ConstructConfigPaths(current)
 		downloaded, err := model.ModelDownloadedOnDevice(current)
@@ -111,21 +110,14 @@ func tidyModelsConfiguredButNotDownloaded(models []model.Model) error {
 				downloaderArgs.Skip = downloader.SkipValueTokenizer
 			}
 
-			// TODO : write a DownloadModel function
-
-			// Running the script
-			dlModel, err := downloader.Execute(downloaderArgs)
-
-			// Something went wrong or no data has been returned
-			if err != nil || dlModel.IsEmpty {
+			// Downloading model
+			success := false
+			current, success = model.Download(current, downloaderArgs)
+			if !success {
+				// Download failed
 				failedModels = append(failedModels, current.Name)
 				continue
 			}
-
-			// Update the model for the configuration file
-			current = model.MapToModelFromDownloaderModel(current, dlModel)
-			current.AddToBinaryFile = true
-			current.IsDownloaded = true
 		}
 
 		// Some tokenizers are missing
@@ -135,25 +127,14 @@ func tidyModelsConfiguredButNotDownloaded(models []model.Model) error {
 			var failedTokenizers []string
 			for _, tokenizer := range missingTokenizers {
 
-				// TODO : write a DownloadTokenizer function
-
-				// TODO : options tokenizer => Waiting for issue 74 to be completed : [Client] Model options to config
-				// Building downloader args for the tokenizer
-				downloaderArgs.Skip = downloader.SkipValueModel
-				downloaderArgs.TokenizerClass = tokenizer.Class
-				downloaderArgs.TokenizerOptions = []string{}
-
-				// Running the script for the tokenizer only
-				dlModelTokenizer, err := downloader.Execute(downloaderArgs)
-
-				// Something went wrong or no data has been returned
-				if err != nil || dlModelTokenizer.IsEmpty {
+				// Downloading tokenizer
+				success := false
+				current, success = model.DownloadTokenizer(current, tokenizer, downloaderArgs)
+				if !success {
+					// Download failed
 					failedTokenizers = append(failedTokenizers, tokenizer.Class)
 					continue
 				}
-
-				// Update the model with the tokenizer for the configuration file
-				current = model.MapToModelFromDownloaderModel(current, dlModelTokenizer)
 			}
 
 			// The process failed for at least one tokenizer

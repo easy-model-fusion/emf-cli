@@ -170,54 +170,6 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 	return nil
 }
 
-// DownloadModel downloads physically a model.
-func DownloadModel(modelObj model.Model) (model.Model, bool) {
-
-	// TODO : validate model to download
-
-	// Exclude from download if not requested
-	if !modelObj.AddToBinaryFile {
-		return modelObj, true
-	}
-
-	// Reset in case the download fails
-	modelObj.AddToBinaryFile = false
-
-	// Prepare the script arguments
-	downloaderArgs := downloader.Args{
-		ModelName:   modelObj.Name,
-		ModelModule: string(modelObj.Module),
-		ModelClass:  modelObj.Class,
-	}
-
-	// Running the script
-	dlModel, err := downloader.Execute(downloaderArgs)
-
-	// Something went wrong or no data has been returned
-	if err != nil || dlModel.IsEmpty {
-		return model.Model{}, false
-	}
-
-	// Update the model for the configuration file
-	modelObj = model.MapToModelFromDownloaderModel(modelObj, dlModel)
-	modelObj.AddToBinaryFile = true
-
-	return modelObj, true
-}
-
-// DownloadModels downloads physically a list of models.
-func DownloadModels(models []model.Model) (passedModels []model.Model, failedModels []model.Model) {
-	for _, currentModel := range models {
-		result, ok := DownloadModel(currentModel)
-		if !ok {
-			failedModels = append(failedModels, currentModel)
-			continue
-		}
-		passedModels = append(passedModels, result)
-	}
-	return passedModels, failedModels
-}
-
 // GenerateModelsPythonCode generates the python code for the given models
 func GenerateModelsPythonCode(models []model.Model) error {
 	genFile := &codegen.File{

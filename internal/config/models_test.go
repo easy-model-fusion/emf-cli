@@ -407,50 +407,6 @@ func TestRemoveModels_Success(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
-// TestDownloadModel_BinaryFalse tests the DownloadModel function for skipping when download not needed.
-func TestDownloadModel_BinaryFalse(t *testing.T) {
-	// Init
-	modelToDownload := getModel(0)
-	modelToDownload.AddToBinaryFile = false
-
-	// Execute
-	result, ok := DownloadModel(modelToDownload)
-
-	// Assert
-	test.AssertEqual(t, ok, true)
-	test.AssertEqual(t, result.AddToBinaryFile, false)
-}
-
-// TestDownloadModel_Fail tests the DownloadModel function where the script should fail.
-func TestDownloadModel_Fail(t *testing.T) {
-	// Init
-	modelToDownload := getModel(0)
-
-	// Execute
-	result, ok := DownloadModel(modelToDownload)
-
-	// Assert
-	test.AssertEqual(t, ok, false)
-	test.AssertEqual(t, result.AddToBinaryFile, false)
-}
-
-// TestDownloadModel_Fail tests the DownloadModel function where the script should succeed.
-func TestDownloadModel_Success(t *testing.T) {
-	t.Skip() // TODO : mock the script.DownloaderExecute call to return (sdm, nil)
-
-	// Init
-	modelToDownload := getModel(0)
-	sdm := downloader.Model{Module: "moduleAsATest"}
-
-	// Execute
-	result, ok := DownloadModel(modelToDownload)
-
-	// Assert
-	test.AssertEqual(t, ok, true)
-	test.AssertEqual(t, result.AddToBinaryFile, true)
-	test.AssertEqual(t, result.Module, sdm.Module)
-}
-
 func TestModelExists_OnExistentModel(t *testing.T) {
 	// TODO implement this after fixing writeToConfigFile
 	// bug ==> writing name and pipeline

@@ -41,8 +41,6 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
 
-	// TODO: Get flags or default values
-
 	// Searching for the currentCmd : when 'cmd' differs from 'addCustomCmd' (i.e. run through parent multiselect)
 	currentCmd, found := cobrautil.FindSubCommand(cmd, addCustomCommandName)
 	if !found {
@@ -98,17 +96,11 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		addCustomDownloaderArgs.ModelClass = modelObj.Class
 	}
 
-	// Running the script
-	dlModel, err := downloader.Execute(addCustomDownloaderArgs)
-	if err != nil || dlModel.IsEmpty {
-		// Something went wrong or returned data is empty
+	// Downloading model
+	modelObj, success := model.Download(modelObj, addCustomDownloaderArgs)
+	if !success {
 		return
 	}
-
-	// Create the model for the configuration file
-	modelObj = model.MapToModelFromDownloaderModel(modelObj, dlModel)
-	modelObj.AddToBinaryFile = true
-	modelObj.IsDownloaded = true
 
 	// Add models to configuration file
 	spinner, _ := pterm.DefaultSpinner.Start("Writing model to configuration file...")
