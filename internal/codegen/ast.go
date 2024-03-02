@@ -89,6 +89,36 @@ type ReturnStmt struct {
 	Value string
 }
 
+type IfStmt struct {
+	Condition string
+	Body      []Statement
+	Elifs     []*ElifStmt
+	Else      *ElseStmt
+}
+
+type ElifStmt struct {
+	Condition string
+	Body      []Statement
+}
+
+type ElseStmt struct {
+	Body []Statement
+}
+
+// Equals method for Import
+func (i *Import) Equals(other *Import) bool {
+	if len(i.What) != len(other.What) {
+		return false
+	}
+	for j, w := range i.What {
+		otherW := other.What[j]
+		if w.Name != otherW.Name || w.Alias != otherW.Alias {
+			return false
+		}
+	}
+	return i.From == other.From && i.Alias == other.Alias
+}
+
 // Accept method for File
 func (m *File) Accept(visitor PythonVisitor) error {
 	return visitor.VisitFile(m)
@@ -152,4 +182,19 @@ func (s *FunctionCallParameter) Accept(visitor PythonVisitor) error {
 // Accept method for ReturnStmt
 func (s *ReturnStmt) Accept(visitor PythonVisitor) error {
 	return visitor.VisitReturnStmt(s)
+}
+
+// Accept method for IfStmt
+func (s *IfStmt) Accept(visitor PythonVisitor) error {
+	return visitor.VisitIfStmt(s)
+}
+
+// Accept method for ElseStmt
+func (s *ElseStmt) Accept(visitor PythonVisitor) error {
+	return visitor.VisitElseStmt(s)
+}
+
+// Accept method for ElifStmt
+func (s *ElifStmt) Accept(visitor PythonVisitor) error {
+	return visitor.VisitElifStmt(s)
 }

@@ -2,6 +2,57 @@ package codegen
 
 import "testing"
 
+func TestImport_Equals(t *testing.T) {
+	i1 := &Import{
+		From:  "from",
+		Alias: "alias",
+	}
+	i2 := &Import{
+		From:  "from",
+		Alias: "alias",
+	}
+	if !i1.Equals(i2) {
+		t.Error("i1 should equal i2")
+	}
+
+	i1.What = []ImportWhat{
+		{
+			Name:  "name",
+			Alias: "alias",
+		},
+		{
+			Name:  "test",
+			Alias: "testalias",
+		},
+	}
+
+	if i1.Equals(i2) {
+		t.Error("i1 should not equal i2")
+	}
+
+	i2.What = []ImportWhat{
+		{
+			Name:  "name",
+			Alias: "alias",
+		},
+		{
+			Name:  "test",
+			Alias: "testalias",
+		},
+	}
+
+	if !i1.Equals(i2) {
+		t.Error("i1 should equal i2")
+	}
+
+	i1.What[1].Alias = "alias"
+
+	if i1.Equals(i2) {
+		t.Error("i1 should not equal i2")
+	}
+
+}
+
 func TestAssignment_Accept(t *testing.T) {
 	a := &AssignmentStmt{}
 	v := newTestVisitor()
@@ -158,6 +209,42 @@ func TestFunctionCall_Accept(t *testing.T) {
 	}
 }
 
+func TestIfStmt_Accept(t *testing.T) {
+	i := &IfStmt{}
+	v := newTestVisitor()
+	err := i.Accept(v)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v.visits["if_stmt"] {
+		t.Error("VisitIfStmt not called")
+	}
+}
+
+func TestElifStmt_Accept(t *testing.T) {
+	e := &ElifStmt{}
+	v := newTestVisitor()
+	err := e.Accept(v)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v.visits["elif_stmt"] {
+		t.Error("VisitElifStmt not called")
+	}
+}
+
+func TestElseStmt_Accept(t *testing.T) {
+	e := &ElseStmt{}
+	v := newTestVisitor()
+	err := e.Accept(v)
+	if err != nil {
+		t.Error(err)
+	}
+	if !v.visits["else_stmt"] {
+		t.Error("VisitElseStmt not called")
+	}
+}
+
 type testVisitor struct {
 	visits map[string]bool
 }
@@ -240,5 +327,20 @@ func (v *testVisitor) VisitCommentStmt(*CommentStmt) error {
 
 func (v *testVisitor) VisitReturnStmt(*ReturnStmt) error {
 	v.visits["return_stmt"] = true
+	return nil
+}
+
+func (v *testVisitor) VisitIfStmt(*IfStmt) error {
+	v.visits["if_stmt"] = true
+	return nil
+}
+
+func (v *testVisitor) VisitElifStmt(*ElifStmt) error {
+	v.visits["elif_stmt"] = true
+	return nil
+}
+
+func (v *testVisitor) VisitElseStmt(*ElseStmt) error {
+	v.visits["else_stmt"] = true
 	return nil
 }
