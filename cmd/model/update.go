@@ -121,7 +121,6 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 		// Checking if the model is already configured
 		_, configured := mapConfigModels[current.Name]
 
-		// TODO : what if there is a correct custom path that the user provided? how about the tokenizer paths?
 		// Check if model is physically present on the device
 		current = model.ConstructConfigPaths(current)
 		downloaded, err := model.ModelDownloadedOnDevice(current)

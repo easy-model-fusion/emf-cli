@@ -174,7 +174,6 @@ func tidyModelsDownloadedButNotConfigured(models []model.Model) {
 	// Get the list of configured model names
 	configModelNames := model.GetNames(models)
 
-	// TODO : is there a way to get back the options used for downloading a model/tokenizer?
 	// Get the list of downloaded models
 	downloadedModels := model.BuildModelsFromDevice()
 	downloadedModelsNames := model.GetNames(downloadedModels)

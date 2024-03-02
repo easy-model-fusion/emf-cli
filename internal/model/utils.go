@@ -232,6 +232,33 @@ func ModelDownloadedOnDevice(model Model) (bool, error) {
 	return true, nil
 }
 
+// TokenizerDownloadedOnDevice returns true if the tokenizer is physically present on the device.
+func TokenizerDownloadedOnDevice(tokenizer Tokenizer) (bool, error) {
+
+	// Check if model is already downloaded
+	downloaded, err := fileutil.IsExistingPath(tokenizer.Path)
+	if err != nil {
+		// An error occurred
+		return false, err
+	} else if !downloaded {
+		// Model is not downloaded on the device
+		return false, nil
+	}
+
+	// Check if the model directory is empty
+	empty, err := fileutil.IsDirectoryEmpty(tokenizer.Path)
+	if err != nil {
+		// An error occurred
+		return false, err
+	} else if empty {
+		// Model is not downloaded on the device
+		return false, nil
+	}
+
+	// Model is downloaded on the device
+	return true, nil
+}
+
 // TokenizersNotDownloadedOnDevice returns the list of tokenizers that should but are not physically present on the device.
 func TokenizersNotDownloadedOnDevice(model Model) []Tokenizer {
 
@@ -245,22 +272,11 @@ func TokenizersNotDownloadedOnDevice(model Model) []Tokenizer {
 	for _, tokenizer := range model.Tokenizers {
 
 		// Check if tokenizer is already downloaded
-		downloaded, err := fileutil.IsExistingPath(tokenizer.Path)
+		downloaded, err := TokenizerDownloadedOnDevice(tokenizer)
 		if err != nil {
 			// An error occurred
 			continue
 		} else if !downloaded {
-			// Tokenizer is not downloaded on the device
-			notDownloadedTokenizers = append(notDownloadedTokenizers, tokenizer)
-			continue
-		}
-
-		// Check if the tokenizer directory is empty
-		empty, err := fileutil.IsDirectoryEmpty(model.Path)
-		if err != nil {
-			// An error occurred
-			continue
-		} else if empty {
 			// Tokenizer is not downloaded on the device
 			notDownloadedTokenizers = append(notDownloadedTokenizers, tokenizer)
 			continue
@@ -319,7 +335,6 @@ func BuildModelsFromDevice() []Model {
 			// TODO : class => Waiting for issue 61 to be completed : [Client] Analyze API
 			modelMapped := MapToModelFromHuggingfaceModel(huggingfaceModel)
 
-			// TODO : Version not accurate, how to proceed?
 			// Leaving the version field as empty since it's impossible to trace the version back
 			modelMapped.Version = ""
 

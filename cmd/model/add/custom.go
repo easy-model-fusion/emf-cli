@@ -8,11 +8,9 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"path"
 )
 
 const addCustomCommandName = "custom"
@@ -66,17 +64,20 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	}
 	// Map API response to model.Model
 	modelObj := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+	modelObj = model.ConstructConfigPaths(modelObj)
 
-	// Validate the model
-	valid, err := validateModel(addCustomDownloaderArgs.ModelName)
+	// Validate the model : if model is already downloaded
+	downloaded, err := model.ModelDownloadedOnDevice(modelObj)
 	if err != nil {
 		pterm.Error.Println(err)
 		return
-	}
-	if !valid {
-		pterm.Warning.Println("This model is already downloaded "+
-			"and should be checked manually", addCustomDownloaderArgs.ModelName)
-		return
+	} else if downloaded {
+		message := fmt.Sprintf("Model '%s' is already downloaded. Do you wish to overwrite it?", modelObj.Name)
+		overwrite := ptermutil.AskForUsersConfirmation(message)
+		if !overwrite {
+			pterm.Warning.Println("This model is already downloaded and should be checked manually", modelObj.Name)
+			return
+		}
 	}
 
 	// Allow the user to choose flags and set their values
@@ -96,6 +97,8 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		addCustomDownloaderArgs.ModelClass = modelObj.Class
 	}
 
+	// TODO : check if tokenizer already exists
+
 	// Downloading model
 	modelObj, success := model.Download(modelObj, addCustomDownloaderArgs)
 	if !success {
@@ -111,18 +114,4 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		spinner.Success()
 	}
 
-}
-
-func validateModel(modelName string) (bool, error) {
-	exists, err := fileutil.IsExistingPath(path.Join(downloader.DirectoryPath, modelName))
-	// TODO : also check if model is empty
-	if err != nil {
-		return false, err
-	}
-	if exists {
-		message := fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?", modelName)
-		valid := ptermutil.AskForUsersConfirmation(message)
-		return valid, nil
-	}
-	return true, nil
 }

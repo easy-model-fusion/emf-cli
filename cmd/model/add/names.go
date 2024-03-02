@@ -7,7 +7,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -41,8 +40,6 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	app.InitHuggingFace(huggingface.BaseUrl, "")
 
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
-
-	// TODO: Get flags or default values
 
 	// Get all existing models
 	existingModels, err := config.GetModels()
@@ -149,8 +146,6 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	var models []model.Model
 	var failedModels []model.Model
 	for _, currentModel := range models {
-
-		// TODO : validate model to download
 
 		// Exclude from download if not requested
 		if !currentModel.AddToBinaryFile {
@@ -270,12 +265,12 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 func alreadyDownloadedModels(models []model.Model) (downloadedModels []model.Model, err error) {
 	for _, currentModel := range models {
 		currentModel = model.ConstructConfigPaths(currentModel)
-		exists, err := fileutil.IsExistingPath(currentModel.Path)
-		// TODO : also check if model is empty
+		downloaded, err := model.ModelDownloadedOnDevice(currentModel)
+		// TODO : handle tokenizers as well
 		if err != nil {
 			return nil, err
 		}
-		if exists {
+		if downloaded {
 			downloadedModels = append(downloadedModels, currentModel)
 		}
 	}
