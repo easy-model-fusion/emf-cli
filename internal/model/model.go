@@ -67,6 +67,18 @@ func (m *Model) GetPipelineTagAbstractClassName() string {
 	}
 }
 
+// GetModuleAutoPipelineClassName return the auto pipeline for the given model
+func (m *Model) GetModuleAutoPipelineClassName() string {
+	switch m.Module {
+	case huggingface.DIFFUSERS:
+		return huggingface.AutoDiffusers
+	case huggingface.TRANSFORMERS:
+		return huggingface.AutoTransformers
+	default:
+		return ""
+	}
+}
+
 // GenImports generate the imports for the given model
 func (m *Model) GenImports() []codegen.Import {
 	return []codegen.Import{
@@ -81,10 +93,10 @@ func (m *Model) GenImports() []codegen.Import {
 		{
 			What: []codegen.ImportWhat{
 				{
-					Name: "StableDiffusionXLPipeline", // TODO: Add the correct import
+					Name: m.GetModuleAutoPipelineClassName(),
 				},
 			},
-			From: "diffusers",
+			From: string(m.Module),
 		},
 		{
 			What: []codegen.ImportWhat{
@@ -99,11 +111,11 @@ func (m *Model) GenImports() []codegen.Import {
 func (m *Model) GenClass() *codegen.Class {
 	return &codegen.Class{
 		Name:   m.GetFormattedModelName(),
-		Extend: "ModelTextToImage",
+		Extend: m.GetPipelineTagAbstractClassName(),
 		Fields: []codegen.Field{
 			{
 				Name: "pipeline",
-				Type: "StableDiffusionXLPipeline",
+				Type: m.GetModuleAutoPipelineClassName(),
 			},
 		},
 		Statements: []codegen.Statement{
@@ -156,7 +168,7 @@ func (m *Model) GenClass() *codegen.Class {
 					&codegen.AssignmentStmt{
 						Variable: "self.pipeline",
 						FunctionCallValue: &codegen.FunctionCall{
-							Name: "StableDiffusionXLPipeline.from_pretrained",
+							Name: m.GetModuleAutoPipelineClassName() + ".from_pretrained",
 							Params: []codegen.FunctionCallParameter{
 								{
 									Name:  "pretrained_model_name_or_path",

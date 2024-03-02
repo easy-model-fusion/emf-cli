@@ -12,6 +12,11 @@ const (
 	TRANSFORMERS Module = "transformers"
 )
 
+const (
+	AutoDiffusers    string = "DiffusionPipeline"
+	AutoTransformers string = "AutoModel"
+)
+
 // AllModulesString returns all modules as a string slice
 func AllModulesString() []string {
 	var modules []string
