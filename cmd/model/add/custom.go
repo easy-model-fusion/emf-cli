@@ -123,6 +123,7 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 
 func validateModel(modelName string) (bool, error) {
 	exists, err := fileutil.IsExistingPath(path.Join(downloader.DirectoryPath, modelName))
+	// TODO : also check if model is empty
 	if err != nil {
 		return false, err
 	}

@@ -42,6 +42,7 @@ func getModelFullPath(modelDirectoryPath string) (error, string) {
 		return err, ""
 	}
 
+	// TODO : WRONG : you could have multiple models from the same provider. FORMAT = providerName/modelName
 	// If the directory contains only a folder => folder's name is part of the model name
 	if len(entries) == 1 && entries[0].IsDir() {
 		// Continue the search for the model's full path

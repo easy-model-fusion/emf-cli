@@ -1,10 +1,12 @@
 package model
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
+	"os"
 	"path"
 )
 
@@ -234,7 +236,7 @@ func ModelDownloadedOnDevice(model Model) (bool, error) {
 func TokenizersNotDownloadedOnDevice(model Model) []Tokenizer {
 
 	// Model can't have any tokenizer
-	if model.Module == huggingface.TRANSFORMERS {
+	if model.Module != huggingface.TRANSFORMERS {
 		return []Tokenizer{}
 	}
 
@@ -247,8 +249,9 @@ func TokenizersNotDownloadedOnDevice(model Model) []Tokenizer {
 		if err != nil {
 			// An error occurred
 			continue
-		} else if downloaded {
-			// Tokenizer is downloaded on the device
+		} else if !downloaded {
+			// Tokenizer is not downloaded on the device
+			notDownloadedTokenizers = append(notDownloadedTokenizers, tokenizer)
 			continue
 		}
 
@@ -257,14 +260,112 @@ func TokenizersNotDownloadedOnDevice(model Model) []Tokenizer {
 		if err != nil {
 			// An error occurred
 			continue
-		} else if !empty {
-			// Tokenizer is downloaded on the device
+		} else if empty {
+			// Tokenizer is not downloaded on the device
+			notDownloadedTokenizers = append(notDownloadedTokenizers, tokenizer)
 			continue
 		}
-
-		// Tokenizer is not downloaded on the device
-		notDownloadedTokenizers = append(notDownloadedTokenizers, tokenizer)
 	}
 
 	return notDownloadedTokenizers
+}
+
+func BuildModelsFromDevice() []Model {
+
+	// Get all the providers in the root folder
+	providers, err := os.ReadDir(downloader.DirectoryPath)
+	if err != nil {
+		return []Model{}
+	}
+
+	// Processing each provider
+	var models []Model
+	for _, provider := range providers {
+		// If it's not a directory, skip
+		if !provider.IsDir() {
+			continue
+		}
+
+		// Get all the models for the provider
+		providerPath := path.Join(downloader.DirectoryPath, provider.Name())
+		providerModels, err := os.ReadDir(providerPath)
+		if err != nil {
+			continue
+		}
+
+		// Processing each model
+		for _, providerModel := range providerModels {
+
+			// If it's not a directory, skip
+			if !providerModel.IsDir() {
+				continue
+			}
+
+			// Fetching model from huggingface
+			huggingfaceModel, err := app.H().GetModelById(path.Join(provider.Name(), providerModel.Name()))
+			if err != nil {
+				// Model not found : custom
+				models = append(models, Model{
+					Name:            providerModel.Name(),
+					Source:          CUSTOM,
+					AddToBinaryFile: true,
+					IsDownloaded:    true,
+				})
+				continue
+			}
+
+			// Fetching succeeded : processing the response
+			// Map API response to model.Model
+			// TODO : class => Waiting for issue 61 to be completed : [Client] Analyze API
+			modelMapped := MapToModelFromHuggingfaceModel(huggingfaceModel)
+
+			// TODO : Version not accurate, how to proceed?
+			// Leaving the version field as empty since it's impossible to trace the version back
+			modelMapped.Version = ""
+
+			// Get all the folders for the model
+			modelPath := path.Join(providerPath, providerModel.Name())
+			directories, err := os.ReadDir(modelPath)
+			if err != nil {
+				continue
+			}
+
+			// Checking whether the model is empty or not
+			if len(directories) == 0 {
+				// Nothing to process
+				continue
+			}
+
+			// Handling model by default : a special handling is required for tokenizers
+			if modelMapped.Module != huggingface.TRANSFORMERS {
+				modelMapped.Path = modelPath
+				modelMapped.AddToBinaryFile = true
+				modelMapped.IsDownloaded = true
+			} else {
+
+				// Searching for the model folder and the tokenizers
+				for _, directory := range directories {
+
+					// Model folder exists : meaning the model is downloaded
+					if directory.Name() == "model" {
+						modelMapped.Path = path.Join(modelPath, "model")
+						modelMapped.AddToBinaryFile = true
+						modelMapped.IsDownloaded = true
+						continue
+					}
+
+					// Otherwise : directory is considered as a tokenizer
+					tokenizer := Tokenizer{
+						Path:  path.Join(modelPath, directory.Name()),
+						Class: directory.Name(),
+					}
+					modelMapped.Tokenizers = append(modelMapped.Tokenizers, tokenizer)
+				}
+			}
+
+			models = append(models, modelMapped)
+		}
+	}
+
+	return models
 }

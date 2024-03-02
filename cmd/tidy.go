@@ -2,14 +2,12 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
-	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"strings"
@@ -39,15 +37,18 @@ func runTidy(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Add all missing models
-	err = addMissingModels(models)
+	// Tidy the models configured but not physically present on the device
+	err = tidyModelsConfiguredButNotDownloaded(models)
 	if err != nil {
 		pterm.Error.Println(err.Error())
 		return
 	}
 
-	// Fix missing model configurations
-	err = missingModelConfiguration(models)
+	// Tidy the models physically present on the device but not configured
+	tidyModelsDownloadedButNotConfigured(models)
+
+	// Updating the models object since the configuration might have changed in between
+	models, err = config.GetModels()
 	if err != nil {
 		pterm.Error.Println(err.Error())
 		return
@@ -61,37 +62,8 @@ func runTidy(cmd *cobra.Command, args []string) {
 	}
 }
 
-/*
-
-TODO : when can a model be downloaded ?
-commands : add, update, tidy
-
-TODO : model add : DIFFUSERS
-downloaded => confirmation to overwrite the model => download the model
-!downloaded => download the model
-
-TODO : model add : TRANSFORMERS
-!modelDownloaded && !tokenizerDownloaded => download the model with tokenizer
-!modelDownloaded && tokenizerDownloaded => confirmation to overwrite the tokenizer => download the model with or without the --skip tokenizer
-modelDownloaded && !tokenizerDownloaded => confirmation to overwrite the model => download the tokenizer with or without the --skip model
-modelDownloaded && tokenizerDownloaded => confirmation to overwrite the model => confirmation to overwrite the tokenizer => download the model/tokenizer with or without the --skip model/tokenizer
-
-TODO : model update
-!modelConfigured && !modelDownloaded => confirmation to add the model => download the model with or without the --skip tokenizer
-!modelConfigured && modelDownloaded => confirmation to overwrite the model => download the model with or without the --skip tokenizer
-modelConfigured && !modelDownloaded => confirmation to download the model => download the model with or without the --skip tokenizer
-modelConfigured && modelDownloaded => confirmation to upload the model => download the model with or without the --skip tokenizer
-tokenizersConfigured => multiselect those to reinstall => download the selected tokenizers by overwriting them
-
-TODO : tidy
-!modelConfigured && modelDownloaded => get on device models => confirmation to configure them (else removed from device)
-!modelConfigured && tokenizers => get on device tokenizers => !configured => confirmation to configure them (else removed from device)
-modelConfigured && !modelDownloaded => confirmation to download the model => download the model
-modelConfigured && tokenizers => !downloaded => confirmation to download the tokenizers => download the tokenizers
-*/
-
-// addMissingModels adds the missing models from the list of configuration file models
-func addMissingModels(models []model.Model) error {
+// tidyModelsConfiguredButNotDownloaded downloads any missing model and its missing tokenizers as well
+func tidyModelsConfiguredButNotDownloaded(models []model.Model) error {
 	pterm.Info.Println("Verifying if all models are downloaded...")
 	// filter the models that should be added to binary
 	models = model.GetModelsWithAddToBinaryFileTrue(models)
@@ -104,7 +76,7 @@ func addMissingModels(models []model.Model) error {
 	// Tidying the configured but not downloaded models and tokenizers
 	for _, current := range models {
 
-		// TODO : what if there is a correct custom path that the user provided? how about the tokenizer paths?
+		// TODO : what if there is a correct custom path that the user provided?
 		// Check if model is physically present on the device
 		current = model.ConstructConfigPaths(current)
 		downloaded, err := model.ModelDownloadedOnDevice(current)
@@ -135,7 +107,7 @@ func addMissingModels(models []model.Model) error {
 		if !downloaded {
 
 			// If at least one tokenizer is already installed : skipping the default tokenizer
-			if len(current.Tokenizers) != len(missingTokenizers) {
+			if len(current.Tokenizers) >= 0 && len(current.Tokenizers) > len(missingTokenizers) {
 				downloaderArgs.Skip = downloader.SkipValueTokenizer
 			}
 
@@ -157,7 +129,7 @@ func addMissingModels(models []model.Model) error {
 		}
 
 		// Some tokenizers are missing
-		if len(missingTokenizers) == 0 {
+		if len(missingTokenizers) != 0 {
 
 			// Downloading the missing tokenizers
 			var failedTokenizers []string
@@ -201,90 +173,66 @@ func addMissingModels(models []model.Model) error {
 		pterm.Error.Println(failedTokenizers)
 	}
 
-	// TODO : update configuration file
+	// Add models to configuration file
+	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+	err := config.AddModels(downloadedModels)
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
+	} else {
+		spinner.Success()
+	}
 
 	return nil
 }
 
-// missingModelConfiguration finds the downloaded models that aren't configured in the configuration file
+// tidyModelsDownloadedButNotConfigured configuring the downloaded models that aren't configured in the configuration file
 // and then asks the user if he wants to delete them or add them to the configuration file
-func missingModelConfiguration(models []model.Model) error {
+func tidyModelsDownloadedButNotConfigured(models []model.Model) {
 	pterm.Info.Println("Verifying if all downloaded models are configured...")
-	// Get the list of downloaded model names
-	downloadedModelNames, err := app.GetDownloadedModelNames()
-	if err != nil {
-		return err
-	}
-
-	// TODO : check for every tokenizer of the model if it's downloaded
 
 	// Get the list of configured model names
 	configModelNames := model.GetNames(models)
+
+	// TODO : is there a way to get back the options used for downloading a model/tokenizer?
+	// Get the list of downloaded models
+	downloadedModels := model.BuildModelsFromDevice()
+	downloadedModelsNames := model.GetNames(downloadedModels)
+
 	// Find missing models from configuration file
-	missingModelNames := stringutil.SliceDifference(downloadedModelNames, configModelNames)
-	if len(missingModelNames) > 0 {
-		err = handleModelsWithNoConfig(missingModelNames)
-		if err != nil {
-			return err
-		}
-	} else {
+	missingModelNames := stringutil.SliceDifference(downloadedModelsNames, configModelNames)
+
+	// Everything is fine, nothing more to do here
+	if len(missingModelNames) == 0 {
 		pterm.Info.Println("All downloaded models are well configured")
+		return
 	}
 
-	return nil
-}
+	// Asking the user to choose which model to remove or to configure
+	modelNamesToConfigure, modelNamesToRemove := handleMissingModels(missingModelNames)
 
-// regenerateCode generates new default python code
-func regenerateCode(models []model.Model) error {
-	// TODO: modify this logic when code generator is completed
-	pterm.Info.Println("Generating new default python code...")
-
-	err := config.GenerateModelsPythonCode(models)
-	if err != nil {
-		return err
-	}
-
-	pterm.Success.Println("Python code generated")
-	return nil
-}
-
-// generateModelsConfig generates models configurations
-func generateModelsConfig(modelNames []string) error {
-	// initialize hugging face url
-	app.InitHuggingFace(huggingface.BaseUrl, "")
-	// get hugging face api
-	huggingFace := app.H()
-
-	var models []model.Model
-	for _, modelName := range modelNames {
-		// Search for the model in hugging face
-		huggingfaceModel, err := huggingFace.GetModelById(modelName)
-		var currentModel model.Model
-		// If not found create model configuration with only model's name
+	// Removing models the user chose not to keep
+	for _, name := range modelNamesToRemove {
+		err := config.RemoveModelPhysically(name)
 		if err != nil {
-			currentModel = model.Model{Name: modelName}
-			currentModel.Source = model.CUSTOM
-		} else {
-			// Found : Map API response to model.Model
-			currentModel = model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+			continue
 		}
-		currentModel.AddToBinaryFile = true
-		currentModel.IsDownloaded = true
-		currentModel = model.ConstructConfigPaths(currentModel)
-		models = append(models, currentModel)
 	}
 
-	// Add models to the configuration file
-	err := config.AddModels(models)
+	// Retrieving the selected models to be configured
+	modelsToConfigure := model.GetModelsByNames(downloadedModels, modelNamesToConfigure)
+
+	// Add models to configuration file
+	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+	err := config.AddModels(modelsToConfigure)
 	if err != nil {
-		return err
+		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
+	} else {
+		spinner.Success()
 	}
-
-	return nil
 }
 
-// handleModelsWithNoConfig handles all the models with no configuration
-func handleModelsWithNoConfig(missingModelNames []string) error {
+// handleMissingModels handles all the models with no configuration
+func handleMissingModels(missingModelNames []string) ([]string, []string) {
 	// Ask user to select the models to delete/add to configuration file
 	message := "These models weren't found in your configuration file and will be deleted. " +
 		"Please select the models that you wish to conserve"
@@ -299,28 +247,25 @@ func handleModelsWithNoConfig(missingModelNames []string) error {
 			"Are you sure you want to delete these models [%s]?",
 			strings.Join(modelsToDelete, ", "))
 		yes := ptermutil.AskForUsersConfirmation(message)
-		if yes {
-			// Delete models if confirmed
-			for _, modelName := range modelsToDelete {
-				err := config.RemoveModelPhysically(modelName)
-				if err != nil {
-					return err
-				}
-			}
-			pterm.Success.Println("Deleted models", modelsToDelete)
-		} else {
-			return handleModelsWithNoConfig(missingModelNames)
+		if !yes {
+			// Re-asking the user since he changed his mind
+			return handleMissingModels(missingModelNames)
 		}
 	}
 
-	// Configure selected models
-	if len(selectedModels) > 0 {
-		// Add models' configurations to config file
-		err := generateModelsConfig(selectedModels)
-		if err != nil {
-			return err
-		}
-		pterm.Success.Println("Added configurations for these models", selectedModels)
+	return selectedModels, modelsToDelete
+}
+
+// regenerateCode generates new default python code
+func regenerateCode(models []model.Model) error {
+	// TODO: modify this logic when code generator is completed
+	pterm.Info.Println("Generating new default python code...")
+
+	err := config.GenerateModelsPythonCode(models)
+	if err != nil {
+		return err
 	}
+
+	pterm.Success.Println("Python code generated")
 	return nil
 }
