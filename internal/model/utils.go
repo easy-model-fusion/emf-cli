@@ -230,7 +230,15 @@ func ModelDownloadedOnDevice(model Model) (bool, error) {
 	return true, nil
 }
 
+// TokenizersNotDownloadedOnDevice returns the list of tokenizers that should but are not physically present on the device.
 func TokenizersNotDownloadedOnDevice(model Model) []Tokenizer {
+
+	// Model can't have any tokenizer
+	if model.Module == huggingface.TRANSFORMERS {
+		return []Tokenizer{}
+	}
+
+	// Processing the configured tokenizers
 	var notDownloadedTokenizers []Tokenizer
 	for _, tokenizer := range model.Tokenizers {
 

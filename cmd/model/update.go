@@ -228,8 +228,9 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 			current = model.MapToModelFromDownloaderModel(current, dlModelTokenizer)
 		}
 
+		// The process failed for at least one tokenizer
 		if len(failedTokenizers) > 0 {
-			failedTokenizersForModels = append(failedModels, fmt.Sprintf("These tokenizers could not be downloaded for '%s': %s", current.Name, failedTokenizers))
+			failedTokenizersForModels = append(failedModels, fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", current.Name, failedTokenizers))
 		}
 
 		downloadedModels = append(downloadedModels, current)
@@ -237,7 +238,7 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 
 	// Displaying the downloads that failed
 	if len(failedModels) > 0 {
-		pterm.Error.Println(fmt.Sprintf("These models could not be downloaded : %s", failedModels))
+		pterm.Error.Println(fmt.Sprintf("The following models(s) couldn't be downloaded : %s", failedModels))
 	}
 	for _, failedTokenizers := range failedTokenizersForModels {
 		pterm.Error.Println(failedTokenizers)

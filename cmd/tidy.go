@@ -113,6 +113,15 @@ func addMissingModels(models []model.Model) error {
 			continue
 		}
 
+		// Get all the configured but not downloaded tokenizers
+		missingTokenizers := model.TokenizersNotDownloadedOnDevice(current)
+
+		// Model is clean, nothing more to do here
+		if downloaded && len(missingTokenizers) == 0 {
+			downloadedModels = append(downloadedModels, current)
+			continue
+		}
+
 		// TODO : options model => Waiting for issue 74 to be completed : [Client] Model options to config
 		// Prepare the script arguments
 		downloaderArgs := downloader.Args{
@@ -122,9 +131,6 @@ func addMissingModels(models []model.Model) error {
 			ModelOptions: []string{},
 		}
 
-		// Get all the configured but not downloaded tokenizers
-		missingTokenizers := model.TokenizersNotDownloadedOnDevice(current)
-
 		// Model has yet to be downloaded
 		if !downloaded {
 
@@ -132,6 +138,8 @@ func addMissingModels(models []model.Model) error {
 			if len(current.Tokenizers) != len(missingTokenizers) {
 				downloaderArgs.Skip = downloader.SkipValueTokenizer
 			}
+
+			// TODO : write a DownloadModel function
 
 			// Running the script
 			dlModel, err := downloader.Execute(downloaderArgs)
@@ -148,31 +156,38 @@ func addMissingModels(models []model.Model) error {
 			current.IsDownloaded = true
 		}
 
-		// Downloading the missing tokenizers
-		var failedTokenizers []string
-		for _, tokenizer := range missingTokenizers {
+		// Some tokenizers are missing
+		if len(missingTokenizers) == 0 {
 
-			// TODO : options tokenizer => Waiting for issue 74 to be completed : [Client] Model options to config
-			// Building downloader args for the tokenizer
-			downloaderArgs.Skip = downloader.SkipValueModel
-			downloaderArgs.TokenizerClass = tokenizer.Class
-			downloaderArgs.TokenizerOptions = []string{}
+			// Downloading the missing tokenizers
+			var failedTokenizers []string
+			for _, tokenizer := range missingTokenizers {
 
-			// Running the script for the tokenizer only
-			dlModelTokenizer, err := downloader.Execute(downloaderArgs)
+				// TODO : write a DownloadTokenizer function
 
-			// Something went wrong or no data has been returned
-			if err != nil || dlModelTokenizer.IsEmpty {
-				failedTokenizers = append(failedTokenizers, tokenizer.Class)
-				continue
+				// TODO : options tokenizer => Waiting for issue 74 to be completed : [Client] Model options to config
+				// Building downloader args for the tokenizer
+				downloaderArgs.Skip = downloader.SkipValueModel
+				downloaderArgs.TokenizerClass = tokenizer.Class
+				downloaderArgs.TokenizerOptions = []string{}
+
+				// Running the script for the tokenizer only
+				dlModelTokenizer, err := downloader.Execute(downloaderArgs)
+
+				// Something went wrong or no data has been returned
+				if err != nil || dlModelTokenizer.IsEmpty {
+					failedTokenizers = append(failedTokenizers, tokenizer.Class)
+					continue
+				}
+
+				// Update the model with the tokenizer for the configuration file
+				current = model.MapToModelFromDownloaderModel(current, dlModelTokenizer)
 			}
 
-			// Update the model with the tokenizer for the configuration file
-			current = model.MapToModelFromDownloaderModel(current, dlModelTokenizer)
-		}
-
-		if len(failedTokenizers) > 0 {
-			failedTokenizersForModels = append(failedModels, fmt.Sprintf("These tokenizers could not be downloaded for '%s': %s", current.Name, failedTokenizers))
+			// The process failed for at least one tokenizer
+			if len(failedTokenizers) > 0 {
+				failedTokenizersForModels = append(failedModels, fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", current.Name, failedTokenizers))
+			}
 		}
 
 		downloadedModels = append(downloadedModels, current)
@@ -180,7 +195,7 @@ func addMissingModels(models []model.Model) error {
 
 	// Displaying the downloads that failed
 	if len(failedModels) > 0 {
-		pterm.Error.Println(fmt.Sprintf("These models could not be downloaded : %s", failedModels))
+		pterm.Error.Println(fmt.Sprintf("The following models(s) couldn't be downloaded : %s", failedModels))
 	}
 	for _, failedTokenizers := range failedTokenizersForModels {
 		pterm.Error.Println(failedTokenizers)
