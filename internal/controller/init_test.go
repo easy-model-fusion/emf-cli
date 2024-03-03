@@ -1,25 +1,18 @@
 package controller
 
 import (
+	"github.com/easy-model-fusion/emf-cli/test"
 	"os"
 	"testing"
 )
 
 func TestCreateProjectFiles(t *testing.T) {
-	// create a temporary directory
-	dname, err := os.MkdirTemp("", "emf-cli")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(dname)
-
-	// change the current directory to the temporary directory
-	if err = os.Chdir(dname); err != nil {
-		t.Fatal(err)
-	}
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
 
 	// mkdir test
-	err = os.Mkdir("test", os.ModePerm)
+	err := os.Mkdir("test", os.ModePerm)
 	if err != nil {
 		t.Fatal(err)
 	}

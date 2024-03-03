@@ -5,6 +5,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var upgradeYes bool
+
 // upgradeCmd represents the upgrade command
 var upgradeCmd = &cobra.Command{
 	Use:   "upgrade",
@@ -14,5 +16,9 @@ var upgradeCmd = &cobra.Command{
 }
 
 func runUpgrade(cmd *cobra.Command, args []string) {
-	controller.RunUpgrade(args)
+	controller.RunUpgrade(upgradeYes)
+}
+
+func init() {
+	upgradeCmd.Flags().BoolVarP(&upgradeYes, "yes", "y", false, "bypass confirmation")
 }

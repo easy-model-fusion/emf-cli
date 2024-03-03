@@ -3,14 +3,23 @@ package controller
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/pterm/pterm"
 	"os"
-	"path/filepath"
 )
 
 const cleanDirName = "build"
 
 func RunClean(allFlagDelete bool, authorizeAllDelete bool) {
+
+	// Send update suggestion
+	sdk.SendUpdateSuggestion()
+
+	// Only clean if config file exists (so we know it's a EMF project)
+	if config.GetViperConfig(config.FilePath) != nil {
+		return
+	}
+
 	// Delete all models if flag --all
 	if allFlagDelete {
 		// Ask for confirmation
@@ -20,9 +29,7 @@ func RunClean(allFlagDelete bool, authorizeAllDelete bool) {
 				return
 			}
 		}
-		if config.GetViperConfig(config.FilePath) != nil {
-			return
-		}
+
 		err := config.RemoveAllModels()
 		if err == nil {
 			pterm.Success.Printfln("Operation succeeded.")
@@ -32,20 +39,12 @@ func RunClean(allFlagDelete bool, authorizeAllDelete bool) {
 
 	}
 
-	// Get the current dir
-	currentDir, err := os.Getwd()
-	if err != nil {
-		pterm.Error.Printfln("Operation failed.")
-		return
-	}
-	buildDir := filepath.Join(currentDir, cleanDirName)
-
-	_, err = os.Stat(buildDir)
+	_, err := os.Stat(cleanDirName)
 	if os.IsNotExist(err) {
 		pterm.Success.Printfln("Operation succeeded.")
 		return
 	}
-	err = os.RemoveAll(buildDir)
+	err = os.RemoveAll(cleanDirName)
 	if err == nil {
 		pterm.Success.Printfln("Operation succeeded.")
 	} else {

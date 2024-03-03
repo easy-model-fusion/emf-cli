@@ -30,7 +30,7 @@ func UI() ui.UI {
 	return _ui
 }
 
-// ReplaceUI replaces the current UI with a new one
-func ReplaceUI(newUI ui.UI) {
+// SetUI sets the current UI with a new one
+func SetUI(newUI ui.UI) {
 	_ui = newUI
 }

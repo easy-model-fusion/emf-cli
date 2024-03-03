@@ -22,7 +22,7 @@ func TestUI(t *testing.T) {
 
 	test.AssertNotEqual(t, UI(), nil, "UI should not be nil")
 
-	ReplaceUI(nil)
+	SetUI(nil)
 
 	test.AssertEqual(t, UI(), nil, "UI should be nil")
 }
