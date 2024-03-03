@@ -14,13 +14,13 @@ import (
 	"path/filepath"
 )
 
-var initDependenciesPath = filepath.Join("sdk", "requirements")
+var initDependenciesPath = filepath.Join("sdk", "requirements.txt")
 
 // RunInit runs the init command
 func RunInit(args []string, useTorchCuda bool, customTag string) {
 	var projectName string
 
-	// No args, check projectName in pterm
+	// No args, check projectName in ui
 	if len(args) == 0 {
 		projectName = app.UI().AskForUsersInput("Enter a project name")
 	} else {
@@ -209,7 +209,13 @@ func cloneSDK(projectName, tag string) (err error) {
 		spinner.Fail("Unable to clone sdk: ", err)
 		return err
 	}
-
 	spinner.Success()
+
+	// Move files from sdk/sdk to sdk/
+	err = fileutil.MoveFiles(filepath.Join(projectName, "sdk", "sdk"), filepath.Join(projectName, "sdk"))
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

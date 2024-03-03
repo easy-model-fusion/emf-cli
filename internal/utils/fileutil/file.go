@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"io"
 	"os"
+	"path/filepath"
 	"regexp"
 )
 
@@ -96,10 +97,31 @@ func DeleteDirectoryIfEmpty(path string) error {
 		return err
 	} else if empty {
 		// Current directory is empty : removing it
-		err := os.Remove(path)
+		err = os.Remove(path)
 		if err != nil {
 			return err
 		}
 	}
+	return nil
+}
+
+// MoveFiles moves all files from the source directory to the destination directory
+func MoveFiles(sourceDir, destinationDir string) error {
+	fileList, err := filepath.Glob(filepath.Join(sourceDir, "*"))
+	if err != nil {
+		return err
+	}
+
+	for _, file := range fileList {
+		_, fileName := filepath.Split(file)
+		destinationPath := filepath.Join(destinationDir, fileName)
+
+		err = os.Rename(file, destinationPath)
+		if err != nil {
+			return err
+		}
+
+	}
+
 	return nil
 }
