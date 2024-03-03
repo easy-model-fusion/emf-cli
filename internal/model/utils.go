@@ -543,13 +543,14 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 }
 
 // TidyConfiguredModel downloads the missing elements that were configured
-func TidyConfiguredModel(model Model) bool {
+// first bool is true if success, second bool is true if model was clean from the start
+func TidyConfiguredModel(model Model) (bool, bool) {
 
 	// Check if model is physically present on the device
 	model = ConstructConfigPaths(model)
 	downloaded, err := ModelDownloadedOnDevice(model)
 	if err != nil {
-		return false
+		return false, false
 	}
 
 	// Get all the configured but not downloaded tokenizers
@@ -557,7 +558,7 @@ func TidyConfiguredModel(model Model) bool {
 
 	// Model is clean, nothing more to do here
 	if downloaded && len(missingTokenizers) == 0 {
-		return true
+		return true, true
 	}
 
 	// TODO : options model => Waiting for issue 74 to be completed : [Client] Model options to config
@@ -572,22 +573,17 @@ func TidyConfiguredModel(model Model) bool {
 	// Model has yet to be downloaded
 	if !downloaded {
 
-		// If at least one tokenizer is already installed : skipping the default tokenizer
-		if len(model.Tokenizers) >= 0 && len(model.Tokenizers) > len(missingTokenizers) {
-			downloaderArgs.Skip = downloader.SkipValueTokenizer
-		}
-
 		// Downloading model
 		success := false
 		model, success = Download(model, downloaderArgs)
 		if !success {
 			// Download failed
-			return false
+			return false, false
 		}
 	}
 
 	// Some tokenizers are missing
-	if len(missingTokenizers) != 0 {
+	if len(missingTokenizers) > 0 {
 
 		// Downloading the missing tokenizers
 		var failedTokenizers []string
@@ -609,5 +605,5 @@ func TidyConfiguredModel(model Model) bool {
 		}
 	}
 
-	return true
+	return true, false
 }

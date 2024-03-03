@@ -66,15 +66,14 @@ func tidyModelsConfiguredButNotDownloaded(models []model.Model) {
 	// Search for the models that need to be downloaded
 	var downloadedModels []model.Model
 	var failedModels []string
-	var failedTokenizersForModels []string
 
 	// Tidying the configured but not downloaded models and also processing their tokenizers
 	for _, current := range models {
 
-		success := model.TidyConfiguredModel(current)
+		success, clean := model.TidyConfiguredModel(current)
 		if !success {
 			failedModels = append(failedModels, current.Name)
-		} else {
+		} else if !clean {
 			downloadedModels = append(downloadedModels, current)
 		}
 
@@ -85,17 +84,16 @@ func tidyModelsConfiguredButNotDownloaded(models []model.Model) {
 	if len(failedModels) > 0 {
 		pterm.Error.Println(fmt.Sprintf("The following models(s) couldn't be downloaded : %s", failedModels))
 	}
-	for _, failedTokenizers := range failedTokenizersForModels {
-		pterm.Error.Println(failedTokenizers)
-	}
 
-	// Add models to configuration file
-	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
-	err := config.AddModels(downloadedModels)
-	if err != nil {
-		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
-	} else {
-		spinner.Success()
+	if len(downloadedModels) > 0 {
+		// Add models to configuration file
+		spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+		err := config.AddModels(downloadedModels)
+		if err != nil {
+			spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
+		} else {
+			spinner.Success()
+		}
 	}
 }
 
@@ -113,6 +111,8 @@ func tidyModelsDownloadedButNotConfigured(models []model.Model) {
 
 	// Find missing models from configuration file
 	missingModelNames := stringutil.SliceDifference(downloadedModelsNames, configModelNames)
+
+	// TODO : missing the difference on the tokenizers
 
 	// Everything is fine, nothing more to do here
 	if len(missingModelNames) == 0 {
@@ -134,13 +134,15 @@ func tidyModelsDownloadedButNotConfigured(models []model.Model) {
 	// Retrieving the selected models to be configured
 	modelsToConfigure := model.GetModelsByNames(downloadedModels, modelNamesToConfigure)
 
-	// Add models to configuration file
-	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
-	err := config.AddModels(modelsToConfigure)
-	if err != nil {
-		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
-	} else {
-		spinner.Success()
+	if len(modelsToConfigure) > 0 {
+		// Add models to configuration file
+		spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+		err := config.AddModels(modelsToConfigure)
+		if err != nil {
+			spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
+		} else {
+			spinner.Success()
+		}
 	}
 }
 

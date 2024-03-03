@@ -145,7 +145,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	// Download the models
 	var models []model.Model
 	var failedModels []model.Model
-	for _, currentModel := range models {
+	for _, currentModel := range selectedModels {
 
 		// Exclude from download if not requested
 		if !currentModel.AddToBinaryFile {
@@ -249,12 +249,12 @@ func selectTags() []string {
 // selectModelsToInstall returns updated models objects with excluded/included from binary
 func selectModelsToInstall(models []model.Model, modelNames []string) []model.Model {
 	// Build a multiselect with each selected model name to exclude/include in the binary
-	message := "Please select the model(s) to install now"
+	message := "Please select the model(s) to install later"
 	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Blue("-")}
 	installsToExclude := ptermutil.DisplayInteractiveMultiselect(message, modelNames, []string{}, checkMark, false)
 	var updatedModels []model.Model
 	for _, currentModel := range models {
-		currentModel.AddToBinaryFile = stringutil.SliceContainsItem(installsToExclude, currentModel.Name)
+		currentModel.AddToBinaryFile = !stringutil.SliceContainsItem(installsToExclude, currentModel.Name)
 		updatedModels = append(updatedModels, currentModel)
 	}
 
