@@ -3,10 +3,11 @@ package python
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/executil"
-	file2 "github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -100,8 +101,22 @@ func TestCreateVirtualEnv_Success(t *testing.T) {
 // TestFindVEnvExecutable tests the FindVEnvExecutable function with existing executable.
 func TestFindVEnvExecutable_Success(t *testing.T) {
 	// Init
-	dname, venvPath := CreateVenv(t)
-	defer os.RemoveAll(dname)
+	dname, err := os.MkdirTemp("", "emf-cli")
+	test.AssertEqual(t, err, nil, "Error creating temporary directory")
+	venvPath := filepath.Join(dname, "venv")
+
+	// create "virtual environment"
+	if runtime.GOOS == "windows" {
+		err = os.MkdirAll(filepath.Join(venvPath, "Scripts"), os.ModePerm)
+		test.AssertEqual(t, err, nil, "Error creating Scripts directory")
+		_, err = os.Create(filepath.Join(venvPath, "Scripts", "pip.exe"))
+		test.AssertEqual(t, err, nil, "Error creating pip.exe")
+	} else {
+		err = os.MkdirAll(filepath.Join(venvPath, "bin"), os.ModePerm)
+		test.AssertEqual(t, err, nil, "Error creating bin directory")
+		_, err = os.Create(filepath.Join(venvPath, "bin", "pip"))
+		test.AssertEqual(t, err, nil, "Error creating pip")
+	}
 
 	// Execute
 	pipPath, err := FindVEnvExecutable(venvPath, "pip")
@@ -135,29 +150,30 @@ func TestExecuteScript_MissingVenv(t *testing.T) {
 	test.AssertNotEqual(t, err, nil)
 }
 
-// TestExecuteScript_MissingScript tests the ExecuteScript function when the script is missing.
-func TestExecuteScript_MissingScript(t *testing.T) {
+func TestExecuteScript(t *testing.T) {
 	// Init
 	dname, venvPath := CreateVenv(t)
 	defer os.RemoveAll(dname)
+
+	// ***************************
+	// *** Missing script test ***
+	// ***************************
 
 	// Execute
 	_, err, _ := ExecuteScript(venvPath, "script.py", []string{})
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
-}
 
-// TestExecuteScript_EmptyResponse tests the ExecuteScript function when the script returns an empty response.
-func TestExecuteScript_EmptyResponse(t *testing.T) {
+	// ***************************
+	// *** Empty response test ***
+	// ***************************
+
 	// Init
-	dname, venvPath := CreateVenv(t)
 	file, err := os.CreateTemp("", "*.y")
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer file2.CloseFile(file)
-	defer os.RemoveAll(dname)
 
 	// Execute
 	output, err, exitCode := ExecuteScript(venvPath, file.Name(), []string{})
@@ -166,13 +182,20 @@ func TestExecuteScript_EmptyResponse(t *testing.T) {
 	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, len(output), 0)
 	test.AssertEqual(t, exitCode, 0)
-}
 
-// TestExecuteScript_Error tests the ExecuteScript function when the script encounters an error.
-func TestExecuteScript_Error(t *testing.T) {
+	// Cleanup
+	fileutil.CloseFile(file)
+	err = os.Remove(file.Name())
+	if err != nil {
+		t.Error(err)
+	}
+
+	// ***************************
+	// *** Error response test ***
+	// ***************************
+
 	// Init
-	dname, venvPath := CreateVenv(t)
-	file, err := os.CreateTemp("", "*.y")
+	file, err = os.CreateTemp("", "*.y")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,41 +204,54 @@ func TestExecuteScript_Error(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer file2.CloseFile(file)
-	defer os.RemoveAll(dname)
+	defer fileutil.CloseFile(file)
 
 	// Execute
-	output, err, exitCode := ExecuteScript(venvPath, file.Name(), []string{})
+	output, err, exitCode = ExecuteScript(venvPath, file.Name(), []string{})
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
 	test.AssertEqual(t, len(output), 0)
 	test.AssertNotEqual(t, exitCode, 0)
-}
 
-// TestExecuteScript_Success tests the ExecuteScript function when the script executes successfully.
-func TestExecuteScript_Success(t *testing.T) {
+	// Cleanup
+	fileutil.CloseFile(file)
+	err = os.Remove(file.Name())
+	if err != nil {
+		t.Error(err)
+	}
+
+	// *****************************
+	// *** Success response test ***
+	// *****************************
+
 	// Init
-	dname, venvPath := CreateVenv(t)
-	file, err := os.CreateTemp("", "*.y")
+	file, err = os.CreateTemp("", "*.y")
 	if err != nil {
 		t.Fatal(err)
 	}
-	scriptContent := []byte(`print('Hello, world!')`)
+	scriptContent = []byte(`print('Hello, world!')`)
 	err = os.WriteFile(file.Name(), scriptContent, 0644)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer file2.CloseFile(file)
+	defer fileutil.CloseFile(file)
 	defer os.RemoveAll(dname)
 
 	// Execute
-	output, err, exitCode := ExecuteScript(venvPath, file.Name(), []string{})
+	output, err, exitCode = ExecuteScript(venvPath, file.Name(), []string{})
 
 	// Assert
 	test.AssertEqual(t, err, nil)
 	test.AssertNotEqual(t, len(output), 0)
 	test.AssertEqual(t, exitCode, 0)
+
+	// Cleanup
+	fileutil.CloseFile(file)
+	err = os.Remove(file.Name())
+	if err != nil {
+		t.Error(err)
+	}
 }
 
 // TestCheckAskForPython_Success tests the CheckAskForPython function when Python is installed.

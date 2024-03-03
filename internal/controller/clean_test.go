@@ -56,12 +56,13 @@ func TestRunClean(t *testing.T) {
 
 	// count files in models directory, should be 3 (no confirmation)
 	files, err := os.ReadDir("models")
+	test.AssertEqual(t, err, nil, "Error reading models directory")
 	test.AssertEqual(t, len(files), test.FullTestSuiteModelsCount, "Models directory should not be empty")
 
 	// test allFlagDelete with confirmation
 	RunClean(true, true)
 
 	// check if the models directory is deleted (with confirmation)
-	files, err = os.ReadDir("models")
-	test.AssertEqual(t, len(files), 0, "Models directory should be empty")
+	_, err = os.Stat("models")
+	test.AssertEqual(t, os.IsNotExist(err), true, "Models directory not deleted")
 }
