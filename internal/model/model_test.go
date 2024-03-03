@@ -9,8 +9,10 @@ import (
 
 func TestModel_GenClass(t *testing.T) {
 	model := Model{
-		Name: "stabilityai/sdxl-turbo",
-		Path: "build/stabilityai/sdxl-turbo",
+		Name:        "stabilityai/sdxl-turbo",
+		Path:        "build/stabilityai/sdxl-turbo",
+		PipelineTag: huggingface.TextToImage,
+		Module:      huggingface.DIFFUSERS,
 	}
 
 	class := model.GenClass()
@@ -33,6 +35,7 @@ func TestModel_GenFile(t *testing.T) {
 		Name:        "stabilityai/sdxl-turbo",
 		Path:        "build/stabilityai/sdxl-turbo",
 		PipelineTag: huggingface.TextToImage,
+		Module:      huggingface.DIFFUSERS,
 	}
 
 	file := model.GenFile()
@@ -53,7 +56,10 @@ func TestModel_GenFile(t *testing.T) {
 
 func TestModel_GetFormattedModelName(t *testing.T) {
 	model := Model{
-		Name: "stabilityai/sdxl-turbo",
+		Name:        "stabilityai/sdxl-turbo",
+		Path:        "build/stabilityai/sdxl-turbo",
+		PipelineTag: huggingface.TextToImage,
+		Module:      huggingface.DIFFUSERS,
 	}
 
 	test.AssertEqual(t, model.GetFormattedModelName(), "StabilityaiSdxlTurbo", "The model name should be formatted correctly.")
