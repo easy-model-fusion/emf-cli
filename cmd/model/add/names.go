@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/huggingface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/ui"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -22,6 +24,11 @@ var addByNamesCmd = &cobra.Command{
 
 // displayModels indicates if the multiselect of models should be displayed or not
 var displayModels bool
+
+func init() {
+	// Add --select flag to the model add command
+	addByNamesCmd.Flags().BoolVarP(&displayModels, "select", "s", false, "Select models to add")
+}
 
 // runAddByNames runs the add command to add models by name
 func runAddByNames(cmd *cobra.Command, args []string) {
@@ -50,7 +57,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	if len(args) > 0 {
 
 		// Remove all the duplicates
-		args = utils.SliceRemoveDuplicates(args)
+		args = stringutil.SliceRemoveDuplicates(args)
 
 		var notFoundModelNames []string
 		var existingModelNames []string
@@ -66,16 +73,17 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 			}
 
 			// Verify if the model is a valid hugging face model
-			apiModel, err := app.H().GetModel(name)
+			huggingfaceModel, err := app.H().GetModelById(name)
 			if err != nil {
 				// Model not found : skipping to the next one
 				pterm.Warning.Printfln("Model %s not valid : "+err.Error(), name)
 				notFoundModelNames = append(notFoundModelNames, name)
 				continue
 			}
-
-			// Adding valid models
-			selectedModels = append(selectedModels, apiModel)
+			// Map API response to model.Model
+			modelMapped := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+			// Saving the model data in the variables
+			selectedModels = append(selectedModels, modelMapped)
 		}
 
 		// Indicate the models that couldn't be found
@@ -117,7 +125,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 
 	// User choose the models he wishes to install now
 	selectedModels = selectModelsToInstall(selectedModels, selectedModelNames)
-	utils.DisplaySelectedItems(selectedModelNames)
+	app.UI().DisplaySelectedItems(selectedModelNames)
 
 	// Search for invalid models (Not configured but already downloaded,
 	// and for which the user refused to overwrite/delete)
@@ -151,7 +159,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	}
 
 	// Add models to configuration file
-	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+	spinner := app.UI().StartSpinner("Writing models to configuration file...")
 	err = config.AddModels(models)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
@@ -162,16 +170,22 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project
 func selectModels(tags []string, currentSelectedModels []model.Model, existingModels []model.Model) ([]model.Model, error) {
-	spinner, _ := pterm.DefaultSpinner.Start("Listing all models with selected tags...")
+	spinner := app.UI().StartSpinner("Listing all models with selected tags...")
 	var allModelsWithTags []model.Model
 	// Get list of models with current tags
 	for _, tag := range tags {
-		apiModels, err := app.H().GetModels(tag, 0)
+		huggingfaceModels, err := app.H().GetModelsByPipelineTag(huggingface.PipelineTag(tag), 0)
 		if err != nil {
 			spinner.Fail(fmt.Sprintf("Error while fetching the models from hugging face api: %s", err))
 			return nil, fmt.Errorf("error while calling api endpoint")
 		}
-		allModelsWithTags = append(allModelsWithTags, apiModels...)
+		// Map API responses to []model.Model
+		var mappedModels []model.Model
+		for _, huggingfaceModel := range huggingfaceModels {
+			mappedModel := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+			mappedModels = append(mappedModels, mappedModel)
+		}
+		allModelsWithTags = append(allModelsWithTags, mappedModels...)
 	}
 	spinner.Success()
 
@@ -182,8 +196,8 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 	// Build a multiselect with each model name
 	availableModelNames := model.GetNames(availableModels)
 	message := "Please select the model(s) to be added"
-	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedModelNames := utils.DisplayInteractiveMultiselect(message, availableModelNames, checkMark, true)
+	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+	selectedModelNames := app.UI().DisplayInteractiveMultiselect(message, availableModelNames, checkMark, true)
 
 	// No new model was selected : returning the input state
 	if len(selectedModelNames) == 0 {
@@ -201,8 +215,8 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 func selectTags() []string {
 	// Build a multiselect with each tag name
 	message := "Please select the type of models you want to add"
-	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedTags := utils.DisplayInteractiveMultiselect(message, model.AllTagsString(), checkMark, true)
+	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, true)
 
 	return selectedTags
 }
@@ -211,11 +225,11 @@ func selectTags() []string {
 func selectModelsToInstall(models []model.Model, modelNames []string) []model.Model {
 	// Build a multiselect with each selected model name to exclude/include in the binary
 	message := "Please select the model(s) to install now"
-	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Blue("-")}
-	installsToExclude := utils.DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
+	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Blue("-")}
+	installsToExclude := app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
 	var updatedModels []model.Model
 	for _, currentModel := range models {
-		currentModel.AddToBinaryFile = utils.SliceContainsItem(installsToExclude, currentModel.Name)
+		currentModel.AddToBinaryFile = stringutil.SliceContainsItem(installsToExclude, currentModel.Name)
 		updatedModels = append(updatedModels, currentModel)
 	}
 
@@ -226,7 +240,7 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 func alreadyDownloadedModels(models []model.Model) (downloadedModels []model.Model, err error) {
 	for _, currentModel := range models {
 		currentModel = model.ConstructConfigPaths(currentModel)
-		exists, err := utils.IsExistingPath(currentModel.Path)
+		exists, err := fileutil.IsExistingPath(currentModel.Path)
 		if err != nil {
 			return nil, err
 		}
@@ -249,7 +263,7 @@ func processAlreadyDownloadedModels(downloadedModels []model.Model) (modelsToDel
 		} else {
 			message = fmt.Sprintf("This model %s is already downloaded do you wish to delete it?", currentModel.Name)
 		}
-		yes := utils.AskForUsersConfirmation(message)
+		yes := app.UI().AskForUsersConfirmation(message)
 
 		if yes {
 			// If the user accepted the proposed action, the model will be deleted
@@ -277,16 +291,11 @@ func searchForInvalidModels(models []model.Model) (invalidModels []model.Model, 
 
 	// Delete models which the user accepted to delete
 	for _, modelToDelete := range modelsToDelete {
-		err := config.RemoveModelPhysically(modelToDelete.Name)
+		err = config.RemoveModelPhysically(modelToDelete.Name)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	return invalidModels, nil
-}
-
-func init() {
-	// Add --select flag to the model add command
-	addByNamesCmd.Flags().BoolVarP(&displayModels, "select", "s", false, "Select models to add")
 }

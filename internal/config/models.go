@@ -2,10 +2,12 @@ package config
 
 import (
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/codegen"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
-	"github.com/easy-model-fusion/emf-cli/internal/script"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/viper"
 	"os"
@@ -55,13 +57,13 @@ func AddModels(updatedModels []model.Model) error {
 func RemoveModelPhysically(modelName string) error {
 
 	// Path to the model
-	modelPath := filepath.Join(script.DownloadModelsPath, modelName)
+	modelPath := filepath.Join(app.DownloadDirectoryPath, modelName)
 
 	// Starting client spinner animation
-	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Removing model %s...", modelName))
+	spinner := app.UI().StartSpinner(fmt.Sprintf("Removing model %s...", modelName))
 
 	// Check if the model_path exists
-	if exists, err := utils.IsExistingPath(modelPath); err != nil {
+	if exists, err := fileutil.IsExistingPath(modelPath); err != nil {
 		// Skipping model : an error occurred
 		spinner.Fail(err)
 		return err
@@ -69,7 +71,7 @@ func RemoveModelPhysically(modelName string) error {
 		// Model path is in the current project
 
 		// Split the path into a slice of strings
-		directories := utils.SplitPath(modelPath)
+		directories := stringutil.SplitPath(modelPath)
 
 		// Removing model
 		err = os.RemoveAll(modelPath)
@@ -87,7 +89,7 @@ func RemoveModelPhysically(modelName string) error {
 			path := filepath.Join(directories[:i+1]...)
 
 			// Delete directory if empty
-			err = utils.DeleteDirectoryIfEmpty(path)
+			err = fileutil.DeleteDirectoryIfEmpty(path)
 			if err != nil {
 				spinner.Fail(err)
 			}
@@ -138,7 +140,7 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 	modelsToRemove := model.GetModelsByNames(models, modelsNamesToRemove)
 
 	// Indicate the models that were not found in the configuration file
-	notFoundModels := utils.SliceDifference(modelsNamesToRemove, model.GetNames(modelsToRemove))
+	notFoundModels := stringutil.SliceDifference(modelsNamesToRemove, model.GetNames(modelsToRemove))
 	if len(notFoundModels) != 0 {
 		pterm.Warning.Println(fmt.Sprintf("The following models were not found in the configuration file : %s", notFoundModels))
 	}
@@ -183,24 +185,23 @@ func DownloadModel(modelObj model.Model) (model.Model, bool) {
 	modelObj.AddToBinaryFile = false
 
 	// Prepare the script arguments
-	downloaderArgs := script.DownloaderArgs{
+	downloaderArgs := downloader.Args{
 		ModelName:   modelObj.Name,
-		ModelModule: modelObj.Module,
+		ModelModule: string(modelObj.Module),
 		ModelClass:  modelObj.Class,
 	}
 
 	// Running the script
-	sdm, err := script.DownloaderExecute(downloaderArgs)
+	dlModel, err := downloader.Execute(downloaderArgs)
 
 	// Something went wrong or no data has been returned
-	if err != nil || sdm.IsEmpty {
+	if err != nil || dlModel.IsEmpty {
 		return model.Model{}, false
 	}
 
 	// Update the model for the configuration file
-	modelObj = model.MapToModelFromDownloaderModel(modelObj, sdm)
+	modelObj = model.MapToModelFromDownloaderModel(modelObj, dlModel)
 	modelObj.AddToBinaryFile = true
-	modelObj.IsDownloaded = true
 
 	return modelObj, true
 }

@@ -1,10 +1,8 @@
 package config
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/spf13/viper"
-	"os"
 	"testing"
 )
 
@@ -18,30 +16,13 @@ type viperTestStructureTwo struct {
 
 // TestGetViperConfig_Success tests the successful loading of the Viper configuration.
 func TestGetViperConfig_Success(t *testing.T) {
-	dname, err := os.MkdirTemp("", "emf-cli")
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
-	defer os.RemoveAll(dname)
-
-	// Chdir to a temporary directory
-	err = os.Chdir(dname)
-	if err != nil {
-		t.Error(err)
-	}
-
-	// Create config file
-	file, err := os.Create("config.yaml")
-	utils.CloseFile(file)
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
 
 	FilePath = "."
 	// Load the configuration file
-	err = GetViperConfig(FilePath)
+	err := GetViperConfig(FilePath)
 
 	// Assert that the load method did not return an error
 	test.AssertEqual(t, err, nil, "No error should have been raised")
@@ -49,7 +30,6 @@ func TestGetViperConfig_Success(t *testing.T) {
 
 // TestGetViperItem_Success tests the successful retrieval of an item from the Viper configuration.
 func TestGetViperItem_Success(t *testing.T) {
-
 	// Set up a test Viper configuration
 	viper.Reset()
 	testValue := []viperTestStructureOne{
@@ -68,7 +48,6 @@ func TestGetViperItem_Success(t *testing.T) {
 
 // TestGetViperItem_Error tests the case where there is an error retrieving an item from the Viper configuration.
 func TestGetViperItem_Error(t *testing.T) {
-
 	// Set up a test Viper configuration
 	viper.Reset()
 	testValue := []viperTestStructureOne{
@@ -86,31 +65,14 @@ func TestGetViperItem_Error(t *testing.T) {
 
 // TestWriteViperConfig_Success tests the successful writing of the Viper configuration.
 func TestWriteViperConfig_Success(t *testing.T) {
-	dname, err := os.MkdirTemp("", "emf-cli")
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
-	defer os.RemoveAll(dname)
-
-	// Chdir to a temporary directory
-	err = os.Chdir(dname)
-	if err != nil {
-		t.Error(err)
-	}
-
-	// Create config file
-	file, err := os.Create("config.yaml")
-	utils.CloseFile(file)
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
 
 	// Load the configuration file
 	viper.Reset()
-	viper.SetConfigFile(file.Name())
-	err = WriteViperConfig()
+	viper.SetConfigFile("config.yaml")
+	err := WriteViperConfig()
 
 	// Assert that the write method did not return an error
 	test.AssertEqual(t, err, nil, "No error should have been raised")

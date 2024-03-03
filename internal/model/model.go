@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/codegen"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"strings"
@@ -10,19 +11,26 @@ import (
 type Model struct {
 	Name            string
 	Path            string
-	Module          string
+	Module          huggingface.Module
 	Class           string
 	Tokenizers      []Tokenizer
-	PipelineTag     PipelineTag
+	PipelineTag     huggingface.PipelineTag
 	Source          string
 	AddToBinaryFile bool
 	IsDownloaded    bool
+	Version         string
 }
 
 type Tokenizer struct {
 	Path  string
 	Class string
 }
+
+// Sources
+const (
+	HUGGING_FACE = "hugging_face"
+	CUSTOM       = "custom"
+)
 
 // GetFormattedModelName format the model name in CapsWord
 func (m *Model) GetFormattedModelName() string {
@@ -50,10 +58,22 @@ func (m *Model) GenFile() *codegen.File {
 // GetPipelineTagAbstractClassName returns the abstract class name for the given model
 func (m *Model) GetPipelineTagAbstractClassName() string {
 	switch m.PipelineTag {
-	case TextToImage:
+	case huggingface.TextToImage:
 		return "ModelTextToImage"
-	case TextGeneration:
+	case huggingface.TextGeneration:
 		return "ModelTextToText"
+	default:
+		return ""
+	}
+}
+
+// GetModuleAutoPipelineClassName return the auto pipeline for the given model
+func (m *Model) GetModuleAutoPipelineClassName() string {
+	switch m.Module {
+	case huggingface.DIFFUSERS:
+		return huggingface.AutoDiffusers
+	case huggingface.TRANSFORMERS:
+		return huggingface.AutoTransformers
 	default:
 		return ""
 	}
@@ -73,10 +93,10 @@ func (m *Model) GenImports() []codegen.Import {
 		{
 			What: []codegen.ImportWhat{
 				{
-					Name: "StableDiffusionXLPipeline", // TODO: Add the correct import
+					Name: m.GetModuleAutoPipelineClassName(),
 				},
 			},
-			From: "diffusers",
+			From: string(m.Module),
 		},
 		{
 			What: []codegen.ImportWhat{
@@ -91,11 +111,11 @@ func (m *Model) GenImports() []codegen.Import {
 func (m *Model) GenClass() *codegen.Class {
 	return &codegen.Class{
 		Name:   m.GetFormattedModelName(),
-		Extend: "ModelTextToImage",
+		Extend: m.GetPipelineTagAbstractClassName(),
 		Fields: []codegen.Field{
 			{
 				Name: "pipeline",
-				Type: "StableDiffusionXLPipeline",
+				Type: m.GetModuleAutoPipelineClassName(),
 			},
 		},
 		Statements: []codegen.Statement{
@@ -148,7 +168,7 @@ func (m *Model) GenClass() *codegen.Class {
 					&codegen.AssignmentStmt{
 						Variable: "self.pipeline",
 						FunctionCallValue: &codegen.FunctionCall{
-							Name: "StableDiffusionXLPipeline.from_pretrained",
+							Name: m.GetModuleAutoPipelineClassName() + ".from_pretrained",
 							Params: []codegen.FunctionCallParameter{
 								{
 									Name:  "pretrained_model_name_or_path",

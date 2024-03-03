@@ -75,7 +75,7 @@ func Upgrade() error {
 	}
 
 	// remove sdk folder
-	spinner, _ := pterm.DefaultSpinner.Start("Cleaning up sdk folder...")
+	spinner := app.UI().StartSpinner("Cleaning up sdk folder...")
 	err := os.RemoveAll("sdk")
 	if err != nil {
 		spinner.Fail(err)
@@ -90,7 +90,7 @@ func Upgrade() error {
 	spinner.Success()
 
 	// clone sdk
-	spinner, _ = pterm.DefaultSpinner.Start("Cloning latest sdk...")
+	spinner = app.UI().StartSpinner("Cloning latest sdk...")
 	err = app.G().CloneSDK(tag, filepath.Join("sdk"))
 	if err != nil {
 		spinner.Fail(err)

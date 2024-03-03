@@ -2,14 +2,17 @@ package model
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/codegen"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"testing"
 )
 
 func TestModel_GenClass(t *testing.T) {
 	model := Model{
-		Name: "stabilityai/sdxl-turbo",
-		Path: "build/stabilityai/sdxl-turbo",
+		Name:        "stabilityai/sdxl-turbo",
+		Path:        "build/stabilityai/sdxl-turbo",
+		PipelineTag: huggingface.TextToImage,
+		Module:      huggingface.DIFFUSERS,
 	}
 
 	class := model.GenClass()
@@ -31,7 +34,8 @@ func TestModel_GenFile(t *testing.T) {
 	model := Model{
 		Name:        "stabilityai/sdxl-turbo",
 		Path:        "build/stabilityai/sdxl-turbo",
-		PipelineTag: TextToImage,
+		PipelineTag: huggingface.TextToImage,
+		Module:      huggingface.DIFFUSERS,
 	}
 
 	file := model.GenFile()
@@ -52,7 +56,10 @@ func TestModel_GenFile(t *testing.T) {
 
 func TestModel_GetFormattedModelName(t *testing.T) {
 	model := Model{
-		Name: "stabilityai/sdxl-turbo",
+		Name:        "stabilityai/sdxl-turbo",
+		Path:        "build/stabilityai/sdxl-turbo",
+		PipelineTag: huggingface.TextToImage,
+		Module:      huggingface.DIFFUSERS,
 	}
 
 	test.AssertEqual(t, model.GetFormattedModelName(), "StabilityaiSdxlTurbo", "The model name should be formatted correctly.")
@@ -60,12 +67,12 @@ func TestModel_GetFormattedModelName(t *testing.T) {
 
 func TestModel_GetPipelineTagAbstractClassName(t *testing.T) {
 	model := Model{
-		PipelineTag: TextToImage,
+		PipelineTag: huggingface.TextToImage,
 	}
 
 	test.AssertEqual(t, model.GetPipelineTagAbstractClassName(), "ModelTextToImage", "The model name should be formatted correctly.")
 
-	model.PipelineTag = TextGeneration
+	model.PipelineTag = huggingface.TextGeneration
 
 	test.AssertEqual(t, model.GetPipelineTagAbstractClassName(), "ModelTextToText", "The model name should be formatted correctly.")
 

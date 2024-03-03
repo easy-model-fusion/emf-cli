@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -30,6 +31,14 @@ var buildCmd = &cobra.Command{
 			You can also include the models in the build compressed file.
 			Note: if you want to use nuitka, you need to have a working C compiler.`,
 	Run: runBuild,
+}
+
+func init() {
+	buildCmd.Flags().StringVarP(&buildDestination, "out-dir", "o", "", "Destination directory where the project will be built")
+	buildCmd.Flags().StringVarP(&buildCustomName, "name", "n", "", "Custom name for the executable")
+	buildCmd.Flags().BoolVarP(&buildOneFile, "one-file", "f", false, "Build the project in one file")
+	buildCmd.Flags().BoolVarP(&buildCompress, "compress", "c", false, "Compress the output file(s) into a tarball file")
+	buildCmd.Flags().BoolVarP(&buildIncludeModels, "include-models", "m", false, "Include models in the build compressed file")
 }
 
 func runBuild(cmd *cobra.Command, args []string) {
@@ -59,19 +68,20 @@ func runBuild(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	pythonPath, err := utils.FindVEnvExecutable(".venv", "python")
+	// Install dependencies
+	pythonPath, err := python.FindVEnvExecutable(".venv", "python")
 	if err != nil {
 		pterm.Error.Println("Error finding python executable")
 		return
 	}
 
-	pipPath, err := utils.FindVEnvExecutable(".venv", "pip")
+	pipPath, err := python.FindVEnvExecutable(".venv", "pip")
 	if err != nil {
 		pterm.Error.Println("Error finding pip executable")
 		return
 	}
 
-	err = utils.ExecutePip(pipPath, []string{"install", buildLibrary})
+	err = python.ExecutePip(pipPath, []string{"install", buildLibrary})
 	if err != nil {
 		pterm.Error.Println(fmt.Sprintf("Error installing %s", buildLibrary))
 		return
@@ -138,7 +148,7 @@ func createBuildArgs() []string {
 
 	buildArgs = append(buildArgs, "main.py")
 
-	return utils.SliceRemoveDuplicates(buildArgs)
+	return stringutil.SliceRemoveDuplicates(buildArgs)
 }
 
 func init() {

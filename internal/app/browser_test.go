@@ -2,14 +2,14 @@ package app
 
 import (
 	"github.com/easy-model-fusion/emf-cli/test"
-	"os"
 	"testing"
 )
 
 // TestGetDownloadedModels tests GetDownloadedModels method
 func TestGetDownloadedModels(t *testing.T) {
-	dname := test.CreateModelsFolderFullTestSuite(t)
-	defer os.RemoveAll(dname)
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
 
 	models, err := GetDownloadedModelNames()
 	if err != nil {

@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/pterm/pterm"
 	"os"
 
@@ -12,7 +12,7 @@ import (
 
 var shells = []string{"bash", "zsh", "fish", "powershell"}
 
-var arguments = utils.SliceToArgsFormat(shells)
+var arguments = stringutil.SliceToArgsFormat(shells)
 
 // completionCmd represents the completion command
 var completionCmd = &cobra.Command{
@@ -67,7 +67,7 @@ func runCompletion(cmd *cobra.Command, args []string) {
 
 	// No args, asking for a shell input
 	if len(args) == 0 {
-		selectedShell = utils.AskForUsersInput("Enter a shell name " + arguments)
+		selectedShell = app.UI().AskForUsersInput("Enter a shell name " + arguments)
 	} else {
 		selectedShell = args[0]
 	}
@@ -75,7 +75,7 @@ func runCompletion(cmd *cobra.Command, args []string) {
 	// Checks whether the input shell is handled
 	if len(selectedShell) == 0 {
 		pterm.Error.Println(fmt.Sprintf("Please provide a shell. Expected %s", arguments))
-	} else if utils.SliceContainsItem(shells, selectedShell) {
+	} else if stringutil.SliceContainsItem(shells, selectedShell) {
 		switch selectedShell {
 		case "bash":
 			err := cmd.Root().GenBashCompletion(os.Stdout)
