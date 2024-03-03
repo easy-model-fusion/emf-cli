@@ -6,8 +6,8 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
@@ -125,7 +125,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 
 	// User choose the models he wishes to install now
 	selectedModels = selectModelsToInstall(selectedModels, selectedModelNames)
-	ptermutil.DisplaySelectedItems(selectedModelNames)
+	app.UI().DisplaySelectedItems(selectedModelNames)
 
 	// Search for invalid models (Not configured but already downloaded,
 	// and for which the user refused to overwrite/delete)
@@ -196,8 +196,8 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 	// Build a multiselect with each model name
 	availableModelNames := model.GetNames(availableModels)
 	message := "Please select the model(s) to be added"
-	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedModelNames := ptermutil.DisplayInteractiveMultiselect(message, availableModelNames, checkMark, true)
+	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+	selectedModelNames := app.UI().DisplayInteractiveMultiselect(message, availableModelNames, checkMark, true)
 
 	// No new model was selected : returning the input state
 	if len(selectedModelNames) == 0 {
@@ -215,8 +215,8 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 func selectTags() []string {
 	// Build a multiselect with each tag name
 	message := "Please select the type of models you want to add"
-	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedTags := ptermutil.DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, true)
+	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, true)
 
 	return selectedTags
 }
@@ -225,8 +225,8 @@ func selectTags() []string {
 func selectModelsToInstall(models []model.Model, modelNames []string) []model.Model {
 	// Build a multiselect with each selected model name to exclude/include in the binary
 	message := "Please select the model(s) to install now"
-	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Blue("-")}
-	installsToExclude := ptermutil.DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
+	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Blue("-")}
+	installsToExclude := app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
 	var updatedModels []model.Model
 	for _, currentModel := range models {
 		currentModel.AddToBinaryFile = stringutil.SliceContainsItem(installsToExclude, currentModel.Name)
@@ -263,7 +263,7 @@ func processAlreadyDownloadedModels(downloadedModels []model.Model) (modelsToDel
 		} else {
 			message = fmt.Sprintf("This model %s is already downloaded do you wish to delete it?", currentModel.Name)
 		}
-		yes := ptermutil.AskForUsersConfirmation(message)
+		yes := app.UI().AskForUsersConfirmation(message)
 
 		if yes {
 			// If the user accepted the proposed action, the model will be deleted
@@ -291,7 +291,7 @@ func searchForInvalidModels(models []model.Model) (invalidModels []model.Model, 
 
 	// Delete models which the user accepted to delete
 	for _, modelToDelete := range modelsToDelete {
-		err := config.RemoveModelPhysically(modelToDelete.Name)
+		err = config.RemoveModelPhysically(modelToDelete.Name)
 		if err != nil {
 			return nil, err
 		}

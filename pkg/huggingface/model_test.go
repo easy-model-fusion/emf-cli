@@ -50,21 +50,39 @@ func TestGetModelsByPipelineTag_Success(t *testing.T) {
 	}
 }
 
+// TestGetModelsByPipelineTag_Failure tests the GetModelsByPipelineTag method of the HuggingFace type.
+// It initializes a HuggingFace instance and calls GetModelsByPipelineTag to retrieve models by pipeline tag.
+// It asserts that the API call fails and that no models are returned.
+func TestGetModelsByPipelineTag_Failure(t *testing.T) {
+	h := NewHuggingFace("% xw*cbadurl", "")
+	models, err := h.GetModelsByPipelineTag(TextToImage, 10)
+	test.AssertNotEqual(t, err, nil, "The api call should've failed.")
+	test.AssertEqual(t, len(models), 0, "The api call should've returned 0 models.")
+}
+
 // TestGetModelById tests the GetModelById method of the HuggingFace type.
 // It initializes a HuggingFace instance and calls GetModelById to retrieve a model by its ID.
 // It asserts that the API call is successful, a model is returned, and that the model has a non-empty name matching the specified ID.
 func TestGetModelById(t *testing.T) {
+	h := NewHuggingFace(BaseUrl, "")
 	apiModel, err := h.GetModelById("Xibanya/sunset_city")
 	test.AssertEqual(t, err, nil, "The api call should've passed.")
 	test.AssertNotEqual(t, apiModel, nil, "The api call should've returned a model.")
 
 	test.AssertEqual(t, apiModel.Name, "Xibanya/sunset_city", "Model's name should not be empty.")
+
+	// set with bad url
+	h = NewHuggingFace("% xw*cbadurl", "")
+	apiModel, err = h.GetModelById("Xibanya/sunset_city")
+	test.AssertNotEqual(t, err, nil, "The api call should've failed.")
+	test.AssertEqual(t, apiModel, Model{}, "The api call should've returned an empty model.")
 }
 
 // TestValidModel_Valid tests the ValidModel method of the HuggingFace type with a valid model ID.
 // It initializes a HuggingFace instance and calls ValidModel to check if a model with the specified ID exists.
 // It asserts that the API call is successful and that the model ID is valid.
 func TestValidModel_Valid(t *testing.T) {
+	h := NewHuggingFace(BaseUrl, "")
 	valid, err := h.ValidModel("Xibanya/sunset_city")
 	test.AssertEqual(t, err, nil, "The api call should've passed.")
 	test.AssertEqual(t, valid, true, "Model's name should be valid.")
@@ -75,6 +93,16 @@ func TestValidModel_Valid(t *testing.T) {
 // It asserts that the API call fails and that the model ID is not valid.
 func TestValidModel_NotValid(t *testing.T) {
 	valid, err := h.ValidModel("not_valid")
+	test.AssertNotEqual(t, err, nil, "The api call shouldn't have passed.")
+	test.AssertEqual(t, valid, false, "Model's name shouldn't be valid.")
+}
+
+// TestValidModel_BadUrl tests the ValidModel method of the HuggingFace type with a bad URL.
+// It initializes a HuggingFace instance with a bad URL and calls ValidModel to check if a model with the specified ID exists.
+// It asserts that the API call fails and that the model ID is not valid.
+func TestValidModel_BadUrl(t *testing.T) {
+	h := NewHuggingFace("% xw*cbadurl", "")
+	valid, err := h.ValidModel("Xibanya/sunset_city")
 	test.AssertNotEqual(t, err, nil, "The api call shouldn't have passed.")
 	test.AssertEqual(t, valid, false, "Model's name shouldn't be valid.")
 }

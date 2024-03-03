@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"os"
@@ -32,7 +32,7 @@ func runClean(cmd *cobra.Command, args []string) {
 	if allFlagDelete {
 		// Ask for confirmation
 		if !authorizeAllDelete {
-			yes := ptermutil.AskForUsersConfirmation("Are you sure you want to delete all downloaded models and clean the build files of this project?")
+			yes := app.UI().AskForUsersConfirmation("Are you sure you want to delete all downloaded models and clean the build files of this project?")
 			if !yes {
 				return
 			}

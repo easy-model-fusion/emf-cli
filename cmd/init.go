@@ -5,7 +5,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 	"github.com/easy-model-fusion/emf-cli/sdk"
 	"github.com/pterm/pterm"
@@ -33,7 +32,7 @@ func runInit(cmd *cobra.Command, args []string) {
 
 	// No args, check projectName in pterm
 	if len(args) == 0 {
-		projectName = ptermutil.AskForUsersInput("Enter a project name")
+		projectName = app.UI().AskForUsersInput("Enter a project name")
 	} else {
 		projectName = args[0]
 	}
@@ -73,7 +72,7 @@ func createProject(projectName string) (err error) {
 	spinner.Success()
 
 	// Check if user has python installed
-	pythonPath, ok := python.CheckAskForPython()
+	pythonPath, ok := python.CheckAskForPython(app.UI())
 	if !ok {
 		os.Exit(1)
 	}

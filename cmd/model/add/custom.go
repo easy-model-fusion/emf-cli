@@ -9,7 +9,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"path"
@@ -128,7 +127,7 @@ func validateModel(modelName string) (bool, error) {
 	}
 	if exists {
 		message := fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?", modelName)
-		valid := ptermutil.AskForUsersConfirmation(message)
+		valid := app.UI().AskForUsersConfirmation(message)
 		return valid, nil
 	}
 	return true, nil

@@ -1,6 +1,7 @@
 package python
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/executil"
 	file2 "github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/test"
@@ -225,7 +226,7 @@ func TestCheckAskForPython_Success(t *testing.T) {
 		return
 	}
 
-	b, ok := CheckAskForPython()
+	b, ok := CheckAskForPython(ui.NewPTermUI())
 	test.AssertEqual(t, ok, true, "Should return true if python is installed")
 	test.AssertEqual(t, a, b, "Should return the same value as CheckForPython")
 }

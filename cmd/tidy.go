@@ -6,8 +6,8 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
@@ -193,8 +193,8 @@ func handleModelsWithNoConfig(missingModelNames []string) error {
 	// Ask user to select the models to delete/add to configuration file
 	message := "These models weren't found in your configuration file and will be deleted. " +
 		"Please select the models that you wish to conserve"
-	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedModels := ptermutil.DisplayInteractiveMultiselect(message, missingModelNames, checkMark, false)
+	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+	selectedModels := app.UI().DisplayInteractiveMultiselect(message, missingModelNames, checkMark, false)
 	modelsToDelete := stringutil.SliceDifference(missingModelNames, selectedModels)
 
 	// Delete selected models
@@ -203,7 +203,7 @@ func handleModelsWithNoConfig(missingModelNames []string) error {
 		message = fmt.Sprintf(
 			"Are you sure you want to delete these models [%s]?",
 			strings.Join(modelsToDelete, ", "))
-		yes := ptermutil.AskForUsersConfirmation(message)
+		yes := app.UI().AskForUsersConfirmation(message)
 		if yes {
 			// Delete models if confirmed
 			for _, modelName := range modelsToDelete {
