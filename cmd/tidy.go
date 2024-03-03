@@ -6,10 +6,9 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 // tidyCmd represents the model tidy command
@@ -99,40 +98,76 @@ func tidyModelsConfiguredButNotDownloaded(models []model.Model) {
 
 // tidyModelsDownloadedButNotConfigured configuring the downloaded models that aren't configured in the configuration file
 // and then asks the user if he wants to delete them or add them to the configuration file
-func tidyModelsDownloadedButNotConfigured(models []model.Model) {
+func tidyModelsDownloadedButNotConfigured(configModels []model.Model) {
 	pterm.Info.Println("Verifying if all downloaded models are configured...")
-
-	// Get the list of configured model names
-	configModelNames := model.GetNames(models)
 
 	// Get the list of downloaded models
 	downloadedModels := model.BuildModelsFromDevice()
-	downloadedModelsNames := model.GetNames(downloadedModels)
 
-	// Find missing models from configuration file
-	missingModelNames := stringutil.SliceDifference(downloadedModelsNames, configModelNames)
+	// Building map for faster lookup
+	mapConfigModels := model.ModelsToMap(configModels)
 
-	// TODO : missing the difference on the tokenizers
+	// Checking if every model is well configured
+	var modelsToConfigure []model.Model
+	for _, current := range downloadedModels {
 
-	// Everything is fine, nothing more to do here
-	if len(missingModelNames) == 0 {
-		pterm.Info.Println("All downloaded models are well configured")
-		return
-	}
+		// Checking if the downloaded model is already configured
+		configModel, configured := mapConfigModels[current.Name]
 
-	// Asking the user to choose which model to remove or to configure
-	modelNamesToConfigure, modelNamesToRemove := handleMissingModels(missingModelNames)
+		// Model not configured
+		if !configured {
 
-	// Removing models the user chose not to keep
-	for _, name := range modelNamesToRemove {
-		err := config.RemoveModelPhysically(name)
-		if err != nil {
+			// Asking for permission to configure
+			configure := ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' wasn't found in your "+
+				"configuration file. Confirm to configure, otherwise it will be removed.", current.Name))
+
+			// User chose to configure it
+			if configure {
+				modelsToConfigure = append(modelsToConfigure, current)
+			} else {
+				// User chose not to configure : removing the model
+				_ = config.RemoveModelPhysically(current.Name)
+			}
+
+			// Highest configuration possible : nothing more to do here
 			continue
 		}
-	}
 
-	// Retrieving the selected models to be configured
-	modelsToConfigure := model.GetModelsByNames(downloadedModels, modelNamesToConfigure)
+		// If model is a transformer : checking tokenizers
+		if current.Module == huggingface.TRANSFORMERS {
+
+			// Building map for faster lookup
+			mapConfigModelTokenizers := model.TokenizersToMap(configModel)
+
+			// Checking if every tokenizer is well configured
+			var modelTokenizersToConfigure []model.Tokenizer
+			for _, tokenizer := range current.Tokenizers {
+
+				// Checking if the downloaded tokenizer is already configured
+				_, configured = mapConfigModelTokenizers[tokenizer.Class]
+
+				// Tokenizer not configured
+				if !configured {
+
+					// Asking for permission to configure
+					configure := ptermutil.AskForUsersConfirmation(fmt.Sprintf("Tokenizer '%s' for model '%s' wasn't found in your "+
+						"configuration file. Confirm to configure, otherwise it will be removed.", tokenizer.Class, current.Name))
+
+					// User chose to configure it
+					if configure {
+						modelTokenizersToConfigure = append(modelTokenizersToConfigure, tokenizer)
+					} else {
+						// User chose not to configure : removing the tokenizer
+						// TODO : remove tokenizer => Waiting for issue 63 to be completed : [Client] Model tokenizer remove
+					}
+				}
+			}
+
+			// Since model is already configured : adding missing tokenizers and reconfiguring the model
+			configModel.Tokenizers = append(configModel.Tokenizers, modelTokenizersToConfigure...)
+			modelsToConfigure = append(modelsToConfigure, configModel)
+		}
+	}
 
 	if len(modelsToConfigure) > 0 {
 		// Add models to configuration file
@@ -144,31 +179,6 @@ func tidyModelsDownloadedButNotConfigured(models []model.Model) {
 			spinner.Success()
 		}
 	}
-}
-
-// handleMissingModels handles all the models with no configuration
-func handleMissingModels(missingModelNames []string) ([]string, []string) {
-	// Ask user to select the models to delete/add to configuration file
-	message := "These models weren't found in your configuration file and will be deleted. " +
-		"Please select the models that you wish to conserve"
-	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedModels := ptermutil.DisplayInteractiveMultiselect(message, missingModelNames, []string{}, checkMark, false)
-	modelsToDelete := stringutil.SliceDifference(missingModelNames, selectedModels)
-
-	// Delete selected models
-	if len(modelsToDelete) > 0 {
-		// Ask user for confirmation to delete these models
-		message = fmt.Sprintf(
-			"Are you sure you want to delete these models [%s]?",
-			strings.Join(modelsToDelete, ", "))
-		yes := ptermutil.AskForUsersConfirmation(message)
-		if !yes {
-			// Re-asking the user since he changed his mind
-			return handleMissingModels(missingModelNames)
-		}
-	}
-
-	return selectedModels, modelsToDelete
 }
 
 // regenerateCode generates new default python code
