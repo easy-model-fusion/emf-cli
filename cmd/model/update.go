@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
-	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -40,22 +38,40 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 	// Keep the downloaded models coming from huggingface (i.e. those that could potentially be updated)
 	hfModels := model.GetModelsWithSourceHuggingface(configModels)
 	hfModelsAvailable := model.GetModelsWithIsDownloadedTrue(hfModels)
-	hfModelAvailableNames := model.GetNames(hfModelsAvailable)
-
-	// Storing the names of those wished to be updated
-	var selectedModelNames []string
 
 	// Get models to update : through args or through a multiselect of models already downloaded from huggingface
+	var selectedModelNames []string
 	if len(args) == 0 {
 		// No argument provided : multiselect among the downloaded models coming from huggingface
 		message := "Please select the model(s) to be updated"
+		values := model.GetNames(hfModelsAvailable)
 		checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		selectedModelNames = ptermutil.DisplayInteractiveMultiselect(message, hfModelAvailableNames, []string{}, checkMark, true)
+		selectedModelNames = ptermutil.DisplayInteractiveMultiselect(message, values, []string{}, checkMark, true)
 		ptermutil.DisplaySelectedItems(selectedModelNames)
 	} else {
 		// Remove all the duplicates
 		selectedModelNames = stringutil.SliceRemoveDuplicates(args)
 	}
+
+	// Filter selected models to only keep those available for an update
+	modelsToUpdate := filterModelsByStatusBeforeUpdate(selectedModelNames, hfModelsAvailable)
+
+	// Processing filtered models for an update
+	downloadedModels := processModelsForUpdate(configModels, modelsToUpdate)
+
+	// Add models to configuration file
+	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+	err = config.AddModels(downloadedModels)
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
+	} else {
+		spinner.Success()
+	}
+
+}
+
+// filterModelsByStatusBeforeUpdate returns the models available for an update by determining a status for each one of them
+func filterModelsByStatusBeforeUpdate(modelNames []string, hfModelsAvailable []model.Model) []model.Model {
 
 	// Bind the downloaded models coming from huggingface to a map for faster lookup
 	// Used to check whether a model has already been downloaded
@@ -66,7 +82,7 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 	var updatedModelNames []string
 
 	// Check which model can be updated
-	for _, name := range selectedModelNames {
+	for _, name := range modelNames {
 
 		// Fetching model from huggingface
 		huggingfaceModel, err := app.H().GetModelById(name)
@@ -107,135 +123,34 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 			"and will be ignored : %s", updatedModelNames))
 	}
 
+	return modelsToUpdate
+}
+
+// processModelsForUpdate
+func processModelsForUpdate(configModels, modelsToUpdate []model.Model) []model.Model {
+
 	// Bind config models to a map for faster lookup
 	// Used to get the model's path and check if it's already configured
 	mapConfigModels := model.ModelsToMap(configModels)
 
 	var downloadedModels []model.Model
 	var failedModels []string
-	var failedTokenizersForModels []string
 
 	// Processing all the remaining models for an update
 	for _, current := range modelsToUpdate {
 
-		// Checking if the model is already configured
-		_, configured := mapConfigModels[current.Name]
-
-		// Check if model is physically present on the device
-		current = model.ConstructConfigPaths(current)
-		downloaded, err := model.ModelDownloadedOnDevice(current)
-		if err != nil {
-			failedModels = append(failedModels, current.Name)
-			continue
-		}
-
-		// Process internal state of the model
-		install := false
-		if !configured && !downloaded {
-			install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be added. "+
-				"Would you like to add it?", current.Name))
-		} else if configured && !downloaded {
-			install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
-				"Would you like to download it?", current.Name))
-		} else if !configured && downloaded {
-			install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' already exists. "+
-				"Would you like to overwrite it?", current.Name))
+		success := model.Update(current, mapConfigModels)
+		if success {
+			downloadedModels = append(downloadedModels, current)
 		} else {
-			// Model already configured and downloaded : a new version is available
-			install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
-				"Would you like to overwrite its old version?", current.Name))
-		}
-
-		// Model will not be downloaded or overwritten, nothing more to do here
-		if !install {
-			continue
-		}
-
-		// Downloader script to skip the tokenizers download process if none selected
-		var skip string
-
-		// If transformers : select the tokenizers to update using a multiselect
-		var tokenizerNames []string
-		if current.Module == huggingface.TRANSFORMERS {
-
-			// Get tokenizer names for the model
-			availableNames := model.GetTokenizerNames(current)
-
-			// Allow to select only if at least one tokenizer is available
-			if len(availableNames) > 0 {
-
-				// Prepare the tokenizers multiselect
-				message := "Please select the tokenizer(s) to be updated"
-				checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-				tokenizerNames = ptermutil.DisplayInteractiveMultiselect(message, availableNames, availableNames, checkMark, true)
-				ptermutil.DisplaySelectedItems(tokenizerNames)
-
-				// No tokenizer is selected : skipping so that it doesn't overwrite the default one
-				if len(tokenizerNames) > 0 {
-					skip = downloader.SkipValueTokenizer
-				}
-			}
-		}
-
-		// TODO : options model => Waiting for issue 74 to be completed : [Client] Model options to config
-		// Prepare the script arguments
-		downloaderArgs := downloader.Args{
-			ModelName:    current.Name,
-			ModelModule:  string(current.Module),
-			ModelClass:   current.Class,
-			ModelOptions: []string{},
-			Skip:         skip,
-		}
-
-		// Downloading model
-		success := false
-		current, success = model.Download(current, downloaderArgs)
-		if !success {
-			// Download failed
 			failedModels = append(failedModels, current.Name)
-			continue
 		}
-
-		// Bind the model tokenizers to a map for faster lookup
-		mapModelTokenizers := model.TokenizersToMap(current)
-
-		var failedTokenizers []string
-		for _, tokenizerName := range tokenizerNames {
-			tokenizer := mapModelTokenizers[tokenizerName]
-
-			// Downloading tokenizer
-			success := false
-			current, success = model.DownloadTokenizer(current, tokenizer, downloaderArgs)
-			if !success {
-				// Download failed
-				failedTokenizers = append(failedTokenizers, tokenizer.Class)
-				continue
-			}
-		}
-
-		// The process failed for at least one tokenizer
-		if len(failedTokenizers) > 0 {
-			failedTokenizersForModels = append(failedModels, fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", current.Name, failedTokenizers))
-		}
-
-		downloadedModels = append(downloadedModels, current)
 	}
 
 	// Displaying the downloads that failed
 	if len(failedModels) > 0 {
 		pterm.Error.Println(fmt.Sprintf("The following models(s) couldn't be downloaded : %s", failedModels))
 	}
-	for _, failedTokenizers := range failedTokenizersForModels {
-		pterm.Error.Println(failedTokenizers)
-	}
 
-	// Add models to configuration file
-	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
-	err = config.AddModels(downloadedModels)
-	if err != nil {
-		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
-	} else {
-		spinner.Success()
-	}
-
+	return downloadedModels
 }

@@ -1,11 +1,14 @@
 package model
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
+	"github.com/pterm/pterm"
 	"os"
 	"path"
 )
@@ -286,6 +289,7 @@ func TokenizersNotDownloadedOnDevice(model Model) []Tokenizer {
 	return notDownloadedTokenizers
 }
 
+// BuildModelsFromDevice builds a slice of models recovered from the device folders.
 func BuildModelsFromDevice() []Model {
 
 	// Get all the providers in the root folder
@@ -389,6 +393,7 @@ func BuildModelsFromDevice() []Model {
 	return models
 }
 
+// Download attempts to download the model
 func Download(model Model, downloaderArgs downloader.Args) (Model, bool) {
 	// Running the script
 	dlModel, err := downloader.Execute(downloaderArgs)
@@ -406,6 +411,7 @@ func Download(model Model, downloaderArgs downloader.Args) (Model, bool) {
 	return model, true
 }
 
+// DownloadTokenizer attempts to download the tokenizer
 func DownloadTokenizer(model Model, tokenizer Tokenizer, downloaderArgs downloader.Args) (Model, bool) {
 
 	// TODO : options tokenizer => Waiting for issue 74 to be completed : [Client] Model options to config
@@ -426,4 +432,112 @@ func DownloadTokenizer(model Model, tokenizer Tokenizer, downloaderArgs download
 	model = MapToModelFromDownloaderModel(model, dlModelTokenizer)
 
 	return model, true
+}
+
+// Update attempts to update the model
+func Update(model Model, mapConfigModels map[string]Model) bool {
+
+	// Checking if the model is already configured
+	_, configured := mapConfigModels[model.Name]
+
+	// Check if model is physically present on the device
+	model = ConstructConfigPaths(model)
+	downloaded, err := ModelDownloadedOnDevice(model)
+	if err != nil {
+		return false
+	}
+
+	// Process internal state of the model
+	install := false
+	if !configured && !downloaded {
+		install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be added. "+
+			"Would you like to add it?", model.Name))
+	} else if configured && !downloaded {
+		install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
+			"Would you like to download it?", model.Name))
+	} else if !configured && downloaded {
+		install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' already exists. "+
+			"Would you like to overwrite it?", model.Name))
+	} else {
+		// Model already configured and downloaded : a new version is available
+		install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
+			"Would you like to overwrite its old version?", model.Name))
+	}
+
+	// Model will not be downloaded or overwritten, nothing more to do here
+	if !install {
+		return false
+	}
+
+	// Downloader script to skip the tokenizers download process if none selected
+	var skip string
+
+	// If transformers : select the tokenizers to update using a multiselect
+	var tokenizerNames []string
+	if model.Module == huggingface.TRANSFORMERS {
+
+		// Get tokenizer names for the model
+		availableNames := GetTokenizerNames(model)
+
+		// Allow to select only if at least one tokenizer is available
+		if len(availableNames) > 0 {
+
+			// Prepare the tokenizers multiselect
+			message := "Please select the tokenizer(s) to be updated"
+			checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+			tokenizerNames = ptermutil.DisplayInteractiveMultiselect(message, availableNames, availableNames, checkMark, true)
+			ptermutil.DisplaySelectedItems(tokenizerNames)
+
+			// No tokenizer is selected : skipping so that it doesn't overwrite the default one
+			if len(tokenizerNames) > 0 {
+				skip = downloader.SkipValueTokenizer
+			}
+		}
+	}
+
+	// TODO : options model => Waiting for issue 74 to be completed : [Client] Model options to config
+	// Prepare the script arguments
+	downloaderArgs := downloader.Args{
+		ModelName:    model.Name,
+		ModelModule:  string(model.Module),
+		ModelClass:   model.Class,
+		ModelOptions: []string{},
+		Skip:         skip,
+	}
+
+	// Downloading model
+	success := false
+	model, success = Download(model, downloaderArgs)
+	if !success {
+		// Download failed
+		return false
+	}
+
+	// If transformers and at least one tokenizer were asked for an update
+	if len(tokenizerNames) > 0 {
+
+		// Bind the model tokenizers to a map for faster lookup
+		mapModelTokenizers := TokenizersToMap(model)
+
+		var failedTokenizers []string
+		for _, tokenizerName := range tokenizerNames {
+			tokenizer := mapModelTokenizers[tokenizerName]
+
+			// Downloading tokenizer
+			success := false
+			model, success = DownloadTokenizer(model, tokenizer, downloaderArgs)
+			if !success {
+				// Download failed
+				failedTokenizers = append(failedTokenizers, tokenizer.Class)
+				continue
+			}
+		}
+
+		// The process failed for at least one tokenizer
+		if len(failedTokenizers) > 0 {
+			pterm.Error.Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", model.Name, failedTokenizers))
+		}
+	}
+
+	return true
 }
