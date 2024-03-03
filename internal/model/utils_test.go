@@ -725,5 +725,3 @@ func TestBuildModelsFromDevice_HuggingfaceTransformers(t *testing.T) {
 	test.AssertEqual(t, models[0].Tokenizers[0].Path, tokenizerDirectory)
 
 }
-
-// TODO : mkdirAll

@@ -97,7 +97,7 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		addCustomDownloaderArgs.ModelClass = modelObj.Class
 	}
 
-	// TODO : check if tokenizer already exists
+	// TODO : check if tokenizer already exists => Waiting for issue #63 : [Client] Validate models for download
 
 	// Downloading model
 	modelObj, success := model.Download(modelObj, addCustomDownloaderArgs)

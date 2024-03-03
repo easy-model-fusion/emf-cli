@@ -266,7 +266,7 @@ func alreadyDownloadedModels(models []model.Model) (downloadedModels []model.Mod
 	for _, currentModel := range models {
 		currentModel = model.ConstructConfigPaths(currentModel)
 		downloaded, err := model.ModelDownloadedOnDevice(currentModel)
-		// TODO : handle tokenizers as well
+		// TODO : check if tokenizer already exists => Waiting for issue #63 : [Client] Validate models for download
 		if err != nil {
 			return nil, err
 		}
