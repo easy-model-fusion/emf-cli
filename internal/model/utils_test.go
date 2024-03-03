@@ -2,9 +2,12 @@ package model
 
 import (
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
+	"os"
 	"path"
 	"path/filepath"
 	"testing"
@@ -417,3 +420,310 @@ func TestMapToModelFromHuggingfaceModel_Success(t *testing.T) {
 	test.AssertEqual(t, model.Module, huggingfaceModel.LibraryName)
 	test.AssertEqual(t, model.Source, HUGGING_FACE)
 }
+
+// TestModelDownloadedOnDevice_FalseMissing tests the ModelDownloadedOnDevice function to return false upon missing.
+func TestModelDownloadedOnDevice_FalseMissing(t *testing.T) {
+	// Init
+	model := getModel(0)
+	model.Path = ""
+
+	// Execute
+	exists, err := ModelDownloadedOnDevice(model)
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, false)
+}
+
+// TestModelDownloadedOnDevice_FalseEmpty tests the ModelDownloadedOnDevice function to return false upon empty.
+func TestModelDownloadedOnDevice_FalseEmpty(t *testing.T) {
+	// Create a temporary directory representing the model base path
+	modelDirectory, err := os.MkdirTemp("", "modelDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(modelDirectory)
+
+	// Init
+	model := getModel(0)
+	model.Path = modelDirectory
+
+	// Execute
+	exists, err := ModelDownloadedOnDevice(model)
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, false)
+}
+
+// TestModelDownloadedOnDevice_True tests the ModelDownloadedOnDevice function to return true.
+func TestModelDownloadedOnDevice_True(t *testing.T) {
+	// Create a temporary directory representing the model base path
+	modelDirectory, err := os.MkdirTemp("", "modelDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(modelDirectory)
+
+	// Create temporary file inside the model base path
+	file, err := os.CreateTemp(modelDirectory, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fileutil.CloseFile(file)
+
+	// Init
+	model := getModel(0)
+	model.Path = modelDirectory
+
+	// Execute
+	exists, err := ModelDownloadedOnDevice(model)
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, true)
+}
+
+// TestTokenizerDownloadedOnDevice_FalseMissing tests the TokenizerDownloadedOnDevice function to return false upon missing.
+func TestTokenizerDownloadedOnDevice_FalseMissing(t *testing.T) {
+	// Init
+	tokenizer := Tokenizer{Path: ""}
+
+	// Execute
+	exists, err := TokenizerDownloadedOnDevice(tokenizer)
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, false)
+}
+
+// TestTokenizerDownloadedOnDevice_FalseEmpty tests the TokenizerDownloadedOnDevice function to return false upon empty.
+func TestTokenizerDownloadedOnDevice_FalseEmpty(t *testing.T) {
+	// Create a temporary directory representing the model base path
+	modelDirectory, err := os.MkdirTemp("", "modelDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(modelDirectory)
+
+	// Create a temporary directory representing the tokenizer path
+	tokenizerDirectory, err := os.MkdirTemp(modelDirectory, "tokenizerDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Init
+	tokenizer := Tokenizer{Path: tokenizerDirectory}
+
+	// Execute
+	exists, err := TokenizerDownloadedOnDevice(tokenizer)
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, false)
+}
+
+// TestTokenizersNotDownloadedOnDevice_True tests the TokenizersNotDownloadedOnDevice function to return true.
+func TestTokenizersNotDownloadedOnDevice_True(t *testing.T) {
+	// Create a temporary directory representing the model base path
+	modelDirectory, err := os.MkdirTemp("", "modelDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(modelDirectory)
+
+	// Create a temporary directory representing the tokenizer path
+	tokenizerDirectory, err := os.MkdirTemp(modelDirectory, "tokenizerDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create temporary file inside the tokenizer path
+	file, err := os.CreateTemp(tokenizerDirectory, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fileutil.CloseFile(file)
+
+	// Init
+	tokenizer := Tokenizer{Path: tokenizerDirectory}
+
+	// Execute
+	exists, err := TokenizerDownloadedOnDevice(tokenizer)
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, true)
+}
+
+// TestTokenizersNotDownloadedOnDevice_NotTransformers tests the TokenizersNotDownloadedOnDevice function while not using a transformer model.
+func TestTokenizersNotDownloadedOnDevice_NotTransformers(t *testing.T) {
+	// Init
+	model := getModel(0)
+	model.Module = huggingface.DIFFUSERS
+
+	// Execute
+	var expected []Tokenizer
+	result := TokenizersNotDownloadedOnDevice(model)
+
+	// Assert
+	test.AssertEqual(t, len(result), len(expected))
+}
+
+// TestTokenizersNotDownloadedOnDevice_Missing tests the TokenizersNotDownloadedOnDevice function with no missing tokenizer.
+func TestTokenizersNotDownloadedOnDevice_Missing(t *testing.T) {
+	// Init
+	model := getModel(0)
+	model.Module = huggingface.TRANSFORMERS
+	model.Tokenizers = []Tokenizer{{Path: "tokenizer"}}
+
+	// Execute
+	expected := model.Tokenizers
+	result := TokenizersNotDownloadedOnDevice(model)
+
+	// Assert
+	test.AssertEqual(t, len(result), len(expected))
+}
+
+// TestTokenizersNotDownloadedOnDevice_NotMissing tests the TokenizersNotDownloadedOnDevice function with missing tokenizers.
+func TestTokenizersNotDownloadedOnDevice_NotMissing(t *testing.T) {
+	// Create a temporary directory representing the model base path
+	modelDirectory, err := os.MkdirTemp("", "modelDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(modelDirectory)
+
+	// Create a temporary directory representing the tokenizer path
+	tokenizerDirectory, err := os.MkdirTemp(modelDirectory, "tokenizerDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create temporary file inside the tokenizer path
+	file, err := os.CreateTemp(tokenizerDirectory, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fileutil.CloseFile(file)
+
+	// Init
+	model := getModel(0)
+	model.Module = huggingface.TRANSFORMERS
+	model.Tokenizers = []Tokenizer{{Path: tokenizerDirectory}}
+
+	// Execute
+	var expected []Tokenizer
+	result := TokenizersNotDownloadedOnDevice(model)
+
+	// Assert
+	test.AssertEqual(t, len(result), len(expected))
+}
+
+// TestBuildModelsFromDevice_Custom tests the BuildModelsFromDevice function to work for custom configured models.
+func TestBuildModelsFromDevice_Custom(t *testing.T) {
+	// Create a temporary directory representing the path to the custom model
+	modelPath := path.Join(downloader.DirectoryPath, "custom-provider", "custom-model")
+	modelPath = filepath.ToSlash(modelPath)
+	err := os.MkdirAll(modelPath, 0750)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(downloader.DirectoryPath)
+
+	// Execute
+	app.InitHuggingFace(huggingface.BaseUrl, "")
+	models := BuildModelsFromDevice()
+
+	// Assert
+	test.AssertEqual(t, len(models), 1)
+	test.AssertEqual(t, models[0].Source, CUSTOM)
+	test.AssertEqual(t, models[0].Path, modelPath)
+	test.AssertEqual(t, models[0].AddToBinaryFile, true)
+	test.AssertEqual(t, models[0].IsDownloaded, true)
+
+}
+
+// TestBuildModelsFromDevice_HuggingfaceEmpty tests the BuildModelsFromDevice function to work for huggingface empty models.
+func TestBuildModelsFromDevice_HuggingfaceEmpty(t *testing.T) {
+	// Create a temporary directory representing the path to the model which is empty
+	modelDirectoryPath := path.Join(downloader.DirectoryPath, "stabilityai", "sdxl-turbo")
+	err := os.MkdirAll(modelDirectoryPath, 0750)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(downloader.DirectoryPath)
+
+	// Execute
+	app.InitHuggingFace(huggingface.BaseUrl, "")
+	models := BuildModelsFromDevice()
+
+	// Assert
+	test.AssertEqual(t, len(models), 0)
+}
+
+// TestBuildModelsFromDevice_HuggingfaceDiffusers tests the BuildModelsFromDevice function to work for huggingface diffusers models.
+func TestBuildModelsFromDevice_HuggingfaceDiffusers(t *testing.T) {
+	// Create a temporary directory representing the path to the diffusers model which is not empty
+	modelName := path.Join("stabilityai", "sdxl-turbo")
+	modelDirectory := path.Join(downloader.DirectoryPath, modelName)
+	err := os.MkdirAll(path.Join(modelDirectory, "not-empty"), 0750)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(downloader.DirectoryPath)
+
+	// Execute
+	app.InitHuggingFace(huggingface.BaseUrl, "")
+	models := BuildModelsFromDevice()
+
+	// Assert
+	test.AssertEqual(t, len(models), 1)
+	test.AssertEqual(t, models[0].Name, modelName)
+	test.AssertEqual(t, models[0].Module, huggingface.DIFFUSERS)
+	test.AssertEqual(t, models[0].Source, HUGGING_FACE)
+	test.AssertEqual(t, models[0].Path, modelDirectory)
+	test.AssertEqual(t, models[0].AddToBinaryFile, true)
+	test.AssertEqual(t, models[0].IsDownloaded, true)
+	test.AssertEqual(t, models[0].Version, "")
+}
+
+// TestBuildModelsFromDevice_HuggingfaceTransformers tests the BuildModelsFromDevice function to work for huggingface transformers models.
+func TestBuildModelsFromDevice_HuggingfaceTransformers(t *testing.T) {
+	// Create a temporary directory representing the path to the transformers model
+	modelName := path.Join("microsoft", "phi-2")
+	modelDirectory := path.Join(downloader.DirectoryPath, modelName)
+	modelPath := path.Join(modelDirectory, "model")
+	err := os.MkdirAll(modelPath, 0750)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(downloader.DirectoryPath)
+
+	// Create a temporary directory representing the path to the tokenizer for the model
+	tokenizerDirectory, err := os.MkdirTemp(modelDirectory, "tokenizer")
+	tokenizerDirectory = filepath.ToSlash(tokenizerDirectory)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Execute
+	app.InitHuggingFace(huggingface.BaseUrl, "")
+	models := BuildModelsFromDevice()
+
+	// Assert
+	test.AssertEqual(t, len(models), 1)
+	test.AssertEqual(t, models[0].Name, modelName)
+	test.AssertEqual(t, models[0].Module, huggingface.TRANSFORMERS)
+	test.AssertEqual(t, models[0].Source, HUGGING_FACE)
+	test.AssertEqual(t, models[0].Path, modelPath)
+	test.AssertEqual(t, models[0].AddToBinaryFile, true)
+	test.AssertEqual(t, models[0].IsDownloaded, true)
+	test.AssertEqual(t, models[0].Version, "")
+
+	test.AssertEqual(t, len(models[0].Tokenizers), 1)
+	test.AssertEqual(t, models[0].Tokenizers[0].Path, tokenizerDirectory)
+
+}
+
+// TODO : mkdirAll

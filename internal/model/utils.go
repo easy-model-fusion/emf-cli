@@ -317,12 +317,17 @@ func BuildModelsFromDevice() []Model {
 				continue
 			}
 
+			// Model info
+			modelName := path.Join(provider.Name(), providerModel.Name())
+			modelPath := path.Join(providerPath, providerModel.Name())
+
 			// Fetching model from huggingface
-			huggingfaceModel, err := app.H().GetModelById(path.Join(provider.Name(), providerModel.Name()))
+			huggingfaceModel, err := app.H().GetModelById(modelName)
 			if err != nil {
 				// Model not found : custom
 				models = append(models, Model{
 					Name:            providerModel.Name(),
+					Path:            modelPath,
 					Source:          CUSTOM,
 					AddToBinaryFile: true,
 					IsDownloaded:    true,
@@ -339,7 +344,6 @@ func BuildModelsFromDevice() []Model {
 			modelMapped.Version = ""
 
 			// Get all the folders for the model
-			modelPath := path.Join(providerPath, providerModel.Name())
 			directories, err := os.ReadDir(modelPath)
 			if err != nil {
 				continue
@@ -352,11 +356,11 @@ func BuildModelsFromDevice() []Model {
 			}
 
 			// Handling model by default : a special handling is required for tokenizers
-			if modelMapped.Module != huggingface.TRANSFORMERS {
+			if modelMapped.Module == huggingface.DIFFUSERS {
 				modelMapped.Path = modelPath
 				modelMapped.AddToBinaryFile = true
 				modelMapped.IsDownloaded = true
-			} else {
+			} else if modelMapped.Module == huggingface.TRANSFORMERS {
 
 				// Searching for the model folder and the tokenizers
 				for _, directory := range directories {
