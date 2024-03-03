@@ -27,6 +27,9 @@ func Init(version, buildDate string) {
 
 // UI returns the current UI instance
 func UI() ui.UI {
+	if _ui == nil {
+		fatal("UI not initialized")
+	}
 	return _ui
 }
 

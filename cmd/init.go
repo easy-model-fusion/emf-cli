@@ -20,7 +20,7 @@ var initCmd = &cobra.Command{
 }
 
 func runInit(cmd *cobra.Command, args []string) {
-	controller.RunInit(args, useTorchCuda)
+	controller.RunInit(args, useTorchCuda, "")
 }
 
 func init() {

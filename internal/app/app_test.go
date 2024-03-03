@@ -1,7 +1,9 @@
 package app
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/pterm/pterm"
 	"testing"
 )
 
@@ -24,5 +26,12 @@ func TestUI(t *testing.T) {
 
 	SetUI(nil)
 
-	test.AssertEqual(t, UI(), nil, "UI should be nil")
+	fatalCalled := false
+	fatal = func(a ...interface{}) *pterm.TextPrinter {
+		fatalCalled = true
+		return nil
+	}
+	var u ui.UI
+	test.AssertEqual(t, UI(), u)
+	test.AssertEqual(t, fatalCalled, true, "Should call the fatal function")
 }

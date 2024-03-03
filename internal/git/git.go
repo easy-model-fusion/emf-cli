@@ -12,43 +12,64 @@ import (
 	"net/url"
 )
 
-type Git struct {
+type Git interface {
+	GenerateAuth() *http.BasicAuth
+	GetAuthToken() *string
+	GetUrl() *string
+	GetProjectUrl(project string) (string, error)
+	CheckNewSDKVersion() bool
+	CheckNewCLIVersion() bool
+	GetLatestTag(project string) (tag string, err error)
+	CloneSDK(tag, to string) (err error)
+}
+
+type gitImpl struct {
 	AuthToken string
 	Url       string
 }
 
 // NewGit creates a new Git instance
-func NewGit(url, authToken string) *Git {
-	return &Git{AuthToken: authToken, Url: url}
+func NewGit(url, authToken string) Git {
+	return &gitImpl{AuthToken: authToken, Url: url}
 }
 
 // GenerateAuth generates a new http.BasicAuth
-func (g Git) GenerateAuth() *http.BasicAuth {
+func (g *gitImpl) GenerateAuth() *http.BasicAuth {
 	if g.AuthToken == "" {
 		return nil
 	}
 	return &http.BasicAuth{Username: "auth", Password: g.AuthToken}
 }
 
+// GetAuthToken returns the auth token
+func (g *gitImpl) GetAuthToken() *string {
+	return &g.AuthToken
+}
+
+// GetUrl returns the url
+func (g *gitImpl) GetUrl() *string {
+	return &g.Url
+}
+
 // GetProjectUrl returns the url of the given project
-func (g Git) GetProjectUrl(project string) (string, error) {
+func (g *gitImpl) GetProjectUrl(project string) (string, error) {
 	return url.JoinPath(g.Url, project+".git")
 }
 
 // CheckNewSDKVersion checks if a new version of the sdk is available
-func (g Git) CheckNewSDKVersion() bool {
+func (g *gitImpl) CheckNewSDKVersion() bool {
 	// TODO: implement
 	return false
 }
 
 // CheckNewCLIVersion checks if a new version of the cli is available
-func (g Git) CheckNewCLIVersion() bool {
+func (g *gitImpl) CheckNewCLIVersion() bool {
 	// TODO: implement
 	return false
 }
 
 // GetLatestTag returns the latest tag of the given project
-func (g Git) GetLatestTag(project string) (tag string, err error) {
+func (g *gitImpl) GetLatestTag(project string) (tag string, err error) {
 	var remoteUrl string
 	if remoteUrl, err = g.GetProjectUrl(project); err != nil {
 		return "", fmt.Errorf("get latest tag: %w", err)
@@ -92,7 +113,7 @@ func (g Git) GetLatestTag(project string) (tag string, err error) {
 }
 
 // CloneSDK clones the sdk to the given path
-func (g Git) CloneSDK(tag, to string) (err error) {
+func (g *gitImpl) CloneSDK(tag, to string) (err error) {
 	var remoteUrl string
 
 	if remoteUrl, err = g.GetProjectUrl("sdk"); err != nil {
