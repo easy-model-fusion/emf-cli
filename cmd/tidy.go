@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
@@ -38,11 +37,7 @@ func runTidy(cmd *cobra.Command, args []string) {
 	}
 
 	// Tidy the models configured but not physically present on the device
-	err = tidyModelsConfiguredButNotDownloaded(models)
-	if err != nil {
-		pterm.Error.Println(err.Error())
-		return
-	}
+	tidyModelsConfiguredButNotDownloaded(models)
 
 	// Tidy the models physically present on the device but not configured
 	tidyModelsDownloadedButNotConfigured(models)
@@ -63,7 +58,7 @@ func runTidy(cmd *cobra.Command, args []string) {
 }
 
 // tidyModelsConfiguredButNotDownloaded downloads any missing model and its missing tokenizers as well
-func tidyModelsConfiguredButNotDownloaded(models []model.Model) error {
+func tidyModelsConfiguredButNotDownloaded(models []model.Model) {
 	pterm.Info.Println("Verifying if all models are downloaded...")
 	// filter the models that should be added to binary
 	models = model.GetModelsWithAddToBinaryFileTrue(models)
@@ -73,77 +68,17 @@ func tidyModelsConfiguredButNotDownloaded(models []model.Model) error {
 	var failedModels []string
 	var failedTokenizersForModels []string
 
-	// Tidying the configured but not downloaded models and tokenizers
+	// Tidying the configured but not downloaded models and also processing their tokenizers
 	for _, current := range models {
 
-		// Check if model is physically present on the device
-		current = model.ConstructConfigPaths(current)
-		downloaded, err := model.ModelDownloadedOnDevice(current)
-		if err != nil {
+		success := model.TidyConfiguredModel(current)
+		if !success {
 			failedModels = append(failedModels, current.Name)
-			continue
-		}
-
-		// Get all the configured but not downloaded tokenizers
-		missingTokenizers := model.TokenizersNotDownloadedOnDevice(current)
-
-		// Model is clean, nothing more to do here
-		if downloaded && len(missingTokenizers) == 0 {
+		} else {
 			downloadedModels = append(downloadedModels, current)
-			continue
 		}
 
-		// TODO : options model => Waiting for issue 74 to be completed : [Client] Model options to config
-		// Prepare the script arguments
-		downloaderArgs := downloader.Args{
-			ModelName:    current.Name,
-			ModelModule:  string(current.Module),
-			ModelClass:   current.Class,
-			ModelOptions: []string{},
-		}
-
-		// Model has yet to be downloaded
-		if !downloaded {
-
-			// If at least one tokenizer is already installed : skipping the default tokenizer
-			if len(current.Tokenizers) >= 0 && len(current.Tokenizers) > len(missingTokenizers) {
-				downloaderArgs.Skip = downloader.SkipValueTokenizer
-			}
-
-			// Downloading model
-			success := false
-			current, success = model.Download(current, downloaderArgs)
-			if !success {
-				// Download failed
-				failedModels = append(failedModels, current.Name)
-				continue
-			}
-		}
-
-		// Some tokenizers are missing
-		if len(missingTokenizers) != 0 {
-
-			// Downloading the missing tokenizers
-			var failedTokenizers []string
-			for _, tokenizer := range missingTokenizers {
-
-				// Downloading tokenizer
-				success := false
-				current, success = model.DownloadTokenizer(current, tokenizer, downloaderArgs)
-				if !success {
-					// Download failed
-					failedTokenizers = append(failedTokenizers, tokenizer.Class)
-					continue
-				}
-			}
-
-			// The process failed for at least one tokenizer
-			if len(failedTokenizers) > 0 {
-				failedTokenizersForModels = append(failedModels, fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", current.Name, failedTokenizers))
-			}
-		}
-
-		downloadedModels = append(downloadedModels, current)
+		continue
 	}
 
 	// Displaying the downloads that failed
@@ -162,8 +97,6 @@ func tidyModelsConfiguredButNotDownloaded(models []model.Model) error {
 	} else {
 		spinner.Success()
 	}
-
-	return nil
 }
 
 // tidyModelsDownloadedButNotConfigured configuring the downloaded models that aren't configured in the configuration file

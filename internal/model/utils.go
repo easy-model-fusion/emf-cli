@@ -541,3 +541,73 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 
 	return true
 }
+
+// TidyConfiguredModel downloads the missing elements that were configured
+func TidyConfiguredModel(model Model) bool {
+
+	// Check if model is physically present on the device
+	model = ConstructConfigPaths(model)
+	downloaded, err := ModelDownloadedOnDevice(model)
+	if err != nil {
+		return false
+	}
+
+	// Get all the configured but not downloaded tokenizers
+	missingTokenizers := TokenizersNotDownloadedOnDevice(model)
+
+	// Model is clean, nothing more to do here
+	if downloaded && len(missingTokenizers) == 0 {
+		return true
+	}
+
+	// TODO : options model => Waiting for issue 74 to be completed : [Client] Model options to config
+	// Prepare the script arguments
+	downloaderArgs := downloader.Args{
+		ModelName:    model.Name,
+		ModelModule:  string(model.Module),
+		ModelClass:   model.Class,
+		ModelOptions: []string{},
+	}
+
+	// Model has yet to be downloaded
+	if !downloaded {
+
+		// If at least one tokenizer is already installed : skipping the default tokenizer
+		if len(model.Tokenizers) >= 0 && len(model.Tokenizers) > len(missingTokenizers) {
+			downloaderArgs.Skip = downloader.SkipValueTokenizer
+		}
+
+		// Downloading model
+		success := false
+		model, success = Download(model, downloaderArgs)
+		if !success {
+			// Download failed
+			return false
+		}
+	}
+
+	// Some tokenizers are missing
+	if len(missingTokenizers) != 0 {
+
+		// Downloading the missing tokenizers
+		var failedTokenizers []string
+		for _, tokenizer := range missingTokenizers {
+
+			// Downloading tokenizer
+			success := false
+			model, success = DownloadTokenizer(model, tokenizer, downloaderArgs)
+			if !success {
+				// Download failed
+				failedTokenizers = append(failedTokenizers, tokenizer.Class)
+				continue
+			}
+		}
+
+		// The process failed for at least one tokenizer
+		if len(failedTokenizers) > 0 {
+			pterm.Error.Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", model.Name, failedTokenizers))
+		}
+	}
+
+	return true
+}
