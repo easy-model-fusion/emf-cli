@@ -9,8 +9,8 @@ import (
 )
 
 func TestCreateProjectFiles(t *testing.T) {
-	app.SetUI(test.NewMockUI())
-	app.SetGit(test.NewMockGit())
+	app.SetUI(&test.MockUI{})
+	app.SetGit(&test.MockGit{})
 
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
@@ -62,8 +62,8 @@ func TestCreateProjectFiles(t *testing.T) {
 }
 
 func TestCreateProjectFolder(t *testing.T) {
-	app.SetUI(test.NewMockUI())
-	app.SetGit(test.NewMockGit())
+	app.SetUI(&test.MockUI{})
+	app.SetGit(&test.MockGit{})
 
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
@@ -91,7 +91,7 @@ func TestCreateProjectFolder(t *testing.T) {
 
 func TestCloneSDK(t *testing.T) {
 	mockGit := &test.MockGit{}
-	app.SetUI(test.NewMockUI())
+	app.SetUI(&test.MockUI{})
 	app.SetGit(mockGit)
 
 	ts := test.TestSuite{}

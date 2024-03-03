@@ -1,7 +1,6 @@
 package test
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/git"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"os"
 	"path/filepath"
@@ -45,9 +44,4 @@ func (g *MockGit) CloneSDK(tag, to string) (err error) {
 	// create ".git" folder in to
 	_ = os.MkdirAll(filepath.Join(to, ".git"), os.ModePerm)
 	return g.CloneSDKError
-}
-
-// NewMockGit creates a new MockGit instance
-func NewMockGit() git.Git {
-	return &MockGit{}
 }

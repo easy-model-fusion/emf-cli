@@ -23,10 +23,6 @@ func (m MockUI) StartSpinner(message string) ui.Spinner {
 	return &MockSpinner{}
 }
 
-func NewMockUI() ui.UI {
-	return &MockUI{}
-}
-
 func (m MockUI) AskForUsersInput(message string) string {
 	return m.UserInputResult
 }

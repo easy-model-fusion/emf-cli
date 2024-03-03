@@ -10,8 +10,8 @@ import (
 )
 
 func TestRunClean(t *testing.T) {
-	app.SetUI(test.NewMockUI())
-	app.SetGit(test.NewMockGit())
+	app.SetUI(&test.MockUI{})
+	app.SetGit(&test.MockGit{})
 
 	ts := test.TestSuite{}
 	_ = ts.CreateModelsFolderFullTestSuite(t)

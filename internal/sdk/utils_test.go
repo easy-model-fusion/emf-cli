@@ -130,7 +130,7 @@ func TestUpgrade(t *testing.T) {
 	_ = ts.CreateFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
 
-	app.SetUI(test.NewMockUI())
+	app.SetUI(&test.MockUI{})
 
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {

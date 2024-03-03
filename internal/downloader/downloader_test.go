@@ -8,7 +8,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	app.SetUI(test.NewMockUI())
+	app.SetUI(&test.MockUI{})
 	os.Exit(m.Run())
 }
 

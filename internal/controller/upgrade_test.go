@@ -8,7 +8,7 @@ import (
 )
 
 func TestRunUpgrade(t *testing.T) {
-	app.SetUI(test.NewMockUI())
+	app.SetUI(&test.MockUI{})
 	// todo: mock git?
 	app.InitGit(app.Repository, "")
 
