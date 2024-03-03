@@ -62,7 +62,7 @@ func Execute(downloaderArgs Args) (Model, error) {
 	args := ArgsProcessForPython(downloaderArgs)
 
 	// Run the script to download the model
-	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Downloading model '%s'...", downloaderArgs.ModelName))
+	spinner := app.UI().StartSpinner(fmt.Sprintf("Downloading model '%s'...", downloaderArgs.ModelName))
 	scriptModel, err, exitCode := python.ExecuteScript(".venv", ScriptPath, args)
 
 	// An error occurred while running the script

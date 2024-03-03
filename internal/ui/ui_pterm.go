@@ -46,3 +46,9 @@ func (p ptermUI) AskForUsersConfirmation(message string) bool {
 	pterm.Println()
 	return confirmation
 }
+
+// StartSpinner starts a new spinner with the given message and returns a Spinner interface
+func (p ptermUI) StartSpinner(message string) Spinner {
+	spinner, _ := pterm.DefaultSpinner.Start(message)
+	return spinner
+}

@@ -185,7 +185,7 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 	}
 
 	// Add models to configuration file
-	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+	spinner := app.UI().StartSpinner("Writing models to configuration file...")
 	err = config.AddModels(downloadedModels)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))

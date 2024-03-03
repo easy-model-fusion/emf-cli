@@ -50,7 +50,7 @@ func createProject(projectName string, useTorchCuda bool) (err error) {
 	}
 
 	// Create folder
-	spinner, _ := pterm.DefaultSpinner.Start("Creating project folder...")
+	spinner := app.UI().StartSpinner("Creating project folder...")
 	err = os.Mkdir(projectName, os.ModePerm)
 	if err != nil {
 		spinner.Fail(err)
@@ -65,7 +65,7 @@ func createProject(projectName string, useTorchCuda bool) (err error) {
 	}
 
 	// Check the latest sdk version
-	spinner, _ = pterm.DefaultSpinner.Start("Checking for latest sdk version...")
+	spinner = app.UI().StartSpinner("Checking for latest sdk version...")
 	sdkTag, err := app.G().GetLatestTag("sdk")
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error checking for latest sdk version: %s", err))
@@ -74,7 +74,7 @@ func createProject(projectName string, useTorchCuda bool) (err error) {
 	spinner.Success("Using latest sdk version: " + sdkTag)
 
 	// Create project files
-	spinner, _ = pterm.DefaultSpinner.Start("Creating project files...")
+	spinner = app.UI().StartSpinner("Creating project files...")
 	if err = createProjectFiles(projectName, sdkTag); err != nil {
 		spinner.Fail(err)
 		return err
@@ -82,7 +82,7 @@ func createProject(projectName string, useTorchCuda bool) (err error) {
 	spinner.Success()
 
 	// Clone SDK
-	spinner, _ = pterm.DefaultSpinner.Start("Cloning sdk...")
+	spinner = app.UI().StartSpinner("Cloning sdk...")
 	err = app.G().CloneSDK(sdkTag, filepath.Join(projectName, "sdk"))
 	if err != nil {
 		spinner.Fail("Unable to clone sdk: ", err)
@@ -91,7 +91,7 @@ func createProject(projectName string, useTorchCuda bool) (err error) {
 	spinner.Success()
 
 	// Create virtual environment
-	spinner, _ = pterm.DefaultSpinner.Start("Creating virtual environment...")
+	spinner = app.UI().StartSpinner("Creating virtual environment...")
 	err = python.CreateVirtualEnv(pythonPath, filepath.Join(projectName, ".venv"))
 	if err != nil {
 		spinner.Fail("Unable to create venv: ", err)
@@ -105,7 +105,7 @@ func createProject(projectName string, useTorchCuda bool) (err error) {
 		return err
 	}
 
-	spinner, _ = pterm.DefaultSpinner.Start("Installing dependencies...")
+	spinner = app.UI().StartSpinner("Installing dependencies...")
 
 	if useTorchCuda {
 		err = python.ExecutePip(pipPath, []string{"install", "torch", "-f", "https://download.pytorch.org/whl/cu111/torch_stable.html"})

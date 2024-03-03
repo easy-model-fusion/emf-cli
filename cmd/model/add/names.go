@@ -159,7 +159,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	}
 
 	// Add models to configuration file
-	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+	spinner := app.UI().StartSpinner("Writing models to configuration file...")
 	err = config.AddModels(models)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
@@ -170,7 +170,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project
 func selectModels(tags []string, currentSelectedModels []model.Model, existingModels []model.Model) ([]model.Model, error) {
-	spinner, _ := pterm.DefaultSpinner.Start("Listing all models with selected tags...")
+	spinner := app.UI().StartSpinner("Listing all models with selected tags...")
 	var allModelsWithTags []model.Model
 	// Get list of models with current tags
 	for _, tag := range tags {

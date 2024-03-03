@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/codegen"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
@@ -59,7 +60,7 @@ func RemoveModelPhysically(modelName string) error {
 	modelPath := filepath.Join(downloader.DirectoryPath, modelName)
 
 	// Starting client spinner animation
-	spinner, _ := pterm.DefaultSpinner.Start(fmt.Sprintf("Removing model %s...", modelName))
+	spinner := app.UI().StartSpinner(fmt.Sprintf("Removing model %s...", modelName))
 
 	// Check if the model_path exists
 	if exists, err := fileutil.IsExistingPath(modelPath); err != nil {
