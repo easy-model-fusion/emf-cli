@@ -124,6 +124,8 @@ func TestUpgrade(t *testing.T) {
 	dname := test.CreateFullTestSuite(t)
 	defer os.RemoveAll(dname)
 
+	app.ReplaceUI(test.NewMockUI())
+
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		t.Error(err)

@@ -1,9 +1,16 @@
 package downloader
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"os"
 	"testing"
 )
+
+func TestMain(m *testing.M) {
+	app.ReplaceUI(test.NewMockUI())
+	os.Exit(m.Run())
+}
 
 // TestExecute_ArgsInvalid tests the Execute function with bad input.
 func TestExecute_ArgsInvalid(t *testing.T) {

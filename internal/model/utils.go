@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -75,7 +76,7 @@ func GetModelsByNames(models []Model, namesSlice []string) []Model {
 
 // ConstructConfigPaths to update the model's path to elements accordingly to its configuration.
 func ConstructConfigPaths(current Model) Model {
-	basePath := path.Join(downloader.DirectoryPath, current.Name)
+	basePath := path.Join(app.DownloadDirectoryPath, current.Name)
 	modelPath := basePath
 	if current.Module == huggingface.TRANSFORMERS {
 		modelPath = path.Join(modelPath, "model")

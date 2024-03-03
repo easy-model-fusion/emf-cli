@@ -8,6 +8,21 @@ type MockUI struct {
 	UserConfirmationResult bool
 }
 
+type MockSpinner struct{}
+
+func (m MockSpinner) Success(message ...interface{}) {
+}
+
+func (m MockSpinner) Warning(message ...interface{}) {
+}
+
+func (m MockSpinner) Fail(message ...interface{}) {
+}
+
+func (m MockUI) StartSpinner(message string) ui.Spinner {
+	return &MockSpinner{}
+}
+
 func NewMockUI() ui.UI {
 	return &MockUI{}
 }

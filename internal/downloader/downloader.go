@@ -3,11 +3,11 @@ package downloader
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 	"github.com/pterm/pterm"
 )
 
-const DirectoryPath = "./models/"
 const ScriptPath = "sdk/downloader.py"
 
 // Model represents a model returned by the downloader script.

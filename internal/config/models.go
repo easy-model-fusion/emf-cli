@@ -57,7 +57,7 @@ func AddModels(updatedModels []model.Model) error {
 func RemoveModelPhysically(modelName string) error {
 
 	// Path to the model
-	modelPath := filepath.Join(downloader.DirectoryPath, modelName)
+	modelPath := filepath.Join(app.DownloadDirectoryPath, modelName)
 
 	// Starting client spinner animation
 	spinner := app.UI().StartSpinner(fmt.Sprintf("Removing model %s...", modelName))

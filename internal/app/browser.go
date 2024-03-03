@@ -1,16 +1,17 @@
 package app
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"os"
 	"path"
 	"strings"
 )
 
+const DownloadDirectoryPath = "./models/"
+
 // GetDownloadedModelNames get all the downloaded models names
 func GetDownloadedModelNames() (models []string, err error) {
 	// Get all the models folders in the root folder
-	entries, err := os.ReadDir(downloader.DirectoryPath)
+	entries, err := os.ReadDir(DownloadDirectoryPath)
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +23,7 @@ func GetDownloadedModelNames() (models []string, err error) {
 			continue
 		}
 		// Construct the model name based on directory names
-		modelDirectoryPath := path.Join(downloader.DirectoryPath, entry.Name())
+		modelDirectoryPath := path.Join(DownloadDirectoryPath, entry.Name())
 		err, modelFullPath := getModelFullPath(modelDirectoryPath)
 		if err != nil {
 			return nil, err
