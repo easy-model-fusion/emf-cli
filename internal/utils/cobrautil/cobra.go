@@ -2,7 +2,8 @@ package cobrautil
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -86,9 +87,9 @@ func MultiselectRemainingFlags(cmd *cobra.Command) (map[string]*pflag.Flag, []st
 
 	// User multi-selects the flags he wishes to use
 	message := "Select any property you wish to set"
-	checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedFlags := ptermutil.DisplayInteractiveMultiselect(message, remainingFlagsUsages, checkMark, false)
-	ptermutil.DisplaySelectedItems(selectedFlags)
+	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+	selectedFlags := app.UI().DisplayInteractiveMultiselect(message, remainingFlagsUsages, checkMark, false)
+	app.UI().DisplaySelectedItems(selectedFlags)
 
 	return remainingFlagsMap, selectedFlags
 }
@@ -105,9 +106,9 @@ func AskFlagInput(cmd *cobra.Command, flag *pflag.Flag) error {
 		// Ask for different types of input
 		switch flag.Value.Type() {
 		case "bool":
-			inputValue = strconv.FormatBool(ptermutil.AskForUsersConfirmation(flag.Usage))
+			inputValue = strconv.FormatBool(app.UI().AskForUsersConfirmation(flag.Usage))
 		default:
-			inputValue = ptermutil.AskForUsersInput(flag.Usage)
+			inputValue = app.UI().AskForUsersInput(flag.Usage)
 		}
 	}
 

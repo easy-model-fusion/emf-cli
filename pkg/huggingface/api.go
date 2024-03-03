@@ -10,21 +10,29 @@ import (
 const BaseUrl = "https://huggingface.co/api"
 const modelEndpoint = "/models"
 
-type HuggingFace struct {
+type HuggingFace interface {
+	GetModelsByPipelineTag(tag PipelineTag, limit int) ([]Model, error)
+	GetModelById(id string) (Model, error)
+	ValidModel(id string) (bool, error)
+}
+
+type huggingFace struct {
 	BaseUrl string
 	Client  *http.Client
 }
 
 // NewHuggingFace creates a new HuggingFace instance
-func NewHuggingFace(baseUrl, proxyUrl string) *HuggingFace {
+func NewHuggingFace(baseUrl, proxyUrl string) HuggingFace {
 	client := &http.Client{}
-	if pUrl, err := url.Parse(proxyUrl); err != nil {
-		client.Transport = &http.Transport{
-			Proxy: http.ProxyURL(pUrl),
+	if proxyUrl != "" {
+		if pUrl, err := url.Parse(proxyUrl); err == nil {
+			client.Transport = &http.Transport{
+				Proxy: http.ProxyURL(pUrl),
+			}
 		}
 	}
 
-	return &HuggingFace{
+	return &huggingFace{
 		BaseUrl: baseUrl,
 		Client:  client,
 	}
@@ -38,8 +46,8 @@ type Model struct {
 	LastModified string      `json:"lastModified"`
 }
 
-// APIGet performs an HTTP GET request to the specified URL.
-func (h HuggingFace) APIGet(getModelUrl *url.URL) ([]byte, error) {
+// apiGet performs an HTTP GET request to the specified URL.
+func (h huggingFace) apiGet(getModelUrl *url.URL) ([]byte, error) {
 	// Execute API call
 	var response, err = h.Client.Get(getModelUrl.String())
 	if err != nil {

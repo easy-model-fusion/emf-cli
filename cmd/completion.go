@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/pterm/pterm"
 	"os"
@@ -68,7 +67,7 @@ func runCompletion(cmd *cobra.Command, args []string) {
 
 	// No args, asking for a shell input
 	if len(args) == 0 {
-		selectedShell = ptermutil.AskForUsersInput("Enter a shell name " + arguments)
+		selectedShell = app.UI().AskForUsersInput("Enter a shell name " + arguments)
 	} else {
 		selectedShell = args[0]
 	}

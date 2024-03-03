@@ -3,9 +3,9 @@ package python
 import (
 	"errors"
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/executil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/pterm/pterm"
 	"os"
 	"os/exec"
@@ -163,7 +163,7 @@ func ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int
 // If python is not available, a message is printed to the user and asks to specify the path to python
 // Returns true if python is available and the PATH
 // Returns false if python is not available
-func CheckAskForPython() (string, bool) {
+func CheckAskForPython(ui ui.UI) (string, bool) {
 	pterm.Info.Println("Checking for Python...")
 	path, ok := CheckForPython()
 	if ok {
@@ -173,15 +173,15 @@ func CheckAskForPython() (string, bool) {
 
 	pterm.Warning.Println("Python is not installed or not available in the PATH")
 
-	if ptermutil.AskForUsersConfirmation("Do you want to specify the path to python?") {
-		result := ptermutil.AskForUsersInput("Enter python PATH")
+	if ui.AskForUsersConfirmation("Do you want to specify the path to python?") {
+		result := ui.AskForUsersInput("Enter python PATH")
 
 		if result == "" {
 			pterm.Error.Println("Please enter a valid path")
 			return "", false
 		}
 
-		path, ok := CheckPythonVersion(result)
+		path, ok = CheckPythonVersion(result)
 		if ok {
 			pterm.Success.Println("Python executable found! (" + path + ")")
 			return path, true

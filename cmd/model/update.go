@@ -7,8 +7,8 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
@@ -52,9 +52,9 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		// No argument provided : multiselect among the downloaded models coming from huggingface
 		message := "Please select the model(s) to be updated"
-		checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		selectedModelNames = ptermutil.DisplayInteractiveMultiselect(message, hfModelAvailableNames, checkMark, true)
-		ptermutil.DisplaySelectedItems(selectedModelNames)
+		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+		selectedModelNames = app.UI().DisplayInteractiveMultiselect(message, hfModelAvailableNames, checkMark, true)
+		app.UI().DisplaySelectedItems(selectedModelNames)
 	} else {
 		// Remove all the duplicates
 		selectedModelNames = stringutil.SliceRemoveDuplicates(args)
@@ -129,17 +129,17 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 
 		// Process internal state of the model
 		if !configured && !downloaded {
-			install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be added. "+
+			install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be added. "+
 				"Would you like to add it?", current.Name))
 		} else if configured && !downloaded {
-			install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
+			install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
 				"Would you like to download it?", current.Name))
 		} else if !configured && downloaded {
-			install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' already exists. "+
+			install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' already exists. "+
 				"Would you like to overwrite it?", current.Name))
 		} else {
 			// Model already configured and downloaded : a new version is available
-			install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
+			install = app.UI().AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
 				"Would you like to overwrite its old version?", current.Name))
 		}
 
@@ -153,9 +153,9 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 		if current.Module == huggingface.TRANSFORMERS {
 			tokenizerNames = model.GetTokenizerNames(current)
 			message := "Please select the tokenizer(s) to be updated"
-			checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-			tokenizerNames = ptermutil.DisplayInteractiveMultiselect(message, tokenizerNames, checkMark, true)
-			ptermutil.DisplaySelectedItems(tokenizerNames)
+			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, tokenizerNames, checkMark, true)
+			app.UI().DisplaySelectedItems(tokenizerNames)
 		}
 
 		// TODO : options model and tokenizer => Waiting for issue 74 to be completed : [Client] Model options to config
@@ -185,7 +185,7 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 	}
 
 	// Add models to configuration file
-	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+	spinner := app.UI().StartSpinner("Writing models to configuration file...")
 	err = config.AddModels(downloadedModels)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
