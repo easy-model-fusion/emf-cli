@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	buildDestination   = "/dist"
+	buildDestination   string
 	buildCustomName    string
 	buildOneFile       bool
 	buildCompress      bool
@@ -48,7 +48,7 @@ func runBuild(cmd *cobra.Command, args []string) {
 	// check if buildDestination exists
 	if _, err := os.Stat(buildDestination); os.IsNotExist(err) {
 
-		if buildDestination == "/dist" {
+		if buildDestination == "dist" {
 			err = os.Mkdir(buildDestination, os.ModeDir)
 			if err != nil {
 				pterm.Error.Println("Error creating dist folder")
