@@ -80,13 +80,26 @@ func runBuild(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	var libraryPath string
+
+	switch buildLibrary {
+	case "pyinstaller":
+		libraryPath, err = python.FindVEnvExecutable(".venv", "pyinstaller")
+		if err != nil {
+			pterm.Error.Println("Error finding pyinstaller executable")
+			return
+		}
+	default:
+		libraryPath = buildLibrary
+	}
+
 	buildArgs := createBuildArgs()
 
 	pterm.Info.Println(fmt.Sprintf("Building project using %s...", buildLibrary))
 	pterm.Info.Println(fmt.Sprintf("Using the following arguments: %s", buildArgs))
 	pterm.Info.Println(fmt.Sprintf("The project will be built to %s", buildDestination))
 
-	command := exec.Command(pythonPath, buildArgs...)
+	command := exec.Command(libraryPath, buildArgs...)
 
 	var errBuf strings.Builder
 	command.Stderr = &errBuf
@@ -134,6 +147,8 @@ func createBuildArgs() []string {
 		buildArgs = append(buildArgs, fmt.Sprintf("--distpath=%s", buildDestination))
 		buildArgs = append(buildArgs, viper.GetStringSlice("build.pyinstaller.args")...)
 	case "nuitka":
+		buildArgs = append(buildArgs, "-m nuitka")
+
 		if buildOneFile {
 			buildArgs = append(buildArgs, "--onefile")
 		}
