@@ -30,19 +30,21 @@ func RunInit(args []string, useTorchCuda bool, customTag string) {
 	err := createProject(projectName, useTorchCuda, customTag)
 
 	// check for errors
-	if err != nil {
-		if !os.IsExist(err) {
-			removeErr := os.RemoveAll(projectName)
-			if removeErr != nil {
-				pterm.Warning.Println(fmt.Sprintf("Error deleting folder '%s': %s", projectName, removeErr))
-				os.Exit(1)
-			}
-		}
-		pterm.Error.Println(fmt.Sprintf("Error creating project '%s': %s", projectName, err))
-		os.Exit(1)
+	if err == nil {
+		pterm.Success.Println("Project created successfully!")
+		return
 	}
 
-	pterm.Success.Println("Project created successfully!")
+	if !os.IsExist(err) {
+		removeErr := os.RemoveAll(projectName)
+		if removeErr != nil {
+			pterm.Warning.Println(fmt.Sprintf("Error deleting folder '%s': %s", projectName, removeErr))
+			os.Exit(1)
+		}
+	}
+
+	pterm.Error.Println(fmt.Sprintf("Error creating project '%s': %s", projectName, err))
+	os.Exit(1)
 }
 
 // createProject creates a new project with the given name
@@ -162,16 +164,18 @@ func installDependencies(projectName string, useTorchCuda bool) (err error) {
 		return err
 	}
 
-	spinner := app.UI().StartSpinner("Installing dependencies...")
+	spinner := app.UI().StartSpinner("Installing torch...")
 
 	if useTorchCuda { // TODO: refactor this
-		err = python.ExecutePip(pipPath, []string{"install", "torch", "-f", "https://download.pytorch.org/whl/cu111/torch_stable.html"})
+		err = python.ExecutePip(pipPath, []string{"install", "torch", "-f", "https://download.pytorch.org/whl/torch_stable.html"})
 		if err != nil {
 			spinner.Fail("Unable to install torch cuda: ", err)
 			return err
 		}
 	}
+	spinner.Success()
 
+	spinner = app.UI().StartSpinner("Installing dependencies...")
 	err = python.InstallDependencies(pipPath, filepath.Join(projectName, initDependenciesPath))
 	if err != nil {
 		spinner.Fail("Unable to install dependencies: ", err)
@@ -211,11 +215,28 @@ func cloneSDK(projectName, tag string) (err error) {
 	}
 	spinner.Success()
 
+	spinner = app.UI().StartSpinner("Moving sdk files...")
 	// Move files from sdk/sdk to sdk/
 	err = fileutil.MoveFiles(filepath.Join(projectName, "sdk", "sdk"), filepath.Join(projectName, "sdk"))
 	if err != nil {
+		spinner.Fail("Unable to move sdk files: ", err)
 		return err
 	}
+
+	// remove sdk/sdk folder
+	err = os.RemoveAll(filepath.Join(projectName, "sdk", "sdk"))
+	if err != nil {
+		spinner.Fail("Unable to remove sdk/sdk folder: ", err)
+		return err
+	}
+
+	// remove .github/ folder
+	err = os.RemoveAll(filepath.Join(projectName, "sdk", ".github"))
+	if err != nil {
+		spinner.Fail("Unable to remove .github folder: ", err)
+		return err
+	}
+	spinner.Success()
 
 	return nil
 }
