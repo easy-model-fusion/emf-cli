@@ -57,17 +57,7 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 	modelsToUpdate := filterModelsByStatusBeforeUpdate(selectedModelNames, hfModelsAvailable)
 
 	// Processing filtered models for an update
-	downloadedModels := processModelsForUpdate(configModels, modelsToUpdate)
-
-	// Add models to configuration file
-	spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
-	err = config.AddModels(downloadedModels)
-	if err != nil {
-		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
-	} else {
-		spinner.Success()
-	}
-
+	processModelsForUpdate(configModels, modelsToUpdate)
 }
 
 // filterModelsByStatusBeforeUpdate returns the models available for an update by determining a status for each one of them
@@ -127,23 +117,28 @@ func filterModelsByStatusBeforeUpdate(modelNames []string, hfModelsAvailable []m
 }
 
 // processModelsForUpdate
-func processModelsForUpdate(configModels, modelsToUpdate []model.Model) []model.Model {
+func processModelsForUpdate(configModels, modelsToUpdate []model.Model) {
 
 	// Bind config models to a map for faster lookup
 	// Used to get the model's path and check if it's already configured
 	mapConfigModels := model.ModelsToMap(configModels)
 
-	var downloadedModels []model.Model
-	var failedModels []string
-
 	// Processing all the remaining models for an update
+	var failedModels []string
 	for _, current := range modelsToUpdate {
 
 		success := model.Update(current, mapConfigModels)
-		if success {
-			downloadedModels = append(downloadedModels, current)
-		} else {
+		if !success {
 			failedModels = append(failedModels, current.Name)
+		} else {
+			// Add models to configuration file
+			spinner, _ := pterm.DefaultSpinner.Start("Updating configuration file...")
+			err := config.AddModels([]model.Model{current})
+			if err != nil {
+				spinner.Fail(fmt.Sprintf("Error while updating the configuration file: %s", err))
+			} else {
+				spinner.Success()
+			}
 		}
 	}
 
@@ -151,6 +146,4 @@ func processModelsForUpdate(configModels, modelsToUpdate []model.Model) []model.
 	if len(failedModels) > 0 {
 		pterm.Error.Println(fmt.Sprintf("The following models(s) couldn't be downloaded : %s", failedModels))
 	}
-
-	return downloadedModels
 }
