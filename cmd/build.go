@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 var (
@@ -87,9 +88,13 @@ func runBuild(cmd *cobra.Command, args []string) {
 
 	command := exec.Command(pythonPath, buildArgs...)
 
+	var errBuf strings.Builder
+	command.Stderr = &errBuf
+
 	err = command.Run()
 	if err != nil {
 		pterm.Error.Println("Error building project")
+		pterm.Error.Println(errBuf.String())
 		return
 	}
 
