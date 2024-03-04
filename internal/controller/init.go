@@ -66,7 +66,7 @@ func createProject(projectName string, useTorchCuda bool, customTag string) (err
 	}
 
 	// Create virtual environment
-	spinner := app.UI().StartSpinner("Creating virtual environment...")
+	spinner := app.UI().StartSpinner("Creating virtual environment")
 	err = python.CreateVirtualEnv(pythonPath, filepath.Join(projectName, ".venv"))
 	if err != nil {
 		spinner.Fail("Unable to create venv: ", err)
@@ -90,7 +90,7 @@ func createProjectFolder(projectName string) (err error) {
 	}
 
 	// Create folder
-	spinner := app.UI().StartSpinner("Creating project folder...")
+	spinner := app.UI().StartSpinner("Creating project folder")
 	err = os.Mkdir(projectName, os.ModePerm)
 	if err != nil {
 		spinner.Fail(err)
@@ -102,7 +102,7 @@ func createProjectFolder(projectName string) (err error) {
 
 // createProjectFiles creates the project files (main.py, config.yaml, .gitignore)
 func createProjectFiles(projectName, sdkTag string) (err error) {
-	spinner := app.UI().StartSpinner("Creating project files...")
+	spinner := app.UI().StartSpinner("Creating project files")
 	defer func() {
 		if err != nil {
 			spinner.Fail(err)
@@ -164,7 +164,7 @@ func installDependencies(projectName string, useTorchCuda bool) (err error) {
 		return err
 	}
 
-	spinner := app.UI().StartSpinner("Installing torch...")
+	spinner := app.UI().StartSpinner("Installing torch")
 
 	if useTorchCuda { // TODO: refactor this
 		err = python.ExecutePip(pipPath, []string{"install", "torch", "-f", "https://download.pytorch.org/whl/torch_stable.html"})
@@ -175,7 +175,7 @@ func installDependencies(projectName string, useTorchCuda bool) (err error) {
 	}
 	spinner.Success()
 
-	spinner = app.UI().StartSpinner("Installing dependencies...")
+	spinner = app.UI().StartSpinner("Installing dependencies")
 	err = python.InstallDependencies(pipPath, filepath.Join(projectName, initDependenciesPath))
 	if err != nil {
 		spinner.Fail("Unable to install dependencies: ", err)
@@ -192,7 +192,7 @@ func cloneSDK(projectName, tag string) (err error) {
 	if tag != "" {
 		pterm.Info.Println("Using custom sdk version: " + tag)
 	} else {
-		spinner := app.UI().StartSpinner("Checking for latest sdk version...")
+		spinner := app.UI().StartSpinner("Checking for latest sdk version")
 		tag, err = app.G().GetLatestTag("sdk")
 		if err != nil {
 			spinner.Fail(fmt.Sprintf("Error checking for latest sdk version: %s", err))
@@ -207,7 +207,7 @@ func cloneSDK(projectName, tag string) (err error) {
 	}
 
 	// Clone SDK
-	spinner := app.UI().StartSpinner("Cloning sdk...")
+	spinner := app.UI().StartSpinner("Cloning SDK")
 	err = app.G().CloneSDK(tag, filepath.Join(projectName, "sdk"))
 	if err != nil {
 		spinner.Fail("Unable to clone sdk: ", err)
@@ -215,11 +215,12 @@ func cloneSDK(projectName, tag string) (err error) {
 	}
 	spinner.Success()
 
-	spinner = app.UI().StartSpinner("Moving sdk files...")
+	spinner = app.UI().StartSpinner("Reorganizing SDK files")
+
 	// Move files from sdk/sdk to sdk/
 	err = fileutil.MoveFiles(filepath.Join(projectName, "sdk", "sdk"), filepath.Join(projectName, "sdk"))
 	if err != nil {
-		spinner.Fail("Unable to move sdk files: ", err)
+		spinner.Fail("Unable to move SDK files: ", err)
 		return err
 	}
 
