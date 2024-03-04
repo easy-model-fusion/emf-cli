@@ -15,8 +15,9 @@ func TestMain(m *testing.M) {
 }
 
 func TestCheckForUpdates(t *testing.T) {
-	dname := test.CreateFullTestSuite(t)
-	defer os.RemoveAll(dname)
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
 
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
@@ -44,8 +45,9 @@ func TestCheckForUpdates(t *testing.T) {
 }
 
 func TestCanSendUpdateSuggestion(t *testing.T) {
-	dname := test.CreateFullTestSuite(t)
-	defer os.RemoveAll(dname)
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
 
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
@@ -63,8 +65,9 @@ func TestCanSendUpdateSuggestion(t *testing.T) {
 }
 
 func TestResetUpdateSuggestion(t *testing.T) {
-	dname := test.CreateFullTestSuite(t)
-	defer os.RemoveAll(dname)
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
 
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
@@ -78,8 +81,9 @@ func TestResetUpdateSuggestion(t *testing.T) {
 }
 
 func TestSetUpdateSuggestion(t *testing.T) {
-	dname := test.CreateFullTestSuite(t)
-	defer os.RemoveAll(dname)
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
 
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
@@ -95,8 +99,9 @@ func TestSetUpdateSuggestion(t *testing.T) {
 }
 
 func TestSendUpdateSuggestion(t *testing.T) {
-	dname := test.CreateFullTestSuite(t)
-	defer os.RemoveAll(dname)
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
 
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
@@ -121,8 +126,11 @@ func TestSendUpdateSuggestion(t *testing.T) {
 }
 
 func TestUpgrade(t *testing.T) {
-	dname := test.CreateFullTestSuite(t)
-	defer os.RemoveAll(dname)
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+
+	app.SetUI(&test.MockUI{})
 
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {

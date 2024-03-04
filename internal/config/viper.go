@@ -7,8 +7,7 @@ import (
 )
 
 // GetViperConfig Config loaded and return an error upon failure
-func GetViperConfig(confDirPath string) error {
-	var err error
+func GetViperConfig(confDirPath string) (err error) {
 	count := 0
 	for count < 3 {
 		err = Load(confDirPath)
@@ -16,7 +15,7 @@ func GetViperConfig(confDirPath string) error {
 			count++
 			confDirPath = UpdateConfigFilePath()
 		} else {
-			return nil
+			return err
 		}
 	}
 
@@ -25,8 +24,8 @@ func GetViperConfig(confDirPath string) error {
 }
 
 // GetViperItem Store the key data into the target
-func GetViperItem(key string, target interface{}) error {
-	if err := viper.UnmarshalKey(key, target); err != nil {
+func GetViperItem(key string, target interface{}) (err error) {
+	if err = viper.UnmarshalKey(key, target); err != nil {
 		pterm.Error.Println(fmt.Sprintf("Error reading config file : %s", err))
 		return err
 	}
@@ -34,8 +33,8 @@ func GetViperItem(key string, target interface{}) error {
 }
 
 // WriteViperConfig Attempt to write the configuration file
-func WriteViperConfig() error {
-	if err := viper.WriteConfig(); err != nil {
+func WriteViperConfig() (err error) {
+	if err = viper.WriteConfig(); err != nil {
 		pterm.Error.Println(fmt.Sprintf("Error writing to config file : %s", err))
 		return err
 	}

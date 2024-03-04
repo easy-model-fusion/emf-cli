@@ -1,10 +1,11 @@
 package cmdmodel
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
+	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -79,9 +80,9 @@ func selectModelsToDelete(currentModels []model.Model) []string {
 		modelNames = append(modelNames, item.Name)
 	}
 
-	checkMark := &pterm.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")}
+	checkMark := ui.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")}
 	message := "Please select the model(s) to be deleted"
-	modelsToDelete := ptermutil.DisplayInteractiveMultiselect(message, modelNames, []string{}, checkMark, false)
-	ptermutil.DisplaySelectedItems(modelsToDelete)
+	modelsToDelete := app.UI().DisplayInteractiveMultiselect(message, modelNames, []string{}, checkMark, false)
+	app.UI().DisplaySelectedItems(modelsToDelete)
 	return modelsToDelete
 }

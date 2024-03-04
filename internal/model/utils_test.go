@@ -256,7 +256,7 @@ func TestConstructConfigPaths_Default(t *testing.T) {
 	model = ConstructConfigPaths(model)
 
 	// Assert
-	test.AssertEqual(t, model.Path, path.Join(downloader.DirectoryPath, model.Name))
+	test.AssertEqual(t, model.Path, path.Join(app.DownloadDirectoryPath, model.Name))
 }
 
 // TestConstructConfigPaths_Transformers tests the ConstructConfigPaths for a transformers model.
@@ -269,7 +269,7 @@ func TestConstructConfigPaths_Transformers(t *testing.T) {
 	model = ConstructConfigPaths(model)
 
 	// Assert
-	test.AssertEqual(t, model.Path, path.Join(downloader.DirectoryPath, model.Name, "model"))
+	test.AssertEqual(t, model.Path, path.Join(app.DownloadDirectoryPath, model.Name, "model"))
 }
 
 // TestConstructConfigPaths_Transformers tests the ConstructConfigPaths for a transformers model.
@@ -283,7 +283,7 @@ func TestConstructConfigPaths_TransformersTokenizers(t *testing.T) {
 	model = ConstructConfigPaths(model)
 
 	// Assert
-	test.AssertEqual(t, model.Tokenizers[0].Path, path.Join(downloader.DirectoryPath, model.Name, "tokenizer"))
+	test.AssertEqual(t, model.Tokenizers[0].Path, path.Join(app.DownloadDirectoryPath, model.Name, "tokenizer"))
 }
 
 // TestMapToModelFromDownloaderModel_Empty tests the MapToModelFromDownloaderModel to return the correct Model.

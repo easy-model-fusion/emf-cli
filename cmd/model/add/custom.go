@@ -8,7 +8,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -106,7 +106,7 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	}
 
 	// Add models to configuration file
-	spinner, _ := pterm.DefaultSpinner.Start("Writing model to configuration file...")
+	spinner := app.UI().StartSpinner("Writing model to configuration file...")
 	err = config.AddModels([]model.Model{modelObj})
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the model to the configuration file: %s", err))

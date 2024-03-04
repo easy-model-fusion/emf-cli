@@ -33,7 +33,7 @@ func init() {
 	app.InitGit(app.Repository, "")
 	// Add persistent flag for configuration file path
 	rootCmd.PersistentFlags().StringVar(&config.FilePath, "path", ".", "config file path")
-	rootCmd.PersistentFlags().StringVar(&app.G().AuthToken, "git-auth-token", "", "Git auth token")
+	rootCmd.PersistentFlags().StringVar(app.G().GetAuthToken(), "git-auth-token", "", "Git auth token")
 
 	// Adding subcommands
 	rootCmd.CompletionOptions.HiddenDefaultCmd = true

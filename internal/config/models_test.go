@@ -278,7 +278,7 @@ func TestRemoveModelPhysically_NotPhysical(t *testing.T) {
 func TestRemoveModelPhysically_Success(t *testing.T) {
 	// Init
 	modelToRemove := getModel(0)
-	modelPath := filepath.Join(downloader.DirectoryPath, modelToRemove.Name)
+	modelPath := filepath.Join(app.DownloadDirectoryPath, modelToRemove.Name)
 
 	// Create temporary model
 	setupModelDirectory(t, modelPath)
@@ -302,13 +302,13 @@ func TestRemoveAllModels_Success(t *testing.T) {
 	models := []model.Model{getModel(0), getModel(1), getModel(2)}
 
 	// Create temporary models
-	modelPath0 := filepath.Join(downloader.DirectoryPath, models[0].Name)
+	modelPath0 := filepath.Join(app.DownloadDirectoryPath, models[0].Name)
 	setupModelDirectory(t, modelPath0)
 	defer os.RemoveAll(modelPath0)
-	modelPath1 := filepath.Join(downloader.DirectoryPath, models[1].Name)
+	modelPath1 := filepath.Join(app.DownloadDirectoryPath, models[1].Name)
 	setupModelDirectory(t, modelPath1)
 	defer os.RemoveAll(modelPath1)
-	modelPath2 := filepath.Join(downloader.DirectoryPath, models[2].Name)
+	modelPath2 := filepath.Join(app.DownloadDirectoryPath, models[2].Name)
 	setupModelDirectory(t, modelPath2)
 	defer os.RemoveAll(modelPath2)
 
@@ -324,7 +324,7 @@ func TestRemoveAllModels_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
 
 	// Assert that all models were physically removed
-	exists, err := fileutil.IsExistingPath(downloader.DirectoryPath)
+	exists, err := fileutil.IsExistingPath(app.DownloadDirectoryPath)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -349,13 +349,13 @@ func TestRemoveModels_Success(t *testing.T) {
 	models := []model.Model{getModel(0), getModel(1), getModel(2)}
 
 	// Create temporary models
-	modelPath0 := filepath.Join(downloader.DirectoryPath, models[0].Name)
+	modelPath0 := filepath.Join(app.DownloadDirectoryPath, models[0].Name)
 	setupModelDirectory(t, modelPath0)
-	modelPath1 := filepath.Join(downloader.DirectoryPath, models[1].Name)
+	modelPath1 := filepath.Join(app.DownloadDirectoryPath, models[1].Name)
 	setupModelDirectory(t, modelPath1)
-	modelPath2 := filepath.Join(downloader.DirectoryPath, models[2].Name)
+	modelPath2 := filepath.Join(app.DownloadDirectoryPath, models[2].Name)
 	setupModelDirectory(t, modelPath2)
-	defer os.RemoveAll(downloader.DirectoryPath)
+	defer os.RemoveAll(app.DownloadDirectoryPath)
 
 	// Models to remove
 	removeStartIndex := 1
@@ -377,7 +377,7 @@ func TestRemoveModels_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
 
 	// Assert that all models were not physically removed
-	exists, err := fileutil.IsExistingPath(downloader.DirectoryPath)
+	exists, err := fileutil.IsExistingPath(app.DownloadDirectoryPath)
 	if err != nil {
 		t.Fatal(err)
 	}

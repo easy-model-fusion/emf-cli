@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-var g *Git
+var g Git
 
 const gitTestUrl = "https://github.com/SchawnnDev"
 
@@ -20,8 +20,8 @@ func TestMain(m *testing.M) {
 func TestNewGit(t *testing.T) {
 	// Test with a valid url
 	test.AssertNotEqual(t, g, nil, "Expected the git object to be not nil")
-	test.AssertEqual(t, g.Url, gitTestUrl)
-	test.AssertEqual(t, g.AuthToken, "")
+	test.AssertEqual(t, *g.GetUrl(), gitTestUrl)
+	test.AssertEqual(t, *g.GetAuthToken(), "")
 }
 
 func TestGit_GenerateAuth(t *testing.T) {
@@ -68,15 +68,15 @@ func TestCloneSDK(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	// no sdk was found
-	g.Url = "https://github.com/SchawnnDevArchive"
+	*g.GetUrl() = "https://github.com/SchawnnDevArchive"
 	err = g.CloneSDK("v1.0.0", tmpDir)
 	test.AssertNotEqual(t, err, nil, "Expected error")
 
 	// check invalid
-	g.Url = "invalid %%%)à invalid"
+	*g.GetUrl() = "invalid %%%)à invalid"
 	err = g.CloneSDK("v1.0.0", tmpDir)
 	test.AssertNotEqual(t, err, nil, "Expected error")
-	g.Url = gitTestUrl
+	*g.GetUrl() = gitTestUrl
 
 	// Clone the SDK
 	err = g.CloneSDK("v1.0.0", tmpDir)
@@ -95,10 +95,10 @@ func TestCloneSDK(t *testing.T) {
 
 func TestGetLatestTag(t *testing.T) {
 	// check invalid
-	g.Url = "invalid %%%)à invalid"
+	*g.GetUrl() = "invalid %%%)à invalid"
 	_, err := g.GetLatestTag("sdk")
 	test.AssertNotEqual(t, err, nil, "Expected error")
-	g.Url = gitTestUrl
+	*g.GetUrl() = gitTestUrl
 
 	// Test with a valid tag
 	tag, err := g.GetLatestTag("sdk")

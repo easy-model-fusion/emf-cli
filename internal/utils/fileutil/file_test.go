@@ -232,3 +232,69 @@ func TestDeleteDirectoryIfEmpty_NonEmpty(t *testing.T) {
 	}
 	test.AssertEqual(t, true, exists, "Directory should not have been removed.")
 }
+
+func TestMoveFiles(t *testing.T) {
+	// Create a temporary directory for the test
+	dir, err := os.MkdirTemp("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
+
+	// Create a temporary file in dir for the test
+	file, err := os.CreateTemp(dir, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = file.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(file.Name())
+
+	// Create a temporary directory for the test
+	dir2, err := os.MkdirTemp("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir2) // clean up
+
+	// Move the file to the second directory
+	err = MoveFiles(dir, dir2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Check path existence after removal
+	exists, err := IsExistingPath(file.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+	test.AssertEqual(t, false, exists, "File should have been moved.")
+}
+
+func TestMoveFiles_RenameError(t *testing.T) {
+	// Create a temporary directory for the test
+	dir, err := os.MkdirTemp("", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(dir) // clean up
+
+	// Create a temporary file in dir for the test
+	file, err := os.CreateTemp(dir, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = file.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(file.Name())
+
+	// Move the file to the second directory
+	err = MoveFiles(dir, filepath.Join(dir, "notFound d569sdf%/**"))
+	if err == nil {
+		t.Fatal("Expected error")
+	}
+}

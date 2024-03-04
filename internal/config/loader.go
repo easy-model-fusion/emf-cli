@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/spf13/viper"
 )
 
@@ -19,7 +19,7 @@ func Load(confDirPath string) error {
 }
 
 func UpdateConfigFilePath() string {
-	FilePath = ptermutil.AskForUsersInput("Enter the configuration file path")
+	FilePath = app.UI().AskForUsersInput("Enter the configuration file path")
 	return FilePath
 }
 
