@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-const cleanDirName = "build"
+const cleanDirName = "dist"
 
 func RunClean(allFlagDelete bool, authorizeAllDelete bool) {
 

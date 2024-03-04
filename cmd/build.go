@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 var (
@@ -104,14 +106,15 @@ func runBuild(cmd *cobra.Command, args []string) {
 	var errBuf strings.Builder
 	command.Stderr = &errBuf
 
+	now := time.Now()
+	spinner := app.UI().StartSpinner("Building project...")
 	err = command.Run()
 	if err != nil {
-		pterm.Error.Println("Error building project")
+		spinner.Fail("Error building project")
 		pterm.Error.Println(errBuf.String())
 		return
 	}
-
-	pterm.Success.Println("Project built successfully !")
+	spinner.Success(fmt.Sprintf("Project built successfully in %s", time.Since(now).String()))
 
 	if !buildCompress {
 		return
