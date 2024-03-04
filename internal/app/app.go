@@ -6,6 +6,7 @@ import (
 
 const Name = "emf-cli"
 const Repository = "https://github.com/easy-model-fusion"
+const DownloadDirectoryPath = "./models/"
 
 var (
 	// Version is the binary version + build number

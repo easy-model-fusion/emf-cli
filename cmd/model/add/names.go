@@ -8,7 +8,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
@@ -223,7 +222,7 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 	availableModelNames := model.GetNames(availableModels)
 	message := "Please select the model(s) to be added"
 	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedModelNames := app.UI().DisplayInteractiveMultiselect(message, availableModelNames, []string{}, checkMark, true)
+	selectedModelNames := app.UI().DisplayInteractiveMultiselect(message, availableModelNames, checkMark, false, true)
 
 	// No new model was selected : returning the input state
 	if len(selectedModelNames) == 0 {
@@ -242,7 +241,7 @@ func selectTags() []string {
 	// Build a multiselect with each tag name
 	message := "Please select the type of models you want to add"
 	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), []string{}, checkMark, true)
+	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, false, true)
 
 	return selectedTags
 }
@@ -252,7 +251,7 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 	// Build a multiselect with each selected model name to exclude/include in the binary
 	message := "Please select the model(s) to install later"
 	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Blue("-")}
-	installsToExclude := app.UI().DisplayInteractiveMultiselect(message, modelNames, []string{}, checkMark, false)
+	installsToExclude := app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false, false)
 	var updatedModels []model.Model
 	for _, currentModel := range models {
 		currentModel.AddToBinaryFile = !stringutil.SliceContainsItem(installsToExclude, currentModel.Name)

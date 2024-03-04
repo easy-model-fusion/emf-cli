@@ -623,13 +623,13 @@ func TestTokenizersNotDownloadedOnDevice_NotMissing(t *testing.T) {
 // TestBuildModelsFromDevice_Custom tests the BuildModelsFromDevice function to work for custom configured models.
 func TestBuildModelsFromDevice_Custom(t *testing.T) {
 	// Create a temporary directory representing the path to the custom model
-	modelPath := path.Join(downloader.DirectoryPath, "custom-provider", "custom-model")
+	modelPath := path.Join(app.DownloadDirectoryPath, "custom-provider", "custom-model")
 	modelPath = filepath.ToSlash(modelPath)
 	err := os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(downloader.DirectoryPath)
+	defer os.RemoveAll(app.DownloadDirectoryPath)
 
 	// Execute
 	app.InitHuggingFace(huggingface.BaseUrl, "")
@@ -647,12 +647,12 @@ func TestBuildModelsFromDevice_Custom(t *testing.T) {
 // TestBuildModelsFromDevice_HuggingfaceEmpty tests the BuildModelsFromDevice function to work for huggingface empty models.
 func TestBuildModelsFromDevice_HuggingfaceEmpty(t *testing.T) {
 	// Create a temporary directory representing the path to the model which is empty
-	modelDirectoryPath := path.Join(downloader.DirectoryPath, "stabilityai", "sdxl-turbo")
+	modelDirectoryPath := path.Join(app.DownloadDirectoryPath, "stabilityai", "sdxl-turbo")
 	err := os.MkdirAll(modelDirectoryPath, 0750)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(downloader.DirectoryPath)
+	defer os.RemoveAll(app.DownloadDirectoryPath)
 
 	// Execute
 	app.InitHuggingFace(huggingface.BaseUrl, "")
@@ -666,12 +666,12 @@ func TestBuildModelsFromDevice_HuggingfaceEmpty(t *testing.T) {
 func TestBuildModelsFromDevice_HuggingfaceDiffusers(t *testing.T) {
 	// Create a temporary directory representing the path to the diffusers model which is not empty
 	modelName := path.Join("stabilityai", "sdxl-turbo")
-	modelDirectory := path.Join(downloader.DirectoryPath, modelName)
+	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
 	err := os.MkdirAll(path.Join(modelDirectory, "not-empty"), 0750)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(downloader.DirectoryPath)
+	defer os.RemoveAll(app.DownloadDirectoryPath)
 
 	// Execute
 	app.InitHuggingFace(huggingface.BaseUrl, "")
@@ -692,13 +692,13 @@ func TestBuildModelsFromDevice_HuggingfaceDiffusers(t *testing.T) {
 func TestBuildModelsFromDevice_HuggingfaceTransformers(t *testing.T) {
 	// Create a temporary directory representing the path to the transformers model
 	modelName := path.Join("microsoft", "phi-2")
-	modelDirectory := path.Join(downloader.DirectoryPath, modelName)
+	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
 	modelPath := path.Join(modelDirectory, "model")
 	err := os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(downloader.DirectoryPath)
+	defer os.RemoveAll(app.DownloadDirectoryPath)
 
 	// Create a temporary directory representing the path to the tokenizer for the model
 	tokenizerDirectory, err := os.MkdirTemp(modelDirectory, "tokenizer")

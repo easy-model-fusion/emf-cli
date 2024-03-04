@@ -1,10 +1,11 @@
 package model
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/ptermutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
@@ -292,7 +293,7 @@ func TokenizersNotDownloadedOnDevice(model Model) []Tokenizer {
 func BuildModelsFromDevice() []Model {
 
 	// Get all the providers in the root folder
-	providers, err := os.ReadDir(downloader.DirectoryPath)
+	providers, err := os.ReadDir(app.DownloadDirectoryPath)
 	if err != nil {
 		return []Model{}
 	}
@@ -306,7 +307,7 @@ func BuildModelsFromDevice() []Model {
 		}
 
 		// Get all the models for the provider
-		providerPath := path.Join(downloader.DirectoryPath, provider.Name())
+		providerPath := path.Join(app.DownloadDirectoryPath, provider.Name())
 		providerModels, err := os.ReadDir(providerPath)
 		if err != nil {
 			continue
@@ -449,17 +450,17 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 	// Process internal state of the model
 	install := false
 	if !configured && !downloaded {
-		install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be added. "+
+		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be added. "+
 			"Would you like to add it?", model.Name))
 	} else if configured && !downloaded {
-		install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
+		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
 			"Would you like to download it?", model.Name))
 	} else if !configured && downloaded {
-		install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("Model '%s' already exists. "+
+		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' already exists. "+
 			"Would you like to overwrite it?", model.Name))
 	} else {
 		// Model already configured and downloaded : a new version is available
-		install = ptermutil.AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
+		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
 			"Would you like to overwrite its old version?", model.Name))
 	}
 
@@ -483,9 +484,9 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 
 			// Prepare the tokenizers multiselect
 			message := "Please select the tokenizer(s) to be updated"
-			checkMark := &pterm.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-			tokenizerNames = ptermutil.DisplayInteractiveMultiselect(message, availableNames, availableNames, checkMark, true)
-			ptermutil.DisplaySelectedItems(tokenizerNames)
+			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
+			app.UI().DisplaySelectedItems(tokenizerNames)
 
 			// No tokenizer is selected : skipping so that it doesn't overwrite the default one
 			if len(tokenizerNames) > 0 {

@@ -7,7 +7,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -47,7 +46,7 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 		message := "Please select the model(s) to be updated"
 		values := model.GetNames(hfModelsAvailable)
 		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		selectedModelNames = app.UI().DisplayInteractiveMultiselect(message, values, []string{}, checkMark, true)
+		selectedModelNames = app.UI().DisplayInteractiveMultiselect(message, values, checkMark, false, true)
 		app.UI().DisplaySelectedItems(selectedModelNames)
 	} else {
 		// Remove all the duplicates

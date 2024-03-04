@@ -8,7 +8,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -73,7 +72,7 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		return
 	} else if downloaded {
 		message := fmt.Sprintf("Model '%s' is already downloaded. Do you wish to overwrite it?", modelObj.Name)
-		overwrite := ptermutil.AskForUsersConfirmation(message)
+		overwrite := app.UI().AskForUsersConfirmation(message)
 		if !overwrite {
 			pterm.Warning.Println("This model is already downloaded and should be checked manually", modelObj.Name)
 			return

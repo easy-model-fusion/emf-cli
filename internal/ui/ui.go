@@ -13,7 +13,7 @@ type Spinner interface {
 
 type UI interface {
 	AskForUsersInput(message string) string
-	DisplayInteractiveMultiselect(msg string, options []string, checkMark Checkmark, filter bool) []string
+	DisplayInteractiveMultiselect(msg string, options []string, checkMark Checkmark, optionsDefaultAll, filter bool) []string
 	DisplaySelectedItems(items []string)
 	AskForUsersConfirmation(message string) bool
 	StartSpinner(message string) Spinner
