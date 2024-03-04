@@ -33,14 +33,6 @@ var buildCmd = &cobra.Command{
 	Run: runBuild,
 }
 
-func init() {
-	buildCmd.Flags().StringVarP(&buildDestination, "out-dir", "o", "", "Destination directory where the project will be built")
-	buildCmd.Flags().StringVarP(&buildCustomName, "name", "n", "", "Custom name for the executable")
-	buildCmd.Flags().BoolVarP(&buildOneFile, "one-file", "f", false, "Build the project in one file")
-	buildCmd.Flags().BoolVarP(&buildCompress, "compress", "c", false, "Compress the output file(s) into a tarball file")
-	buildCmd.Flags().BoolVarP(&buildIncludeModels, "include-models", "m", false, "Include models in the build compressed file")
-}
-
 func runBuild(cmd *cobra.Command, args []string) {
 	if config.GetViperConfig(".") != nil {
 		return
