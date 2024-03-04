@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
@@ -40,8 +40,6 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	app.InitHuggingFace(huggingface.BaseUrl, "")
 
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
-
-	// TODO: Get flags or default values
 
 	// Get all existing models
 	existingModels, err := config.GetModels()
@@ -145,7 +143,34 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	selectedModels = model.Difference(selectedModels, invalidModels)
 
 	// Download the models
-	models, failedModels := config.DownloadModels(selectedModels)
+	var models []model.Model
+	var failedModels []model.Model
+	for _, currentModel := range selectedModels {
+
+		// Exclude from download if not requested
+		if !currentModel.AddToBinaryFile {
+			models = append(models, currentModel)
+			continue
+		}
+
+		// Reset in case the download fails
+		currentModel.AddToBinaryFile = false
+
+		// Prepare the script arguments
+		downloaderArgs := downloader.Args{
+			ModelName:   currentModel.Name,
+			ModelModule: string(currentModel.Module),
+			ModelClass:  currentModel.Class,
+		}
+
+		// Downloading model
+		result, success := model.Download(currentModel, downloaderArgs)
+		if !success {
+			failedModels = append(failedModels, currentModel)
+		} else {
+			models = append(models, result)
+		}
+	}
 
 	// Indicate models that failed to download
 	if !model.Empty(failedModels) {
@@ -197,7 +222,7 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 	availableModelNames := model.GetNames(availableModels)
 	message := "Please select the model(s) to be added"
 	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedModelNames := app.UI().DisplayInteractiveMultiselect(message, availableModelNames, checkMark, true)
+	selectedModelNames := app.UI().DisplayInteractiveMultiselect(message, availableModelNames, checkMark, false, true)
 
 	// No new model was selected : returning the input state
 	if len(selectedModelNames) == 0 {
@@ -216,7 +241,7 @@ func selectTags() []string {
 	// Build a multiselect with each tag name
 	message := "Please select the type of models you want to add"
 	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, true)
+	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, false, true)
 
 	return selectedTags
 }
@@ -224,12 +249,12 @@ func selectTags() []string {
 // selectModelsToInstall returns updated models objects with excluded/included from binary
 func selectModelsToInstall(models []model.Model, modelNames []string) []model.Model {
 	// Build a multiselect with each selected model name to exclude/include in the binary
-	message := "Please select the model(s) to install now"
+	message := "Please select the model(s) to install later"
 	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Blue("-")}
-	installsToExclude := app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
+	installsToExclude := app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false, false)
 	var updatedModels []model.Model
 	for _, currentModel := range models {
-		currentModel.AddToBinaryFile = stringutil.SliceContainsItem(installsToExclude, currentModel.Name)
+		currentModel.AddToBinaryFile = !stringutil.SliceContainsItem(installsToExclude, currentModel.Name)
 		updatedModels = append(updatedModels, currentModel)
 	}
 
@@ -240,11 +265,12 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 func alreadyDownloadedModels(models []model.Model) (downloadedModels []model.Model, err error) {
 	for _, currentModel := range models {
 		currentModel = model.ConstructConfigPaths(currentModel)
-		exists, err := fileutil.IsExistingPath(currentModel.Path)
+		downloaded, err := model.ModelDownloadedOnDevice(currentModel)
+		// TODO : check if tokenizer already exists => Waiting for issue #63 : [Client] Validate models for download
 		if err != nil {
 			return nil, err
 		}
-		if exists {
+		if downloaded {
 			downloadedModels = append(downloadedModels, currentModel)
 		}
 	}

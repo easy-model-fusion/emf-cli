@@ -4,13 +4,10 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
-	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -38,29 +35,36 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	// Keep the models coming from huggingface
-	hfModels := model.GetModelsWithSourceHuggingface(configModels)
-
 	// Keep the downloaded models coming from huggingface (i.e. those that could potentially be updated)
+	hfModels := model.GetModelsWithSourceHuggingface(configModels)
 	hfModelsAvailable := model.GetModelsWithIsDownloadedTrue(hfModels)
-	hfModelAvailableNames := model.GetNames(hfModelsAvailable)
 
-	// Storing the names of those wished to be updated
+	// Get models to update : through args or through a multiselect of models already downloaded from huggingface
 	var selectedModelNames []string
-
-	// Get models to update
 	if len(args) == 0 {
 		// No argument provided : multiselect among the downloaded models coming from huggingface
 		message := "Please select the model(s) to be updated"
+		values := model.GetNames(hfModelsAvailable)
 		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		selectedModelNames = app.UI().DisplayInteractiveMultiselect(message, hfModelAvailableNames, checkMark, true)
+		selectedModelNames = app.UI().DisplayInteractiveMultiselect(message, values, checkMark, false, true)
 		app.UI().DisplaySelectedItems(selectedModelNames)
 	} else {
 		// Remove all the duplicates
 		selectedModelNames = stringutil.SliceRemoveDuplicates(args)
 	}
 
+	// Filter selected models to only keep those available for an update
+	modelsToUpdate := filterModelsByStatusBeforeUpdate(selectedModelNames, hfModelsAvailable)
+
+	// Processing filtered models for an update
+	processModelsForUpdate(configModels, modelsToUpdate)
+}
+
+// filterModelsByStatusBeforeUpdate returns the models available for an update by determining a status for each one of them
+func filterModelsByStatusBeforeUpdate(modelNames []string, hfModelsAvailable []model.Model) []model.Model {
+
 	// Bind the downloaded models coming from huggingface to a map for faster lookup
+	// Used to check whether a model has already been downloaded
 	mapHfModelsAvailable := model.ModelsToMap(hfModelsAvailable)
 
 	var modelsToUpdate []model.Model
@@ -68,16 +72,17 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 	var updatedModelNames []string
 
 	// Check which model can be updated
-	for _, name := range selectedModelNames {
+	for _, name := range modelNames {
 
 		// Fetching model from huggingface
 		huggingfaceModel, err := app.H().GetModelById(name)
 		if err != nil {
-			// Model not found : skipping to the next one
+			// Model not found : nothing more to do here, skipping to the next one
 			notFoundModelNames = append(notFoundModelNames, name)
 			continue
 		}
 
+		// Fetching succeeded : processing the response
 		// Map API response to model.Model
 		modelMapped := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
 
@@ -85,13 +90,14 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 		configModel, exists := mapHfModelsAvailable[name]
 
 		if !exists {
-			// Model not configured yet
+			// Model not configured yet, offering to download it later on
 			modelsToUpdate = append(modelsToUpdate, modelMapped)
 		} else if configModel.Version != modelMapped.Version {
 			// Model already configured but not up-to-date
+			configModel.Version = modelMapped.Version
 			modelsToUpdate = append(modelsToUpdate, configModel)
 		} else {
-			// Model already up-to-date
+			// Model already up-to-date, nothing more to do here
 			updatedModelNames = append(updatedModelNames, name)
 		}
 	}
@@ -107,90 +113,37 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 			"and will be ignored : %s", updatedModelNames))
 	}
 
+	return modelsToUpdate
+}
+
+// processModelsForUpdate
+func processModelsForUpdate(configModels, modelsToUpdate []model.Model) {
+
 	// Bind config models to a map for faster lookup
+	// Used to get the model's path and check if it's already configured
 	mapConfigModels := model.ModelsToMap(configModels)
 
-	var downloadedModels []model.Model
-
 	// Processing all the remaining models for an update
+	var failedModels []string
 	for _, current := range modelsToUpdate {
 
-		// Checking if the model is already configured
-		_, configured := mapConfigModels[current.Name]
-
-		// Checking if the model is already physically downloaded
-		current = model.ConstructConfigPaths(current)
-		downloaded, err := fileutil.IsExistingPath(current.Path)
-		if err != nil {
-			continue
-		}
-
-		install := false
-
-		// Process internal state of the model
-		if !configured && !downloaded {
-			install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be added. "+
-				"Would you like to add it?", current.Name))
-		} else if configured && !downloaded {
-			install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
-				"Would you like to download it?", current.Name))
-		} else if !configured && downloaded {
-			install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' already exists. "+
-				"Would you like to overwrite it?", current.Name))
+		success := model.Update(current, mapConfigModels)
+		if !success {
+			failedModels = append(failedModels, current.Name)
 		} else {
-			// Model already configured and downloaded : a new version is available
-			install = app.UI().AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
-				"Would you like to overwrite its old version?", current.Name))
+			// Add models to configuration file
+			spinner, _ := pterm.DefaultSpinner.Start("Updating configuration file...")
+			err := config.AddModels([]model.Model{current})
+			if err != nil {
+				spinner.Fail(fmt.Sprintf("Error while updating the configuration file: %s", err))
+			} else {
+				spinner.Success()
+			}
 		}
-
-		// Model will not be downloaded
-		if !install {
-			continue
-		}
-
-		// If transformers : select the tokenizers to update through a multiselect
-		var tokenizerNames []string
-		if current.Module == huggingface.TRANSFORMERS {
-			tokenizerNames = model.GetTokenizerNames(current)
-			message := "Please select the tokenizer(s) to be updated"
-			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, tokenizerNames, checkMark, true)
-			app.UI().DisplaySelectedItems(tokenizerNames)
-		}
-
-		// TODO : options model and tokenizer => Waiting for issue 74 to be completed : [Client] Model options to config
-		// Prepare the script arguments
-		downloaderArgs := downloader.Args{
-			ModelName:   current.Name,
-			ModelModule: string(current.Module),
-			ModelClass:  current.Class,
-		}
-
-		// Running the script
-		dlModel, err := downloader.Execute(downloaderArgs)
-
-		// Something went wrong or no data has been returned
-		if err != nil || dlModel.IsEmpty {
-			continue
-		}
-
-		// Update the model for the configuration file
-		current = model.MapToModelFromDownloaderModel(current, dlModel)
-		current.AddToBinaryFile = true
-		current.IsDownloaded = true
-
-		downloadedModels = append(downloadedModels, current)
-
-		// TODO : download tokenizers => Waiting for issue 55 to be completed : [Client] Edit downloader execute
 	}
 
-	// Add models to configuration file
-	spinner := app.UI().StartSpinner("Writing models to configuration file...")
-	err = config.AddModels(downloadedModels)
-	if err != nil {
-		spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
-	} else {
-		spinner.Success()
+	// Displaying the downloads that failed
+	if len(failedModels) > 0 {
+		pterm.Error.Println(fmt.Sprintf("The following models(s) couldn't be downloaded : %s", failedModels))
 	}
-
 }

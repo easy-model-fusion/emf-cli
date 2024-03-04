@@ -82,7 +82,7 @@ func selectModelsToDelete(currentModels []model.Model) []string {
 
 	checkMark := ui.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")}
 	message := "Please select the model(s) to be deleted"
-	modelsToDelete := app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false)
+	modelsToDelete := app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false, false)
 	app.UI().DisplaySelectedItems(modelsToDelete)
 	return modelsToDelete
 }

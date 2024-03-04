@@ -8,10 +8,8 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"path"
 )
 
 const addCustomCommandName = "custom"
@@ -40,8 +38,6 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
 
-	// TODO: Get flags or default values
-
 	// Searching for the currentCmd : when 'cmd' differs from 'addCustomCmd' (i.e. run through parent multiselect)
 	currentCmd, found := cobrautil.FindSubCommand(cmd, addCustomCommandName)
 	if !found {
@@ -67,17 +63,20 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	}
 	// Map API response to model.Model
 	modelObj := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+	modelObj = model.ConstructConfigPaths(modelObj)
 
-	// Validate the model
-	valid, err := validateModel(addCustomDownloaderArgs.ModelName)
+	// Validate the model : if model is already downloaded
+	downloaded, err := model.ModelDownloadedOnDevice(modelObj)
 	if err != nil {
 		pterm.Error.Println(err)
 		return
-	}
-	if !valid {
-		pterm.Warning.Println("This model is already downloaded "+
-			"and should be checked manually", addCustomDownloaderArgs.ModelName)
-		return
+	} else if downloaded {
+		message := fmt.Sprintf("Model '%s' is already downloaded. Do you wish to overwrite it?", modelObj.Name)
+		overwrite := app.UI().AskForUsersConfirmation(message)
+		if !overwrite {
+			pterm.Warning.Println("This model is already downloaded and should be checked manually", modelObj.Name)
+			return
+		}
 	}
 
 	// Allow the user to choose flags and set their values
@@ -97,17 +96,13 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		addCustomDownloaderArgs.ModelClass = modelObj.Class
 	}
 
-	// Running the script
-	dlModel, err := downloader.Execute(addCustomDownloaderArgs)
-	if err != nil || dlModel.IsEmpty {
-		// Something went wrong or returned data is empty
+	// TODO : check if tokenizer already exists => Waiting for issue #63 : [Client] Validate models for download
+
+	// Downloading model
+	modelObj, success := model.Download(modelObj, addCustomDownloaderArgs)
+	if !success {
 		return
 	}
-
-	// Create the model for the configuration file
-	modelObj = model.MapToModelFromDownloaderModel(modelObj, dlModel)
-	modelObj.AddToBinaryFile = true
-	modelObj.IsDownloaded = true
 
 	// Add models to configuration file
 	spinner := app.UI().StartSpinner("Writing model to configuration file...")
@@ -118,17 +113,4 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		spinner.Success()
 	}
 
-}
-
-func validateModel(modelName string) (bool, error) {
-	exists, err := fileutil.IsExistingPath(path.Join(app.DownloadDirectoryPath, modelName))
-	if err != nil {
-		return false, err
-	}
-	if exists {
-		message := fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?", modelName)
-		valid := app.UI().AskForUsersConfirmation(message)
-		return valid, nil
-	}
-	return true, nil
 }

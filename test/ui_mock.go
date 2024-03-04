@@ -27,7 +27,7 @@ func (m MockUI) AskForUsersInput(message string) string {
 	return m.UserInputResult
 }
 
-func (m MockUI) DisplayInteractiveMultiselect(msg string, options []string, checkMark ui.Checkmark, filter bool) []string {
+func (m MockUI) DisplayInteractiveMultiselect(msg string, options []string, checkMark ui.Checkmark, optionsDefaultAll, filter bool) []string {
 	return m.MultiselectResult
 }
 
