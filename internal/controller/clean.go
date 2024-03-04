@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
@@ -30,11 +31,12 @@ func RunClean(allFlagDelete bool, authorizeAllDelete bool) {
 			}
 		}
 
+		spinner := app.UI().StartSpinner("Cleaning all models...")
 		err := config.RemoveAllModels()
 		if err == nil {
-			pterm.Success.Printfln("Operation succeeded.")
+			spinner.Success()
 		} else {
-			pterm.Error.Printfln("Operation failed.")
+			spinner.Fail(fmt.Sprintf("Error cleaning all models: %s", err))
 		}
 
 	}
@@ -44,10 +46,12 @@ func RunClean(allFlagDelete bool, authorizeAllDelete bool) {
 		pterm.Success.Printfln("Operation succeeded.")
 		return
 	}
+
+	spinner := app.UI().StartSpinner("Cleaning project files...")
 	err = os.RemoveAll(cleanDirName)
-	if err == nil {
-		pterm.Success.Printfln("Operation succeeded.")
-	} else {
-		pterm.Error.Printfln("Operation failed.")
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error cleaning project files: %s", err))
+		return
 	}
+	spinner.Success()
 }
