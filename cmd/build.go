@@ -90,7 +90,7 @@ func runBuild(cmd *cobra.Command, args []string) {
 			return
 		}
 	default:
-		libraryPath = buildLibrary
+		libraryPath = pythonPath
 	}
 
 	buildArgs := createBuildArgs()
