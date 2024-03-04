@@ -149,6 +149,7 @@ func tidyModelsDownloadedButNotConfigured(configModels []model.Model) {
 					} else {
 						// User chose not to configure : removing the tokenizer
 						// TODO : remove tokenizer => Waiting for issue 63 to be completed : [Client] Model tokenizer remove
+						continue // TODO : delete continue instruction
 					}
 				}
 			}
