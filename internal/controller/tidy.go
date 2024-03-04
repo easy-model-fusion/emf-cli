@@ -153,9 +153,13 @@ func tidyModelsDownloadedButNotConfigured(configModels []model.Model) {
 				}
 			}
 
-			// Since model is already configured : adding missing tokenizers and reconfiguring the model
-			configModel.Tokenizers = append(configModel.Tokenizers, modelTokenizersToConfigure...)
-			modelsToConfigure = append(modelsToConfigure, configModel)
+			// If at least one tokenizer was configured
+			if len(modelTokenizersToConfigure) > 0 {
+				// Since model is already configured : adding missing tokenizers and reconfiguring the model
+				// Note : there can't be any duplicated tokenizers in this case
+				configModel.Tokenizers = append(configModel.Tokenizers, modelTokenizersToConfigure...)
+				modelsToConfigure = append(modelsToConfigure, configModel)
+			}
 		}
 	}
 
