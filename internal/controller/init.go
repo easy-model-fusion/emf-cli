@@ -172,15 +172,21 @@ func installDependencies(projectName string, useTorchCuda bool) (err error) {
 	}
 	spinner.Success()
 
-	spinner = app.UI().StartSpinner("Installing torch")
-	if useTorchCuda { // TODO: refactor this
+	if useTorchCuda {
+		spinner = app.UI().StartSpinner("Installing torch cuda")
+		err = python.ExecutePip(pipPath, []string{"uninstall", "-y", "torch"})
+		if err != nil {
+			spinner.Fail("Unable to uninstall torch: ", err)
+			return err
+		}
+
 		err = python.ExecutePip(pipPath, []string{"install", "torch", "-f", "https://download.pytorch.org/whl/torch_stable.html"})
 		if err != nil {
 			spinner.Fail("Unable to install torch cuda: ", err)
 			return err
 		}
+		spinner.Success()
 	}
-	spinner.Success()
 
 	return nil
 }
