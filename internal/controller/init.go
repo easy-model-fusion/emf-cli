@@ -164,8 +164,15 @@ func installDependencies(projectName string, useTorchCuda bool) (err error) {
 		return err
 	}
 
-	spinner := app.UI().StartSpinner("Installing torch")
+	spinner := app.UI().StartSpinner("Installing dependencies")
+	err = python.InstallDependencies(pipPath, filepath.Join(projectName, initDependenciesPath))
+	if err != nil {
+		spinner.Fail("Unable to install dependencies: ", err)
+		return err
+	}
+	spinner.Success()
 
+	spinner = app.UI().StartSpinner("Installing torch")
 	if useTorchCuda { // TODO: refactor this
 		err = python.ExecutePip(pipPath, []string{"install", "torch", "-f", "https://download.pytorch.org/whl/torch_stable.html"})
 		if err != nil {
@@ -175,14 +182,6 @@ func installDependencies(projectName string, useTorchCuda bool) (err error) {
 	}
 	spinner.Success()
 
-	//spinner = app.UI().StartSpinner("Installing dependencies")
-	//err = python.InstallDependencies(pipPath, filepath.Join(projectName, initDependenciesPath))
-	//if err != nil {
-	//	spinner.Fail("Unable to install dependencies: ", err)
-	//	return err
-	//}
-	//
-	//spinner.Success()
 	return nil
 }
 
