@@ -175,14 +175,14 @@ func installDependencies(projectName string, useTorchCuda bool) (err error) {
 	}
 	spinner.Success()
 
-	spinner = app.UI().StartSpinner("Installing dependencies")
-	err = python.InstallDependencies(pipPath, filepath.Join(projectName, initDependenciesPath))
-	if err != nil {
-		spinner.Fail("Unable to install dependencies: ", err)
-		return err
-	}
-
-	spinner.Success()
+	//spinner = app.UI().StartSpinner("Installing dependencies")
+	//err = python.InstallDependencies(pipPath, filepath.Join(projectName, initDependenciesPath))
+	//if err != nil {
+	//	spinner.Fail("Unable to install dependencies: ", err)
+	//	return err
+	//}
+	//
+	//spinner.Success()
 	return nil
 }
 
