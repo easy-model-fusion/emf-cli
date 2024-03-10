@@ -498,11 +498,12 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 	// TODO : options model => Waiting for issue 74 to be completed : [Client] Model options to config
 	// Prepare the script arguments
 	downloaderArgs := downloader.Args{
-		ModelName:    model.Name,
-		ModelModule:  string(model.Module),
-		ModelClass:   model.Class,
-		ModelOptions: []string{},
-		Skip:         skip,
+		ModelName:         model.Name,
+		ModelModule:       string(model.Module),
+		ModelClass:        model.Class,
+		ModelOptions:      []string{},
+		Skip:              skip,
+		OnlyConfiguration: !model.AddToBinaryFile,
 	}
 
 	// Downloading model
@@ -564,10 +565,11 @@ func TidyConfiguredModel(model Model) (bool, bool) {
 	// TODO : options model => Waiting for issue 74 to be completed : [Client] Model options to config
 	// Prepare the script arguments
 	downloaderArgs := downloader.Args{
-		ModelName:    model.Name,
-		ModelModule:  string(model.Module),
-		ModelClass:   model.Class,
-		ModelOptions: []string{},
+		ModelName:         model.Name,
+		ModelModule:       string(model.Module),
+		ModelClass:        model.Class,
+		ModelOptions:      []string{},
+		OnlyConfiguration: !model.AddToBinaryFile,
 	}
 
 	// Model has yet to be downloaded
