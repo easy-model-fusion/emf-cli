@@ -405,8 +405,8 @@ func Download(model Model, downloaderArgs downloader.Args) (Model, bool) {
 
 	// Update the model for the configuration file
 	model = MapToModelFromDownloaderModel(model, dlModel)
-	model.AddToBinaryFile = true
-	model.IsDownloaded = true
+	model.AddToBinaryFile = !downloaderArgs.OnlyConfiguration
+	model.IsDownloaded = !downloaderArgs.OnlyConfiguration
 
 	return model, true
 }
