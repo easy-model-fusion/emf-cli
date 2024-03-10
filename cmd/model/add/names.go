@@ -142,7 +142,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	// Exclude Invalid models
 	selectedModels = model.Difference(selectedModels, invalidModels)
 
-	// Download the models
+	// OnlyConfiguration the models
 	var models []model.Model
 	var failedModels []model.Model
 	for _, currentModel := range selectedModels {
@@ -158,9 +158,10 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 
 		// Prepare the script arguments
 		downloaderArgs := downloader.Args{
-			ModelName:   currentModel.Name,
-			ModelModule: string(currentModel.Module),
-			ModelClass:  currentModel.Class,
+			ModelName:         currentModel.Name,
+			ModelModule:       string(currentModel.Module),
+			ModelClass:        currentModel.Class,
+			OnlyConfiguration: !currentModel.AddToBinaryFile,
 		}
 
 		// Downloading model

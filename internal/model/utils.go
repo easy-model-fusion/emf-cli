@@ -509,7 +509,7 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 	success := false
 	model, success = Download(model, downloaderArgs)
 	if !success {
-		// Download failed
+		// OnlyConfiguration failed
 		return false
 	}
 
@@ -527,7 +527,7 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 			success := false
 			model, success = DownloadTokenizer(model, tokenizer, downloaderArgs)
 			if !success {
-				// Download failed
+				// OnlyConfiguration failed
 				failedTokenizers = append(failedTokenizers, tokenizer.Class)
 				continue
 			}
@@ -577,7 +577,7 @@ func TidyConfiguredModel(model Model) (bool, bool) {
 		success := false
 		model, success = Download(model, downloaderArgs)
 		if !success {
-			// Download failed
+			// OnlyConfiguration failed
 			return false, false
 		}
 	}
@@ -593,7 +593,7 @@ func TidyConfiguredModel(model Model) (bool, bool) {
 			success := false
 			model, success = DownloadTokenizer(model, tokenizer, downloaderArgs)
 			if !success {
-				// Download failed
+				// OnlyConfiguration failed
 				failedTokenizers = append(failedTokenizers, tokenizer.Class)
 				continue
 			}

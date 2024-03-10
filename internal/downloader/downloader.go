@@ -38,16 +38,18 @@ const Skip = "skip"
 const SkipValueModel = "model"
 const SkipValueTokenizer = "tokenizer"
 const EmfClient = "emf-client"
+const OnlyConfiguration = "only-configuration"
 
 // Args represents the arguments for the script
 type Args struct {
-	ModelName        string
-	ModelModule      string
-	ModelClass       string
-	ModelOptions     []string
-	TokenizerClass   string
-	TokenizerOptions []string
-	Skip             string
+	ModelName         string
+	ModelModule       string
+	ModelClass        string
+	ModelOptions      []string
+	TokenizerClass    string
+	TokenizerOptions  []string
+	Skip              string
+	OnlyConfiguration bool
 }
 
 // Execute runs the downloader script and handles the result
@@ -99,7 +101,7 @@ func Execute(downloaderArgs Args) (Model, error) {
 		return Model{}, err
 	}
 
-	// Download was successful
+	// OnlyConfiguration was successful
 	spinner.Success("Successfully downloaded " + downloaderItemMessage)
 
 	return model, nil
