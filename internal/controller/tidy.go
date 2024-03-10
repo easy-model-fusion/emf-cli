@@ -102,6 +102,9 @@ func tidyModelsDownloadedButNotConfigured(configModels []model.Model) {
 	var modelsToConfigure []model.Model
 	for _, current := range downloadedModels {
 
+		// Checking if the downloaded model is already configured
+		configModel, configured := mapConfigModels[current.Name]
+
 		if current.Module != "" {
 			downloaderArgs := downloader.Args{
 				ModelName:   current.Name,
@@ -109,14 +112,12 @@ func tidyModelsDownloadedButNotConfigured(configModels []model.Model) {
 			}
 
 			// Getting model class
-			current, success := model.GetConfig(current, downloaderArgs)
+			var success bool
+			current, success = model.GetConfig(current, downloaderArgs)
 			if !success && current.Class == "" {
 				current.Class = current.GetModuleAutoPipelineClassName()
 			}
 		}
-
-		// Checking if the downloaded model is already configured
-		configModel, configured := mapConfigModels[current.Name]
 
 		// Model not configured
 		if !configured {
