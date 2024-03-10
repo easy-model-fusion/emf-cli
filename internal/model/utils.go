@@ -411,6 +411,25 @@ func Download(model Model, downloaderArgs downloader.Args) (Model, bool) {
 	return model, true
 }
 
+// GetConfig attempts to get the model's configuration
+func GetConfig(model Model, downloaderArgs downloader.Args) (Model, bool) {
+	// Add OnlyConfiguration flag to the command
+	downloaderArgs.OnlyConfiguration = true
+
+	// Running the script
+	dlModel, err := downloader.Execute(downloaderArgs)
+
+	// Something went wrong or no data has been returned
+	if err != nil || dlModel.IsEmpty {
+		return model, false
+	}
+
+	// Update the model for the configuration file
+	model = MapToModelFromDownloaderModel(model, dlModel)
+
+	return model, true
+}
+
 // DownloadTokenizer attempts to download the tokenizer
 func DownloadTokenizer(model Model, tokenizer Tokenizer, downloaderArgs downloader.Args) (Model, bool) {
 

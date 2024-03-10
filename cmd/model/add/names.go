@@ -148,14 +148,20 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	for _, currentModel := range selectedModels {
 		// Prepare the script arguments
 		downloaderArgs := downloader.Args{
-			ModelName:         currentModel.Name,
-			ModelModule:       string(currentModel.Module),
-			ModelClass:        currentModel.Class,
-			OnlyConfiguration: !currentModel.AddToBinaryFile,
+			ModelName:   currentModel.Name,
+			ModelModule: string(currentModel.Module),
+			ModelClass:  currentModel.Class,
 		}
 
-		// Downloading model
-		result, success := model.Download(currentModel, downloaderArgs)
+		var result model.Model
+		var success bool
+		if currentModel.AddToBinaryFile {
+			// Downloading model
+			result, success = model.Download(currentModel, downloaderArgs)
+		} else {
+			// Getting model configuration
+			result, success = model.GetConfig(currentModel, downloaderArgs)
+		}
 		if !success {
 			// Reset in case the download fails
 			currentModel.AddToBinaryFile = false
