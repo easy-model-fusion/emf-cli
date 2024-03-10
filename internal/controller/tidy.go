@@ -105,6 +105,7 @@ func tidyModelsDownloadedButNotConfigured(configModels []model.Model) {
 		// Checking if the downloaded model is already configured
 		configModel, configured := mapConfigModels[current.Name]
 
+		// Try to get model configuration
 		if current.Module != "" {
 			downloaderArgs := downloader.Args{
 				ModelName:   current.Name,
