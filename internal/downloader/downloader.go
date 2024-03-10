@@ -101,7 +101,7 @@ func Execute(downloaderArgs Args) (Model, error) {
 		return Model{}, err
 	}
 
-	// OnlyConfiguration was successful
+	// Download was successful
 	spinner.Success("Successfully downloaded " + downloaderItemMessage)
 
 	return model, nil

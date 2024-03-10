@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 )
 
 // CheckPythonVersion checks if python is found in the PATH and runs it with the --
@@ -65,6 +66,7 @@ func FindVEnvExecutable(venvPath string, executableName string) (string, error) 
 
 // InstallDependencies installs the dependencies from the given requirements.txt file
 func InstallDependencies(pipPath, path string) error {
+	time.Sleep(30 * time.Second)
 	cmd := exec.Command(pipPath, "install", "-r", path)
 
 	// bind stderr to a buffer

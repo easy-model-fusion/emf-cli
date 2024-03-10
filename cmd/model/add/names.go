@@ -142,7 +142,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	// Exclude Invalid models
 	selectedModels = model.Difference(selectedModels, invalidModels)
 
-	// OnlyConfiguration the models
+	// Download the models
 	var models []model.Model
 	var failedModels []model.Model
 	for _, currentModel := range selectedModels {
