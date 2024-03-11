@@ -13,6 +13,7 @@ func TestModel_GenClass(t *testing.T) {
 		Path:        "build/stabilityai/sdxl-turbo",
 		PipelineTag: huggingface.TextToImage,
 		Module:      huggingface.DIFFUSERS,
+		Class:       huggingface.AutoDiffusers,
 	}
 
 	class := model.GenClass()
@@ -36,6 +37,7 @@ func TestModel_GenFile(t *testing.T) {
 		Path:        "build/stabilityai/sdxl-turbo",
 		PipelineTag: huggingface.TextToImage,
 		Module:      huggingface.DIFFUSERS,
+		Class:       huggingface.AutoDiffusers,
 	}
 
 	file := model.GenFile()
