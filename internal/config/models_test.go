@@ -421,3 +421,7 @@ func TestModelExists_OnNotExistentModel(t *testing.T) {
 func TestGenerateModelsPythonCode(t *testing.T) {
 	// TODO: implement this
 }
+
+func TestGenerateExistingModelsPythonCode(t *testing.T) {
+	// TODO: implement this
+}
