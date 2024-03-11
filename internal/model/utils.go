@@ -162,6 +162,7 @@ func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model 
 		model.Path = stringutil.PathUniformize(dlModel.Path)
 		model.Module = huggingface.Module(dlModel.Module)
 		model.Class = dlModel.Class
+		model.Options = dlModel.Options
 	}
 
 	// Check if ScriptTokenizer is valid
@@ -194,6 +195,7 @@ func MapToTokenizerFromDownloaderTokenizer(dlTokenizer downloader.Tokenizer) Tok
 	var modelTokenizer Tokenizer
 	modelTokenizer.Path = stringutil.PathUniformize(dlTokenizer.Path)
 	modelTokenizer.Class = dlTokenizer.Class
+	modelTokenizer.Options = dlTokenizer.Options
 	return modelTokenizer
 }
 
