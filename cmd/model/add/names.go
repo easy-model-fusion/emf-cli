@@ -193,7 +193,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 
 	// Attempt to generate code
 	spinner = app.UI().StartSpinner("Generating python code...")
-	err = config.GenerateModelsPythonCode(append(existingModels, models...))
+	err = config.GenerateExistingModelsPythonCode()
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while generating python code for added models: %s", err))
 	} else {
