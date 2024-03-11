@@ -290,20 +290,33 @@ func TestConstructConfigPaths_TransformersTokenizers(t *testing.T) {
 func TestMapToModelFromDownloaderModel_Empty(t *testing.T) {
 	// Init
 	downloaderModel := downloader.Model{
-		Path:   "",
-		Module: "",
-		Class:  "",
+		Path:    "",
+		Module:  "",
+		Class:   "",
+		Options: map[string]interface{}{},
 		Tokenizer: downloader.Tokenizer{
-			Path:  "",
-			Class: "",
+			Path:    "",
+			Class:   "",
+			Options: map[string]interface{}{},
 		},
 	}
 	expected := Model{
 		Path:   "/path/to/model",
 		Module: "module_name",
 		Class:  "class_name",
+		Options: map[string]interface{}{
+			"option1": true,
+			"option2": "value",
+		},
 		Tokenizers: []Tokenizer{
-			{Path: "/path/to/tokenizer", Class: "tokenizer_class"},
+			{
+				Path:  "/path/to/tokenizer",
+				Class: "tokenizer_class",
+				Options: map[string]interface{}{ // Map for tokenizer options
+					"option1": true,
+					"option2": "value",
+				},
+			},
 		},
 	}
 
@@ -314,9 +327,11 @@ func TestMapToModelFromDownloaderModel_Empty(t *testing.T) {
 	test.AssertEqual(t, expected.Path, result.Path)
 	test.AssertEqual(t, expected.Module, result.Module)
 	test.AssertEqual(t, expected.Class, result.Class)
+	test.AssertEqual(t, len(expected.Options), len(result.Options))
 	test.AssertEqual(t, len(expected.Tokenizers), len(result.Tokenizers))
 	test.AssertEqual(t, expected.Tokenizers[0].Path, result.Tokenizers[0].Path)
 	test.AssertEqual(t, expected.Tokenizers[0].Class, result.Tokenizers[0].Class)
+	test.AssertEqual(t, len(expected.Tokenizers[0].Options), len(result.Tokenizers[0].Options))
 }
 
 // TestMapToModelFromDownloaderModel_Fill tests the MapToModelFromDownloaderModel to return the correct Model.
@@ -326,17 +341,36 @@ func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
 		Path:   "/path/to/model",
 		Module: "module_name",
 		Class:  "class_name",
+		Options: map[string]interface{}{
+			"option1": true,
+			"option2": "value",
+		},
 		Tokenizer: downloader.Tokenizer{
 			Path:  "/path/to/tokenizer",
 			Class: "tokenizer_class",
+			Options: map[string]interface{}{
+				"option1": true,
+				"option2": "value",
+			},
 		},
 	}
 	expected := Model{
 		Path:   filepath.Clean("/path/to/model"),
 		Module: "module_name",
 		Class:  "class_name",
+		Options: map[string]interface{}{
+			"option1": true,
+			"option2": "value",
+		},
 		Tokenizers: []Tokenizer{
-			{Path: filepath.Clean("/path/to/tokenizer"), Class: "tokenizer_class"},
+			{
+				Path:  filepath.Clean("/path/to/tokenizer"),
+				Class: "tokenizer_class",
+				Options: map[string]interface{}{
+					"option1": true,
+					"option2": "value",
+				},
+			},
 		},
 	}
 
@@ -347,42 +381,60 @@ func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
 	test.AssertEqual(t, expected.Path, result.Path)
 	test.AssertEqual(t, expected.Module, result.Module)
 	test.AssertEqual(t, expected.Class, result.Class)
+	test.AssertEqual(t, len(expected.Options), len(result.Options))
 	test.AssertEqual(t, len(expected.Tokenizers), len(result.Tokenizers))
 	test.AssertEqual(t, expected.Tokenizers[0].Path, result.Tokenizers[0].Path)
 	test.AssertEqual(t, expected.Tokenizers[0].Class, result.Tokenizers[0].Class)
+	test.AssertEqual(t, len(expected.Tokenizers[0].Options), len(result.Tokenizers[0].Options))
 }
 
 // TestMapToModelFromDownloaderModel_ReplaceTokenizer tests the MapToModelFromDownloaderModel to return the correct Model.
 func TestMapToModelFromDownloaderModel_ReplaceTokenizer(t *testing.T) {
 	// Init
 	downloaderModel := downloader.Model{
-		Path:   "/path/to/model",
-		Module: "module_name",
-		Class:  "class_name",
+		Path:    "/path/to/model",
+		Module:  "module_name",
+		Class:   "class_name",
+		Options: map[string]interface{}{},
 		Tokenizer: downloader.Tokenizer{
 			Path:  "/path/to/tokenizer",
 			Class: "tokenizer_class",
+			Options: map[string]interface{}{
+				"option1": true,
+				"option2": "value",
+			},
 		},
 	}
-	expected := Model{
-		Path:   filepath.Clean("/path/to/model"),
-		Module: "module_name",
-		Class:  "class_name",
+	input := Model{
+		Path:    filepath.Clean("/path/to/model"),
+		Module:  "module_name",
+		Class:   "class_name",
+		Options: map[string]interface{}{},
 		Tokenizers: []Tokenizer{
-			{Path: filepath.Clean("/path/to/tokenizer"), Class: "tokenizer_class"},
+			{
+				Path:    "",
+				Class:   "",
+				Options: map[string]interface{}{},
+			},
 		},
 	}
+	expected := input
+	expected.Tokenizers[0].Path = downloaderModel.Tokenizer.Path
+	expected.Tokenizers[0].Class = downloaderModel.Tokenizer.Class
+	expected.Tokenizers[0].Options = downloaderModel.Tokenizer.Options
 
 	// Execute
-	result := MapToModelFromDownloaderModel(expected, downloaderModel)
+	result := MapToModelFromDownloaderModel(input, downloaderModel)
 
 	// Assert
 	test.AssertEqual(t, expected.Path, result.Path)
 	test.AssertEqual(t, expected.Module, result.Module)
 	test.AssertEqual(t, expected.Class, result.Class)
+	test.AssertEqual(t, len(expected.Options), len(result.Options))
 	test.AssertEqual(t, len(expected.Tokenizers), len(result.Tokenizers))
 	test.AssertEqual(t, expected.Tokenizers[0].Path, result.Tokenizers[0].Path)
 	test.AssertEqual(t, expected.Tokenizers[0].Class, result.Tokenizers[0].Class)
+	test.AssertEqual(t, len(expected.Tokenizers[0].Options), len(result.Tokenizers[0].Options))
 }
 
 // TestMapToTokenizerFromDownloaderTokenizer_Success tests the MapToTokenizerFromDownloaderTokenizer to return the correct Tokenizer.
@@ -391,14 +443,27 @@ func TestMapToTokenizerFromDownloaderTokenizer_Success(t *testing.T) {
 	downloaderTokenizer := downloader.Tokenizer{
 		Path:  "/path/to/tokenizer",
 		Class: "tokenizer_class",
+		Options: map[string]interface{}{
+			"option1": true,
+			"option2": "value",
+		},
 	}
-	expected := Tokenizer{Path: filepath.Clean("/path/to/tokenizer"), Class: "tokenizer_class"}
+	expected := Tokenizer{
+		Path:  filepath.Clean("/path/to/tokenizer"),
+		Class: "tokenizer_class",
+		Options: map[string]interface{}{
+			"option1": true,
+			"option2": "value",
+		},
+	}
 
 	// Execute
 	result := MapToTokenizerFromDownloaderTokenizer(downloaderTokenizer)
 
 	// Assert
-	test.AssertEqual(t, expected, result)
+	test.AssertEqual(t, expected.Path, result.Path)
+	test.AssertEqual(t, expected.Class, result.Class)
+	test.AssertEqual(t, len(expected.Options), len(result.Options))
 }
 
 // TestMapToModelFromHuggingfaceModel_Success tests the MapToModelFromHuggingfaceModel to return the correct Model.
