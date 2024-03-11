@@ -522,7 +522,7 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 		ModelClass:        model.Class,
 		ModelOptions:      []string{},
 		Skip:              skip,
-		OnlyConfiguration: !model.AddToBinaryFile,
+		OnlyConfiguration: false,
 	}
 
 	// Downloading model
@@ -588,7 +588,7 @@ func TidyConfiguredModel(model Model) (bool, bool) {
 		ModelModule:       string(model.Module),
 		ModelClass:        model.Class,
 		ModelOptions:      []string{},
-		OnlyConfiguration: !model.AddToBinaryFile,
+		OnlyConfiguration: false,
 	}
 
 	// Model has yet to be downloaded
