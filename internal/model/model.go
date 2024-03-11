@@ -168,7 +168,7 @@ func (m *Model) GenClass() *codegen.Class {
 					&codegen.AssignmentStmt{
 						Variable: "self.pipeline",
 						FunctionCallValue: &codegen.FunctionCall{
-							Name: m.GetModuleAutoPipelineClassName() + ".from_pretrained",
+							Name: m.Class + ".from_pretrained",
 							Params: []codegen.FunctionCallParameter{
 								{
 									Name:  "pretrained_model_name_or_path",
