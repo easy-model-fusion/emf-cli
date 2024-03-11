@@ -170,12 +170,15 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 	return nil
 }
 
+// GenerateExistingModelsPythonCode generates the python code for all the configured models
 func GenerateExistingModelsPythonCode() error {
+	// Get existing models
 	models, err := GetModels()
 	if err != nil {
 		return err
 	}
 
+	// Generating code for these models
 	err = GenerateModelsPythonCode(models)
 	if err != nil {
 		return err
