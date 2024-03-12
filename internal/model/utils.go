@@ -343,7 +343,6 @@ func BuildModelsFromDevice() []Model {
 
 			// Fetching succeeded : processing the response
 			// Map API response to model.Model
-			// TODO : class => Waiting for issue 61 to be completed : [Client] Analyze API
 			modelMapped := MapToModelFromHuggingfaceModel(huggingfaceModel)
 
 			// Leaving the version field as empty since it's impossible to trace the version back
@@ -407,8 +406,27 @@ func Download(model Model, downloaderArgs downloader.Args) (Model, bool) {
 
 	// Update the model for the configuration file
 	model = MapToModelFromDownloaderModel(model, dlModel)
-	model.AddToBinaryFile = true
-	model.IsDownloaded = true
+	model.AddToBinaryFile = !downloaderArgs.OnlyConfiguration
+	model.IsDownloaded = !downloaderArgs.OnlyConfiguration
+
+	return model, true
+}
+
+// GetConfig attempts to get the model's configuration
+func GetConfig(model Model, downloaderArgs downloader.Args) (Model, bool) {
+	// Add OnlyConfiguration flag to the command
+	downloaderArgs.OnlyConfiguration = true
+
+	// Running the script
+	dlModel, err := downloader.Execute(downloaderArgs)
+
+	// Something went wrong or no data has been returned
+	if err != nil || dlModel.IsEmpty {
+		return model, false
+	}
+
+	// Update the model for the configuration file
+	model = MapToModelFromDownloaderModel(model, dlModel)
 
 	return model, true
 }
@@ -498,11 +516,12 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 
 	// Prepare the script arguments
 	downloaderArgs := downloader.Args{
-		ModelName:    model.Name,
-		ModelModule:  string(model.Module),
-		ModelClass:   model.Class,
-		ModelOptions: stringutil.OptionsMapToSlice(model.Options),
-		Skip:         skip,
+		ModelName:         model.Name,
+		ModelModule:       string(model.Module),
+		ModelClass:        model.Class,
+		ModelOptions:      stringutil.OptionsMapToSlice(model.Options),
+		Skip:              skip,
+		OnlyConfiguration: false,
 	}
 
 	// Downloading model
@@ -563,10 +582,11 @@ func TidyConfiguredModel(model Model) (bool, bool) {
 
 	// Prepare the script arguments
 	downloaderArgs := downloader.Args{
-		ModelName:    model.Name,
-		ModelModule:  string(model.Module),
-		ModelClass:   model.Class,
-		ModelOptions: stringutil.OptionsMapToSlice(model.Options),
+		ModelName:         model.Name,
+		ModelModule:       string(model.Module),
+		ModelClass:        model.Class,
+		ModelOptions:      stringutil.OptionsMapToSlice(model.Options),
+		OnlyConfiguration: false,
 	}
 
 	// Model has yet to be downloaded

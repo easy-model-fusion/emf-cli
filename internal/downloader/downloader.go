@@ -40,16 +40,18 @@ const Skip = "skip"
 const SkipValueModel = "model"
 const SkipValueTokenizer = "tokenizer"
 const EmfClient = "emf-client"
+const OnlyConfiguration = "only-configuration"
 
 // Args represents the arguments for the script
 type Args struct {
-	ModelName        string
-	ModelModule      string
-	ModelClass       string
-	ModelOptions     []string
-	TokenizerClass   string
-	TokenizerOptions []string
-	Skip             string
+	ModelName         string
+	ModelModule       string
+	ModelClass        string
+	ModelOptions      []string
+	TokenizerClass    string
+	TokenizerOptions  []string
+	Skip              string
+	OnlyConfiguration bool
 }
 
 // Execute runs the downloader script and handles the result
@@ -75,7 +77,11 @@ func Execute(downloaderArgs Args) (Model, error) {
 	}
 
 	// Run the script to download the model
-	spinner := app.UI().StartSpinner("Downloading " + downloaderItemMessage)
+	customMessage := "Downloading "
+	if downloaderArgs.OnlyConfiguration {
+		customMessage = "Getting configuration for "
+	}
+	spinner := app.UI().StartSpinner(customMessage + downloaderItemMessage)
 	scriptModel, err, exitCode := python.ExecuteScript(".venv", ScriptPath, args)
 
 	// An error occurred while running the script
@@ -90,7 +96,7 @@ func Execute(downloaderArgs Args) (Model, error) {
 
 	// No data was returned by the script
 	if scriptModel == nil {
-		spinner.Fail("The script didn't return any data when downloading " + downloaderItemMessage)
+		spinner.Fail("The script didn't return any data when processing " + downloaderItemMessage)
 		return Model{IsEmpty: true}, nil
 	}
 
@@ -103,7 +109,12 @@ func Execute(downloaderArgs Args) (Model, error) {
 	}
 
 	// Download was successful
-	spinner.Success("Successfully downloaded " + downloaderItemMessage)
+	if downloaderArgs.OnlyConfiguration {
+		customMessage = "got configuration for "
+	} else {
+		customMessage = "downloaded "
+	}
+	spinner.Success("Successfully " + customMessage + downloaderItemMessage)
 
 	return model, nil
 }

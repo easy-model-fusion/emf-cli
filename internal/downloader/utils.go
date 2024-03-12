@@ -88,5 +88,9 @@ func ArgsProcessForPython(args Args) []string {
 		cmdArgs = append(cmdArgs, TagPrefix+Skip, args.Skip)
 	}
 
+	// Only configuration
+	if args.OnlyConfiguration {
+		cmdArgs = append(cmdArgs, TagPrefix+OnlyConfiguration)
+	}
 	return cmdArgs
 }

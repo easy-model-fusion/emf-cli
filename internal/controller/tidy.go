@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -103,6 +104,21 @@ func tidyModelsDownloadedButNotConfigured(configModels []model.Model) {
 
 		// Checking if the downloaded model is already configured
 		configModel, configured := mapConfigModels[current.Name]
+
+		// Try to get model configuration
+		if current.Module != "" {
+			downloaderArgs := downloader.Args{
+				ModelName:   current.Name,
+				ModelModule: string(current.Module),
+			}
+
+			// Getting model class
+			var success bool
+			current, success = model.GetConfig(current, downloaderArgs)
+			if !success && current.Class == "" {
+				current.Class = current.GetModuleAutoPipelineClassName()
+			}
+		}
 
 		// Model not configured
 		if !configured {
