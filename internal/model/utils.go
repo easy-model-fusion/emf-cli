@@ -416,11 +416,10 @@ func Download(model Model, downloaderArgs downloader.Args) (Model, bool) {
 // DownloadTokenizer attempts to download the tokenizer
 func DownloadTokenizer(model Model, tokenizer Tokenizer, downloaderArgs downloader.Args) (Model, bool) {
 
-	// TODO : options tokenizer => Waiting for issue 74 to be completed : [Client] Model options to config
 	// Building downloader args for the tokenizer
 	downloaderArgs.Skip = downloader.SkipValueModel
 	downloaderArgs.TokenizerClass = tokenizer.Class
-	downloaderArgs.TokenizerOptions = []string{}
+	downloaderArgs.TokenizerOptions = stringutil.OptionsMapToSlice(tokenizer.Options)
 
 	// Running the script for the tokenizer only
 	dlModelTokenizer, err := downloader.Execute(downloaderArgs)
@@ -497,13 +496,12 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 		}
 	}
 
-	// TODO : options model => Waiting for issue 74 to be completed : [Client] Model options to config
 	// Prepare the script arguments
 	downloaderArgs := downloader.Args{
 		ModelName:    model.Name,
 		ModelModule:  string(model.Module),
 		ModelClass:   model.Class,
-		ModelOptions: []string{},
+		ModelOptions: stringutil.OptionsMapToSlice(model.Options),
 		Skip:         skip,
 	}
 
@@ -563,13 +561,12 @@ func TidyConfiguredModel(model Model) (bool, bool) {
 		return true, true
 	}
 
-	// TODO : options model => Waiting for issue 74 to be completed : [Client] Model options to config
 	// Prepare the script arguments
 	downloaderArgs := downloader.Args{
 		ModelName:    model.Name,
 		ModelModule:  string(model.Module),
 		ModelClass:   model.Class,
-		ModelOptions: []string{},
+		ModelOptions: stringutil.OptionsMapToSlice(model.Options),
 	}
 
 	// Model has yet to be downloaded

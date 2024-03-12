@@ -9,7 +9,7 @@ import (
 
 // EmptyModel checks if a Model is empty.
 func EmptyModel(model Model) bool {
-	return model.Path == "" && model.Module == "" && model.Class == ""
+	return model.Path == "" && model.Class == ""
 }
 
 // EmptyTokenizer checks if a Tokenizer is empty.

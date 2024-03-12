@@ -293,28 +293,28 @@ func TestMapToModelFromDownloaderModel_Empty(t *testing.T) {
 		Path:    "",
 		Module:  "",
 		Class:   "",
-		Options: map[string]interface{}{},
+		Options: map[string]string{},
 		Tokenizer: downloader.Tokenizer{
 			Path:    "",
 			Class:   "",
-			Options: map[string]interface{}{},
+			Options: map[string]string{},
 		},
 	}
 	expected := Model{
 		Path:   "/path/to/model",
 		Module: "module_name",
 		Class:  "class_name",
-		Options: map[string]interface{}{
-			"option1": true,
-			"option2": "value",
+		Options: map[string]string{
+			"option1": "true",
+			"option2": "'text'",
 		},
 		Tokenizers: []Tokenizer{
 			{
 				Path:  "/path/to/tokenizer",
 				Class: "tokenizer_class",
-				Options: map[string]interface{}{ // Map for tokenizer options
-					"option1": true,
-					"option2": "value",
+				Options: map[string]string{
+					"option1": "true",
+					"option2": "'text'",
 				},
 			},
 		},
@@ -341,16 +341,16 @@ func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
 		Path:   "/path/to/model",
 		Module: "module_name",
 		Class:  "class_name",
-		Options: map[string]interface{}{
-			"option1": true,
-			"option2": "value",
+		Options: map[string]string{
+			"option1": "true",
+			"option2": "'text'",
 		},
 		Tokenizer: downloader.Tokenizer{
 			Path:  "/path/to/tokenizer",
 			Class: "tokenizer_class",
-			Options: map[string]interface{}{
-				"option1": true,
-				"option2": "value",
+			Options: map[string]string{
+				"option1": "true",
+				"option2": "'text'",
 			},
 		},
 	}
@@ -358,17 +358,17 @@ func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
 		Path:   filepath.Clean("/path/to/model"),
 		Module: "module_name",
 		Class:  "class_name",
-		Options: map[string]interface{}{
-			"option1": true,
-			"option2": "value",
+		Options: map[string]string{
+			"option1": "true",
+			"option2": "'text'",
 		},
 		Tokenizers: []Tokenizer{
 			{
 				Path:  filepath.Clean("/path/to/tokenizer"),
 				Class: "tokenizer_class",
-				Options: map[string]interface{}{
-					"option1": true,
-					"option2": "value",
+				Options: map[string]string{
+					"option1": "true",
+					"option2": "'text'",
 				},
 			},
 		},
@@ -395,13 +395,13 @@ func TestMapToModelFromDownloaderModel_ReplaceTokenizer(t *testing.T) {
 		Path:    "/path/to/model",
 		Module:  "module_name",
 		Class:   "class_name",
-		Options: map[string]interface{}{},
+		Options: map[string]string{},
 		Tokenizer: downloader.Tokenizer{
 			Path:  "/path/to/tokenizer",
 			Class: "tokenizer_class",
-			Options: map[string]interface{}{
-				"option1": true,
-				"option2": "value",
+			Options: map[string]string{
+				"option1": "true",
+				"option2": "'text'",
 			},
 		},
 	}
@@ -409,12 +409,12 @@ func TestMapToModelFromDownloaderModel_ReplaceTokenizer(t *testing.T) {
 		Path:    filepath.Clean("/path/to/model"),
 		Module:  "module_name",
 		Class:   "class_name",
-		Options: map[string]interface{}{},
+		Options: map[string]string{},
 		Tokenizers: []Tokenizer{
 			{
 				Path:    "",
 				Class:   "",
-				Options: map[string]interface{}{},
+				Options: map[string]string{},
 			},
 		},
 	}
@@ -443,17 +443,17 @@ func TestMapToTokenizerFromDownloaderTokenizer_Success(t *testing.T) {
 	downloaderTokenizer := downloader.Tokenizer{
 		Path:  "/path/to/tokenizer",
 		Class: "tokenizer_class",
-		Options: map[string]interface{}{
-			"option1": true,
-			"option2": "value",
+		Options: map[string]string{
+			"option1": "true",
+			"option2": "'text'",
 		},
 	}
 	expected := Tokenizer{
 		Path:  filepath.Clean("/path/to/tokenizer"),
 		Class: "tokenizer_class",
-		Options: map[string]interface{}{
-			"option1": true,
-			"option2": "value",
+		Options: map[string]string{
+			"option1": "true",
+			"option2": "'text'",
 		},
 	}
 
