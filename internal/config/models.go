@@ -179,12 +179,7 @@ func GenerateExistingModelsPythonCode() error {
 	}
 
 	// Generating code for these models
-	err = GenerateModelsPythonCode(models)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return GenerateModelsPythonCode(models)
 }
 
 // GenerateModelsPythonCode generates the python code for the given models
