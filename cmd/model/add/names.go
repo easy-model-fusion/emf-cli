@@ -190,6 +190,15 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	} else {
 		spinner.Success()
 	}
+
+	// Attempt to generate code
+	spinner = app.UI().StartSpinner("Generating python code...")
+	err = config.GenerateExistingModelsPythonCode()
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error while generating python code for added models: %s", err))
+	} else {
+		spinner.Success()
+	}
 }
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project

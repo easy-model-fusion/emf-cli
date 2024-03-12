@@ -95,7 +95,7 @@ func (m *Model) GenImports() []codegen.Import {
 		{
 			What: []codegen.ImportWhat{
 				{
-					Name: m.GetModuleAutoPipelineClassName(),
+					Name: m.Class,
 				},
 			},
 			From: string(m.Module),
@@ -117,7 +117,7 @@ func (m *Model) GenClass() *codegen.Class {
 		Fields: []codegen.Field{
 			{
 				Name: "pipeline",
-				Type: m.GetModuleAutoPipelineClassName(),
+				Type: m.Class,
 			},
 		},
 		Statements: []codegen.Statement{
@@ -170,7 +170,7 @@ func (m *Model) GenClass() *codegen.Class {
 					&codegen.AssignmentStmt{
 						Variable: "self.pipeline",
 						FunctionCallValue: &codegen.FunctionCall{
-							Name: m.GetModuleAutoPipelineClassName() + ".from_pretrained",
+							Name: m.Class + ".from_pretrained",
 							Params: []codegen.FunctionCallParameter{
 								{
 									Name:  "pretrained_model_name_or_path",

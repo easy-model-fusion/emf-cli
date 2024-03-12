@@ -113,4 +113,12 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		spinner.Success()
 	}
 
+	// Attempt to generate code
+	spinner = app.UI().StartSpinner("Generating python code...")
+	err = config.GenerateExistingModelsPythonCode()
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error while generating python code for added model: %s", err))
+	} else {
+		spinner.Success()
+	}
 }
