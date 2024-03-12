@@ -12,17 +12,19 @@ const ScriptPath = "sdk/downloader.py"
 
 // Model represents a model returned by the downloader script.
 type Model struct {
-	Path      string    `json:"path"`
-	Module    string    `json:"module"`
-	Class     string    `json:"class"`
-	Tokenizer Tokenizer `json:"tokenizer"`
+	Path      string            `json:"path"`
+	Module    string            `json:"module"`
+	Class     string            `json:"class"`
+	Options   map[string]string `json:"options"`
+	Tokenizer Tokenizer         `json:"tokenizer"`
 	IsEmpty   bool
 }
 
 // Tokenizer represents a tokenizer returned by the downloader script.
 type Tokenizer struct {
-	Path  string `json:"path"`
-	Class string `json:"class"`
+	Path    string            `json:"path"`
+	Class   string            `json:"class"`
+	Options map[string]string `json:"options"`
 }
 
 // Tags for the arguments
@@ -96,6 +98,7 @@ func Execute(downloaderArgs Args) (Model, error) {
 	var model Model
 	err = json.Unmarshal(scriptModel, &model)
 	if err != nil {
+		spinner.Fail(fmt.Sprintf("Failed to process the script return data : %s", err))
 		return Model{}, err
 	}
 
