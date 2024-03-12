@@ -13,6 +13,7 @@ type Model struct {
 	Path            string
 	Module          huggingface.Module
 	Class           string
+	Options         map[string]string
 	Tokenizers      []Tokenizer
 	PipelineTag     huggingface.PipelineTag
 	Source          string
@@ -22,8 +23,9 @@ type Model struct {
 }
 
 type Tokenizer struct {
-	Path  string
-	Class string
+	Path    string
+	Class   string
+	Options map[string]string
 }
 
 // Sources
