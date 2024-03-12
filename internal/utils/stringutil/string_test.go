@@ -142,3 +142,23 @@ func TestParseOptions_ValueStrings(t *testing.T) {
 	test.AssertEqual(t, SliceContainsItem(result, option3), true, "should work with "+option3)
 	test.AssertEqual(t, SliceContainsItem(result, option4), true, "should work with "+option4)
 }
+
+func TestOptionsMapToSlice(t *testing.T) {
+	// Init
+	optionsMap := map[string]string{
+		"key1": "value",
+		"key2": "True",
+		"key3": "module.value",
+		"key4": "'text'",
+	}
+
+	// Execute
+	optionsSlice := OptionsMapToSlice(optionsMap)
+
+	// Assert
+	test.AssertEqual(t, len(optionsSlice), len(optionsMap))
+	test.AssertEqual(t, SliceContainsItem(optionsSlice, "key1=value"), true)
+	test.AssertEqual(t, SliceContainsItem(optionsSlice, "key2=True"), true)
+	test.AssertEqual(t, SliceContainsItem(optionsSlice, "key3=module.value"), true)
+	test.AssertEqual(t, SliceContainsItem(optionsSlice, "key4='text'"), true)
+}

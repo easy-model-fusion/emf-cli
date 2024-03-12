@@ -1,6 +1,7 @@
 package stringutil
 
 import (
+	"fmt"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -73,4 +74,14 @@ func ParseOptions(input string) []string {
 	}
 
 	return result
+}
+
+// OptionsMapToSlice transforms a map to a slice of strings under the key=value format.
+func OptionsMapToSlice(optionsMap map[string]string) []string {
+	var optionsSlice []string
+	for key, value := range optionsMap {
+		option := fmt.Sprintf("%s=%s", key, value)
+		optionsSlice = append(optionsSlice, option)
+	}
+	return optionsSlice
 }
