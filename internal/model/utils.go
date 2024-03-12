@@ -343,7 +343,6 @@ func BuildModelsFromDevice() []Model {
 
 			// Fetching succeeded : processing the response
 			// Map API response to model.Model
-			// TODO : class => Waiting for issue 61 to be completed : [Client] Analyze API
 			modelMapped := MapToModelFromHuggingfaceModel(huggingfaceModel)
 
 			// Leaving the version field as empty since it's impossible to trace the version back
