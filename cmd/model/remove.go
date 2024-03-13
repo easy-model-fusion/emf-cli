@@ -15,7 +15,7 @@ var modelRemoveAllFlag bool
 // modelRemoveCmd represents the model remove command
 var modelRemoveCmd = &cobra.Command{
 	Use:   "remove <model name> [<other model names>...]",
-	Short: "Remove one or more models",
+	Short: "Remove one or more models/tokenizers",
 	Long:  "Remove one or more models",
 	Run:   runModelRemove,
 }
