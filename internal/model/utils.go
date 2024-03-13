@@ -159,7 +159,9 @@ func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model 
 
 	// Check if ScriptModel is valid
 	if !downloader.EmptyModel(dlModel) {
-		model.Path = stringutil.PathUniformize(dlModel.Path)
+		if len(dlModel.Path) != 0 {
+			model.Path = stringutil.PathUniformize(dlModel.Path)
+		}
 		model.Module = huggingface.Module(dlModel.Module)
 		model.Class = dlModel.Class
 		model.Options = dlModel.Options
@@ -193,7 +195,9 @@ func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model 
 // MapToTokenizerFromDownloaderTokenizer maps data from downloader.Tokenizer to Tokenizer.
 func MapToTokenizerFromDownloaderTokenizer(dlTokenizer downloader.Tokenizer) Tokenizer {
 	var modelTokenizer Tokenizer
-	modelTokenizer.Path = stringutil.PathUniformize(dlTokenizer.Path)
+	if len(dlTokenizer.Path) != 0 {
+		modelTokenizer.Path = stringutil.PathUniformize(dlTokenizer.Path)
+	}
 	modelTokenizer.Class = dlTokenizer.Class
 	modelTokenizer.Options = dlTokenizer.Options
 	return modelTokenizer

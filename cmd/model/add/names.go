@@ -272,15 +272,32 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 // alreadyDownloadedModels this function returns models that are requested to be added but are already downloaded
 func alreadyDownloadedModels(models []model.Model) (downloadedModels []model.Model, err error) {
 	for _, currentModel := range models {
+
+		// Build paths
 		currentModel = model.ConstructConfigPaths(currentModel)
+
+		// Validate the model
 		downloaded, err := model.ModelDownloadedOnDevice(currentModel)
-		// TODO : check if tokenizer already exists => Waiting for issue #63 : [Client] Validate models for download
 		if err != nil {
 			return nil, err
 		}
-		if downloaded {
-			downloadedModels = append(downloadedModels, currentModel)
+		if !downloaded {
+			continue
 		}
+
+		// Validate the tokenizer
+		if currentModel.Module == huggingface.TRANSFORMERS {
+
+		}
+		downloaded, err = model.ModelDownloadedOnDevice(currentModel)
+		if err != nil {
+			return nil, err
+		}
+		if !downloaded {
+			continue
+		}
+
+		downloadedModels = append(downloadedModels, currentModel)
 	}
 
 	return downloadedModels, nil

@@ -8,6 +8,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -63,6 +64,23 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	}
 	// Map API response to model.Model
 	modelObj := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+
+	// Allow the user to choose flags and set their values
+	err = cobrautil.AllowInputAmongRemainingFlags(currentCmd)
+	if err != nil {
+		pterm.Error.Println(err)
+		return
+	}
+
+	// Module not provided : get it from the API
+	if addCustomDownloaderArgs.ModelModule == "" {
+		addCustomDownloaderArgs.ModelModule = string(modelObj.Module)
+	}
+
+	// Get model configuration properties that can't be determined otherwise
+	modelObj, success := model.GetConfig(modelObj, addCustomDownloaderArgs)
+
+	// Build path for validation
 	modelObj = model.ConstructConfigPaths(modelObj)
 
 	// Validate the model : if model is already downloaded
@@ -79,27 +97,30 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// Allow the user to choose flags and set their values
-	err = cobrautil.AllowInputAmongRemainingFlags(currentCmd)
-	if err != nil {
-		pterm.Error.Println(err)
-		return
+	// If transformers and model not downloaded : validate the tokenizer
+	if modelObj.Module == huggingface.TRANSFORMERS && !downloaded {
+		// Validate the tokenizer : if tokenizer is already downloaded
+		downloaded, err = model.TokenizerDownloadedOnDevice(modelObj.Tokenizers[0])
+		if err != nil {
+			pterm.Error.Println(err)
+			return
+		} else if downloaded {
+			message := fmt.Sprintf("Tokenizer '%s' is already downloaded. Do you wish to overwrite it?", modelObj.Tokenizers[0].Class)
+			overwrite := app.UI().AskForUsersConfirmation(message)
+			test := addCustomDownloaderArgs
+			pterm.Info.Println(test)
+			if !overwrite && addCustomDownloaderArgs.Skip == "" {
+				addCustomDownloaderArgs.Skip = downloader.SkipValueTokenizer
+				pterm.Info.Print("The tokenizer download will be skipped")
+			} else if !overwrite && addCustomDownloaderArgs.Skip == downloader.SkipValueModel {
+				pterm.Info.Print("Nothing to download")
+				return
+			}
+		}
 	}
-
-	// Module not provided : get it from the API
-	if addCustomDownloaderArgs.ModelModule == "" {
-		addCustomDownloaderArgs.ModelModule = string(modelObj.Module)
-	}
-
-	// Class not provided : get it from the API
-	if addCustomDownloaderArgs.ModelClass == "" {
-		addCustomDownloaderArgs.ModelClass = modelObj.Class
-	}
-
-	// TODO : check if tokenizer already exists => Waiting for issue #63 : [Client] Validate models for download
 
 	// Downloading model
-	modelObj, success := model.Download(modelObj, addCustomDownloaderArgs)
+	modelObj, success = model.Download(modelObj, addCustomDownloaderArgs)
 	if !success {
 		return
 	}
