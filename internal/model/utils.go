@@ -139,9 +139,14 @@ func GetModelsWithAddToBinaryFileTrue(models []Model) []Model {
 	return downloadedModels
 }
 
+// GetBasePath return the base path to the model
+func GetBasePath(model Model) string {
+	return path.Join(app.DownloadDirectoryPath, model.Name)
+}
+
 // ConstructConfigPaths to update the model's path to elements accordingly to its configuration.
 func ConstructConfigPaths(current Model) Model {
-	basePath := path.Join(app.DownloadDirectoryPath, current.Name)
+	basePath := GetBasePath(current)
 	modelPath := basePath
 	if current.Module == huggingface.TRANSFORMERS {
 		modelPath = path.Join(modelPath, "model")
@@ -159,7 +164,9 @@ func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model 
 
 	// Check if ScriptModel is valid
 	if !downloader.EmptyModel(dlModel) {
-		model.Path = stringutil.PathUniformize(dlModel.Path)
+		if len(dlModel.Path) != 0 {
+			model.Path = stringutil.PathUniformize(dlModel.Path)
+		}
 		model.Module = huggingface.Module(dlModel.Module)
 		model.Class = dlModel.Class
 		model.Options = dlModel.Options
@@ -193,7 +200,9 @@ func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model 
 // MapToTokenizerFromDownloaderTokenizer maps data from downloader.Tokenizer to Tokenizer.
 func MapToTokenizerFromDownloaderTokenizer(dlTokenizer downloader.Tokenizer) Tokenizer {
 	var modelTokenizer Tokenizer
-	modelTokenizer.Path = stringutil.PathUniformize(dlTokenizer.Path)
+	if len(dlTokenizer.Path) != 0 {
+		modelTokenizer.Path = stringutil.PathUniformize(dlTokenizer.Path)
+	}
 	modelTokenizer.Class = dlTokenizer.Class
 	modelTokenizer.Options = dlTokenizer.Options
 	return modelTokenizer
@@ -211,10 +220,16 @@ func MapToModelFromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 }
 
 // ModelDownloadedOnDevice returns true if the model is physically present on the device.
-func ModelDownloadedOnDevice(model Model) (bool, error) {
+func ModelDownloadedOnDevice(model Model, useBasePath bool) (bool, error) {
+
+	// Adapt the model path
+	modelPath := model.Path
+	if useBasePath {
+		modelPath = GetBasePath(model)
+	}
 
 	// Check if model is already downloaded
-	downloaded, err := fileutil.IsExistingPath(model.Path)
+	downloaded, err := fileutil.IsExistingPath(modelPath)
 	if err != nil {
 		// An error occurred
 		return false, err
@@ -224,7 +239,7 @@ func ModelDownloadedOnDevice(model Model) (bool, error) {
 	}
 
 	// Check if the model directory is empty
-	empty, err := fileutil.IsDirectoryEmpty(model.Path)
+	empty, err := fileutil.IsDirectoryEmpty(modelPath)
 	if err != nil {
 		// An error occurred
 		return false, err
@@ -461,7 +476,7 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 
 	// Check if model is physically present on the device
 	model = ConstructConfigPaths(model)
-	downloaded, err := ModelDownloadedOnDevice(model)
+	downloaded, err := ModelDownloadedOnDevice(model, false)
 	if err != nil {
 		return false
 	}
@@ -567,7 +582,7 @@ func TidyConfiguredModel(model Model) (bool, bool) {
 
 	// Check if model is physically present on the device
 	model = ConstructConfigPaths(model)
-	downloaded, err := ModelDownloadedOnDevice(model)
+	downloaded, err := ModelDownloadedOnDevice(model, false)
 	if err != nil {
 		return false, false
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"gopkg.in/yaml.v3"
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
 
@@ -404,6 +405,203 @@ func TestRemoveModels_Success(t *testing.T) {
 
 	// Clean up directory afterward
 	cleanConfDir(t, confDir)
+}
+
+// TestValidate_Configured_False tests the Validate function to invalidate a model that is already configured.
+func TestValidate_Configured_False(t *testing.T) {
+	// Setup config directory
+	confDir, initialConfigFile := setupConfigDir(t)
+	initialModels := []model.Model{getModel(0), getModel(1)}
+	err := setupConfigFile(initialConfigFile, initialModels)
+	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
+	err = Load(confDir)
+	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
+
+	// Init
+	modelToValidate := initialModels[0]
+
+	// Execute
+	valid := Validate(modelToValidate)
+
+	// Assert
+	test.AssertEqual(t, false, valid)
+
+	// Clean up config afterward
+	cleanConfDir(t, confDir)
+}
+
+// TestValidate_DownloadedAndBinaryFalse_ConfirmFalse tests the Validate function to invalidate a model that is downloaded.
+func TestValidate_DownloadedAndBinaryFalse_ConfirmFalse(t *testing.T) {
+	// Setup config directory
+	confDir, initialConfigFile := setupConfigDir(t)
+	err := setupConfigFile(initialConfigFile, []model.Model{})
+	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
+	err = Load(confDir)
+	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
+
+	// Create a temporary directory representing the model base path
+	modelName := path.Join("microsoft", "phi-2")
+	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
+	modelPath := path.Join(modelDirectory, "model")
+	err = os.MkdirAll(modelPath, 0750)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(app.DownloadDirectoryPath)
+
+	// Init
+	modelToValidate := getModel(0)
+	modelToValidate.AddToBinaryFile = false
+	modelToValidate.Name = modelName
+
+	// test "no" to the confirmation
+	app.SetUI(&test.MockUI{})
+	app.UI().(*test.MockUI).UserConfirmationResult = false
+
+	// Execute
+	valid := Validate(modelToValidate)
+
+	// Assert
+	test.AssertEqual(t, false, valid)
+
+	// Clean up config afterward
+	cleanConfDir(t, confDir)
+}
+
+// TestValidate_DownloadedAndBinaryFalse_ConfirmTrueAndRemove tests the Validate function to invalidate a model that is downloaded.
+func TestValidate_DownloadedAndBinaryFalse_ConfirmTrueAndRemove(t *testing.T) {
+	// Setup config directory
+	confDir, initialConfigFile := setupConfigDir(t)
+	err := setupConfigFile(initialConfigFile, []model.Model{})
+	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
+	err = Load(confDir)
+	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
+
+	// Create a temporary directory representing the model base path
+	modelName := path.Join("microsoft", "phi-2")
+	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
+	modelPath := path.Join(modelDirectory, "model")
+	err = os.MkdirAll(modelPath, 0750)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(app.DownloadDirectoryPath)
+
+	// Init
+	modelToValidate := getModel(0)
+	modelToValidate.AddToBinaryFile = false
+	modelToValidate.Name = modelName
+
+	// test "no" to the confirmation
+	app.SetUI(&test.MockUI{})
+	app.UI().(*test.MockUI).UserConfirmationResult = true
+
+	// Execute
+	valid := Validate(modelToValidate)
+
+	// Assert
+	exists, err := fileutil.IsExistingPath(modelName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	test.AssertEqual(t, true, valid)
+	test.AssertEqual(t, false, exists)
+
+	// Clean up config afterward
+	cleanConfDir(t, confDir)
+}
+
+// TestValidate_Downloaded_ConfirmFalse tests the Validate function to invalidate a model that is downloaded.
+func TestValidate_Downloaded_ConfirmFalse(t *testing.T) {
+	// Setup config directory
+	confDir, initialConfigFile := setupConfigDir(t)
+	err := setupConfigFile(initialConfigFile, []model.Model{})
+	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
+	err = Load(confDir)
+	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
+
+	// Create a temporary directory representing the model base path
+	modelName := path.Join("microsoft", "phi-2")
+	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
+	modelPath := path.Join(modelDirectory, "model")
+	err = os.MkdirAll(modelPath, 0750)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(app.DownloadDirectoryPath)
+
+	// Init
+	modelToValidate := getModel(0)
+	modelToValidate.AddToBinaryFile = true
+	modelToValidate.Name = modelName
+
+	// test "no" to the confirmation
+	app.SetUI(&test.MockUI{})
+	app.UI().(*test.MockUI).UserConfirmationResult = false
+
+	// Execute
+	valid := Validate(modelToValidate)
+
+	// Assert
+	test.AssertEqual(t, false, valid)
+
+	// Clean up config afterward
+	cleanConfDir(t, confDir)
+}
+
+// TestValidate_Downloaded_ConfirmTrue tests the Validate function to invalidate a model that is downloaded.
+func TestValidate_Downloaded_ConfirmTrue(t *testing.T) {
+	// Setup config directory
+	confDir, initialConfigFile := setupConfigDir(t)
+	err := setupConfigFile(initialConfigFile, []model.Model{})
+	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
+	err = Load(confDir)
+	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
+
+	// Create a temporary directory representing the model base path
+	modelName := path.Join("microsoft", "phi-2")
+	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
+	modelPath := path.Join(modelDirectory, "model")
+	err = os.MkdirAll(modelPath, 0750)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(app.DownloadDirectoryPath)
+
+	// Init
+	modelToValidate := getModel(0)
+	modelToValidate.AddToBinaryFile = true
+	modelToValidate.Name = modelName
+
+	// test "no" to the confirmation
+	app.SetUI(&test.MockUI{})
+	app.UI().(*test.MockUI).UserConfirmationResult = true
+
+	// Execute
+	valid := Validate(modelToValidate)
+
+	// Assert
+	exists, err := fileutil.IsExistingPath(modelName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	test.AssertEqual(t, true, valid)
+	test.AssertEqual(t, false, exists)
+
+	// Clean up config afterward
+	cleanConfDir(t, confDir)
+}
+
+// TestValidate_True tests the Validate function to invalidate a model that is downloaded.
+func TestValidate_True(t *testing.T) {
+	// Init
+	modelToValidate := getModel(0)
+
+	// Execute
+	valid := Validate(modelToValidate)
+
+	// Assert
+	test.AssertEqual(t, true, valid)
 }
 
 func TestModelExists_OnExistentModel(t *testing.T) {
