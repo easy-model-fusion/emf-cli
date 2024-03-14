@@ -125,27 +125,17 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	selectedModels = selectModelsToInstall(selectedModels, selectedModelNames)
 	app.UI().DisplaySelectedItems(selectedModelNames)
 
-	// Search for invalid models (Not configured but already downloaded,
-	// and for which the user refused to overwrite/delete)
-	invalidModels, err := searchForInvalidModels(selectedModels)
-	if err != nil {
-		pterm.Error.Println(err.Error())
-		return
-	}
-
-	// Indicate the models that were skipped and need to be treated manually
-	if len(invalidModels) > 0 {
-		pterm.Warning.Println("These model(s) are already downloaded "+
-			"and should be checked manually", model.GetNames(invalidModels))
-	}
-
-	// Exclude Invalid models
-	selectedModels = model.Difference(selectedModels, invalidModels)
-
 	// Download the models
 	var models []model.Model
 	var failedModels []model.Model
 	for _, currentModel := range selectedModels {
+
+		// Validate model for download
+		if !config.Validate(currentModel) {
+			failedModels = append(failedModels, currentModel)
+			continue
+		}
+
 		// Prepare the script arguments
 		downloaderArgs := downloader.Args{
 			ModelName:   currentModel.Name,
@@ -162,6 +152,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 			// Getting model configuration
 			result, success = model.GetConfig(currentModel, downloaderArgs)
 		}
+
 		if !success {
 			// Reset in case the download fails
 			currentModel.AddToBinaryFile = false
@@ -267,86 +258,4 @@ func selectModelsToInstall(models []model.Model, modelNames []string) []model.Mo
 	}
 
 	return updatedModels
-}
-
-// alreadyDownloadedModels this function returns models that are requested to be added but are already downloaded
-func alreadyDownloadedModels(models []model.Model) (downloadedModels []model.Model, err error) {
-	for _, currentModel := range models {
-
-		// Build paths
-		currentModel = model.ConstructConfigPaths(currentModel)
-
-		// Validate the model
-		downloaded, err := model.ModelDownloadedOnDevice(currentModel)
-		if err != nil {
-			return nil, err
-		}
-		if !downloaded {
-			continue
-		}
-
-		// Validate the tokenizer
-		if currentModel.Module == huggingface.TRANSFORMERS {
-
-		}
-		downloaded, err = model.ModelDownloadedOnDevice(currentModel)
-		if err != nil {
-			return nil, err
-		}
-		if !downloaded {
-			continue
-		}
-
-		downloadedModels = append(downloadedModels, currentModel)
-	}
-
-	return downloadedModels, nil
-}
-
-// processAlreadyDownloadedModels this function processes models that are requested to be added
-// Pre-condition the models are not in the configuration file but are already downloaded
-func processAlreadyDownloadedModels(downloadedModels []model.Model) (modelsToDelete []model.Model,
-	failedModels []model.Model) {
-	for _, currentModel := range downloadedModels {
-		var message string
-		if currentModel.AddToBinaryFile {
-			message = fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?", currentModel.Name)
-		} else {
-			message = fmt.Sprintf("This model %s is already downloaded do you wish to delete it?", currentModel.Name)
-		}
-		yes := app.UI().AskForUsersConfirmation(message)
-
-		if yes {
-			// If the user accepted the proposed action, the model will be deleted
-			modelsToDelete = append(modelsToDelete, currentModel)
-		} else {
-			// If the user refused the proposed action, there is nothing we can do
-			// and the model should be skipped and treated manually
-			failedModels = append(failedModels, currentModel)
-		}
-	}
-
-	return modelsToDelete, failedModels
-}
-
-// searchForInvalidModels this function returns models that
-// are already downloaded and need to be skipped and treated manually
-func searchForInvalidModels(models []model.Model) (invalidModels []model.Model, err error) {
-	alreadyDownloadModels, err := alreadyDownloadedModels(models)
-	if err != nil {
-		return nil, err
-	}
-
-	// Retrieve models which the user accepted/refused to delete
-	modelsToDelete, invalidModels := processAlreadyDownloadedModels(alreadyDownloadModels)
-
-	// Delete models which the user accepted to delete
-	for _, modelToDelete := range modelsToDelete {
-		err = config.RemoveModelPhysically(modelToDelete.Name)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return invalidModels, nil
 }

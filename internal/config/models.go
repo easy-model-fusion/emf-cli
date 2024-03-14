@@ -170,6 +170,51 @@ func RemoveModelsByNames(models []model.Model, modelsNamesToRemove []string) err
 	return nil
 }
 
+// Validate to validate a model before adding it.
+func Validate(current model.Model) bool {
+
+	// Check if model is already configured
+	models, err := GetModels()
+	if model.ContainsByName(models, current.Name) {
+		pterm.Warning.Printfln("Model '%s' is already configured", current.Name)
+		return false
+	}
+
+	// Build path for validation
+	current = model.ConstructConfigPaths(current)
+
+	// Validate the model : if model is already downloaded
+	downloaded, err := model.ModelDownloadedOnDevice(current, true)
+	if err != nil {
+		pterm.Error.Println(err)
+		return false
+	} else if downloaded && !current.AddToBinaryFile {
+		// Model won't be downloaded but a version is already downloaded
+		message := fmt.Sprintf("Model '%s' is already downloaded. Do you wish to delete it?", current.Name)
+		overwrite := app.UI().AskForUsersConfirmation(message)
+		if !overwrite {
+			pterm.Warning.Println("This model is already downloaded and should be checked manually", current.Name)
+			return false
+		}
+
+		// Removing model
+		err = RemoveModelPhysically(current.Name)
+		if err != nil {
+			return false
+		}
+	} else if downloaded {
+		// A version of the model is already downloaded
+		message := fmt.Sprintf("Model '%s' is already downloaded. Do you wish to overwrite it?", current.Name)
+		overwrite := app.UI().AskForUsersConfirmation(message)
+		if !overwrite {
+			pterm.Warning.Println("This model is already downloaded and should be checked manually", current.Name)
+			return false
+		}
+	}
+
+	return true
+}
+
 // GenerateExistingModelsPythonCode generates the python code for all the configured models
 func GenerateExistingModelsPythonCode() error {
 	// Get existing models
