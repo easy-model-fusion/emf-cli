@@ -8,13 +8,14 @@ import (
 	"strings"
 )
 
+type Models []Model
 type Model struct {
 	Name            string
 	Path            string
 	Module          huggingface.Module
 	Class           string
 	Options         map[string]string
-	Tokenizers      []Tokenizer
+	Tokenizers      Tokenizers
 	PipelineTag     huggingface.PipelineTag
 	Source          string
 	AddToBinaryFile bool
@@ -22,6 +23,7 @@ type Model struct {
 	Version         string
 }
 
+type Tokenizers []Tokenizer
 type Tokenizer struct {
 	Path    string
 	Class   string
