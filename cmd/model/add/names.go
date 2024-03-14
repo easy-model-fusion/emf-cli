@@ -49,7 +49,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	}
 
 	var selectedModelNames []string
-	var selectedModels []model.Model
+	var selectedModels model.Models
 
 	// Add models passed in args
 	if len(args) > 0 {
@@ -63,7 +63,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 		// Fetching the requested models
 		for _, name := range args {
 			// Verify if model already exists in the project
-			exist := model.ContainsByName(existingModels, name)
+			exist := existingModels.ContainsByName(name)
 			if exist {
 				// Model already exists : skipping to the next one
 				existingModelNames = append(existingModelNames, name)
@@ -79,7 +79,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 				continue
 			}
 			// Map API response to model.Model
-			modelMapped := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+			modelMapped := model.FromHuggingfaceModel(huggingfaceModel)
 			// Saving the model data in the variables
 			selectedModels = append(selectedModels, modelMapped)
 		}
@@ -119,15 +119,15 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	}
 
 	// Get all selected models names
-	selectedModelNames = model.GetNames(selectedModels)
+	selectedModelNames = selectedModels.GetNames()
 
 	// User choose the models he wishes to install now
 	selectedModels = selectModelsToInstall(selectedModels, selectedModelNames)
 	app.UI().DisplaySelectedItems(selectedModelNames)
 
 	// Download the models
-	var models []model.Model
-	var failedModels []model.Model
+	var models model.Models
+	var failedModels model.Models
 	for _, currentModel := range selectedModels {
 
 		// Validate model for download
@@ -143,14 +143,13 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 			ModelClass:  currentModel.Class,
 		}
 
-		var result model.Model
 		var success bool
 		if currentModel.AddToBinaryFile {
 			// Downloading model
-			result, success = model.Download(currentModel, downloaderArgs)
+			success = currentModel.Download(downloaderArgs)
 		} else {
 			// Getting model configuration
-			result, success = model.GetConfig(currentModel, downloaderArgs)
+			success = currentModel.GetConfig(downloaderArgs)
 		}
 
 		if !success {
@@ -158,17 +157,17 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 			currentModel.AddToBinaryFile = false
 			failedModels = append(failedModels, currentModel)
 		} else {
-			models = append(models, result)
+			models = append(models, currentModel)
 		}
 	}
 
 	// Indicate models that failed to download
-	if !model.Empty(failedModels) {
-		pterm.Error.Println("These models couldn't be downloaded", model.GetNames(failedModels))
+	if !failedModels.Empty() {
+		pterm.Error.Println("These models couldn't be downloaded", failedModels.GetNames())
 		return
 	}
 	// No models were downloaded : stopping there
-	if model.Empty(models) {
+	if models.Empty() {
 		pterm.Info.Println("There isn't any model to add to the configuration file.")
 		return
 	}
@@ -193,9 +192,9 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 }
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project
-func selectModels(tags []string, currentSelectedModels []model.Model, existingModels []model.Model) ([]model.Model, error) {
+func selectModels(tags []string, currentSelectedModels model.Models, existingModels model.Models) (model.Models, error) {
 	spinner := app.UI().StartSpinner("Listing all models with selected tags...")
-	var allModelsWithTags []model.Model
+	var allModelsWithTags model.Models
 	// Get list of models with current tags
 	for _, tag := range tags {
 		huggingfaceModels, err := app.H().GetModelsByPipelineTag(huggingface.PipelineTag(tag), 0)
@@ -203,10 +202,10 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 			spinner.Fail(fmt.Sprintf("Error while fetching the models from hugging face api: %s", err))
 			return nil, fmt.Errorf("error while calling api endpoint")
 		}
-		// Map API responses to []model.Model
-		var mappedModels []model.Model
+		// Map API responses to model.Models
+		var mappedModels model.Models
 		for _, huggingfaceModel := range huggingfaceModels {
-			mappedModel := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+			mappedModel := model.FromHuggingfaceModel(huggingfaceModel)
 			mappedModels = append(mappedModels, mappedModel)
 		}
 		allModelsWithTags = append(allModelsWithTags, mappedModels...)
@@ -215,10 +214,10 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 
 	// Excluding models entered in args + configuration file models
 	modelsToExclude := append(currentSelectedModels, existingModels...)
-	availableModels := model.Difference(allModelsWithTags, modelsToExclude)
+	availableModels := allModelsWithTags.Difference(modelsToExclude)
 
 	// Build a multiselect with each model name
-	availableModelNames := model.GetNames(availableModels)
+	availableModelNames := availableModels.GetNames()
 	message := "Please select the model(s) to be added"
 	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
 	selectedModelNames := app.UI().DisplayInteractiveMultiselect(message, availableModelNames, checkMark, false, true)
@@ -229,7 +228,7 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 	}
 
 	// Get newly selected models
-	selectedModels := model.GetModelsByNames(availableModels, selectedModelNames)
+	selectedModels := availableModels.FilterWithNames(selectedModelNames)
 
 	// returns newly selected models + models entered in args
 	return append(currentSelectedModels, selectedModels...), nil
@@ -246,12 +245,12 @@ func selectTags() []string {
 }
 
 // selectModelsToInstall returns updated models objects with excluded/included from binary
-func selectModelsToInstall(models []model.Model, modelNames []string) []model.Model {
+func selectModelsToInstall(models model.Models, modelNames []string) model.Models {
 	// Build a multiselect with each selected model name to exclude/include in the binary
 	message := "Please select the model(s) to install later"
 	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Blue("-")}
 	installsToExclude := app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false, false)
-	var updatedModels []model.Model
+	var updatedModels model.Models
 	for _, currentModel := range models {
 		currentModel.AddToBinaryFile = !stringutil.SliceContainsItem(installsToExclude, currentModel.Name)
 		updatedModels = append(updatedModels, currentModel)

@@ -62,7 +62,7 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		return
 	}
 	// Map API response to model.Model
-	modelObj := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+	modelObj := model.FromHuggingfaceModel(huggingfaceModel)
 
 	// Validate model for download
 	modelObj.AddToBinaryFile = true
@@ -88,15 +88,14 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	}
 
 	// Downloading model
-	var success bool
-	modelObj, success = model.Download(modelObj, addCustomDownloaderArgs)
+	success := modelObj.Download(addCustomDownloaderArgs)
 	if !success {
 		modelObj.AddToBinaryFile = false
 	}
 
 	// Add models to configuration file
 	spinner := app.UI().StartSpinner("Writing model to configuration file...")
-	err = config.AddModels([]model.Model{modelObj})
+	err = config.AddModels(model.Models{modelObj})
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the model to the configuration file: %s", err))
 	} else {

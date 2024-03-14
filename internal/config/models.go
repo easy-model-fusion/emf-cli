@@ -180,16 +180,16 @@ func Validate(current model.Model) bool {
 		return false
 	}
 
-	if model.ContainsByName(models, current.Name) {
+	if models.ContainsByName(current.Name) {
 		pterm.Warning.Printfln("Model '%s' is already configured", current.Name)
 		return false
 	}
 
 	// Build path for validation
-	current = model.ConstructConfigPaths(current)
+	current.UpdatePaths()
 
 	// Validate the model : if model is already downloaded
-	downloaded, err := model.ModelDownloadedOnDevice(current, true)
+	downloaded, err := current.DownloadedOnDevice(true)
 	if err != nil {
 		pterm.Error.Println(err)
 		return false
