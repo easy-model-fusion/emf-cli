@@ -247,6 +247,19 @@ func TestGetModelsWithAddToBinaryFileTrue_Success(t *testing.T) {
 	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
 }
 
+// TestGetBasePath tests the GetBasePath to return the correct base path to the model.
+func TestGetBasePath(t *testing.T) {
+	// Init
+	modelName := "name"
+	model := Model{Name: modelName}
+
+	// Execute
+	basePath := GetBasePath(model)
+
+	// Assert
+	test.AssertEqual(t, basePath, path.Join(app.DownloadDirectoryPath, model.Name))
+}
+
 // TestConstructConfigPaths_Default tests the ConstructConfigPaths for a default model.
 func TestConstructConfigPaths_Default(t *testing.T) {
 	// Init
@@ -493,7 +506,7 @@ func TestModelDownloadedOnDevice_FalseMissing(t *testing.T) {
 	model.Path = ""
 
 	// Execute
-	exists, err := ModelDownloadedOnDevice(model)
+	exists, err := ModelDownloadedOnDevice(model, false)
 
 	// Assert
 	test.AssertEqual(t, err, nil)
@@ -514,7 +527,7 @@ func TestModelDownloadedOnDevice_FalseEmpty(t *testing.T) {
 	model.Path = modelDirectory
 
 	// Execute
-	exists, err := ModelDownloadedOnDevice(model)
+	exists, err := ModelDownloadedOnDevice(model, false)
 
 	// Assert
 	test.AssertEqual(t, err, nil)
@@ -542,7 +555,31 @@ func TestModelDownloadedOnDevice_True(t *testing.T) {
 	model.Path = modelDirectory
 
 	// Execute
-	exists, err := ModelDownloadedOnDevice(model)
+	exists, err := ModelDownloadedOnDevice(model, false)
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, true)
+}
+
+// TestModelDownloadedOnDevice_UseBasePath_True tests the ModelDownloadedOnDevice function to return true.
+func TestModelDownloadedOnDevice_UseBasePath_True(t *testing.T) {
+	// Create a temporary directory representing the model base path
+	modelName := path.Join("microsoft", "phi-2")
+	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
+	modelPath := path.Join(modelDirectory, "model")
+	err := os.MkdirAll(modelPath, 0750)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(app.DownloadDirectoryPath)
+
+	// Init
+	model := getModel(0)
+	model.Name = modelName
+
+	// Execute
+	exists, err := ModelDownloadedOnDevice(model, true)
 
 	// Assert
 	test.AssertEqual(t, err, nil)
