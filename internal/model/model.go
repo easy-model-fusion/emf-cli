@@ -73,8 +73,8 @@ func (m Models) Union(slice Models) Models {
 	return union
 }
 
-// ToMap creates a map from models for faster lookup.
-func (m Models) ToMap() map[string]Model {
+// Map creates a map from models for faster lookup.
+func (m Models) Map() map[string]Model {
 	modelsMap := make(map[string]Model)
 	for _, current := range m {
 		modelsMap[current.Name] = current
@@ -82,8 +82,8 @@ func (m Models) ToMap() map[string]Model {
 	return modelsMap
 }
 
-// ToMap creates a map from tokenizers for faster lookup.
-func (t Tokenizers) ToMap() map[string]Tokenizer {
+// Map creates a map from tokenizers for faster lookup.
+func (t Tokenizers) Map() map[string]Tokenizer {
 	tokenizersMap := make(map[string]Tokenizer)
 	for _, current := range t {
 		tokenizersMap[current.Class] = current

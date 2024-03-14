@@ -127,8 +127,8 @@ func TestUnion(t *testing.T) {
 	test.AssertEqual(t, len(expected), len(union), "Lengths should be equal.")
 }
 
-// TestToMap_Success tests the Models.ToMap function to return a map from a slice of models.
-func TestToMap_Success(t *testing.T) {
+// TestMap_Success tests the Models.Map function to return a map from a slice of models.
+func TestMap_Success(t *testing.T) {
 	// Init
 	models := GetModels(3)
 	expected := map[string]Model{
@@ -138,7 +138,7 @@ func TestToMap_Success(t *testing.T) {
 	}
 
 	// Execute
-	result := models.ToMap()
+	result := models.Map()
 
 	// Check if lengths match
 	test.AssertEqual(t, len(result), len(expected), "Lengths of maps do not match")
@@ -150,8 +150,8 @@ func TestToMap_Success(t *testing.T) {
 	}
 }
 
-// TestTokenizer_ToMap_Success tests the Tokenizers.ToMap function to return a map from a slice of tokenizers.
-func TestTokenizer_ToMap_Success(t *testing.T) {
+// TestTokenizer_Map_Success tests the Tokenizers.Map function to return a map from a slice of tokenizers.
+func TestTokenizer_Map_Success(t *testing.T) {
 	// Init
 	model := GetModel(0)
 	model.Tokenizers = GetTokenizers(3)
@@ -162,7 +162,7 @@ func TestTokenizer_ToMap_Success(t *testing.T) {
 	}
 
 	// Execute
-	result := model.Tokenizers.ToMap()
+	result := model.Tokenizers.Map()
 
 	// Check if lengths match
 	test.AssertEqual(t, len(result), len(expected), "Lengths of maps do not match")

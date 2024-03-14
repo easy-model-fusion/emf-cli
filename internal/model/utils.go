@@ -291,7 +291,7 @@ func (m *Model) Update(mapConfigModels map[string]Model) bool {
 	if len(tokenizerNames) > 0 {
 
 		// Bind the model tokenizers to a map for faster lookup
-		mapModelTokenizers := m.Tokenizers.ToMap()
+		mapModelTokenizers := m.Tokenizers.Map()
 
 		var failedTokenizers []string
 		for _, tokenizerName := range tokenizerNames {
