@@ -5,6 +5,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
@@ -12,67 +13,85 @@ import (
 	"path"
 )
 
-// ConstructConfigPaths to update the model's path to elements accordingly to its configuration.
-func (m *Model) ConstructConfigPaths() {
-	basePath := path.Join(app.DownloadDirectoryPath, m.Name)
-	modelPath := basePath
-	if m.Module == huggingface.TRANSFORMERS {
-		modelPath = path.Join(modelPath, "model")
-		for i, tokenizer := range m.Tokenizers {
-			m.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
-		}
+// DownloadedOnDevice returns true if the model is physically present on the device.
+func (m *Model) DownloadedOnDevice() (bool, error) {
+
+	// Check if model is already downloaded
+	downloaded, err := fileutil.IsExistingPath(m.Path)
+	if err != nil {
+		// An error occurred
+		return false, err
+	} else if !downloaded {
+		// Model is not downloaded on the device
+		return false, nil
 	}
-	m.Path = modelPath
+
+	// Check if the model directory is empty
+	empty, err := fileutil.IsDirectoryEmpty(m.Path)
+	if err != nil {
+		// An error occurred
+		return false, err
+	} else if empty {
+		// Model is not downloaded on the device
+		return false, nil
+	}
+
+	// Model is downloaded on the device
+	return true, nil
 }
 
-// FromDownloaderModel maps data from downloader.Model to Model and keeps unchanged properties of Model.
-func (m *Model) FromDownloaderModel(dlModel downloader.Model) {
+// DownloadedOnDevice returns true if the tokenizer is physically present on the device.
+func (t *Tokenizer) DownloadedOnDevice() (bool, error) {
 
-	// Check if ScriptModel is valid
-	if !downloader.EmptyModel(dlModel) {
-		m.Path = stringutil.PathUniformize(dlModel.Path)
-		m.Module = huggingface.Module(dlModel.Module)
-		m.Class = dlModel.Class
-		m.Options = dlModel.Options
+	// Check if model is already downloaded
+	downloaded, err := fileutil.IsExistingPath(t.Path)
+	if err != nil {
+		// An error occurred
+		return false, err
+	} else if !downloaded {
+		// Model is not downloaded on the device
+		return false, nil
 	}
 
-	// Check if ScriptTokenizer is valid
-	if !downloader.EmptyTokenizer(dlModel.Tokenizer) {
-
-		// Mapping to tokenizer
-		var tokenizer Tokenizer
-		tokenizer.Path = stringutil.PathUniformize(dlModel.Tokenizer.Path)
-		tokenizer.Class = dlModel.Tokenizer.Class
-		tokenizer.Options = dlModel.Tokenizer.Options
-
-		// Check if tokenizer already configured and replace it
-		var replaced bool
-		for i := range m.Tokenizers {
-			if m.Tokenizers[i].Class == tokenizer.Class {
-				m.Tokenizers[i] = tokenizer
-				replaced = true
-			}
-		}
-
-		// Tokenizer was already found and replaced : nothing to append
-		if replaced {
-			return
-		}
-
-		// Tokenizer not found : adding it to the list
-		m.Tokenizers = append(m.Tokenizers, tokenizer)
+	// Check if the model directory is empty
+	empty, err := fileutil.IsDirectoryEmpty(t.Path)
+	if err != nil {
+		// An error occurred
+		return false, err
+	} else if empty {
+		// Model is not downloaded on the device
+		return false, nil
 	}
+
+	// Model is downloaded on the device
+	return true, nil
 }
 
-// FromHuggingfaceModel map the Huggingface API huggingface.Model to a Model
-func FromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
-	var model Model
-	model.Name = huggingfaceModel.Name
-	model.PipelineTag = huggingfaceModel.PipelineTag
-	model.Module = huggingfaceModel.LibraryName
-	model.Source = HUGGING_FACE
-	model.Version = huggingfaceModel.LastModified
-	return model
+// GetTokenizersNotDownloadedOnDevice returns the list of tokenizers that should but are not physically present on the device.
+func (m *Model) GetTokenizersNotDownloadedOnDevice() Tokenizers {
+
+	// Model can't have any tokenizer
+	if m.Module != huggingface.TRANSFORMERS {
+		return Tokenizers{}
+	}
+
+	// Processing the configured tokenizers
+	var notDownloadedTokenizers Tokenizers
+	for _, tokenizer := range m.Tokenizers {
+
+		// Check if tokenizer is already downloaded
+		downloaded, err := tokenizer.DownloadedOnDevice()
+		if err != nil {
+			// An error occurred
+			continue
+		} else if !downloaded {
+			// Tokenizer is not downloaded on the device
+			notDownloadedTokenizers = append(notDownloadedTokenizers, tokenizer)
+			continue
+		}
+	}
+
+	return notDownloadedTokenizers
 }
 
 // BuildModelsFromDevice builds a slice of models recovered from the device folders.
@@ -178,63 +197,15 @@ func BuildModelsFromDevice() Models {
 	return models
 }
 
-// GetConfig attempts to get the model's configuration
-func (m *Model) GetConfig(downloaderArgs downloader.Args) bool {
-	// Add OnlyConfiguration flag to the command
-	downloaderArgs.OnlyConfiguration = true
-
-	// Running the script
-	dlModel, err := downloader.Execute(downloaderArgs)
-
-	// Something went wrong or no data has been returned
-	if err != nil || dlModel.IsEmpty {
-		return false
-	}
-
-	// Update the model for the configuration file
-	m.FromDownloaderModel(dlModel)
-
-	return true
-}
-
-// Download attempts to download the model
-func (m *Model) Download(downloaderArgs downloader.Args) bool {
-	// Running the script
-	dlModel, err := downloader.Execute(downloaderArgs)
-
-	// Something went wrong or no data has been returned
-	if err != nil || dlModel.IsEmpty {
-		return false
-	}
-
-	// Update the model for the configuration file
-	m.FromDownloaderModel(dlModel)
-	m.AddToBinaryFile = !downloaderArgs.OnlyConfiguration
-	m.IsDownloaded = !downloaderArgs.OnlyConfiguration
-
-	return true
-}
-
-// DownloadTokenizer attempts to download the tokenizer
-func (m *Model) DownloadTokenizer(tokenizer Tokenizer, downloaderArgs downloader.Args) bool {
-
-	// Building downloader args for the tokenizer
-	downloaderArgs.Skip = downloader.SkipValueModel
-	downloaderArgs.TokenizerClass = tokenizer.Class
-	downloaderArgs.TokenizerOptions = stringutil.OptionsMapToSlice(tokenizer.Options)
-
-	// Running the script for the tokenizer only
-	dlModel, err := downloader.Execute(downloaderArgs)
-
-	// Something went wrong or no data has been returned
-	if err != nil || dlModel.IsEmpty {
-		return false
-	}
-
-	// Update the model with the tokenizer for the configuration file
-	m.FromDownloaderModel(dlModel)
-
-	return true
+// FromHuggingfaceModel map the Huggingface API huggingface.Model to a Model
+func FromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
+	var model Model
+	model.Name = huggingfaceModel.Name
+	model.PipelineTag = huggingfaceModel.PipelineTag
+	model.Module = huggingfaceModel.LibraryName
+	model.Source = HUGGING_FACE
+	model.Version = huggingfaceModel.LastModified
+	return model
 }
 
 // Update attempts to update the model
@@ -244,7 +215,7 @@ func (m *Model) Update(mapConfigModels map[string]Model) bool {
 	_, configured := mapConfigModels[m.Name]
 
 	// Check if model is physically present on the device
-	m.ConstructConfigPaths()
+	m.UpdatePaths()
 	downloaded, err := m.DownloadedOnDevice()
 	if err != nil {
 		return false
@@ -349,7 +320,7 @@ func (m *Model) Update(mapConfigModels map[string]Model) bool {
 func (m *Model) TidyConfiguredModel() (bool, bool) {
 
 	// Check if model is physically present on the device
-	m.ConstructConfigPaths()
+	m.UpdatePaths()
 	downloaded, err := m.DownloadedOnDevice()
 	if err != nil {
 		return false, false

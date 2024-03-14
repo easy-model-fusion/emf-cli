@@ -2,8 +2,9 @@ package model
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
+	"github.com/pterm/pterm"
 	"os"
 	"path"
 	"path/filepath"
@@ -12,226 +13,204 @@ import (
 	"github.com/easy-model-fusion/emf-cli/test"
 )
 
-// TestConstructConfigPaths_Default tests the ConstructConfigPaths for a default model.
-func TestConstructConfigPaths_Default(t *testing.T) {
+// TestDownloadedOnDevice_FalseMissing tests the Model.DownloadedOnDevice function to return false upon missing.
+func TestDownloadedOnDevice_FalseMissing(t *testing.T) {
 	// Init
 	model := GetModel(0)
+	model.Path = ""
 
 	// Execute
-	model.ConstructConfigPaths()
+	exists, err := model.DownloadedOnDevice()
 
 	// Assert
-	test.AssertEqual(t, model.Path, path.Join(app.DownloadDirectoryPath, model.Name))
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, false)
 }
 
-// TestConstructConfigPaths_Transformers tests the ConstructConfigPaths for a transformers model.
-func TestConstructConfigPaths_Transformers(t *testing.T) {
+// TestDownloadedOnDevice_FalseEmpty tests the Model.DownloadedOnDevice function to return false upon empty.
+func TestDownloadedOnDevice_FalseEmpty(t *testing.T) {
+	// Create a temporary directory representing the model base path
+	modelDirectory, err := os.MkdirTemp("", "modelDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(modelDirectory)
+
+	// Init
+	model := GetModel(0)
+	model.Path = modelDirectory
+
+	// Execute
+	exists, err := model.DownloadedOnDevice()
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, false)
+}
+
+// TestDownloadedOnDevice_True tests the Model.DownloadedOnDevice function to return true.
+func TestDownloadedOnDevice_True(t *testing.T) {
+	// Create a temporary directory representing the model base path
+	modelDirectory, err := os.MkdirTemp("", "modelDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(modelDirectory)
+
+	// Create temporary file inside the model base path
+	file, err := os.CreateTemp(modelDirectory, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fileutil.CloseFile(file)
+
+	// Init
+	model := GetModel(0)
+	model.Path = modelDirectory
+
+	// Execute
+	exists, err := model.DownloadedOnDevice()
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, true)
+}
+
+// TestTokenizer_DownloadedOnDevice_FalseMissing tests the Tokenizer.DownloadedOnDevice function to return false upon missing.
+func TestTokenizer_DownloadedOnDevice_FalseMissing(t *testing.T) {
+	// Init
+	tokenizer := Tokenizer{Path: ""}
+
+	// Execute
+	exists, err := tokenizer.DownloadedOnDevice()
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, false)
+}
+
+// TestTokenizer_DownloadedOnDevice_FalseEmpty tests the Tokenizer.DownloadedOnDevice function to return false upon empty.
+func TestTokenizer_DownloadedOnDevice_FalseEmpty(t *testing.T) {
+	// Create a temporary directory representing the model base path
+	modelDirectory, err := os.MkdirTemp("", "modelDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(modelDirectory)
+
+	// Create a temporary directory representing the tokenizer path
+	tokenizerDirectory, err := os.MkdirTemp(modelDirectory, "tokenizerDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Init
+	tokenizer := Tokenizer{Path: tokenizerDirectory}
+
+	// Execute
+	exists, err := tokenizer.DownloadedOnDevice()
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, false)
+}
+
+// TestTokenizer_DownloadedOnDevice_True tests the Tokenizer.DownloadedOnDevice function to return true.
+func TestTokenizer_DownloadedOnDevice_True(t *testing.T) {
+	// Create a temporary directory representing the model base path
+	modelDirectory, err := os.MkdirTemp("", "modelDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(modelDirectory)
+
+	// Create a temporary directory representing the tokenizer path
+	tokenizerDirectory, err := os.MkdirTemp(modelDirectory, "tokenizerDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create temporary file inside the tokenizer path
+	file, err := os.CreateTemp(tokenizerDirectory, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fileutil.CloseFile(file)
+
+	// Init
+	tokenizer := Tokenizer{Path: tokenizerDirectory}
+
+	// Execute
+	exists, err := tokenizer.DownloadedOnDevice()
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, true)
+}
+
+// TestGetTokenizersNotDownloadedOnDevice_NotTransformers tests the Model.GetTokenizersNotDownloadedOnDevice function while not using a transformer model.
+func TestGetTokenizersNotDownloadedOnDevice_NotTransformers(t *testing.T) {
+	// Init
+	model := GetModel(0)
+	model.Module = huggingface.DIFFUSERS
+
+	// Execute
+	var expected Tokenizers
+	result := model.GetTokenizersNotDownloadedOnDevice()
+
+	// Assert
+	test.AssertEqual(t, len(result), len(expected))
+}
+
+// TestGetTokenizersNotDownloadedOnDevice_Missing tests the Model.GetTokenizersNotDownloadedOnDevice function with no missing tokenizer.
+func TestGetTokenizersNotDownloadedOnDevice_Missing(t *testing.T) {
 	// Init
 	model := GetModel(0)
 	model.Module = huggingface.TRANSFORMERS
+	model.Tokenizers = Tokenizers{{Path: "tokenizer"}}
 
 	// Execute
-	model.ConstructConfigPaths()
+	expected := model.Tokenizers
+	result := model.GetTokenizersNotDownloadedOnDevice()
 
 	// Assert
-	test.AssertEqual(t, model.Path, path.Join(app.DownloadDirectoryPath, model.Name, "model"))
+	test.AssertEqual(t, len(result), len(expected))
 }
 
-// TestConstructConfigPaths_Transformers tests the ConstructConfigPaths for a transformers model.
-func TestConstructConfigPaths_TransformersTokenizers(t *testing.T) {
+// TestGetTokenizersNotDownloadedOnDevice_NotMissing tests the Model.GetTokenizersNotDownloadedOnDevice function with missing tokenizers.
+func TestGetTokenizersNotDownloadedOnDevice_NotMissing(t *testing.T) {
+	// Create a temporary directory representing the model base path
+	modelDirectory, err := os.MkdirTemp("", "modelDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(modelDirectory)
+
+	// Create a temporary directory representing the tokenizer path
+	tokenizerDirectory, err := os.MkdirTemp(modelDirectory, "tokenizerDirectory")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create temporary file inside the tokenizer path
+	file, err := os.CreateTemp(tokenizerDirectory, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fileutil.CloseFile(file)
+
 	// Init
 	model := GetModel(0)
 	model.Module = huggingface.TRANSFORMERS
-	model.Tokenizers = []Tokenizer{{Class: "tokenizer"}}
+	model.Tokenizers = Tokenizers{{Path: tokenizerDirectory}}
 
 	// Execute
-	model.ConstructConfigPaths()
+	var expected Tokenizers
+	result := model.GetTokenizersNotDownloadedOnDevice()
 
 	// Assert
-	test.AssertEqual(t, model.Tokenizers[0].Path, path.Join(app.DownloadDirectoryPath, model.Name, "tokenizer"))
+	test.AssertEqual(t, len(result), len(expected))
 }
-
-// TestMapToModelFromDownloaderModel_Empty tests the MapToModelFromDownloaderModel to return the correct Model.
-func TestMapToModelFromDownloaderModel_Empty(t *testing.T) {
-	// Init
-	downloaderModel := downloader.Model{
-		Path:    "",
-		Module:  "",
-		Class:   "",
-		Options: map[string]string{},
-		Tokenizer: downloader.Tokenizer{
-			Path:    "",
-			Class:   "",
-			Options: map[string]string{},
-		},
-	}
-	expected := Model{
-		Path:   "/path/to/model",
-		Module: "module_name",
-		Class:  "class_name",
-		Options: map[string]string{
-			"option1": "true",
-			"option2": "'text'",
-		},
-		Tokenizers: Tokenizers{
-			{
-				Path:  "/path/to/tokenizer",
-				Class: "tokenizer_class",
-				Options: map[string]string{
-					"option1": "true",
-					"option2": "'text'",
-				},
-			},
-		},
-	}
-	input := expected
-
-	// Execute
-	input.FromDownloaderModel(downloaderModel)
-
-	// Assert
-	test.AssertEqual(t, expected.Path, input.Path)
-	test.AssertEqual(t, expected.Module, input.Module)
-	test.AssertEqual(t, expected.Class, input.Class)
-	test.AssertEqual(t, len(expected.Options), len(input.Options))
-	test.AssertEqual(t, len(expected.Tokenizers), len(input.Tokenizers))
-	test.AssertEqual(t, expected.Tokenizers[0].Path, input.Tokenizers[0].Path)
-	test.AssertEqual(t, expected.Tokenizers[0].Class, input.Tokenizers[0].Class)
-	test.AssertEqual(t, len(expected.Tokenizers[0].Options), len(input.Tokenizers[0].Options))
-}
-
-// TestMapToModelFromDownloaderModel_Fill tests the MapToModelFromDownloaderModel to return the correct Model.
-func TestMapToModelFromDownloaderModel_Fill(t *testing.T) {
-	// Init
-	downloaderModel := downloader.Model{
-		Path:   "/path/to/model",
-		Module: "module_name",
-		Class:  "class_name",
-		Options: map[string]string{
-			"option1": "true",
-			"option2": "'text'",
-		},
-		Tokenizer: downloader.Tokenizer{
-			Path:  "/path/to/tokenizer",
-			Class: "tokenizer_class",
-			Options: map[string]string{
-				"option1": "true",
-				"option2": "'text'",
-			},
-		},
-	}
-	expected := Model{
-		Path:   filepath.Clean("/path/to/model"),
-		Module: "module_name",
-		Class:  "class_name",
-		Options: map[string]string{
-			"option1": "true",
-			"option2": "'text'",
-		},
-		Tokenizers: []Tokenizer{
-			{
-				Path:  filepath.Clean("/path/to/tokenizer"),
-				Class: "tokenizer_class",
-				Options: map[string]string{
-					"option1": "true",
-					"option2": "'text'",
-				},
-			},
-		},
-	}
-	input := Model{}
-
-	// Execute
-	input.FromDownloaderModel(downloaderModel)
-
-	// Assert
-	test.AssertEqual(t, expected.Path, input.Path)
-	test.AssertEqual(t, expected.Module, input.Module)
-	test.AssertEqual(t, expected.Class, input.Class)
-	test.AssertEqual(t, len(expected.Options), len(input.Options))
-	test.AssertEqual(t, len(expected.Tokenizers), len(input.Tokenizers))
-	test.AssertEqual(t, expected.Tokenizers[0].Path, input.Tokenizers[0].Path)
-	test.AssertEqual(t, expected.Tokenizers[0].Class, input.Tokenizers[0].Class)
-	test.AssertEqual(t, len(expected.Tokenizers[0].Options), len(input.Tokenizers[0].Options))
-}
-
-// TestMapToModelFromDownloaderModel_ReplaceTokenizer tests the MapToModelFromDownloaderModel to return the correct Model.
-func TestMapToModelFromDownloaderModel_ReplaceTokenizer(t *testing.T) {
-	// Init
-	downloaderModel := downloader.Model{
-		Path:    "/path/to/model",
-		Module:  "module_name",
-		Class:   "class_name",
-		Options: map[string]string{},
-		Tokenizer: downloader.Tokenizer{
-			Path:  "/path/to/tokenizer",
-			Class: "tokenizer_class",
-			Options: map[string]string{
-				"option1": "true",
-				"option2": "'text'",
-			},
-		},
-	}
-	input := Model{
-		Path:    filepath.Clean("/path/to/model"),
-		Module:  "module_name",
-		Class:   "class_name",
-		Options: map[string]string{},
-		Tokenizers: []Tokenizer{
-			{
-				Path:    "",
-				Class:   "",
-				Options: map[string]string{},
-			},
-		},
-	}
-	expected := input
-	expected.Tokenizers[0].Path = downloaderModel.Tokenizer.Path
-	expected.Tokenizers[0].Class = downloaderModel.Tokenizer.Class
-	expected.Tokenizers[0].Options = downloaderModel.Tokenizer.Options
-
-	// Execute
-	input.FromDownloaderModel(downloaderModel)
-
-	// Assert
-	test.AssertEqual(t, expected.Path, input.Path)
-	test.AssertEqual(t, expected.Module, input.Module)
-	test.AssertEqual(t, expected.Class, input.Class)
-	test.AssertEqual(t, len(expected.Options), len(input.Options))
-	test.AssertEqual(t, len(expected.Tokenizers), len(input.Tokenizers))
-	test.AssertEqual(t, expected.Tokenizers[0].Path, input.Tokenizers[0].Path)
-	test.AssertEqual(t, expected.Tokenizers[0].Class, input.Tokenizers[0].Class)
-	test.AssertEqual(t, len(expected.Tokenizers[0].Options), len(input.Tokenizers[0].Options))
-}
-
-// TestMapToTokenizerFromDownloaderTokenizer_Success tests the MapToTokenizerFromDownloaderTokenizer to return the correct Tokenizer.
-/*func TestMapToTokenizerFromDownloaderTokenizer_Success(t *testing.T) {
-	// Init
-	downloaderTokenizer := downloader.Tokenizer{
-		Path:  "/path/to/tokenizer",
-		Class: "tokenizer_class",
-		Options: map[string]string{
-			"option1": "true",
-			"option2": "'text'",
-		},
-	}
-	expected := Tokenizer{
-		Path:  filepath.Clean("/path/to/tokenizer"),
-		Class: "tokenizer_class",
-		Options: map[string]string{
-			"option1": "true",
-			"option2": "'text'",
-		},
-	}
-
-	// Execute
-	result := MapToTokenizerFromDownloaderTokenizer(downloaderTokenizer)
-
-	// Assert
-	test.AssertEqual(t, expected.Path, result.Path)
-	test.AssertEqual(t, expected.Class, result.Class)
-	test.AssertEqual(t, len(expected.Options), len(result.Options))
-}*/
 
 // TestBuildModelsFromDevice_Custom tests the BuildModelsFromDevice function to work for custom configured models.
 func TestBuildModelsFromDevice_Custom(t *testing.T) {
@@ -337,4 +316,24 @@ func TestBuildModelsFromDevice_HuggingfaceTransformers(t *testing.T) {
 	test.AssertEqual(t, len(models[0].Tokenizers), 1)
 	test.AssertEqual(t, models[0].Tokenizers[0].Path, tokenizerDirectory)
 
+}
+
+// TestFromHuggingfaceModel_Success tests the FromHuggingfaceModel to return the correct Model.
+func TestFromHuggingfaceModel_Success(t *testing.T) {
+	// Init
+	huggingfaceModel := huggingface.Model{
+		Name:        "name",
+		PipelineTag: "pipeline",
+		LibraryName: "library",
+	}
+
+	// Execute
+	model := FromHuggingfaceModel(huggingfaceModel)
+
+	pterm.Info.Println(model.Module)
+	// Assert
+	test.AssertEqual(t, model.Name, huggingfaceModel.Name)
+	test.AssertEqual(t, model.PipelineTag, huggingfaceModel.PipelineTag)
+	test.AssertEqual(t, model.Module, huggingfaceModel.LibraryName)
+	test.AssertEqual(t, model.Source, HUGGING_FACE)
 }

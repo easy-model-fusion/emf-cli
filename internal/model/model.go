@@ -1,9 +1,10 @@
 package model
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
+	"path"
 )
 
 type Models []Model
@@ -19,6 +20,13 @@ type Model struct {
 	AddToBinaryFile bool
 	IsDownloaded    bool
 	Version         string
+}
+
+type Tokenizers []Tokenizer
+type Tokenizer struct {
+	Path    string
+	Class   string
+	Options map[string]string
 }
 
 // Sources
@@ -74,6 +82,15 @@ func (m Models) ToMap() map[string]Model {
 	return modelsMap
 }
 
+// ToMap creates a map from tokenizers for faster lookup.
+func (t Tokenizers) ToMap() map[string]Tokenizer {
+	tokenizersMap := make(map[string]Tokenizer)
+	for _, current := range t {
+		tokenizersMap[current.Class] = current
+	}
+	return tokenizersMap
+}
+
 // GetNames retrieves the names from the models.
 func (m Models) GetNames() []string {
 	var modelNames []string
@@ -83,8 +100,17 @@ func (m Models) GetNames() []string {
 	return modelNames
 }
 
-// GetByNames retrieves the models by their names given an input slice.
-func (m Models) GetByNames(namesSlice []string) Models {
+// GetNames retrieves the names from the tokenizers.
+func (t Tokenizers) GetNames() []string {
+	var tokenizerNames []string
+	for _, current := range t {
+		tokenizerNames = append(tokenizerNames, current.Class)
+	}
+	return tokenizerNames
+}
+
+// FilterWithNames retrieves the models by their names given an input slice.
+func (m Models) FilterWithNames(namesSlice []string) Models {
 	// Create a map for faster lookup
 	namesMap := stringutil.SliceToMap(namesSlice)
 
@@ -135,29 +161,15 @@ func (m Models) FilterWithAddToBinaryFileTrue() Models {
 	return downloadedModels
 }
 
-// DownloadedOnDevice returns true if the model is physically present on the device.
-func (m *Model) DownloadedOnDevice() (bool, error) {
-
-	// Check if model is already downloaded
-	downloaded, err := fileutil.IsExistingPath(m.Path)
-	if err != nil {
-		// An error occurred
-		return false, err
-	} else if !downloaded {
-		// Model is not downloaded on the device
-		return false, nil
+// UpdatePaths to update the model's path to elements accordingly to its configuration.
+func (m *Model) UpdatePaths() {
+	basePath := path.Join(app.DownloadDirectoryPath, m.Name)
+	modelPath := basePath
+	if m.Module == huggingface.TRANSFORMERS {
+		modelPath = path.Join(modelPath, "model")
+		for i, tokenizer := range m.Tokenizers {
+			m.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
+		}
 	}
-
-	// Check if the model directory is empty
-	empty, err := fileutil.IsDirectoryEmpty(m.Path)
-	if err != nil {
-		// An error occurred
-		return false, err
-	} else if empty {
-		// Model is not downloaded on the device
-		return false, nil
-	}
-
-	// Model is downloaded on the device
-	return true, nil
+	m.Path = modelPath
 }

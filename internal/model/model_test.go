@@ -2,17 +2,16 @@ package model
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
-	"github.com/pterm/pterm"
-	"os"
+	"path"
 	"testing"
 )
 
 // GetModel initiates a basic model with an id as suffix
-func GetModel(suffix int) Model {
-	idStr := fmt.Sprint(suffix)
+func GetModel(id int) Model {
+	idStr := fmt.Sprint(id)
 	return Model{
 		Name:            "model" + idStr,
 		Module:          huggingface.Module("module" + idStr),
@@ -23,6 +22,7 @@ func GetModel(suffix int) Model {
 	}
 }
 
+// GetModels initiates a list of basic models starting with id 0
 func GetModels(length int) Models {
 	var models Models
 	for i := 1; i <= length; i++ {
@@ -31,7 +31,25 @@ func GetModels(length int) Models {
 	return models
 }
 
-// TestEmpty_True tests the Empty function with an empty models slice.
+// GetTokenizer initiates a basic tokenizer with an id as suffix
+func GetTokenizer(id int) Tokenizer {
+	idStr := fmt.Sprint(id)
+	return Tokenizer{
+		Class: "tokenizer" + idStr,
+		Path:  "path" + idStr,
+	}
+}
+
+// GetTokenizers initiates a list of basic tokenizers starting with id 0
+func GetTokenizers(length int) Tokenizers {
+	var tokenizers Tokenizers
+	for i := 1; i <= length; i++ {
+		tokenizers = append(tokenizers, GetTokenizer(i-1))
+	}
+	return tokenizers
+}
+
+// TestEmpty_True tests the Models.Empty function with an empty models slice.
 func TestEmpty_True(t *testing.T) {
 	// Init
 	var models Models
@@ -43,7 +61,7 @@ func TestEmpty_True(t *testing.T) {
 	test.AssertEqual(t, isEmpty, true, "Expected true.")
 }
 
-// TestEmpty_False tests the Empty function with a non-empty models slice.
+// TestEmpty_False tests the Models.Empty function with a non-empty models slice.
 func TestEmpty_False(t *testing.T) {
 	// Init
 	models := GetModels(1)
@@ -55,7 +73,7 @@ func TestEmpty_False(t *testing.T) {
 	test.AssertEqual(t, isEmpty, false, "Expected false.")
 }
 
-// TestContainsByName_True tests the ContainsByName function with an element's name contained by the slice.
+// TestContainsByName_True tests the Models.ContainsByName function with an element's name contained by the slice.
 func TestContainsByName_True(t *testing.T) {
 	// Init
 	models := GetModels(2)
@@ -67,7 +85,7 @@ func TestContainsByName_True(t *testing.T) {
 	test.AssertEqual(t, contains, true, "Expected true.")
 }
 
-// TestContainsByName_False tests the ContainsByName function with an element's name not contained by the slice.
+// TestContainsByName_False tests the Models.ContainsByName function with an element's name not contained by the slice.
 func TestContainsByName_False(t *testing.T) {
 	// Init
 	models := GetModels(2)
@@ -79,7 +97,7 @@ func TestContainsByName_False(t *testing.T) {
 	test.AssertEqual(t, contains, false, "Expected false.")
 }
 
-// TestDifference tests the Difference function to return the correct difference.
+// TestDifference tests the Models.Difference function to return the correct difference.
 func TestDifference(t *testing.T) {
 	// Init
 	models := GetModels(5)
@@ -94,7 +112,7 @@ func TestDifference(t *testing.T) {
 	test.AssertEqual(t, len(expected), len(difference), "Lengths should be equal.")
 }
 
-// TestUnion tests the Union function to return the correct union.
+// TestUnion tests the Models.Union function to return the correct union.
 func TestUnion(t *testing.T) {
 	// Init
 	index := 2
@@ -109,8 +127,8 @@ func TestUnion(t *testing.T) {
 	test.AssertEqual(t, len(expected), len(union), "Lengths should be equal.")
 }
 
-// TestModelsToMap_Success tests the ModelsToMap function to return a map from a slice of models.
-func TestModelsToMap_Success(t *testing.T) {
+// TestToMap_Success tests the Models.ToMap function to return a map from a slice of models.
+func TestToMap_Success(t *testing.T) {
 	// Init
 	models := GetModels(3)
 	expected := map[string]Model{
@@ -132,7 +150,31 @@ func TestModelsToMap_Success(t *testing.T) {
 	}
 }
 
-// TestGetNames_Success tests the GetNames function to return the correct model names.
+// TestTokenizer_ToMap_Success tests the Tokenizers.ToMap function to return a map from a slice of tokenizers.
+func TestTokenizer_ToMap_Success(t *testing.T) {
+	// Init
+	model := GetModel(0)
+	model.Tokenizers = GetTokenizers(3)
+	expected := map[string]Tokenizer{
+		model.Tokenizers[0].Class: model.Tokenizers[0],
+		model.Tokenizers[1].Class: model.Tokenizers[1],
+		model.Tokenizers[2].Class: model.Tokenizers[2],
+	}
+
+	// Execute
+	result := model.Tokenizers.ToMap()
+
+	// Check if lengths match
+	test.AssertEqual(t, len(result), len(expected), "Lengths of maps do not match")
+
+	// Check each key
+	for key := range expected {
+		_, exists := result[key]
+		test.AssertEqual(t, exists, true, "Key not found in the result map:", key)
+	}
+}
+
+// TestGetNames_Success tests the Models.GetNames function to return the correct model names.
 func TestGetNames_Success(t *testing.T) {
 	// Init
 	models := GetModels(2)
@@ -144,21 +186,39 @@ func TestGetNames_Success(t *testing.T) {
 	test.AssertEqual(t, len(models), len(names), "Lengths should be equal.")
 }
 
-// TestGetModelsByNames tests the GetModelsByNames function to return the correct models.
-func TestGetModelsByNames(t *testing.T) {
+// TestTokenizer_GetNames_Success tests the Tokenizers.GetNames function to return the correct names.
+func TestTokenizer_GetNames_Success(t *testing.T) {
+	// Init
+	input := GetModel(0)
+	input.Tokenizers = Tokenizers{{Class: "tokenizer1"}, {Class: "tokenizer2"}, {Class: "tokenizer3"}}
+	expected := []string{
+		input.Tokenizers[0].Class,
+		input.Tokenizers[1].Class,
+		input.Tokenizers[2].Class,
+	}
+
+	// Execute
+	names := input.Tokenizers.GetNames()
+
+	// Assert
+	test.AssertEqual(t, len(expected), len(names), "Lengths should be equal.")
+}
+
+// TestFilterWithNames_Success tests the Models.FilterWithNames function to return the correct models.
+func TestFilterWithNames_Success(t *testing.T) {
 	// Init
 	models := GetModels(2)
 	names := []string{models[0].Name, models[1].Name}
 
 	// Execute
-	result := models.GetByNames(names)
+	result := models.FilterWithNames(names)
 
 	// Assert
 	test.AssertEqual(t, len(models), len(result), "Lengths should be equal.")
 }
 
-// TestGetModelsWithSourceHuggingface_Success tests the GetModelsWithSourceHuggingface to return the sub-slice.
-func TestGetModelsWithSourceHuggingface_Success(t *testing.T) {
+// TestFilterWithSourceHuggingface_Success tests the Models.FilterWithSourceHuggingface to return the sub-slice.
+func TestFilterWithSourceHuggingface_Success(t *testing.T) {
 	// Init
 	models := GetModels(2)
 	models[0].Source = ""
@@ -171,8 +231,8 @@ func TestGetModelsWithSourceHuggingface_Success(t *testing.T) {
 	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
 }
 
-// TestGetModelsWithIsDownloadedTrue_Success tests the GetModelsWithIsDownloadedTrue to return the sub-slice.
-func TestGetModelsWithIsDownloadedTrue_Success(t *testing.T) {
+// TestFilterWithIsDownloadedTrue_Success tests the Models.FilterWithIsDownloadedTrue to return the sub-slice.
+func TestFilterWithIsDownloadedTrue_Success(t *testing.T) {
 	// Init
 	models := GetModels(2)
 	models[0].IsDownloaded = false
@@ -185,8 +245,8 @@ func TestGetModelsWithIsDownloadedTrue_Success(t *testing.T) {
 	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
 }
 
-// TestGetModelsWithAddToBinaryFileTrue_Success tests the GetModelsWithAddToBinaryFileTrue to return the sub-slice.
-func TestGetModelsWithAddToBinaryFileTrue_Success(t *testing.T) {
+// TestFilterWithAddToBinaryFileTrue_Success tests the Models.FilterWithAddToBinaryFileTrue to return the sub-slice.
+func TestFilterWithAddToBinaryFileTrue_Success(t *testing.T) {
 	// Init
 	models := GetModels(2)
 	models[0].AddToBinaryFile = false
@@ -199,85 +259,41 @@ func TestGetModelsWithAddToBinaryFileTrue_Success(t *testing.T) {
 	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
 }
 
-// TestMapToModelFromHuggingfaceModel_Success tests the MapToModelFromHuggingfaceModel to return the correct Model.
-func TestMapToModelFromHuggingfaceModel_Success(t *testing.T) {
-	// Init
-	huggingfaceModel := huggingface.Model{
-		Name:        "name",
-		PipelineTag: "pipeline",
-		LibraryName: "library",
-	}
-
-	// Execute
-	model := FromHuggingfaceModel(huggingfaceModel)
-
-	pterm.Info.Println(model.Module)
-	// Assert
-	test.AssertEqual(t, model.Name, huggingfaceModel.Name)
-	test.AssertEqual(t, model.PipelineTag, huggingfaceModel.PipelineTag)
-	test.AssertEqual(t, model.Module, huggingfaceModel.LibraryName)
-	test.AssertEqual(t, model.Source, HUGGING_FACE)
-}
-
-// TestModelDownloadedOnDevice_FalseMissing tests the ModelDownloadedOnDevice function to return false upon missing.
-func TestModelDownloadedOnDevice_FalseMissing(t *testing.T) {
+// TestUpdatePaths_Default tests the Model.UpdatePaths for a default model.
+func TestUpdatePaths_Default(t *testing.T) {
 	// Init
 	model := GetModel(0)
-	model.Path = ""
 
 	// Execute
-	exists, err := model.DownloadedOnDevice()
+	model.UpdatePaths()
 
 	// Assert
-	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, exists, false)
+	test.AssertEqual(t, model.Path, path.Join(app.DownloadDirectoryPath, model.Name))
 }
 
-// TestModelDownloadedOnDevice_FalseEmpty tests the ModelDownloadedOnDevice function to return false upon empty.
-func TestModelDownloadedOnDevice_FalseEmpty(t *testing.T) {
-	// Create a temporary directory representing the model base path
-	modelDirectory, err := os.MkdirTemp("", "modelDirectory")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(modelDirectory)
-
+// TestUpdatePaths_Transformers tests the Model.UpdatePaths for a transformers model.
+func TestUpdatePaths_Transformers(t *testing.T) {
 	// Init
 	model := GetModel(0)
-	model.Path = modelDirectory
+	model.Module = huggingface.TRANSFORMERS
 
 	// Execute
-	exists, err := model.DownloadedOnDevice()
+	model.UpdatePaths()
 
 	// Assert
-	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, exists, false)
+	test.AssertEqual(t, model.Path, path.Join(app.DownloadDirectoryPath, model.Name, "model"))
 }
 
-// TestModelDownloadedOnDevice_True tests the ModelDownloadedOnDevice function to return true.
-func TestModelDownloadedOnDevice_True(t *testing.T) {
-	// Create a temporary directory representing the model base path
-	modelDirectory, err := os.MkdirTemp("", "modelDirectory")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer os.RemoveAll(modelDirectory)
-
-	// Create temporary file inside the model base path
-	file, err := os.CreateTemp(modelDirectory, "")
-	if err != nil {
-		t.Fatal(err)
-	}
-	fileutil.CloseFile(file)
-
+// TestUpdatePaths_TransformersTokenizers tests the Model.UpdatePaths for a transformers model.
+func TestUpdatePaths_TransformersTokenizers(t *testing.T) {
 	// Init
 	model := GetModel(0)
-	model.Path = modelDirectory
+	model.Module = huggingface.TRANSFORMERS
+	model.Tokenizers = []Tokenizer{{Class: "tokenizer"}}
 
 	// Execute
-	exists, err := model.DownloadedOnDevice()
+	model.UpdatePaths()
 
 	// Assert
-	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, exists, true)
+	test.AssertEqual(t, model.Tokenizers[0].Path, path.Join(app.DownloadDirectoryPath, model.Name, "tokenizer"))
 }
