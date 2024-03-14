@@ -175,6 +175,11 @@ func Validate(current model.Model) bool {
 
 	// Check if model is already configured
 	models, err := GetModels()
+	if err != nil {
+		pterm.Error.Println(err.Error())
+		return false
+	}
+
 	if model.ContainsByName(models, current.Name) {
 		pterm.Warning.Printfln("Model '%s' is already configured", current.Name)
 		return false
