@@ -20,7 +20,7 @@ func TestDownloadedOnDevice_FalseMissing(t *testing.T) {
 	model.Path = ""
 
 	// Execute
-	exists, err := model.DownloadedOnDevice()
+	exists, err := model.DownloadedOnDevice(false)
 
 	// Assert
 	test.AssertEqual(t, err, nil)
@@ -41,7 +41,7 @@ func TestDownloadedOnDevice_FalseEmpty(t *testing.T) {
 	model.Path = modelDirectory
 
 	// Execute
-	exists, err := model.DownloadedOnDevice()
+	exists, err := model.DownloadedOnDevice(false)
 
 	// Assert
 	test.AssertEqual(t, err, nil)
@@ -69,7 +69,31 @@ func TestDownloadedOnDevice_True(t *testing.T) {
 	model.Path = modelDirectory
 
 	// Execute
-	exists, err := model.DownloadedOnDevice()
+	exists, err := model.DownloadedOnDevice(false)
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, exists, true)
+}
+
+// TestModelDownloadedOnDevice_UseBasePath_True tests the ModelDownloadedOnDevice function to return true.
+func TestModelDownloadedOnDevice_UseBasePath_True(t *testing.T) {
+	// Create a temporary directory representing the model base path
+	modelName := path.Join("microsoft", "phi-2")
+	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
+	modelPath := path.Join(modelDirectory, "model")
+	err := os.MkdirAll(modelPath, 0750)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(app.DownloadDirectoryPath)
+
+	// Init
+	model := GetModel(0)
+	model.Name = modelName
+
+	// Execute
+	exists, err := model.DownloadedOnDevice(true)
 
 	// Assert
 	test.AssertEqual(t, err, nil)

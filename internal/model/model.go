@@ -161,9 +161,14 @@ func (m Models) FilterWithAddToBinaryFileTrue() Models {
 	return downloadedModels
 }
 
+// GetBasePath return the base path to the model
+func (m *Model) GetBasePath() string {
+	return path.Join(app.DownloadDirectoryPath, m.Name)
+}
+
 // UpdatePaths to update the model's path to elements accordingly to its configuration.
 func (m *Model) UpdatePaths() {
-	basePath := path.Join(app.DownloadDirectoryPath, m.Name)
+	basePath := m.GetBasePath()
 	modelPath := basePath
 	if m.Module == huggingface.TRANSFORMERS {
 		modelPath = path.Join(modelPath, "model")

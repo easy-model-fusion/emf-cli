@@ -259,6 +259,19 @@ func TestFilterWithAddToBinaryFileTrue_Success(t *testing.T) {
 	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
 }
 
+// TestGetBasePath tests the GetBasePath to return the correct base path to the model.
+func TestGetBasePath(t *testing.T) {
+	// Init
+	modelName := "name"
+	model := Model{Name: modelName}
+
+	// Execute
+	basePath := model.GetBasePath()
+
+	// Assert
+	test.AssertEqual(t, basePath, path.Join(app.DownloadDirectoryPath, model.Name))
+}
+
 // TestUpdatePaths_Default tests the Model.UpdatePaths for a default model.
 func TestUpdatePaths_Default(t *testing.T) {
 	// Init

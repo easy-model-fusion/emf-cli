@@ -14,10 +14,16 @@ import (
 )
 
 // DownloadedOnDevice returns true if the model is physically present on the device.
-func (m *Model) DownloadedOnDevice() (bool, error) {
+func (m *Model) DownloadedOnDevice(useBasePath bool) (bool, error) {
+
+	// Adapt the model path
+	modelPath := m.Path
+	if useBasePath {
+		modelPath = m.GetBasePath()
+	}
 
 	// Check if model is already downloaded
-	downloaded, err := fileutil.IsExistingPath(m.Path)
+	downloaded, err := fileutil.IsExistingPath(modelPath)
 	if err != nil {
 		// An error occurred
 		return false, err
@@ -27,7 +33,7 @@ func (m *Model) DownloadedOnDevice() (bool, error) {
 	}
 
 	// Check if the model directory is empty
-	empty, err := fileutil.IsDirectoryEmpty(m.Path)
+	empty, err := fileutil.IsDirectoryEmpty(modelPath)
 	if err != nil {
 		// An error occurred
 		return false, err
@@ -216,7 +222,7 @@ func (m *Model) Update(mapConfigModels map[string]Model) bool {
 
 	// Check if model is physically present on the device
 	m.UpdatePaths()
-	downloaded, err := m.DownloadedOnDevice()
+	downloaded, err := m.DownloadedOnDevice(false)
 	if err != nil {
 		return false
 	}
@@ -321,7 +327,7 @@ func (m *Model) TidyConfiguredModel() (bool, bool) {
 
 	// Check if model is physically present on the device
 	m.UpdatePaths()
-	downloaded, err := m.DownloadedOnDevice()
+	downloaded, err := m.DownloadedOnDevice(false)
 	if err != nil {
 		return false, false
 	}

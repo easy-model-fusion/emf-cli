@@ -11,7 +11,9 @@ func (m *Model) FromDownloaderModel(dlModel downloader.Model) {
 
 	// Check if ScriptModel is valid
 	if !downloader.EmptyModel(dlModel) {
-		m.Path = stringutil.PathUniformize(dlModel.Path)
+		if len(dlModel.Path) != 0 {
+			m.Path = stringutil.PathUniformize(dlModel.Path)
+		}
 		m.Module = huggingface.Module(dlModel.Module)
 		m.Class = dlModel.Class
 		m.Options = dlModel.Options
@@ -22,7 +24,9 @@ func (m *Model) FromDownloaderModel(dlModel downloader.Model) {
 
 		// Mapping to tokenizer
 		var tokenizer Tokenizer
-		tokenizer.Path = stringutil.PathUniformize(dlModel.Tokenizer.Path)
+		if len(dlModel.Tokenizer.Path) != 0 {
+			tokenizer.Path = stringutil.PathUniformize(dlModel.Tokenizer.Path)
+		}
 		tokenizer.Class = dlModel.Tokenizer.Class
 		tokenizer.Options = dlModel.Tokenizer.Options
 

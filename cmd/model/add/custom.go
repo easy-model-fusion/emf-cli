@@ -63,20 +63,11 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 	}
 	// Map API response to model.Model
 	modelObj := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
-	modelObj = model.ConstructConfigPaths(modelObj)
 
-	// Validate the model : if model is already downloaded
-	downloaded, err := model.ModelDownloadedOnDevice(modelObj)
-	if err != nil {
-		pterm.Error.Println(err)
+	// Validate model for download
+	modelObj.AddToBinaryFile = true
+	if !config.Validate(modelObj) {
 		return
-	} else if downloaded {
-		message := fmt.Sprintf("Model '%s' is already downloaded. Do you wish to overwrite it?", modelObj.Name)
-		overwrite := app.UI().AskForUsersConfirmation(message)
-		if !overwrite {
-			pterm.Warning.Println("This model is already downloaded and should be checked manually", modelObj.Name)
-			return
-		}
 	}
 
 	// Allow the user to choose flags and set their values
@@ -96,12 +87,11 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		addCustomDownloaderArgs.ModelClass = modelObj.Class
 	}
 
-	// TODO : check if tokenizer already exists => Waiting for issue #63 : [Client] Validate models for download
-
 	// Downloading model
-	modelObj, success := model.Download(modelObj, addCustomDownloaderArgs)
+	var success bool
+	modelObj, success = model.Download(modelObj, addCustomDownloaderArgs)
 	if !success {
-		return
+		modelObj.AddToBinaryFile = false
 	}
 
 	// Add models to configuration file
