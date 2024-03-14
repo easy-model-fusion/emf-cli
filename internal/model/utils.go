@@ -5,139 +5,12 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 	"os"
 	"path"
 )
-
-// Empty checks if the models slice is empty.
-func (m Models) Empty() bool {
-	// No models currently downloaded
-	return len(m) == 0
-}
-
-// ContainsByName checks if a models slice contains the requested model name
-func (m Models) ContainsByName(name string) bool {
-	for _, currentModel := range m {
-		if currentModel.Name == name {
-			return true
-		}
-	}
-	return false
-}
-
-// Difference returns the models in that are not present in `slice`
-func (m Models) Difference(slice Models) Models {
-	var difference Models
-	for _, item := range m {
-		if !slice.ContainsByName(item.Name) {
-			difference = append(difference, item)
-		}
-	}
-	return difference
-}
-
-// Union returns the models present in `slice` as well
-func (m Models) Union(slice Models) Models {
-	var union Models
-	for _, item := range m {
-		if slice.ContainsByName(item.Name) {
-			union = append(union, item)
-		}
-	}
-	return union
-}
-
-// ToMap creates a map from models for faster lookup.
-func (m Models) ToMap() map[string]Model {
-	modelsMap := make(map[string]Model)
-	for _, current := range m {
-		modelsMap[current.Name] = current
-	}
-	return modelsMap
-}
-
-// ToMap creates a map from tokenizers for faster lookup.
-func (t Tokenizers) ToMap() map[string]Tokenizer {
-	tokenizersMap := make(map[string]Tokenizer)
-	for _, current := range t {
-		tokenizersMap[current.Class] = current
-	}
-	return tokenizersMap
-}
-
-// GetNames retrieves the names from the models.
-func (m Models) GetNames() []string {
-	var modelNames []string
-	for _, item := range m {
-		modelNames = append(modelNames, item.Name)
-	}
-	return modelNames
-}
-
-// GetNames retrieves the names from the tokenizers.
-func (t Tokenizers) GetNames() []string {
-	var tokenizerNames []string
-	for _, current := range t {
-		tokenizerNames = append(tokenizerNames, current.Class)
-	}
-	return tokenizerNames
-}
-
-// GetByNames retrieves the models by their names given an input slice.
-func (m Models) GetByNames(namesSlice []string) Models {
-	// Create a map for faster lookup
-	namesMap := stringutil.SliceToMap(namesSlice)
-
-	// Slice of all the models that were found
-	var namesModels Models
-
-	// Find the requested models
-	for _, existingModel := range m {
-		// Check if this model exists and adds it to the result
-		if _, exists := namesMap[existingModel.Name]; exists {
-			namesModels = append(namesModels, existingModel)
-		}
-	}
-
-	return namesModels
-}
-
-// FilterWithSourceHuggingface return a sub-slice of models sourcing from huggingface.
-func (m Models) FilterWithSourceHuggingface() Models {
-	var huggingfaceModels Models
-	for _, current := range m {
-		if current.Source == HUGGING_FACE {
-			huggingfaceModels = append(huggingfaceModels, current)
-		}
-	}
-	return huggingfaceModels
-}
-
-// FilterWithIsDownloadedTrue return a sub-slice of models with IsDownloaded to true.
-func (m Models) FilterWithIsDownloadedTrue() Models {
-	var downloadedModels Models
-	for _, current := range m {
-		if current.IsDownloaded {
-			downloadedModels = append(downloadedModels, current)
-		}
-	}
-	return downloadedModels
-}
-
-// FilterWithAddToBinaryFileTrue return a sub-slice of models with AddToBinaryFile to true.
-func (m Models) FilterWithAddToBinaryFileTrue() Models {
-	var downloadedModels Models
-	for _, current := range m {
-		if current.AddToBinaryFile {
-			downloadedModels = append(downloadedModels, current)
-		}
-	}
-	return downloadedModels
-}
 
 // ConstructConfigPaths to update the model's path to elements accordingly to its configuration.
 func (m *Model) ConstructConfigPaths() {
@@ -200,87 +73,6 @@ func FromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 	model.Source = HUGGING_FACE
 	model.Version = huggingfaceModel.LastModified
 	return model
-}
-
-// DownloadedOnDevice returns true if the model is physically present on the device.
-func (m *Model) DownloadedOnDevice() (bool, error) {
-
-	// Check if model is already downloaded
-	downloaded, err := fileutil.IsExistingPath(m.Path)
-	if err != nil {
-		// An error occurred
-		return false, err
-	} else if !downloaded {
-		// Model is not downloaded on the device
-		return false, nil
-	}
-
-	// Check if the model directory is empty
-	empty, err := fileutil.IsDirectoryEmpty(m.Path)
-	if err != nil {
-		// An error occurred
-		return false, err
-	} else if empty {
-		// Model is not downloaded on the device
-		return false, nil
-	}
-
-	// Model is downloaded on the device
-	return true, nil
-}
-
-// DownloadedOnDevice returns true if the tokenizer is physically present on the device.
-func (t *Tokenizer) DownloadedOnDevice() (bool, error) {
-
-	// Check if model is already downloaded
-	downloaded, err := fileutil.IsExistingPath(t.Path)
-	if err != nil {
-		// An error occurred
-		return false, err
-	} else if !downloaded {
-		// Model is not downloaded on the device
-		return false, nil
-	}
-
-	// Check if the model directory is empty
-	empty, err := fileutil.IsDirectoryEmpty(t.Path)
-	if err != nil {
-		// An error occurred
-		return false, err
-	} else if empty {
-		// Model is not downloaded on the device
-		return false, nil
-	}
-
-	// Model is downloaded on the device
-	return true, nil
-}
-
-// GetTokenizersNotDownloadedOnDevice returns the list of tokenizers that should but are not physically present on the device.
-func (m *Model) GetTokenizersNotDownloadedOnDevice() Tokenizers {
-
-	// Model can't have any tokenizer
-	if m.Module != huggingface.TRANSFORMERS {
-		return Tokenizers{}
-	}
-
-	// Processing the configured tokenizers
-	var notDownloadedTokenizers Tokenizers
-	for _, tokenizer := range m.Tokenizers {
-
-		// Check if tokenizer is already downloaded
-		downloaded, err := tokenizer.DownloadedOnDevice()
-		if err != nil {
-			// An error occurred
-			continue
-		} else if !downloaded {
-			// Tokenizer is not downloaded on the device
-			notDownloadedTokenizers = append(notDownloadedTokenizers, tokenizer)
-			continue
-		}
-	}
-
-	return notDownloadedTokenizers
 }
 
 // BuildModelsFromDevice builds a slice of models recovered from the device folders.
@@ -386,24 +178,6 @@ func BuildModelsFromDevice() Models {
 	return models
 }
 
-// Download attempts to download the model
-func (m *Model) Download(downloaderArgs downloader.Args) bool {
-	// Running the script
-	dlModel, err := downloader.Execute(downloaderArgs)
-
-	// Something went wrong or no data has been returned
-	if err != nil || dlModel.IsEmpty {
-		return false
-	}
-
-	// Update the model for the configuration file
-	m.FromDownloaderModel(dlModel)
-	m.AddToBinaryFile = !downloaderArgs.OnlyConfiguration
-	m.IsDownloaded = !downloaderArgs.OnlyConfiguration
-
-	return true
-}
-
 // GetConfig attempts to get the model's configuration
 func (m *Model) GetConfig(downloaderArgs downloader.Args) bool {
 	// Add OnlyConfiguration flag to the command
@@ -419,6 +193,24 @@ func (m *Model) GetConfig(downloaderArgs downloader.Args) bool {
 
 	// Update the model for the configuration file
 	m.FromDownloaderModel(dlModel)
+
+	return true
+}
+
+// Download attempts to download the model
+func (m *Model) Download(downloaderArgs downloader.Args) bool {
+	// Running the script
+	dlModel, err := downloader.Execute(downloaderArgs)
+
+	// Something went wrong or no data has been returned
+	if err != nil || dlModel.IsEmpty {
+		return false
+	}
+
+	// Update the model for the configuration file
+	m.FromDownloaderModel(dlModel)
+	m.AddToBinaryFile = !downloaderArgs.OnlyConfiguration
+	m.IsDownloaded = !downloaderArgs.OnlyConfiguration
 
 	return true
 }
