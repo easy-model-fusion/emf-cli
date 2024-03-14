@@ -36,15 +36,15 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 	}
 
 	// Keep the downloaded models coming from huggingface (i.e. those that could potentially be updated)
-	hfModels := model.GetModelsWithSourceHuggingface(configModels)
-	hfModelsAvailable := model.GetModelsWithIsDownloadedTrue(hfModels)
+	hfModels := configModels.FilterWithSourceHuggingface()
+	hfModelsAvailable := hfModels.FilterWithIsDownloadedTrue()
 
 	// Get models to update : through args or through a multiselect of models already downloaded from huggingface
 	var selectedModelNames []string
 	if len(args) == 0 {
 		// No argument provided : multiselect among the downloaded models coming from huggingface
 		message := "Please select the model(s) to be updated"
-		values := model.GetNames(hfModelsAvailable)
+		values := hfModelsAvailable.GetNames()
 		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
 		selectedModelNames = app.UI().DisplayInteractiveMultiselect(message, values, checkMark, false, true)
 		app.UI().DisplaySelectedItems(selectedModelNames)
@@ -61,13 +61,13 @@ func runModelUpdate(cmd *cobra.Command, args []string) {
 }
 
 // filterModelsByStatusBeforeUpdate returns the models available for an update by determining a status for each one of them
-func filterModelsByStatusBeforeUpdate(modelNames []string, hfModelsAvailable []model.Model) []model.Model {
+func filterModelsByStatusBeforeUpdate(modelNames []string, hfModelsAvailable model.Models) model.Models {
 
 	// Bind the downloaded models coming from huggingface to a map for faster lookup
 	// Used to check whether a model has already been downloaded
-	mapHfModelsAvailable := model.ModelsToMap(hfModelsAvailable)
+	mapHfModelsAvailable := hfModelsAvailable.Map()
 
-	var modelsToUpdate []model.Model
+	var modelsToUpdate model.Models
 	var notFoundModelNames []string
 	var updatedModelNames []string
 
@@ -84,7 +84,7 @@ func filterModelsByStatusBeforeUpdate(modelNames []string, hfModelsAvailable []m
 
 		// Fetching succeeded : processing the response
 		// Map API response to model.Model
-		modelMapped := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+		modelMapped := model.FromHuggingfaceModel(huggingfaceModel)
 
 		// Try to find the model in the map of downloaded models coming from huggingface
 		configModel, exists := mapHfModelsAvailable[name]
@@ -117,23 +117,23 @@ func filterModelsByStatusBeforeUpdate(modelNames []string, hfModelsAvailable []m
 }
 
 // processModelsForUpdate
-func processModelsForUpdate(configModels, modelsToUpdate []model.Model) {
+func processModelsForUpdate(configModels, modelsToUpdate model.Models) {
 
 	// Bind config models to a map for faster lookup
 	// Used to get the model's path and check if it's already configured
-	mapConfigModels := model.ModelsToMap(configModels)
+	mapConfigModels := configModels.Map()
 
 	// Processing all the remaining models for an update
 	var failedModels []string
 	for _, current := range modelsToUpdate {
 
-		success := model.Update(current, mapConfigModels)
+		success := current.Update(mapConfigModels)
 		if !success {
 			failedModels = append(failedModels, current.Name)
 		} else {
 			// Add models to configuration file
 			spinner, _ := pterm.DefaultSpinner.Start("Updating configuration file...")
-			err := config.AddModels([]model.Model{current})
+			err := config.AddModels(model.Models{current})
 			if err != nil {
 				spinner.Fail(fmt.Sprintf("Error while updating the configuration file: %s", err))
 			} else {
