@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 	"github.com/pterm/pterm"
 )
 
@@ -82,15 +81,11 @@ func Execute(downloaderArgs Args) (Model, error) {
 		customMessage = "Getting configuration for "
 	}
 	spinner := app.UI().StartSpinner(customMessage + downloaderItemMessage)
-	scriptModel, err, exitCode := python.ExecuteScript(".venv", ScriptPath, args)
+	scriptModel, err, _ := app.Python().ExecuteScript(".venv", ScriptPath, args)
 
 	// An error occurred while running the script
 	if err != nil {
 		spinner.Fail(err)
-		switch exitCode {
-		case 2:
-			pterm.Info.Println("Use command 'model add custom' to customize the model to download.")
-		}
 		return Model{}, err
 	}
 

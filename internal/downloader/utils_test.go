@@ -6,56 +6,56 @@ import (
 	"testing"
 )
 
-// TestEmptyModel_True tests the EmptyModel to return true.
-func TestEmptyModel_True(t *testing.T) {
+// TestEmpty_Model_True tests the EmptyModel to return true.
+func TestEmpty_Model_True(t *testing.T) {
 	// Init
-	sm := Model{}
+	model := Model{}
 
 	// Execute
-	result := EmptyModel(sm)
+	result := model.Empty()
 
 	// Assert
 	test.AssertEqual(t, true, result)
 }
 
-// TestEmptyModel_False tests the EmptyModel to return true.
-func TestEmptyModel_False(t *testing.T) {
+// TestEmpty_Model_False tests the EmptyModel to return true.
+func TestEmpty_Model_False(t *testing.T) {
 	// Init
-	sm := Model{
+	model := Model{
 		Path:   "/path/to/model",
 		Module: "module_name",
 		Class:  "class_name",
 	}
 
 	// Execute
-	result := EmptyModel(sm)
+	result := model.Empty()
 
 	// Assert
 	test.AssertEqual(t, false, result)
 }
 
-// TestEmptyTokenizer_True tests the EmptyTokenizer to return true.
-func TestEmptyTokenizer_True(t *testing.T) {
+// TestEmpty_Tokenizer_True tests the EmptyTokenizer to return true.
+func TestEmpty_Tokenizer_True(t *testing.T) {
 	// Init
-	st := Tokenizer{}
+	tokenizer := Tokenizer{}
 
 	// Execute
-	result := EmptyTokenizer(st)
+	result := tokenizer.Empty()
 
 	// Assert
 	test.AssertEqual(t, true, result)
 }
 
-// TestEmptyTokenizer_False tests the EmptyTokenizer to return true.
-func TestEmptyTokenizer_False(t *testing.T) {
+// TestEmpty_Tokenizer_False tests the EmptyTokenizer to return true.
+func TestEmpty_Tokenizer_False(t *testing.T) {
 	// Init
-	st := Tokenizer{
+	tokenizer := Tokenizer{
 		Path:  "/path/to/tokenizer",
 		Class: "tokenizer_class",
 	}
 
 	// Execute
-	result := EmptyTokenizer(st)
+	result := tokenizer.Empty()
 
 	// Assert
 	test.AssertEqual(t, false, result)
@@ -129,13 +129,14 @@ func TestArgsGetForCobra(t *testing.T) {
 func TestArgsProcessForPython(t *testing.T) {
 	// Init
 	args := Args{
-		ModelName:        "model",
-		ModelModule:      "module",
-		ModelClass:       "class",
-		ModelOptions:     []string{"opt1=val1", "opt2=val2"},
-		TokenizerClass:   "tokenizer",
-		TokenizerOptions: []string{"tok_opt1=val1"},
-		Skip:             "model",
+		ModelName:         "model",
+		ModelModule:       "module",
+		ModelClass:        "class",
+		ModelOptions:      []string{"opt1=val1", "opt2=val2"},
+		TokenizerClass:    "tokenizer",
+		TokenizerOptions:  []string{"tok_opt1=val1"},
+		Skip:              "model",
+		OnlyConfiguration: true,
 	}
 	expected := []string{
 		TagPrefix + EmfClient, TagPrefix + Overwrite,
@@ -145,6 +146,7 @@ func TestArgsProcessForPython(t *testing.T) {
 		TagPrefix + TokenizerClass, "tokenizer",
 		TagPrefix + TokenizerOptions, "tok_opt1=val1",
 		TagPrefix + Skip, "model",
+		TagPrefix + OnlyConfiguration,
 	}
 
 	// Execute

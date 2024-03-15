@@ -7,14 +7,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// EmptyModel checks if a Model is empty.
-func EmptyModel(model Model) bool {
-	return model.Path == "" && model.Class == ""
+// Empty checks if a Model is empty.
+func (m *Model) Empty() bool {
+	return m.Path == "" && m.Class == ""
 }
 
-// EmptyTokenizer checks if a Tokenizer is empty.
-func EmptyTokenizer(tokenizer Tokenizer) bool {
-	return tokenizer.Path == "" && tokenizer.Class == ""
+// Empty checks if a Tokenizer is empty.
+func (t *Tokenizer) Empty() bool {
+	return t.Path == "" && t.Class == ""
 }
 
 // ArgsValidate validates the mandatory fields for Args
