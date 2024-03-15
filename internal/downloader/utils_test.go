@@ -61,50 +61,50 @@ func TestEmpty_Tokenizer_False(t *testing.T) {
 	test.AssertEqual(t, false, result)
 }
 
-// TestArgsValidate_MissingName tests the ArgsValidate function to return an error.
-func TestArgsValidate_MissingName(t *testing.T) {
+// TestValidate_MissingName tests the ArgsValidate function to return an error.
+func TestValidate_MissingName(t *testing.T) {
 	// Init
 	args := Args{ModelModule: "present"}
 
 	// Execute
-	result := ArgsValidate(args)
+	result := args.Validate()
 
 	// Assert
 	test.AssertNotEqual(t, result, nil)
 }
 
-// TestArgsValidate_MissingModule tests the ArgsValidate function to return an error.
-func TestArgsValidate_MissingModule(t *testing.T) {
+// TestValidate_MissingModule tests the ArgsValidate function to return an error.
+func TestValidate_MissingModule(t *testing.T) {
 	// Init
 	args := Args{ModelName: "present"}
 
 	// Execute
-	result := ArgsValidate(args)
+	result := args.Validate()
 
 	// Assert
 	test.AssertNotEqual(t, result, nil)
 }
 
-// TestArgsValidate_Success tests the ArgsValidate function to succeed.
-func TestArgsValidate_Success(t *testing.T) {
+// TestValidate_Success tests the ArgsValidate function to succeed.
+func TestValidate_Success(t *testing.T) {
 	// Init
 	args := Args{ModelName: "present", ModelModule: "present"}
 
 	// Execute
-	result := ArgsValidate(args)
+	result := args.Validate()
 
 	// Assert
 	test.AssertEqual(t, result, nil)
 }
 
-// TestArgsGetForCobra tests the ArgsGetForCobra.
-func TestArgsGetForCobra(t *testing.T) {
+// TestToCobra tests the ArgsGetForCobra.
+func TestToCobra(t *testing.T) {
 	// Init
 	cmd := &cobra.Command{}
 	args := &Args{}
 
 	// Execute
-	ArgsGetForCobra(cmd, args)
+	args.ToCobra(cmd)
 
 	// Assert
 	test.AssertNotEqual(t, cmd.Flags().Lookup(ModelName), nil)
@@ -125,8 +125,8 @@ func TestArgsGetForCobra(t *testing.T) {
 	test.AssertEqual(t, args.Skip, "")
 }
 
-// TestArgsProcessForPython tests the ArgsProcessForPython.
-func TestArgsProcessForPython(t *testing.T) {
+// TestToPython tests the ArgsProcessForPython.
+func TestToPython(t *testing.T) {
 	// Init
 	args := Args{
 		ModelName:         "model",
@@ -150,7 +150,7 @@ func TestArgsProcessForPython(t *testing.T) {
 	}
 
 	// Execute
-	result := ArgsProcessForPython(args)
+	result := args.ToPython()
 
 	// Assert
 	test.AssertEqual(t, len(result), len(expected))
