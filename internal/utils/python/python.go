@@ -14,10 +14,27 @@ import (
 	"strings"
 )
 
+type Python interface {
+	CheckPythonVersion(name string) (string, bool)
+	CheckForPython() (string, bool)
+	CreateVirtualEnv(pythonPath, path string) error
+	FindVEnvExecutable(venvPath string, executableName string) (string, error)
+	InstallDependencies(pipPath, path string) error
+	ExecutePip(pipPath string, args []string) error
+	ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int)
+	CheckAskForPython(ui ui.UI) (string, bool)
+}
+
+type python struct{}
+
+func NewPython() Python {
+	return &python{}
+}
+
 // CheckPythonVersion checks if python is found in the PATH and runs it with the --
 // version flag to check if it works, and returns path to python executable and true if so.
 // If python is not found, the function returns false.
-func CheckPythonVersion(name string) (string, bool) {
+func (p *python) CheckPythonVersion(name string) (string, bool) {
 	path, ok := executil.CheckForExecutable(name)
 	if !ok {
 		return "", false
@@ -33,22 +50,22 @@ func CheckPythonVersion(name string) (string, bool) {
 }
 
 // CheckForPython checks if python is available and works, and returns path to python executable and true if so.
-func CheckForPython() (string, bool) {
-	path, ok := CheckPythonVersion("python")
+func (p *python) CheckForPython() (string, bool) {
+	path, ok := p.CheckPythonVersion("python")
 	if ok {
 		return path, true
 	}
-	return CheckPythonVersion("python3")
+	return p.CheckPythonVersion("python3")
 }
 
 // CreateVirtualEnv creates a virtual environment in the given path
-func CreateVirtualEnv(pythonPath, path string) error {
+func (p *python) CreateVirtualEnv(pythonPath, path string) error {
 	cmd := exec.Command(pythonPath, "-m", "venv", path)
 	return cmd.Run()
 }
 
 // FindVEnvExecutable searches for the requested executable within a virtual environment.
-func FindVEnvExecutable(venvPath string, executableName string) (string, error) {
+func (p *python) FindVEnvExecutable(venvPath string, executableName string) (string, error) {
 	var pipPath string
 	if runtime.GOOS == "windows" {
 		pipPath = filepath.Join(venvPath, "Scripts", executableName+".exe")
@@ -64,7 +81,7 @@ func FindVEnvExecutable(venvPath string, executableName string) (string, error) 
 }
 
 // InstallDependencies installs the dependencies from the given requirements.txt file
-func InstallDependencies(pipPath, path string) error {
+func (p *python) InstallDependencies(pipPath, path string) error {
 	cmd := exec.Command(pipPath, "install", "-r", path)
 
 	// bind stderr to a buffer
@@ -84,7 +101,7 @@ func InstallDependencies(pipPath, path string) error {
 }
 
 // ExecutePip runs pip with the given arguments
-func ExecutePip(pipPath string, args []string) error {
+func (p *python) ExecutePip(pipPath string, args []string) error {
 	cmd := exec.Command(pipPath, args...)
 
 	// bind stderr to a buffer
@@ -104,10 +121,10 @@ func ExecutePip(pipPath string, args []string) error {
 }
 
 // ExecuteScript runs the requested python file with the requested arguments
-func ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int) {
+func (p *python) ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int) {
 
 	// Find the python executable inside the venv to run the script
-	pythonPath, err := FindVEnvExecutable(venvPath, "python")
+	pythonPath, err := p.FindVEnvExecutable(venvPath, "python")
 	if err != nil {
 		pterm.Error.Println(fmt.Sprintf("Error using the venv : %s", err))
 		return nil, err, 1
@@ -163,9 +180,9 @@ func ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int
 // If python is not available, a message is printed to the user and asks to specify the path to python
 // Returns true if python is available and the PATH
 // Returns false if python is not available
-func CheckAskForPython(ui ui.UI) (string, bool) {
+func (p *python) CheckAskForPython(ui ui.UI) (string, bool) {
 	pterm.Info.Println("Checking for Python...")
-	path, ok := CheckForPython()
+	path, ok := p.CheckForPython()
 	if ok {
 		pterm.Success.Println("Python executable found! (" + path + ")")
 		return path, true
@@ -181,7 +198,7 @@ func CheckAskForPython(ui ui.UI) (string, bool) {
 			return "", false
 		}
 
-		path, ok = CheckPythonVersion(result)
+		path, ok = p.CheckPythonVersion(result)
 		if ok {
 			pterm.Success.Println("Python executable found! (" + path + ")")
 			return path, true
