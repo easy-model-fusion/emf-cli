@@ -134,20 +134,20 @@ func RemoveAllModels() error {
 }
 
 // RemoveModelsByNames filters out specified models, removes them and updates the configuration file.
-func RemoveModelsByNames(models model.Models, modelsNamesToRemove []string) error {
+func RemoveModelsByNames(models model.Models, modelsNamesToRemove []string) (warning string, info string, err error) {
 	// Find all the models that should be removed
 	modelsToRemove := models.FilterWithNames(modelsNamesToRemove)
 
 	// Indicate the models that were not found in the configuration file
 	notFoundModels := stringutil.SliceDifference(modelsNamesToRemove, modelsToRemove.GetNames())
 	if len(notFoundModels) != 0 {
-		pterm.Warning.Println(fmt.Sprintf("The following models were not found in the configuration file : %s", notFoundModels))
+		warning = fmt.Sprintf("The following models were not found in the configuration file : %s", notFoundModels)
 	}
 
 	// User did not provide any input
 	if len(modelsToRemove) == 0 {
-		pterm.Info.Printfln("No valid models were inputted.")
-		return nil
+		info = "No valid models were inputted."
+		return warning, info, err
 	}
 
 	// Trying to remove the models
@@ -162,12 +162,9 @@ func RemoveModelsByNames(models model.Models, modelsNamesToRemove []string) erro
 	viper.Set("models", remainingModels)
 
 	// Attempt to write the configuration file
-	err := WriteViperConfig()
-	if err != nil {
-		return err
-	}
+	err = WriteViperConfig()
 
-	return nil
+	return warning, info, err
 }
 
 // Validate to validate a model before adding it.

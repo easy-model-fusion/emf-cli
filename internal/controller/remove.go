@@ -12,10 +12,14 @@ import (
 // RunModelRemove runs the model remove command
 func RunModelRemove(args []string, modelRemoveAllFlag bool) {
 	// Remove the selected models
-	infoMessage, err := processRemove(args, modelRemoveAllFlag)
+	warningMessage, infoMessage, err := processRemove(args, modelRemoveAllFlag)
+
+	if warningMessage != "" {
+		pterm.Warning.Printfln(warningMessage)
+	}
 
 	if infoMessage != "" {
-		pterm.Success.Printfln(infoMessage)
+		pterm.Info.Printfln(infoMessage)
 	} else if err == nil {
 		pterm.Success.Printfln("Operation succeeded.")
 	} else {
@@ -23,10 +27,10 @@ func RunModelRemove(args []string, modelRemoveAllFlag bool) {
 	}
 }
 
-func processRemove(args []string, modelRemoveAllFlag bool) (string, error) {
+func processRemove(args []string, modelRemoveAllFlag bool) (string, string, error) {
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	var selectedModels []string
@@ -34,7 +38,7 @@ func processRemove(args []string, modelRemoveAllFlag bool) (string, error) {
 	models, err = config.GetModels()
 	modelNames := models.GetNames()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	sdk.SendUpdateSuggestion()
@@ -62,12 +66,12 @@ func selectModelsToDelete(modelNames []string, selectAllModels bool) []string {
 	return modelNames
 }
 
-func removeModels(models model.Models, selectedModels []string) (message string, err error) {
-	if models.Empty() {
-		message = "There is no models to be removed."
+func removeModels(models model.Models, selectedModels []string) (warning string, info string, err error) {
+	if models.Empty() || len(selectedModels) == 0 {
+		info = "There is no selected models to be removed."
+	} else {
+		warning, info, err = config.RemoveModelsByNames(models, selectedModels)
 	}
 
-	err = config.RemoveModelsByNames(models, selectedModels)
-
-	return message, err
+	return warning, info, err
 }
