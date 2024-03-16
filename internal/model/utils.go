@@ -13,219 +13,13 @@ import (
 	"path"
 )
 
-// Empty checks if the models slice is empty.
-func Empty(models []Model) bool {
-	// No models currently downloaded
-	return len(models) == 0
-}
-
-// ContainsByName checks if a models slice contains the requested model by name
-func ContainsByName(models []Model, name string) bool {
-	for _, currentModel := range models {
-		if currentModel.Name == name {
-			return true
-		}
-	}
-	return false
-}
-
-// Difference returns the models in `parentSlice` that are not present in `subSlice`
-func Difference(parentSlice, subSlice []Model) []Model {
-	var difference []Model
-	for _, item := range parentSlice {
-		if !ContainsByName(subSlice, item.Name) {
-			difference = append(difference, item)
-		}
-	}
-	return difference
-}
-
-// Union returns the models present in both `slice1` and `slice2`
-func Union(slice1, slice2 []Model) []Model {
-	var union []Model
-	for _, item := range slice1 {
-		if ContainsByName(slice2, item.Name) {
-			union = append(union, item)
-		}
-	}
-	return union
-}
-
-// ModelsToMap creates a map from a slice of models for faster lookup.
-func ModelsToMap(models []Model) map[string]Model {
-	modelsMap := make(map[string]Model)
-	for _, current := range models {
-		modelsMap[current.Name] = current
-	}
-	return modelsMap
-}
-
-// TokenizersToMap creates a map from a slice of tokenizers for faster lookup.
-func TokenizersToMap(model Model) map[string]Tokenizer {
-	tokenizersMap := make(map[string]Tokenizer)
-	for _, current := range model.Tokenizers {
-		tokenizersMap[current.Class] = current
-	}
-	return tokenizersMap
-}
-
-// GetNames retrieves the names from the models.
-func GetNames(models []Model) []string {
-	var modelNames []string
-	for _, item := range models {
-		modelNames = append(modelNames, item.Name)
-	}
-	return modelNames
-}
-
-// GetTokenizerNames retrieves the tokenizer names from a model.
-func GetTokenizerNames(model Model) []string {
-	var names []string
-	for _, current := range model.Tokenizers {
-		names = append(names, current.Class)
-	}
-	return names
-}
-
-// GetModelsByNames retrieves the models by their names given an input slice.
-func GetModelsByNames(models []Model, namesSlice []string) []Model {
-	// Create a map for faster lookup
-	namesMap := stringutil.SliceToMap(namesSlice)
-
-	// Slice of all the models that were found
-	var namesModels []Model
-
-	// Find the requested models
-	for _, existingModel := range models {
-		// Check if this model exists and adds it to the result
-		if _, exists := namesMap[existingModel.Name]; exists {
-			namesModels = append(namesModels, existingModel)
-		}
-	}
-
-	return namesModels
-}
-
-// GetModelsWithSourceHuggingface return a sub-slice of models sourcing from huggingface.
-func GetModelsWithSourceHuggingface(models []Model) []Model {
-	var huggingfaceModels []Model
-	for _, current := range models {
-		if current.Source == HUGGING_FACE {
-			huggingfaceModels = append(huggingfaceModels, current)
-		}
-	}
-	return huggingfaceModels
-}
-
-// GetModelsWithIsDownloadedTrue return a sub-slice of models with isdownloaded to true.
-func GetModelsWithIsDownloadedTrue(models []Model) []Model {
-	var downloadedModels []Model
-	for _, current := range models {
-		if current.IsDownloaded {
-			downloadedModels = append(downloadedModels, current)
-		}
-	}
-	return downloadedModels
-}
-
-// GetModelsWithAddToBinaryFileTrue return a sub-slice of models with AddToBinaryFile to true.
-func GetModelsWithAddToBinaryFileTrue(models []Model) []Model {
-	var downloadedModels []Model
-	for _, current := range models {
-		if current.AddToBinaryFile {
-			downloadedModels = append(downloadedModels, current)
-		}
-	}
-	return downloadedModels
-}
-
-// GetBasePath return the base path to the model
-func GetBasePath(model Model) string {
-	return path.Join(app.DownloadDirectoryPath, model.Name)
-}
-
-// ConstructConfigPaths to update the model's path to elements accordingly to its configuration.
-func ConstructConfigPaths(current Model) Model {
-	basePath := GetBasePath(current)
-	modelPath := basePath
-	if current.Module == huggingface.TRANSFORMERS {
-		modelPath = path.Join(modelPath, "model")
-		for i, tokenizer := range current.Tokenizers {
-			current.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
-		}
-	}
-	current.Path = modelPath
-
-	return current
-}
-
-// MapToModelFromDownloaderModel maps data from downloader.Model to Model.
-func MapToModelFromDownloaderModel(model Model, dlModel downloader.Model) Model {
-
-	// Check if ScriptModel is valid
-	if !downloader.EmptyModel(dlModel) {
-		if len(dlModel.Path) != 0 {
-			model.Path = stringutil.PathUniformize(dlModel.Path)
-		}
-		model.Module = huggingface.Module(dlModel.Module)
-		model.Class = dlModel.Class
-		model.Options = dlModel.Options
-	}
-
-	// Check if ScriptTokenizer is valid
-	if !downloader.EmptyTokenizer(dlModel.Tokenizer) {
-		tokenizer := MapToTokenizerFromDownloaderTokenizer(dlModel.Tokenizer)
-
-		// Check if tokenizer already configured and replace it
-		var replaced bool
-		for i := range model.Tokenizers {
-			if model.Tokenizers[i].Class == tokenizer.Class {
-				model.Tokenizers[i] = tokenizer
-				replaced = true
-			}
-		}
-
-		// Tokenizer was already found and replaced : nothing to append
-		if replaced {
-			return model
-		}
-
-		// Tokenizer not found : adding it to the list
-		model.Tokenizers = append(model.Tokenizers, tokenizer)
-	}
-
-	return model
-}
-
-// MapToTokenizerFromDownloaderTokenizer maps data from downloader.Tokenizer to Tokenizer.
-func MapToTokenizerFromDownloaderTokenizer(dlTokenizer downloader.Tokenizer) Tokenizer {
-	var modelTokenizer Tokenizer
-	if len(dlTokenizer.Path) != 0 {
-		modelTokenizer.Path = stringutil.PathUniformize(dlTokenizer.Path)
-	}
-	modelTokenizer.Class = dlTokenizer.Class
-	modelTokenizer.Options = dlTokenizer.Options
-	return modelTokenizer
-}
-
-// MapToModelFromHuggingfaceModel map the Huggingface API model to a model
-func MapToModelFromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
-	var model Model
-	model.Name = huggingfaceModel.Name
-	model.PipelineTag = huggingfaceModel.PipelineTag
-	model.Module = huggingfaceModel.LibraryName
-	model.Source = HUGGING_FACE
-	model.Version = huggingfaceModel.LastModified
-	return model
-}
-
-// ModelDownloadedOnDevice returns true if the model is physically present on the device.
-func ModelDownloadedOnDevice(model Model, useBasePath bool) (bool, error) {
+// DownloadedOnDevice returns true if the model is physically present on the device.
+func (m *Model) DownloadedOnDevice(useBasePath bool) (bool, error) {
 
 	// Adapt the model path
-	modelPath := model.Path
+	modelPath := m.Path
 	if useBasePath {
-		modelPath = GetBasePath(model)
+		modelPath = m.GetBasePath()
 	}
 
 	// Check if model is already downloaded
@@ -252,11 +46,11 @@ func ModelDownloadedOnDevice(model Model, useBasePath bool) (bool, error) {
 	return true, nil
 }
 
-// TokenizerDownloadedOnDevice returns true if the tokenizer is physically present on the device.
-func TokenizerDownloadedOnDevice(tokenizer Tokenizer) (bool, error) {
+// DownloadedOnDevice returns true if the tokenizer is physically present on the device.
+func (t *Tokenizer) DownloadedOnDevice() (bool, error) {
 
 	// Check if model is already downloaded
-	downloaded, err := fileutil.IsExistingPath(tokenizer.Path)
+	downloaded, err := fileutil.IsExistingPath(t.Path)
 	if err != nil {
 		// An error occurred
 		return false, err
@@ -266,7 +60,7 @@ func TokenizerDownloadedOnDevice(tokenizer Tokenizer) (bool, error) {
 	}
 
 	// Check if the model directory is empty
-	empty, err := fileutil.IsDirectoryEmpty(tokenizer.Path)
+	empty, err := fileutil.IsDirectoryEmpty(t.Path)
 	if err != nil {
 		// An error occurred
 		return false, err
@@ -279,20 +73,20 @@ func TokenizerDownloadedOnDevice(tokenizer Tokenizer) (bool, error) {
 	return true, nil
 }
 
-// TokenizersNotDownloadedOnDevice returns the list of tokenizers that should but are not physically present on the device.
-func TokenizersNotDownloadedOnDevice(model Model) []Tokenizer {
+// GetTokenizersNotDownloadedOnDevice returns the list of tokenizers that should but are not physically present on the device.
+func (m *Model) GetTokenizersNotDownloadedOnDevice() Tokenizers {
 
 	// Model can't have any tokenizer
-	if model.Module != huggingface.TRANSFORMERS {
-		return []Tokenizer{}
+	if m.Module != huggingface.TRANSFORMERS {
+		return Tokenizers{}
 	}
 
 	// Processing the configured tokenizers
-	var notDownloadedTokenizers []Tokenizer
-	for _, tokenizer := range model.Tokenizers {
+	var notDownloadedTokenizers Tokenizers
+	for _, tokenizer := range m.Tokenizers {
 
 		// Check if tokenizer is already downloaded
-		downloaded, err := TokenizerDownloadedOnDevice(tokenizer)
+		downloaded, err := tokenizer.DownloadedOnDevice()
 		if err != nil {
 			// An error occurred
 			continue
@@ -307,16 +101,16 @@ func TokenizersNotDownloadedOnDevice(model Model) []Tokenizer {
 }
 
 // BuildModelsFromDevice builds a slice of models recovered from the device folders.
-func BuildModelsFromDevice() []Model {
+func BuildModelsFromDevice() Models {
 
 	// Get all the providers in the root folder
 	providers, err := os.ReadDir(app.DownloadDirectoryPath)
 	if err != nil {
-		return []Model{}
+		return Models{}
 	}
 
 	// Processing each provider
-	var models []Model
+	var models Models
 	for _, provider := range providers {
 		// If it's not a directory, skip
 		if !provider.IsDir() {
@@ -358,7 +152,7 @@ func BuildModelsFromDevice() []Model {
 
 			// Fetching succeeded : processing the response
 			// Map API response to model.Model
-			modelMapped := MapToModelFromHuggingfaceModel(huggingfaceModel)
+			modelMapped := FromHuggingfaceModel(huggingfaceModel)
 
 			// Leaving the version field as empty since it's impossible to trace the version back
 			modelMapped.Version = ""
@@ -409,74 +203,26 @@ func BuildModelsFromDevice() []Model {
 	return models
 }
 
-// Download attempts to download the model
-func Download(model Model, downloaderArgs downloader.Args) (Model, bool) {
-	// Running the script
-	dlModel, err := downloader.Execute(downloaderArgs)
-
-	// Something went wrong or no data has been returned
-	if err != nil || dlModel.IsEmpty {
-		return model, false
-	}
-
-	// Update the model for the configuration file
-	model = MapToModelFromDownloaderModel(model, dlModel)
-	model.AddToBinaryFile = !downloaderArgs.OnlyConfiguration
-	model.IsDownloaded = !downloaderArgs.OnlyConfiguration
-
-	return model, true
-}
-
-// GetConfig attempts to get the model's configuration
-func GetConfig(model Model, downloaderArgs downloader.Args) (Model, bool) {
-	// Add OnlyConfiguration flag to the command
-	downloaderArgs.OnlyConfiguration = true
-
-	// Running the script
-	dlModel, err := downloader.Execute(downloaderArgs)
-
-	// Something went wrong or no data has been returned
-	if err != nil || dlModel.IsEmpty {
-		return model, false
-	}
-
-	// Update the model for the configuration file
-	model = MapToModelFromDownloaderModel(model, dlModel)
-
-	return model, true
-}
-
-// DownloadTokenizer attempts to download the tokenizer
-func DownloadTokenizer(model Model, tokenizer Tokenizer, downloaderArgs downloader.Args) (Model, bool) {
-
-	// Building downloader args for the tokenizer
-	downloaderArgs.Skip = downloader.SkipValueModel
-	downloaderArgs.TokenizerClass = tokenizer.Class
-	downloaderArgs.TokenizerOptions = stringutil.OptionsMapToSlice(tokenizer.Options)
-
-	// Running the script for the tokenizer only
-	dlModelTokenizer, err := downloader.Execute(downloaderArgs)
-
-	// Something went wrong or no data has been returned
-	if err != nil || dlModelTokenizer.IsEmpty {
-		return model, false
-	}
-
-	// Update the model with the tokenizer for the configuration file
-	model = MapToModelFromDownloaderModel(model, dlModelTokenizer)
-
-	return model, true
+// FromHuggingfaceModel map the Huggingface API huggingface.Model to a Model
+func FromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
+	var model Model
+	model.Name = huggingfaceModel.Name
+	model.PipelineTag = huggingfaceModel.PipelineTag
+	model.Module = huggingfaceModel.LibraryName
+	model.Source = HUGGING_FACE
+	model.Version = huggingfaceModel.LastModified
+	return model
 }
 
 // Update attempts to update the model
-func Update(model Model, mapConfigModels map[string]Model) bool {
+func (m *Model) Update(mapConfigModels map[string]Model) bool {
 
 	// Checking if the model is already configured
-	_, configured := mapConfigModels[model.Name]
+	_, configured := mapConfigModels[m.Name]
 
 	// Check if model is physically present on the device
-	model = ConstructConfigPaths(model)
-	downloaded, err := ModelDownloadedOnDevice(model, false)
+	m.UpdatePaths()
+	downloaded, err := m.DownloadedOnDevice(false)
 	if err != nil {
 		return false
 	}
@@ -485,17 +231,17 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 	install := false
 	if !configured && !downloaded {
 		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be added. "+
-			"Would you like to add it?", model.Name))
+			"Would you like to add it?", m.Name))
 	} else if configured && !downloaded {
 		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
-			"Would you like to download it?", model.Name))
+			"Would you like to download it?", m.Name))
 	} else if !configured && downloaded {
 		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' already exists. "+
-			"Would you like to overwrite it?", model.Name))
+			"Would you like to overwrite it?", m.Name))
 	} else {
 		// Model already configured and downloaded : a new version is available
 		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
-			"Would you like to overwrite its old version?", model.Name))
+			"Would you like to overwrite its old version?", m.Name))
 	}
 
 	// Model will not be downloaded or overwritten, nothing more to do here
@@ -508,10 +254,10 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 
 	// If transformers : select the tokenizers to update using a multiselect
 	var tokenizerNames []string
-	if model.Module == huggingface.TRANSFORMERS {
+	if m.Module == huggingface.TRANSFORMERS {
 
 		// Get tokenizer names for the model
-		availableNames := GetTokenizerNames(model)
+		availableNames := m.Tokenizers.GetNames()
 
 		// Allow to select only if at least one tokenizer is available
 		if len(availableNames) > 0 {
@@ -531,17 +277,17 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 
 	// Prepare the script arguments
 	downloaderArgs := downloader.Args{
-		ModelName:         model.Name,
-		ModelModule:       string(model.Module),
-		ModelClass:        model.Class,
-		ModelOptions:      stringutil.OptionsMapToSlice(model.Options),
+		ModelName:         m.Name,
+		ModelModule:       string(m.Module),
+		ModelClass:        m.Class,
+		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
 		Skip:              skip,
 		OnlyConfiguration: false,
 	}
 
 	// Downloading model
 	success := false
-	model, success = Download(model, downloaderArgs)
+	success = m.Download(downloaderArgs)
 	if !success {
 		// Download failed
 		return false
@@ -551,15 +297,14 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 	if len(tokenizerNames) > 0 {
 
 		// Bind the model tokenizers to a map for faster lookup
-		mapModelTokenizers := TokenizersToMap(model)
+		mapModelTokenizers := m.Tokenizers.Map()
 
 		var failedTokenizers []string
 		for _, tokenizerName := range tokenizerNames {
 			tokenizer := mapModelTokenizers[tokenizerName]
 
 			// Downloading tokenizer
-			success := false
-			model, success = DownloadTokenizer(model, tokenizer, downloaderArgs)
+			success = m.DownloadTokenizer(tokenizer, downloaderArgs)
 			if !success {
 				// Download failed
 				failedTokenizers = append(failedTokenizers, tokenizer.Class)
@@ -569,7 +314,7 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 
 		// The process failed for at least one tokenizer
 		if len(failedTokenizers) > 0 {
-			pterm.Error.Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", model.Name, failedTokenizers))
+			pterm.Error.Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
 		}
 	}
 
@@ -578,17 +323,17 @@ func Update(model Model, mapConfigModels map[string]Model) bool {
 
 // TidyConfiguredModel downloads the missing elements that were configured
 // first bool is true if success, second bool is true if model was clean from the start
-func TidyConfiguredModel(model Model) (bool, bool) {
+func (m *Model) TidyConfiguredModel() (bool, bool) {
 
 	// Check if model is physically present on the device
-	model = ConstructConfigPaths(model)
-	downloaded, err := ModelDownloadedOnDevice(model, false)
+	m.UpdatePaths()
+	downloaded, err := m.DownloadedOnDevice(false)
 	if err != nil {
 		return false, false
 	}
 
 	// Get all the configured but not downloaded tokenizers
-	missingTokenizers := TokenizersNotDownloadedOnDevice(model)
+	missingTokenizers := m.GetTokenizersNotDownloadedOnDevice()
 
 	// Model is clean, nothing more to do here
 	if downloaded && len(missingTokenizers) == 0 {
@@ -597,10 +342,10 @@ func TidyConfiguredModel(model Model) (bool, bool) {
 
 	// Prepare the script arguments
 	downloaderArgs := downloader.Args{
-		ModelName:         model.Name,
-		ModelModule:       string(model.Module),
-		ModelClass:        model.Class,
-		ModelOptions:      stringutil.OptionsMapToSlice(model.Options),
+		ModelName:         m.Name,
+		ModelModule:       string(m.Module),
+		ModelClass:        m.Class,
+		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
 		OnlyConfiguration: false,
 	}
 
@@ -609,7 +354,7 @@ func TidyConfiguredModel(model Model) (bool, bool) {
 
 		// Downloading model
 		success := false
-		model, success = Download(model, downloaderArgs)
+		success = m.Download(downloaderArgs)
 		if !success {
 			// Download failed
 			return false, false
@@ -625,7 +370,7 @@ func TidyConfiguredModel(model Model) (bool, bool) {
 
 			// Downloading tokenizer
 			success := false
-			model, success = DownloadTokenizer(model, tokenizer, downloaderArgs)
+			success = m.DownloadTokenizer(tokenizer, downloaderArgs)
 			if !success {
 				// Download failed
 				failedTokenizers = append(failedTokenizers, tokenizer.Class)
@@ -635,7 +380,7 @@ func TidyConfiguredModel(model Model) (bool, bool) {
 
 		// The process failed for at least one tokenizer
 		if len(failedTokenizers) > 0 {
-			pterm.Error.Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", model.Name, failedTokenizers))
+			pterm.Error.Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
 		}
 	}
 

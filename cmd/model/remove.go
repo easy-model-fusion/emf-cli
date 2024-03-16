@@ -49,7 +49,7 @@ func runModelRemove(cmd *cobra.Command, args []string) {
 	var models, err = config.GetModels()
 
 	// Check fetched models : cannot be null or empty
-	if err != nil || model.Empty(models) {
+	if err != nil || models.Empty() {
 		pterm.Info.Printfln("There is no models to be removed.")
 		return
 	}
@@ -73,7 +73,7 @@ func runModelRemove(cmd *cobra.Command, args []string) {
 	}
 }
 
-func selectModelsToDelete(currentModels []model.Model) []string {
+func selectModelsToDelete(currentModels model.Models) []string {
 	// Build a multiselect with each model name
 	var modelNames []string
 	for _, item := range currentModels {
