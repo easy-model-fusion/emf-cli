@@ -373,7 +373,7 @@ func TestRemoveModels_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 
 	// Call the RemoveModels function
-	err = RemoveModelsByNames(models, names)
+	_, _, err = RemoveModelsByNames(models, names)
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
 
 	// Assert that all models were not physically removed
