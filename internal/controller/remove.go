@@ -11,9 +11,10 @@ import (
 
 // RunModelRemove runs the model remove command
 func RunModelRemove(args []string, modelRemoveAllFlag bool) {
-	// Remove the selected models
+	// Process remove operation with given arguments
 	warningMessage, infoMessage, err := processRemove(args, modelRemoveAllFlag)
 
+	// Display messages to user
 	if warningMessage != "" {
 		pterm.Warning.Printfln(warningMessage)
 	}
@@ -27,12 +28,15 @@ func RunModelRemove(args []string, modelRemoveAllFlag bool) {
 	}
 }
 
+// processRemove processes the remove model operation
 func processRemove(args []string, modelRemoveAllFlag bool) (string, string, error) {
+	// Load the configuration file
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		return "", "", err
 	}
 
+	// Get all configured models objects/names
 	var selectedModels []string
 	var models model.Models
 	models, err = config.GetModels()
@@ -56,7 +60,9 @@ func processRemove(args []string, modelRemoveAllFlag bool) (string, string, erro
 	return removeModels(models, selectedModels)
 }
 
+// selectModelsToDelete displays an interactive multiselect so the user can choose the models to remove
 func selectModelsToDelete(modelNames []string, selectAllModels bool) []string {
+	// Displays the multiselect only if the user has previously configured some models but hasn't selected all of them
 	if !selectAllModels && len(modelNames) > 0 {
 		checkMark := ui.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")}
 		message := "Please select the model(s) to be deleted"
@@ -66,6 +72,7 @@ func selectModelsToDelete(modelNames []string, selectAllModels bool) []string {
 	return modelNames
 }
 
+// removeModels processes the selected models and removes them
 func removeModels(models model.Models, selectedModels []string) (warning string, info string, err error) {
 	if models.Empty() || len(selectedModels) == 0 {
 		info = "There is no selected models to be removed."
