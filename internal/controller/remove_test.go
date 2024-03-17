@@ -10,6 +10,12 @@ import (
 	"testing"
 )
 
+func TestMain(m *testing.M) {
+	// Initialize configuration file path =
+	config.FilePath = "."
+	os.Exit(m.Run())
+}
+
 // Sets the configuration file with the given models
 func setupConfigFile(models model.Models) error {
 	// Load configuration file
@@ -345,7 +351,8 @@ func TestRunModelRemove_WitInvalidConfigPath(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 
 	// Change current Directory
-	os.Chdir(currentDir)
+	err = os.Chdir(currentDir)
+	test.AssertEqual(t, err, nil, "No error expected while changing directory")
 
 	//create mock UI
 	ui := test.MockUI{UserInputResult: "path/test"}
@@ -354,7 +361,8 @@ func TestRunModelRemove_WitInvalidConfigPath(t *testing.T) {
 	// Process remove
 	RunModelRemove(args, false)
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
-	os.Chdir(confDir)
+	err = os.Chdir(confDir)
+	test.AssertEqual(t, err, nil, "No error expected while changing directory")
 	err = config.Load(".")
 	test.AssertEqual(t, err, nil, "No error expected while loading configuration file")
 	newModels, err := config.GetModels()
