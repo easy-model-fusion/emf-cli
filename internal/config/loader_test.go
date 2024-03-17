@@ -51,3 +51,16 @@ func TestLoad(t *testing.T) {
 	// Assert that the loaded configuration has the expected values
 	test.AssertEqual(t, "value", viper.GetString("key"))
 }
+
+// Tests UpdateConfigFilePath
+func TestUpdateConfigFilePath(t *testing.T) {
+	//create mock UI
+	ui := test.MockUI{UserInputResult: "path/test"}
+	app.SetUI(ui)
+
+	// Update the configuration file path
+	path := UpdateConfigFilePath()
+
+	//Assertions
+	test.AssertEqual(t, "path/test", path)
+}

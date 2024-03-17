@@ -35,3 +35,14 @@ func TestInitGit(t *testing.T) {
 	test.AssertEqual(t, G(), nil)
 	test.AssertEqual(t, fatalCalled, true, "Should call the fatal function")
 }
+
+func TestSetGit(t *testing.T) {
+	// Initialize git Instance
+	git := test.MockGit{Tag: "test-1.0"}
+
+	// Set new git instance
+	SetGit(&git)
+
+	// Assertions
+	test.AssertEqual(t, G(), &git)
+}
