@@ -42,11 +42,15 @@ func setupConfigDir(t *testing.T) (string, string) {
 }
 
 // setupConfigFile creates a configuration file.
-func setupConfigFile(filePath string, models []model.Model) error {
+func setupConfigFile(filePath string, models []model.Model, emptyFile bool) error {
 	file, err := os.Create(filePath)
 	defer fileutil.CloseFile(file)
 	if err != nil {
 		return err
+	}
+
+	if emptyFile {
+		return nil
 	}
 
 	if len(models) > 0 {
@@ -151,7 +155,7 @@ func TestGetModels_Success(t *testing.T) {
 
 	// Setup file
 	initialModels := []model.Model{getModel(0), getModel(1)}
-	err := setupConfigFile(initialConfigFile, initialModels)
+	err := setupConfigFile(initialConfigFile, initialModels, false)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 
 	// Call the GetModels function
@@ -174,7 +178,7 @@ func TestGetModels_MissingConfig(t *testing.T) {
 
 	// Setup file
 	var initialModels []model.Model
-	err := setupConfigFile(initialConfigFile, initialModels)
+	err := setupConfigFile(initialConfigFile, initialModels, false)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 
 	// Call the GetModels function
@@ -200,7 +204,7 @@ func TestAddModel(t *testing.T) {
 
 	// Call the AddModels function to add new models
 	newModels := []model.Model{getModel(2), getModel(3)}
-	err := setupConfigFile(initialConfigFile, initialModels)
+	err := setupConfigFile(initialConfigFile, initialModels, false)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
@@ -226,7 +230,7 @@ func TestAddModelOnEmptyConfFile(t *testing.T) {
 	// Call the AddModels function to add new models
 	newModels := []model.Model{getModel(0), getModel(1)}
 
-	err := setupConfigFile(initialConfigFile, initialModels)
+	err := setupConfigFile(initialConfigFile, initialModels, false)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
@@ -314,14 +318,15 @@ func TestRemoveAllModels_Success(t *testing.T) {
 
 	// Setup configuration directory and file
 	confDir, initialConfigFile := setupConfigDir(t)
-	err := setupConfigFile(initialConfigFile, models)
+	err := setupConfigFile(initialConfigFile, models, false)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 
 	// Call the RemoveAllModels function
-	err = RemoveAllModels()
+	info, err := RemoveAllModels()
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
+	test.AssertEqual(t, info, "")
 
 	// Assert that all models were physically removed
 	exists, err := fileutil.IsExistingPath(app.DownloadDirectoryPath)
@@ -338,6 +343,24 @@ func TestRemoveAllModels_Success(t *testing.T) {
 	// Assert that the models have been removed correctly
 	var expectedModels []model.Model
 	test.AssertEqual(t, len(updatedModels), len(expectedModels), "Not all models were removed.")
+
+	// Clean up directory afterward
+	cleanConfDir(t, confDir)
+}
+
+// TestRemoveAllModels_Success tests the RemoveAllModels function with no configured models
+func TestRemoveAllModels_WithNoModels(t *testing.T) {
+	// Setup configuration directory and file
+	confDir, initialConfigFile := setupConfigDir(t)
+	err := setupConfigFile(initialConfigFile, model.Models{}, true)
+	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
+	err = Load(confDir)
+	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
+
+	// Call the RemoveAllModels function
+	info, err := RemoveAllModels()
+	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
+	test.AssertEqual(t, info, "There is no models to be removed.")
 
 	// Clean up directory afterward
 	cleanConfDir(t, confDir)
@@ -367,14 +390,16 @@ func TestRemoveModels_Success(t *testing.T) {
 
 	// Setup configuration directory and file
 	confDir, initialConfigFile := setupConfigDir(t)
-	err := setupConfigFile(initialConfigFile, models)
+	err := setupConfigFile(initialConfigFile, models, false)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 
 	// Call the RemoveModels function
-	err = RemoveModelsByNames(models, names)
+	warning, info, err := RemoveModelsByNames(models, names)
 	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
+	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, info, "")
 
 	// Assert that all models were not physically removed
 	exists, err := fileutil.IsExistingPath(app.DownloadDirectoryPath)
@@ -407,12 +432,79 @@ func TestRemoveModels_Success(t *testing.T) {
 	cleanConfDir(t, confDir)
 }
 
+// TestRemoveModels_Success tests the RemoveModelsByNames function with invalid model names.
+func TestRemoveModels_WithInvalidModels(t *testing.T) {
+	// Init the models
+	models := []model.Model{getModel(0), getModel(1), getModel(2)}
+
+	// Create temporary models
+	modelPath0 := filepath.Join(app.DownloadDirectoryPath, models[0].Name)
+	setupModelDirectory(t, modelPath0)
+	modelPath1 := filepath.Join(app.DownloadDirectoryPath, models[1].Name)
+	setupModelDirectory(t, modelPath1)
+	modelPath2 := filepath.Join(app.DownloadDirectoryPath, models[2].Name)
+	setupModelDirectory(t, modelPath2)
+	defer os.RemoveAll(app.DownloadDirectoryPath)
+
+	// Models to remove
+	var names []string
+	names = append(names, "invalidModel")
+
+	// Setup configuration directory and file
+	confDir, initialConfigFile := setupConfigDir(t)
+	err := setupConfigFile(initialConfigFile, models, false)
+	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
+	err = Load(confDir)
+	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
+
+	// Call the RemoveModels function
+	warning, info, err := RemoveModelsByNames(models, names)
+	test.AssertEqual(t, err, nil, "Error while updating configuration file.")
+	test.AssertEqual(t, warning, "The following models were not found in the configuration file : [invalidModel]")
+	test.AssertEqual(t, info, "No valid models were inputted.")
+
+	// Assert that all models were not physically removed
+	exists, err := fileutil.IsExistingPath(app.DownloadDirectoryPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	test.AssertEqual(t, true, exists, "All models should not have been removed.")
+
+	// Assert that the request models were physically removed
+	exists, err = fileutil.IsExistingPath(modelPath0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	test.AssertEqual(t, true, exists, "Model 0 should not have been removed.")
+	exists, err = fileutil.IsExistingPath(modelPath1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	test.AssertEqual(t, true, exists, "Model 1 should not have been removed.")
+	exists, err = fileutil.IsExistingPath(modelPath2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	test.AssertEqual(t, true, exists, "Model 2 should not have been removed.")
+
+	// Get the newly stored data
+	var updatedModels []model.Model
+	err = viper.UnmarshalKey("models", &updatedModels)
+	test.AssertEqual(t, err, nil, "Error while unmarshalling models from configuration file.")
+
+	// Assert that the models have been removed correctly
+	test.AssertEqual(t, len(updatedModels), len(models), "No models should be removed.")
+
+	// Clean up directory afterward
+	cleanConfDir(t, confDir)
+}
+
 // TestValidate_Configured_False tests the Validate function to invalidate a model that is already configured.
 func TestValidate_Configured_False(t *testing.T) {
 	// Setup config directory
 	confDir, initialConfigFile := setupConfigDir(t)
 	initialModels := []model.Model{getModel(0), getModel(1)}
-	err := setupConfigFile(initialConfigFile, initialModels)
+	err := setupConfigFile(initialConfigFile, initialModels, false)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
@@ -434,7 +526,7 @@ func TestValidate_Configured_False(t *testing.T) {
 func TestValidate_DownloadedAndBinaryFalse_ConfirmFalse(t *testing.T) {
 	// Setup config directory
 	confDir, initialConfigFile := setupConfigDir(t)
-	err := setupConfigFile(initialConfigFile, []model.Model{})
+	err := setupConfigFile(initialConfigFile, []model.Model{}, false)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
@@ -472,7 +564,7 @@ func TestValidate_DownloadedAndBinaryFalse_ConfirmFalse(t *testing.T) {
 func TestValidate_DownloadedAndBinaryFalse_ConfirmTrueAndRemove(t *testing.T) {
 	// Setup config directory
 	confDir, initialConfigFile := setupConfigDir(t)
-	err := setupConfigFile(initialConfigFile, []model.Model{})
+	err := setupConfigFile(initialConfigFile, []model.Model{}, false)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
@@ -515,7 +607,7 @@ func TestValidate_DownloadedAndBinaryFalse_ConfirmTrueAndRemove(t *testing.T) {
 func TestValidate_Downloaded_ConfirmFalse(t *testing.T) {
 	// Setup config directory
 	confDir, initialConfigFile := setupConfigDir(t)
-	err := setupConfigFile(initialConfigFile, []model.Model{})
+	err := setupConfigFile(initialConfigFile, []model.Model{}, false)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
@@ -553,7 +645,7 @@ func TestValidate_Downloaded_ConfirmFalse(t *testing.T) {
 func TestValidate_Downloaded_ConfirmTrue(t *testing.T) {
 	// Setup config directory
 	confDir, initialConfigFile := setupConfigDir(t)
-	err := setupConfigFile(initialConfigFile, []model.Model{})
+	err := setupConfigFile(initialConfigFile, []model.Model{}, false)
 	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
 	err = Load(confDir)
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")

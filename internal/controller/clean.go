@@ -30,7 +30,11 @@ func RunClean(allFlagDelete bool, authorizeAllDelete bool) {
 			}
 		}
 
-		err := config.RemoveAllModels()
+		info, err := config.RemoveAllModels()
+		if info != "" {
+			pterm.Info.Printfln(info)
+		}
+
 		if err == nil {
 			pterm.Success.Printfln("Operation succeeded.")
 		} else {
