@@ -125,12 +125,7 @@ func RemoveAllModels() error {
 	viper.Set("models", []string{})
 
 	// Attempt to write the configuration file
-	err = WriteViperConfig()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return WriteViperConfig()
 }
 
 // RemoveModelsByNames filters out specified models, removes them and updates the configuration file.

@@ -106,6 +106,30 @@ func TestRemoveModels_WithNoConfiguredModels(t *testing.T) {
 	test.AssertEqual(t, info, "There is no models to be removed.", "Information message expected")
 }
 
+// Tests selectModelsToDelete
+func TestSelectModelsToDelete(t *testing.T) {
+	// Initialize model names list
+	var modelNames []string
+	modelNames = append(modelNames, "model1")
+	modelNames = append(modelNames, "model2")
+	modelNames = append(modelNames, "model3")
+	var expectedSelections []string
+	expectedSelections = append(expectedSelections, "model1")
+	expectedSelections = append(expectedSelections, "model3")
+
+	// Create ui mock
+	ui := test.MockUI{MultiselectResult: expectedSelections}
+	app.SetUI(ui)
+
+	// Select models
+	selectedModels := selectModelsToDelete(modelNames, false)
+
+	// Assertions
+	test.AssertEqual(t, len(selectedModels), 2, "2 models should be returned")
+	test.AssertEqual(t, selectedModels[0], expectedSelections[0])
+	test.AssertEqual(t, selectedModels[1], expectedSelections[1])
+}
+
 // Tests selectModelsToDelete with all models selected
 func TestSelectModelsToDelete_WithSelectedAll(t *testing.T) {
 	// Initialize model names list
@@ -210,4 +234,23 @@ func TestProcessRemove_WithArgs(t *testing.T) {
 	//Assertions
 	test.AssertEqual(t, len(newModels), 1, "Only one model should be left.")
 	test.AssertEqual(t, newModels[0].Name, "model1", "Model1 shouldn't be deleted")
+}
+
+// Tests processRemove method should throw error on invalid configuration file path
+func TestProcessRemove_WithErrorOnLoadingConfigurationFile(t *testing.T) {
+	// Initialize selected models list
+	var args []string
+
+	//create mock UI
+	ui := test.MockUI{UserInputResult: "path/test"}
+	app.SetUI(ui)
+
+	// Process remove
+	_, _, err := processRemove(args, false)
+	test.AssertNotEqual(t, err, nil, "Error expected while loading configuration file")
+}
+
+// Tests RunModelRemove
+func TestRunModelRemove(t *testing.T) {
+	// TODO implement mockers + add UT
 }
