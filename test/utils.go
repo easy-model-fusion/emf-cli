@@ -113,7 +113,8 @@ func (ts *TestSuite) CreateConfigurationFileFullTestSuite(t *testing.T, models m
 
 	// Write models to the config file
 	viper.Set("models", models)
-	config.WriteViperConfig()
+	err = config.WriteViperConfig()
+	checkErrDeleteFolder(t, err, confDir)
 
 	return confDir
 }
