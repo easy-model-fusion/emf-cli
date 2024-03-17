@@ -85,28 +85,6 @@ func (ts *TestSuite) CreateModelsFolderFullTestSuite(t *testing.T) (directoryPat
 	return dname
 }
 
-// CreateConfigurationFileFullTestSuite Create a full test suite
-// Please delete the directory after use (defer test.Clean())
-func (ts *TestSuite) CreateConfigurationFileFullTestSuite(t *testing.T) (directoryPath string) {
-	// Create temporary directory
-	confDir := ts.CreateFullTestSuite(t)
-
-	// Set up a temporary config file with some initial models
-	initialConfigFile := filepath.Join(confDir, "config.yaml")
-
-	// Create configuration file
-	file, err := os.Create(initialConfigFile)
-	checkErrDeleteFolder(t, err, confDir)
-	err = file.Close()
-	checkErrDeleteFolder(t, err, confDir)
-
-	// Chdir to a temporary directory
-	err = os.Chdir(confDir)
-	checkErrDeleteFolder(t, err, confDir)
-
-	return confDir
-}
-
 // CleanTestSuite Clean a test suite
 func (ts *TestSuite) CleanTestSuite(t *testing.T) {
 	// go back to the old working directory
