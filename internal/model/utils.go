@@ -321,6 +321,116 @@ func (m *Model) Update(mapConfigModels map[string]Model) bool {
 	return true
 }
 
+// UpdateTokenizer attempts to update the tokenizers.
+func (m *Model) UpdateTokenizer(
+	mapConfigModels map[string]Model,
+	selectedTokenizerNames []string,
+) bool {
+
+	// Checking if the model is already configured
+	_, configured := mapConfigModels[m.Name]
+
+	// Check if model is physically present on the device
+	m.UpdatePaths()
+	downloaded, err := m.DownloadedOnDevice(false)
+	if err != nil {
+		return false
+	}
+
+	// Process internal state of the model
+	install := false
+	if !configured && !downloaded {
+		print("Model '%s' has yet to be added. ")
+		return false
+	} else if configured && !downloaded {
+		print("Model '%s' has yet to be downloaded. ")
+		return false
+	}
+
+	install = app.UI().AskForUsersConfirmation(m.Name)
+
+	// Model will not be downloaded or overwritten, nothing more to do here
+	if !install {
+		return false
+	}
+
+	// Downloader script to skip the tokenizers download process if none selected
+	var skip string
+
+	// If transformers : select the tokenizers to update using a multiselect
+	var tokenizerNames []string
+	if m.Module == huggingface.TRANSFORMERS {
+
+		// Get tokenizer names for the model
+		availableNames := m.Tokenizers.GetNames()
+
+		// Allow to select only if at least one tokenizer is available
+		if len(availableNames) > 0 && len(selectedTokenizerNames) == 0 {
+			// Prepare the tokenizers multiselect
+			message := "Please select the tokenizer(s) to be updated"
+			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
+			app.UI().DisplaySelectedItems(tokenizerNames)
+
+			// No tokenizer is selected : skipping so that it doesn't overwrite the default one
+			if len(tokenizerNames) > 0 {
+				skip = downloader.SkipValueTokenizer
+			}
+		} else if len(selectedTokenizerNames) > 0 {
+			// Check if selectedTokenizerNames elements exist in tokenizerNames and add them to a new list
+			var selectedAndAvailableTokenizerNames []string
+			for _, name := range selectedTokenizerNames {
+				for _, availableName := range tokenizerNames {
+					if name == availableName {
+						selectedAndAvailableTokenizerNames = append(selectedAndAvailableTokenizerNames, name)
+						break
+					}
+				}
+			}
+			tokenizerNames = selectedAndAvailableTokenizerNames
+		}
+	}
+
+	// Prepare the script arguments
+	downloaderArgs := downloader.Args{
+		ModelName:         m.Name,
+		ModelModule:       string(m.Module),
+		ModelClass:        m.Class,
+		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
+		Skip:              skip,
+		OnlyConfiguration: false,
+	}
+
+	success := false
+
+	// If transformers and at least one tokenizer were asked for an update
+	if len(tokenizerNames) > 0 {
+
+		// Bind the model tokenizers to a map for faster lookup
+		mapModelTokenizers := m.Tokenizers.Map()
+
+		var failedTokenizers []string
+		for _, tokenizerName := range tokenizerNames {
+			tokenizer := mapModelTokenizers[tokenizerName]
+
+			// Downloading tokenizer
+			success = m.DownloadTokenizer(tokenizer, downloaderArgs)
+			if !success {
+				// Download failed
+				failedTokenizers = append(failedTokenizers, tokenizer.Class)
+				continue
+			}
+		}
+
+		// The process failed for at least one tokenizer
+		if len(failedTokenizers) > 0 {
+			pterm.Error.Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
+		}
+	}
+
+	return true
+}
+
 // TidyConfiguredModel downloads the missing elements that were configured
 // first bool is true if success, second bool is true if model was clean from the start
 func (m *Model) TidyConfiguredModel() (bool, bool) {
