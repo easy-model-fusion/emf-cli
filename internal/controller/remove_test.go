@@ -6,13 +6,9 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/spf13/viper"
+	"os"
 	"testing"
 )
-
-func init() {
-	app.Init("", "")
-	app.InitGit("", "")
-}
 
 // Sets the configuration file with the given models
 func setupConfigFile(models model.Models) error {
@@ -181,7 +177,7 @@ func TestProcessRemove_WithoutArgs(t *testing.T) {
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
-	_ = ts.CreateConfigurationFileFullTestSuite(t)
+	_ = ts.CreateFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
 	err := setupConfigFile(models)
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
@@ -220,13 +216,78 @@ func TestProcessRemove_WithArgs(t *testing.T) {
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
-	_ = ts.CreateConfigurationFileFullTestSuite(t)
+	_ = ts.CreateFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
 	err := setupConfigFile(models)
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 
 	// Process remove
 	_, _, err = processRemove(args, false)
+	test.AssertEqual(t, err, nil, "No error expected while processing remove")
+	newModels, err := config.GetModels()
+	test.AssertEqual(t, err, nil, "No error expected on getting models")
+
+	//Assertions
+	test.AssertEqual(t, len(newModels), 1, "Only one model should be left.")
+	test.AssertEqual(t, newModels[0].Name, "model1", "Model1 shouldn't be deleted")
+}
+
+// Tests RunModelRemove
+func TestRunModelRemove_WithNoModels(t *testing.T) {
+	// initialize models list
+	var models model.Models
+	// Initialize selected models list
+	var args []string
+
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+
+	// Process remove
+	RunModelRemove(args, true)
+	test.AssertEqual(t, err, nil, "No error expected while processing remove")
+	newModels, err := config.GetModels()
+	test.AssertEqual(t, err, nil, "No error expected on getting models")
+
+	//Assertions
+	test.AssertEqual(t, len(newModels), 0, "Only one model should be left.")
+}
+
+// Tests RunModelRemove
+func TestRunModelRemove(t *testing.T) {
+	// initialize models list
+	var models model.Models
+	models = append(models, model.Model{
+		Name:            "model1",
+		Path:            "path/to/model1",
+		Source:          "CUSTOM",
+		AddToBinaryFile: true,
+		IsDownloaded:    true,
+	})
+	models = append(models, model.Model{
+		Name:            "model2",
+		Path:            "path/to/model1",
+		Source:          "CUSTOM",
+		AddToBinaryFile: true,
+		IsDownloaded:    true,
+	})
+	// Initialize selected models list
+	var args []string
+	args = append(args, "model2")
+	args = append(args, "invalidModel")
+
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+
+	// Process remove
+	RunModelRemove(args, false)
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 	newModels, err := config.GetModels()
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
@@ -250,7 +311,57 @@ func TestProcessRemove_WithErrorOnLoadingConfigurationFile(t *testing.T) {
 	test.AssertNotEqual(t, err, nil, "Error expected while loading configuration file")
 }
 
-// Tests RunModelRemove
-func TestRunModelRemove(t *testing.T) {
-	// TODO implement mockers + add UT
+// Tests RunModelRemove with invalid configuration file path
+func TestRunModelRemove_WitInvalidConfigPath(t *testing.T) {
+	// Get current Directory
+	currentDir, err := os.Getwd()
+	test.AssertEqual(t, err, nil, "No error expected while getting current directory")
+
+	// initialize models list
+	var models model.Models
+	models = append(models, model.Model{
+		Name:            "model1",
+		Path:            "path/to/model1",
+		Source:          "CUSTOM",
+		AddToBinaryFile: true,
+		IsDownloaded:    true,
+	})
+	models = append(models, model.Model{
+		Name:            "model2",
+		Path:            "path/to/model1",
+		Source:          "CUSTOM",
+		AddToBinaryFile: true,
+		IsDownloaded:    true,
+	})
+	// Initialize selected models list
+	var args []string
+	args = append(args, "invalidModel")
+
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	confDir := ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err = setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+
+	// Change current Directory
+	os.Chdir(currentDir)
+
+	//create mock UI
+	ui := test.MockUI{UserInputResult: "path/test"}
+	app.SetUI(ui)
+
+	// Process remove
+	RunModelRemove(args, false)
+	test.AssertEqual(t, err, nil, "No error expected while processing remove")
+	os.Chdir(confDir)
+	err = config.Load(".")
+	test.AssertEqual(t, err, nil, "No error expected while loading configuration file")
+	newModels, err := config.GetModels()
+	test.AssertEqual(t, err, nil, "No error expected on getting models")
+
+	//Assertions
+	test.AssertEqual(t, len(newModels), 2, "Only one model should be left.")
+	test.AssertEqual(t, newModels[0].Name, "model1", "Model1 shouldn't be deleted")
+	test.AssertEqual(t, newModels[1].Name, "model2", "Model2 shouldn't be deleted")
 }
