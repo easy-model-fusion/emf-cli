@@ -40,10 +40,10 @@ func processRemove(args []string, modelRemoveAllFlag bool) (string, string, erro
 	var selectedModels []string
 	var models model.Models
 	models, err = config.GetModels()
-	modelNames := models.GetNames()
 	if err != nil {
 		return "", "", err
 	}
+	modelNames := models.GetNames()
 
 	sdk.SendUpdateSuggestion()
 
@@ -75,7 +75,7 @@ func selectModelsToDelete(modelNames []string, selectAllModels bool) []string {
 // removeModels processes the selected models and removes them
 func removeModels(models model.Models, selectedModels []string) (warning string, info string, err error) {
 	if models.Empty() || len(selectedModels) == 0 {
-		info = "There is no selected models to be removed."
+		info = "There is no models to be removed."
 	} else {
 		warning, info, err = config.RemoveModelsByNames(models, selectedModels)
 	}
