@@ -1,7 +1,6 @@
 package test
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/sdk"
 	"io/fs"
 	"os"
@@ -97,7 +96,8 @@ func (ts *TestSuite) CreateConfigurationFileFullTestSuite(t *testing.T) (directo
 
 	// Create configuration file
 	file, err := os.Create(initialConfigFile)
-	defer fileutil.CloseFile(file)
+	checkErrDeleteFolder(t, err, confDir)
+	err = file.Close()
 	checkErrDeleteFolder(t, err, confDir)
 
 	// Chdir to a temporary directory
