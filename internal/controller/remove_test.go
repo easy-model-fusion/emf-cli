@@ -5,12 +5,25 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/spf13/viper"
 	"testing"
 )
 
 func init() {
 	app.Init("", "")
 	app.InitGit("", "")
+}
+
+// Sets the configuration file with the given models
+func setupConfigFile(models model.Models) error {
+	// Load configuration file
+	err := config.GetViperConfig(".")
+	if err != nil {
+		return err
+	}
+	// Write models to the config file
+	viper.Set("models", models)
+	return config.WriteViperConfig()
 }
 
 // Tests removeModels with valid model from models list
@@ -144,11 +157,14 @@ func TestProcessRemove_WithoutArgs(t *testing.T) {
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
-	_ = ts.CreateConfigurationFileFullTestSuite(t, models)
+	_ = ts.CreateConfigurationFileFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 
 	// Process remove
-	_, _, err := processRemove(args, true)
+	_, _, err = processRemove(args, true)
+	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 	newModels, err := config.GetModels()
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
 
@@ -180,11 +196,14 @@ func TestProcessRemove_WithArgs(t *testing.T) {
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
-	_ = ts.CreateConfigurationFileFullTestSuite(t, models)
+	_ = ts.CreateConfigurationFileFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 
 	// Process remove
-	_, _, err := processRemove(args, false)
+	_, _, err = processRemove(args, false)
+	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 	newModels, err := config.GetModels()
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
 

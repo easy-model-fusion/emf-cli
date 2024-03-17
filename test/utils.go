@@ -1,11 +1,8 @@
 package test
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/sdk"
-	"github.com/spf13/viper"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -91,7 +88,7 @@ func (ts *TestSuite) CreateModelsFolderFullTestSuite(t *testing.T) (directoryPat
 
 // CreateConfigurationFileFullTestSuite Create a full test suite
 // Please delete the directory after use (defer test.Clean())
-func (ts *TestSuite) CreateConfigurationFileFullTestSuite(t *testing.T, models model.Models) (directoryPath string) {
+func (ts *TestSuite) CreateConfigurationFileFullTestSuite(t *testing.T) (directoryPath string) {
 	// Create temporary directory
 	confDir := ts.CreateFullTestSuite(t)
 
@@ -105,15 +102,6 @@ func (ts *TestSuite) CreateConfigurationFileFullTestSuite(t *testing.T, models m
 
 	// Chdir to a temporary directory
 	err = os.Chdir(confDir)
-	checkErrDeleteFolder(t, err, confDir)
-
-	// Load configuration file
-	err = config.GetViperConfig(".")
-	checkErrDeleteFolder(t, err, confDir)
-
-	// Write models to the config file
-	viper.Set("models", models)
-	err = config.WriteViperConfig()
 	checkErrDeleteFolder(t, err, confDir)
 
 	return confDir
