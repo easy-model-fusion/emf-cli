@@ -11,8 +11,8 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	// Initialize configuration file path =
-	config.FilePath = "."
+	app.Init("", "")
+	app.InitGit("", "")
 	os.Exit(m.Run())
 }
 

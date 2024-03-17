@@ -102,18 +102,18 @@ func RemoveModelPhysically(modelName string) error {
 }
 
 // RemoveAllModels removes all the models and updates the configuration file.
-func RemoveAllModels() error {
+func RemoveAllModels() (info string, err error) {
 
 	// Get the models from the configuration file
 	models, err := GetModels()
 	if err != nil {
-		return err
+		return info, err
 	}
 
 	// User did not add any model yet
 	if len(models) == 0 {
-		pterm.Info.Printfln("There is no models to be removed.")
-		return nil
+		info = "There is no models to be removed."
+		return info, err
 	}
 
 	// Trying to remove every model
@@ -125,7 +125,8 @@ func RemoveAllModels() error {
 	viper.Set("models", []string{})
 
 	// Attempt to write the configuration file
-	return WriteViperConfig()
+	err = WriteViperConfig()
+	return info, err
 }
 
 // RemoveModelsByNames filters out specified models, removes them and updates the configuration file.
