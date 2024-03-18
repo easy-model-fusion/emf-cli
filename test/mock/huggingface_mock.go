@@ -8,14 +8,15 @@ type MockHuggingFace struct {
 	GetModelResult   huggingface.Model
 	GetModelsResult  huggingface.Models
 	ValidModelResult bool
+	Error            error
 }
 
 func (hf *MockHuggingFace) GetModelsByPipelineTag(_ huggingface.PipelineTag, _ int) (huggingface.Models, error) {
-	return hf.GetModelsResult, nil
+	return hf.GetModelsResult, hf.Error
 }
 func (hf *MockHuggingFace) GetModelById(_ string) (huggingface.Model, error) {
-	return hf.GetModelResult, nil
+	return hf.GetModelResult, hf.Error
 }
 func (hf *MockHuggingFace) ValidModel(_ string) (bool, error) {
-	return hf.ValidModelResult, nil
+	return hf.ValidModelResult, hf.Error
 }
