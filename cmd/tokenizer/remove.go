@@ -5,15 +5,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// tokenizerRemoveCmd represents the model remove tokenizer command
+// tokenizerRemoveCmd represents the tokenizer remove command
 var tokenizerRemoveCmd = &cobra.Command{
-	Use:   "remove tokenizer <model_name> [tokenizer..]",
+	Use:   "remove <model_name> [tokenizer..]",
 	Short: "Remove one or more tokenizer",
 	Long:  "Remove one or more tokenizer",
+	Args:  cobra.MinimumNArgs(1),
 	Run:   runTokenizerRemove,
 }
 
-// runModelRemove runs the model remove command
+// runTokenizerRemove runs the tokenizer remove command
 func runTokenizerRemove(cmd *cobra.Command, args []string) {
 	controller.TokenizerRemoveCmd(args)
 }
