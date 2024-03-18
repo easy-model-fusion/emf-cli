@@ -321,15 +321,10 @@ func (m *Model) Update(mapConfigModels map[string]Model) bool {
 	return true
 }
 
-
 // UpdateTokenizer attempts to update the tokenizers.
 func (m *Model) UpdateTokenizer(
-	mapConfigModels map[string]Model,
 	selectedTokenizerNames []string,
 ) bool {
-
-	// Checking if the model is already configured
-	_, configured := mapConfigModels[m.Name]
 
 	// Check if model is physically present on the device
 	m.UpdatePaths()
@@ -340,11 +335,9 @@ func (m *Model) UpdateTokenizer(
 
 	// Process internal state of the model
 	install := false
-	if !configured && !downloaded {
-		print("Model '%s' has yet to be added. ")
-		return false
-	} else if configured && !downloaded {
-		print("Model '%s' has yet to be downloaded. ")
+	if !downloaded {
+		print("Model '%s' has yet to be " +
+			"added or downloaded. ")
 		return false
 	}
 
