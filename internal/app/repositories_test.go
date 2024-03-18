@@ -50,7 +50,7 @@ func TestSetGit(t *testing.T) {
 
 func TestSetHuggingFace(t *testing.T) {
 	// Initialize huggingFace mock instance
-	huggingFace := test.MockHuggingFace{}
+	huggingFace := mock.MockHuggingFace{}
 
 	// Set new huggingFace instance
 	SetHuggingFace(&huggingFace)
