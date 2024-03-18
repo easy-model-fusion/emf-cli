@@ -97,10 +97,10 @@ func Upgrade() error {
 		spinner.Fail(err)
 		return err
 	}
-
-	spinner = app.UI().StartSpinner("Reorganizing SDK files")
+	spinner.Success()
 
 	// Move files from sdk/sdk to sdk/
+	spinner = app.UI().StartSpinner("Reorganizing SDK files")
 	err = fileutil.MoveFiles(filepath.Join("sdk", "sdk"), "sdk")
 	if err != nil {
 		spinner.Fail("Unable to move SDK files: ", err)
