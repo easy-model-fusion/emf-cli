@@ -12,6 +12,223 @@ import (
 	"testing"
 )
 
+// Test RunModelUpdate
+func TestRunModelUpdate_Success(t *testing.T) {
+	// Init
+	var models model.Models
+	models = append(models, GetModel(1, "2021"))
+	models = append(models, GetModel(2, "2022"))
+	models = append(models, GetModel(3, "2022"))
+	var args []string
+	args = append(args, "model1")
+	args = append(args, "model3")
+	args = append(args, "model4")
+
+	// Create hugging face mock
+	huggingFace := mock.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022"}}
+	app.SetHuggingFace(&huggingFace)
+
+	// Create Ui mock
+	ui := mock.MockUI{UserConfirmationResult: true, UserInputResult: "."}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	setupConfigFile(models)
+
+	// Process update
+	RunModelUpdate(args)
+	updatedModels, err := config.GetModels()
+
+	// Assertions
+	test.AssertEqual(t, err, nil, "No error expected on getting all models")
+	test.AssertEqual(t, len(updatedModels), 3)
+	test.AssertEqual(t, updatedModels[0].Version, "2022")
+	test.AssertEqual(t, updatedModels[1].Version, "2022")
+	test.AssertEqual(t, updatedModels[2].Version, "2022")
+}
+
+// Test RunModelUpdate should fail
+func TestRunModelUpdate_Fail(t *testing.T) {
+	// Init
+	var models model.Models
+	models = append(models, GetModel(1, "2021"))
+	models = append(models, GetModel(2, "2022"))
+	models = append(models, GetModel(3, "2022"))
+	var args []string
+	args = append(args, "model1")
+	args = append(args, "model3")
+	args = append(args, "model4")
+
+	// Create hugging face mock
+	huggingFace := mock.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022"}}
+	app.SetHuggingFace(&huggingFace)
+
+	// Create Ui mock
+	ui := mock.MockUI{UserConfirmationResult: false, UserInputResult: "."}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	setupConfigFile(models)
+
+	// Process update
+	RunModelUpdate(args)
+	updatedModels, err := config.GetModels()
+
+	// Assertions
+	test.AssertEqual(t, err, nil, "No error expected on getting all models")
+	test.AssertEqual(t, len(updatedModels), 3)
+	test.AssertEqual(t, updatedModels[0].Version, "2021")
+	test.AssertEqual(t, updatedModels[1].Version, "2022")
+	test.AssertEqual(t, updatedModels[2].Version, "2022")
+}
+
+// Tests processUpdate
+func TestProcessUpdate(t *testing.T) {
+	// Init
+	var models model.Models
+	models = append(models, GetModel(1, "2021"))
+	models = append(models, GetModel(2, "2022"))
+	models = append(models, GetModel(3, "2022"))
+	var args []string
+	args = append(args, "model1")
+	args = append(args, "model3")
+	args = append(args, "model4")
+
+	// Create hugging face mock
+	huggingFace := mock.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022"}}
+	app.SetHuggingFace(&huggingFace)
+
+	// Create Ui mock
+	ui := mock.MockUI{UserConfirmationResult: true, UserInputResult: "."}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	setupConfigFile(models)
+
+	// Process update
+	warningMessage, infoMessage, err := processUpdate(args)
+
+	// Assertions
+	test.AssertEqual(t, err, nil, "No error expected")
+	test.AssertEqual(t, warningMessage, "The following models(s) couldn't be found and were ignored : [model4]", "A warning is expected")
+	test.AssertEqual(t, infoMessage, "The following model(s) are already up to date and were ignored : [model3]", "Information message expected")
+}
+
+// Tests processUpdate with no args
+func TestProcessUpdate_WithNoArgs(t *testing.T) {
+	// Init
+	var models model.Models
+	models = append(models, GetModel(1, "2021"))
+	models = append(models, GetModel(2, "2022"))
+	models = append(models, GetModel(3, "2022"))
+	var args []string
+	var expectedSelections []string
+	expectedSelections = append(expectedSelections, "model1")
+	expectedSelections = append(expectedSelections, "model3")
+
+	// Create hugging face mock
+	huggingFace := mock.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022"}}
+	app.SetHuggingFace(&huggingFace)
+
+	// Create Ui mock
+	ui := mock.MockUI{UserConfirmationResult: true, UserInputResult: ".", MultiselectResult: expectedSelections}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	setupConfigFile(models)
+
+	// Process update
+	warningMessage, infoMessage, err := processUpdate(args)
+
+	// Assertions
+	test.AssertEqual(t, err, nil, "No error expected")
+	test.AssertEqual(t, warningMessage, "", "No warning is expected")
+	test.AssertEqual(t, infoMessage, "The following model(s) are already up to date and were ignored : [model3]", "Information message expected")
+}
+
+// Tests processUpdate with no models selected
+func TestProcessUpdate_WithNoModelsSelected(t *testing.T) {
+	// Init
+	var models model.Models
+	models = append(models, GetModel(1, "2021"))
+	models = append(models, GetModel(2, "2022"))
+	models = append(models, GetModel(3, "2022"))
+	var args []string
+	var expectedSelections []string
+
+	// Create hugging face mock
+	huggingFace := mock.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022"}}
+	app.SetHuggingFace(&huggingFace)
+
+	// Create Ui mock
+	ui := mock.MockUI{UserConfirmationResult: true, UserInputResult: ".", MultiselectResult: expectedSelections}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	setupConfigFile(models)
+
+	// Process update
+	warningMessage, infoMessage, err := processUpdate(args)
+
+	// Assertions
+	test.AssertEqual(t, err, nil, "No error expected")
+	test.AssertEqual(t, warningMessage, "", "No warning is expected")
+	test.AssertEqual(t, infoMessage, "There is no models to be updated.", "Information message expected")
+}
+
+// Tests processUpdate with an error on loading configuration file
+func TestProcessUpdate_WithErrorOnLoadingConfigurationFile(t *testing.T) {
+	// Init
+	var args []string
+
+	// Create Ui mock
+	ui := mock.MockUI{UserConfirmationResult: true, UserInputResult: "."}
+	app.SetUI(ui)
+
+	// Process update
+	warningMessage, infoMessage, err := processUpdate(args)
+
+	// Assertions
+	test.AssertNotEqual(t, err, nil, "An error is expected")
+	test.AssertEqual(t, warningMessage, "", "No warning is expected")
+	test.AssertEqual(t, infoMessage, "", "No information message expected")
+}
+
 // Tests selectModelsToUpdate
 func TestSelectModelsToUpdate(t *testing.T) {
 	// Initialize model names list
@@ -170,7 +387,9 @@ func TestUpdateModels_Fail(t *testing.T) {
 func GetModel(id int, version string) model.Model {
 	idStr := fmt.Sprint(id)
 	return model.Model{
-		Name:    "model" + idStr,
-		Version: version,
+		Name:         "model" + idStr,
+		Source:       model.HUGGING_FACE,
+		IsDownloaded: true,
+		Version:      version,
 	}
 }
