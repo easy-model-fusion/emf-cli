@@ -99,3 +99,8 @@ func TestExecute_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, result.IsEmpty, false)
 }
+
+// TestNewScriptDownloader tests NewScriptDownloader
+func TestNewScriptDownloader(t *testing.T) {
+	test.AssertEqual(t, &scriptDownloader{}, NewScriptDownloader())
+}

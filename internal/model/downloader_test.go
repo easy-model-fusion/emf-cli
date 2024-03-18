@@ -1,10 +1,8 @@
 package model
 
 import (
-	"encoding/json"
 	"errors"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
@@ -14,49 +12,19 @@ import (
 	"testing"
 )
 
-func GetDownloaderResultForTransformers() string {
-	return "{\n" +
-		"\"module\": \"transformers\",\n" +
-		"\"class\": \"Class\",\n" +
-		"\"tokenizer\": {\n" +
-		"\"class\": \"Tokenizer\",\n" +
-		"\"path\": \"./models/microsoft/phi-2\\\\Tokenizer\",\n" +
-		"\"options\": {\n" +
-		"\"trust_remote_code\": \"True\"\n" +
-		"}\n" +
-		"},\n" +
-		"\"path\": \"./models/provider/name\\\\model\",\n" +
-		"\"options\": {\n" +
-		"\"torch_dtype\": \"\\\"auto\\\"\",\n" +
-		"\"trust_remote_code\": \"True\"\n" +
-		"}\n}"
-}
-
-func GetDownloaderResultForTransformersTokenizer() string {
-	return "{\n" +
-		"\"module\": \"transformers\",\n" +
-		"\"tokenizer\": {\n" +
-		"\"class\": \"AutoTokenizer\",\n" +
-		"\"path\": \"./models/microsoft/phi-2\\\\AutoTokenizer\",\n" +
-		"\"options\": {\n" +
-		"\"trust_remote_code\": \"True\"\n" +
-		"}\n" +
-		"}\n}"
-}
-
 func SetupDownloaderForFailure() {
-	app.Python().(*mock.MockPython).ScriptResult = []byte{}
-	app.Python().(*mock.MockPython).Error = errors.New("")
+	app.Downloader().(*mock.MockDownloader).DownloaderModel = downloadermodel.Model{}
+	app.Downloader().(*mock.MockDownloader).DownloaderError = errors.New("")
 }
 
-func SetupDownloaderForSuccess(result string) {
+func SetupDownloaderForSuccess(model downloadermodel.Model) {
 	// Mock python script to succeed
-	app.Python().(*mock.MockPython).ScriptResult = []byte(result)
-	app.Python().(*mock.MockPython).Error = nil
+	app.Downloader().(*mock.MockDownloader).DownloaderModel = model
+	app.Downloader().(*mock.MockDownloader).DownloaderError = nil
 }
 
 func TestMain(m *testing.M) {
-	app.SetDownloader(downloader.NewScriptDownloader())
+	app.SetDownloader(&mock.MockDownloader{})
 	app.SetUI(&mock.MockUI{})
 	app.SetPython(&mock.MockPython{})
 	os.Exit(m.Run())
@@ -241,10 +209,6 @@ func TestGetConfig_Failure(t *testing.T) {
 
 // TestGetConfig_Success tests the Model.GetConfig upon success.
 func TestGetConfig_Success(t *testing.T) {
-	// Mock python script to succeed
-	output := GetDownloaderResultForTransformers()
-	SetupDownloaderForSuccess(output)
-
 	// Init
 	input := GetModel(0)
 	downloaderArgs := downloadermodel.Args{
@@ -254,13 +218,12 @@ func TestGetConfig_Success(t *testing.T) {
 	}
 
 	// Expected
-	var expectedDownloaderResult downloadermodel.Model
-	err := json.Unmarshal([]byte(output), &expectedDownloaderResult)
-	if err != nil {
-		t.FailNow()
-	}
+	expectedDownloaderResult := downloadermodel.Model{Class: "test"}
 	expected := input
 	expected.FromDownloaderModel(expectedDownloaderResult)
+
+	// Mock downloader to succeed
+	SetupDownloaderForSuccess(expectedDownloaderResult)
 
 	// Execute
 	success := input.GetConfig(downloaderArgs)
@@ -296,10 +259,6 @@ func TestModel_Download_Failure(t *testing.T) {
 
 // TestModel_Download_Success tests the Model.Download upon success.
 func TestModel_Download_Success(t *testing.T) {
-	// Mock python script to succeed
-	output := GetDownloaderResultForTransformers()
-	SetupDownloaderForSuccess(output)
-
 	// Init
 	input := GetModel(0)
 	downloaderArgs := downloadermodel.Args{
@@ -309,15 +268,14 @@ func TestModel_Download_Success(t *testing.T) {
 	}
 
 	// Expected
-	var expectedDownloaderResult downloadermodel.Model
-	err := json.Unmarshal([]byte(output), &expectedDownloaderResult)
-	if err != nil {
-		t.FailNow()
-	}
+	expectedDownloaderResult := downloadermodel.Model{Path: "test/Path"}
 	expected := input
 	expected.FromDownloaderModel(expectedDownloaderResult)
 	expected.AddToBinaryFile = true
 	expected.IsDownloaded = true
+
+	// Mock python script to succeed
+	SetupDownloaderForSuccess(expectedDownloaderResult)
 
 	// Execute
 	success := input.Download(downloaderArgs)
@@ -355,10 +313,6 @@ func TestTokenizer_Download_Failure(t *testing.T) {
 
 // TestTokenizer_Download_Success tests the Model.DownloadTokenizer upon success.
 func TestTokenizer_Download_Success(t *testing.T) {
-	// Mock python script to succeed
-	output := GetDownloaderResultForTransformersTokenizer()
-	SetupDownloaderForSuccess(output)
-
 	// Init
 	input := GetModel(0)
 	tokenizer := GetTokenizer(0)
@@ -370,15 +324,14 @@ func TestTokenizer_Download_Success(t *testing.T) {
 	}
 
 	// Expected
-	var expectedDownloaderResult downloadermodel.Model
-	err := json.Unmarshal([]byte(output), &expectedDownloaderResult)
-	if err != nil {
-		t.FailNow()
-	}
+	expectedDownloaderResult := downloadermodel.Model{Tokenizer: downloadermodel.Tokenizer{Path: "test/Path"}}
 	expected := input
 	expected.FromDownloaderModel(expectedDownloaderResult)
 	expected.AddToBinaryFile = true
 	expected.IsDownloaded = true
+
+	// Mock python script to succeed
+	SetupDownloaderForSuccess(expectedDownloaderResult)
 
 	// Execute
 	success := input.DownloadTokenizer(tokenizer, downloaderArgs)
