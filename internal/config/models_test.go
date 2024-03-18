@@ -7,6 +7,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
+	mock "github.com/easy-model-fusion/emf-cli/test/mock"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path"
@@ -547,8 +548,8 @@ func TestValidate_DownloadedAndBinaryFalse_ConfirmFalse(t *testing.T) {
 	modelToValidate.Name = modelName
 
 	// test "no" to the confirmation
-	app.SetUI(&test.MockUI{})
-	app.UI().(*test.MockUI).UserConfirmationResult = false
+	app.SetUI(&mock.MockUI{})
+	app.UI().(*mock.MockUI).UserConfirmationResult = false
 
 	// Execute
 	valid := Validate(modelToValidate)
@@ -585,8 +586,8 @@ func TestValidate_DownloadedAndBinaryFalse_ConfirmTrueAndRemove(t *testing.T) {
 	modelToValidate.Name = modelName
 
 	// test "no" to the confirmation
-	app.SetUI(&test.MockUI{})
-	app.UI().(*test.MockUI).UserConfirmationResult = true
+	app.SetUI(&mock.MockUI{})
+	app.UI().(*mock.MockUI).UserConfirmationResult = true
 
 	// Execute
 	valid := Validate(modelToValidate)
@@ -628,8 +629,8 @@ func TestValidate_Downloaded_ConfirmFalse(t *testing.T) {
 	modelToValidate.Name = modelName
 
 	// test "no" to the confirmation
-	app.SetUI(&test.MockUI{})
-	app.UI().(*test.MockUI).UserConfirmationResult = false
+	app.SetUI(&mock.MockUI{})
+	app.UI().(*mock.MockUI).UserConfirmationResult = false
 
 	// Execute
 	valid := Validate(modelToValidate)
@@ -666,8 +667,8 @@ func TestValidate_Downloaded_ConfirmTrue(t *testing.T) {
 	modelToValidate.Name = modelName
 
 	// test "no" to the confirmation
-	app.SetUI(&test.MockUI{})
-	app.UI().(*test.MockUI).UserConfirmationResult = true
+	app.SetUI(&mock.MockUI{})
+	app.UI().(*mock.MockUI).UserConfirmationResult = true
 
 	// Execute
 	valid := Validate(modelToValidate)
