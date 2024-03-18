@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/test"
 	mock "github.com/easy-model-fusion/emf-cli/test/mock"
@@ -55,6 +56,7 @@ func SetupDownloaderForSuccess(result string) {
 }
 
 func TestMain(m *testing.M) {
+	app.SetDownloader(downloader.NewScriptDownloader())
 	app.SetUI(&mock.MockUI{})
 	app.SetPython(&mock.MockPython{})
 	os.Exit(m.Run())

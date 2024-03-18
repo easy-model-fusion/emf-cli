@@ -62,7 +62,7 @@ func TestExecute_ResponseEmpty(t *testing.T) {
 	result, err := downloaderObject.Execute(args, pythonObject)
 
 	// Assert
-	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "the script didn't return any data")
 	test.AssertEqual(t, result.IsEmpty, true)
 }
 

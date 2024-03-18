@@ -110,6 +110,7 @@ func (m *Model) executeDownload(downloaderArgs downloadermodel.Args) bool {
 	if err != nil {
 		// Something went wrong or no data has been returned
 		spinner.Fail(err.Error())
+		return false
 	} else {
 		// Updating spinner messages
 		if downloaderArgs.OnlyConfiguration {
