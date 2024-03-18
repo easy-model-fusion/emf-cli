@@ -1,6 +1,8 @@
 # You can code freely in this file. It is the entry point of the application.
 # Uncomment this example if you have installed stabilityai/sdxl-turbo
 #
+# Note: This file is the entry point of the application, it will be used as the main file to build the executable.
+#
 # from sdk.models import ModelsManagement
 # from sdk import StabilityaiSdxlTurbo
 # from sdk.options import Devices, OptionsTextToImage
