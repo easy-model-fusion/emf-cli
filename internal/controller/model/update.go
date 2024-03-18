@@ -26,7 +26,7 @@ func RunModelUpdate(args []string) {
 	if err == nil {
 		pterm.Success.Printfln("Operation succeeded.")
 	} else {
-		pterm.Error.Printfln("Operation failed. \n %s", err.Error())
+		pterm.Error.Printfln("Operation failed.\n%s", err.Error())
 	}
 }
 
@@ -62,22 +62,27 @@ func processUpdate(args []string) (warning string, info string, err error) {
 		selectedModelNames = stringutil.SliceRemoveDuplicates(args)
 	}
 
-	// Filter selected models to only keep those available for an update
-	modelsToUpdate, notFoundModelNames, upToDateModelNames := getUpdatableModels(selectedModelNames, hfModelsAvailable)
+	// Verify if the user selected some models to update
+	if len(selectedModelNames) > 0 {
+		// Filter selected models to only keep those available for an update
+		modelsToUpdate, notFoundModelNames, upToDateModelNames := getUpdatableModels(selectedModelNames, hfModelsAvailable)
 
-	// Indicate the models that couldn't be found
-	if len(notFoundModelNames) > 0 {
-		warning = fmt.Sprintf("The following models(s) couldn't be found "+
-			"and were ignored : %s", notFoundModelNames)
-	}
-	// Indicate the models that are already up-to-date
-	if len(upToDateModelNames) > 0 {
-		info = fmt.Sprintf("The following model(s) are already up to date "+
-			"and were ignored : %s", upToDateModelNames)
-	}
+		// Indicate the models that couldn't be found
+		if len(notFoundModelNames) > 0 {
+			warning = fmt.Sprintf("The following models(s) couldn't be found "+
+				"and were ignored : %s", notFoundModelNames)
+		}
+		// Indicate the models that are already up-to-date
+		if len(upToDateModelNames) > 0 {
+			info = fmt.Sprintf("The following model(s) are already up to date "+
+				"and were ignored : %s", upToDateModelNames)
+		}
 
-	// Processing filtered models for an update
-	err = updateModels(modelsToUpdate)
+		// Processing filtered models for an update
+		err = updateModels(modelsToUpdate)
+	} else {
+		info = "There is no models to be updated."
+	}
 
 	return warning, info, err
 }
@@ -162,7 +167,7 @@ func selectModelsToUpdate(modelNames []string) (selectedModelNames []string) {
 	if len(modelNames) > 0 {
 		message := "Please select the model(s) to be updated"
 		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		selectedModelNames := app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false, true)
+		selectedModelNames = app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false, true)
 		app.UI().DisplaySelectedItems(selectedModelNames)
 	}
 	return selectedModelNames
