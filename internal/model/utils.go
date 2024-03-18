@@ -73,7 +73,7 @@ func (t *Tokenizer) DownloadedOnDevice() (bool, error) {
 	return true, nil
 }
 
-// GetTokenizersNotDownloadedOnDevice returns the list of tokenizer that should but are not physically present on the device.
+// GetTokenizersNotDownloadedOnDevice returns the list of tokenizers that should but are not physically present on the device.
 func (m *Model) GetTokenizersNotDownloadedOnDevice() Tokenizers {
 
 	// Model can't have any tokenizer
@@ -81,7 +81,7 @@ func (m *Model) GetTokenizersNotDownloadedOnDevice() Tokenizers {
 		return Tokenizers{}
 	}
 
-	// Processing the configured tokenizer
+	// Processing the configured tokenizers
 	var notDownloadedTokenizers Tokenizers
 	for _, tokenizer := range m.Tokenizers {
 
@@ -169,14 +169,14 @@ func BuildModelsFromDevice() Models {
 				continue
 			}
 
-			// Handling model by default : a special handling is required for tokenizer
+			// Handling model by default : a special handling is required for tokenizers
 			if modelMapped.Module == huggingface.DIFFUSERS {
 				modelMapped.Path = modelPath
 				modelMapped.AddToBinaryFile = true
 				modelMapped.IsDownloaded = true
 			} else if modelMapped.Module == huggingface.TRANSFORMERS {
 
-				// Searching for the model folder and the tokenizer
+				// Searching for the model folder and the tokenizers
 				for _, directory := range directories {
 
 					// Model folder exists : meaning the model is downloaded
@@ -249,10 +249,10 @@ func (m *Model) Update(mapConfigModels map[string]Model) bool {
 		return false
 	}
 
-	// Downloader script to skip the tokenizer download process if none selected
+	// Downloader script to skip the tokenizers download process if none selected
 	var skip string
 
-	// If transformers : select the tokenizer to update using a multiselect
+	// If transformers : select the tokenizers to update using a multiselect
 	var tokenizerNames []string
 	if m.Module == huggingface.TRANSFORMERS {
 
@@ -262,7 +262,7 @@ func (m *Model) Update(mapConfigModels map[string]Model) bool {
 		// Allow to select only if at least one tokenizer is available
 		if len(availableNames) > 0 {
 
-			// Prepare the tokenizer multiselect
+			// Prepare the tokenizers multiselect
 			message := "Please select the tokenizer(s) to be updated"
 			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
 			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
@@ -296,7 +296,7 @@ func (m *Model) Update(mapConfigModels map[string]Model) bool {
 	// If transformers and at least one tokenizer were asked for an update
 	if len(tokenizerNames) > 0 {
 
-		// Bind the model tokenizer to a map for faster lookup
+		// Bind the model tokenizers to a map for faster lookup
 		mapModelTokenizers := m.Tokenizers.Map()
 
 		var failedTokenizers []string
@@ -332,7 +332,7 @@ func (m *Model) TidyConfiguredModel() (bool, bool) {
 		return false, false
 	}
 
-	// Get all the configured but not downloaded tokenizer
+	// Get all the configured but not downloaded tokenizers
 	missingTokenizers := m.GetTokenizersNotDownloadedOnDevice()
 
 	// Model is clean, nothing more to do here
@@ -361,10 +361,10 @@ func (m *Model) TidyConfiguredModel() (bool, bool) {
 		}
 	}
 
-	// Some tokenizer are missing
+	// Some tokenizers are missing
 	if len(missingTokenizers) > 0 {
 
-		// Downloading the missing tokenizer
+		// Downloading the missing tokenizers
 		var failedTokenizers []string
 		for _, tokenizer := range missingTokenizers {
 

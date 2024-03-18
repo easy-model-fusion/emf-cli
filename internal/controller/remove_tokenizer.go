@@ -9,7 +9,6 @@ import (
 
 // TokenizerRemoveCmd runs the model remove command
 func TokenizerRemoveCmd(args []string) {
-	
 }
 
 func selectModel(currentModels []model.Model) []string {

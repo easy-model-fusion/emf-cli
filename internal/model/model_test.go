@@ -40,7 +40,7 @@ func GetTokenizer(id int) Tokenizer {
 	}
 }
 
-// GetTokenizers initiates a list of basic tokenizer starting with id 0
+// GetTokenizers initiates a list of basic tokenizers starting with id 0
 func GetTokenizers(length int) Tokenizers {
 	var tokenizers Tokenizers
 	for i := 1; i <= length; i++ {
@@ -150,7 +150,7 @@ func TestMap_Success(t *testing.T) {
 	}
 }
 
-// TestTokenizer_Map_Success tests the Tokenizers.Map function to return a map from a slice of tokenizer.
+// TestTokenizer_Map_Success tests the Tokenizers.Map function to return a map from a slice of tokenizers.
 func TestTokenizer_Map_Success(t *testing.T) {
 	// Init
 	model := GetModel(0)
