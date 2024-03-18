@@ -38,11 +38,12 @@ func processRemoveTokenizer(args []string) (string, string, error) {
 		return "", "", err
 	}
 
-	// Get all configured models objects/names
+	// No model name in args
 	if len(args) < 1 {
 		return "", "Enter a model in argument", err
 	}
 
+	// Get all configured models objects/names and args model
 	selectedModels := args[0]
 	var models model.Models
 	models, err = config.GetModels()
@@ -52,15 +53,18 @@ func processRemoveTokenizer(args []string) (string, string, error) {
 
 	sdk.SendUpdateSuggestion()
 
+	// checks the presence of the model
 	configModelsMap := models.Map()
 	modelsToUse, exists := configModelsMap[selectedModels]
 	if !exists {
 		return "", "model do not exist", err
 	}
 
+	// load tokenizer for the chosen model
 	var tokenizerNames []string
 	if modelsToUse.Module == huggingface.TRANSFORMERS {
 		availableNames := modelsToUse.Tokenizers.GetNames()
+		// No tokenizer, asks for tokenizers names
 		if len(availableNames) > 0 && len(args) == 1 {
 			message := "Please select the tokenizer(s) to be deleted"
 			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
@@ -85,12 +89,14 @@ func processRemoveTokenizer(args []string) (string, string, error) {
 		}
 	}
 
+	// if one or more tokenizers selected
 	if len(tokenizerNames) > 0 {
 		classesMap := make(map[string]bool)
 		for _, class := range tokenizerNames {
 			classesMap[class] = true
 		}
 
+		// delete tokenizer file and remove tokenizer to config file
 		for index, tokenizer := range modelsToUse.Tokenizers {
 			if classesMap[tokenizer.Class] {
 				err := os.RemoveAll(tokenizer.Path)
@@ -102,6 +108,7 @@ func processRemoveTokenizer(args []string) (string, string, error) {
 			}
 		}
 		spinner := app.UI().StartSpinner("Writing model to configuration file...")
+		// update config file
 		err = config.AddModels(model.Models{modelsToUse})
 		if err != nil {
 			spinner.Fail(fmt.Sprintf("Error while writing the model to the configuration file: %s", err))
