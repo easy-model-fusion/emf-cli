@@ -108,8 +108,9 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 		// Try to get model configuration
 		if current.Module != "" {
 			downloaderArgs := downloader.Args{
-				ModelName:   current.Name,
-				ModelModule: string(current.Module),
+				ModelName:     current.Name,
+				ModelModule:   string(current.Module),
+				DirectoryPath: app.DownloadDirectoryPath,
 			}
 
 			// Getting model class

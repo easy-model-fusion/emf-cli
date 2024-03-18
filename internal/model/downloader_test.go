@@ -221,8 +221,9 @@ func TestGetConfig_Failure(t *testing.T) {
 	// Init
 	input := GetModel(0)
 	downloaderArgs := downloader.Args{
-		ModelName:   input.Name,
-		ModelModule: string(input.Module),
+		ModelName:     input.Name,
+		ModelModule:   string(input.Module),
+		DirectoryPath: app.DownloadDirectoryPath,
 	}
 
 	// Expected
@@ -245,8 +246,9 @@ func TestGetConfig_Success(t *testing.T) {
 	// Init
 	input := GetModel(0)
 	downloaderArgs := downloader.Args{
-		ModelName:   input.Name,
-		ModelModule: string(input.Module),
+		ModelName:     input.Name,
+		ModelModule:   string(input.Module),
+		DirectoryPath: app.DownloadDirectoryPath,
 	}
 
 	// Expected
@@ -274,8 +276,9 @@ func TestModel_Download_Failure(t *testing.T) {
 	// Init
 	input := GetModel(0)
 	downloaderArgs := downloader.Args{
-		ModelName:   input.Name,
-		ModelModule: string(input.Module),
+		ModelName:     input.Name,
+		ModelModule:   string(input.Module),
+		DirectoryPath: app.DownloadDirectoryPath,
 	}
 
 	// Expected
@@ -298,8 +301,9 @@ func TestModel_Download_Success(t *testing.T) {
 	// Init
 	input := GetModel(0)
 	downloaderArgs := downloader.Args{
-		ModelName:   input.Name,
-		ModelModule: string(input.Module),
+		ModelName:     input.Name,
+		ModelModule:   string(input.Module),
+		DirectoryPath: app.DownloadDirectoryPath,
 	}
 
 	// Expected
@@ -331,8 +335,9 @@ func TestTokenizer_Download_Failure(t *testing.T) {
 	tokenizer := GetTokenizer(0)
 	input.Tokenizers = Tokenizers{tokenizer}
 	downloaderArgs := downloader.Args{
-		ModelName:   input.Name,
-		ModelModule: string(input.Module),
+		ModelName:     input.Name,
+		ModelModule:   string(input.Module),
+		DirectoryPath: app.DownloadDirectoryPath,
 	}
 
 	// Expected
@@ -357,8 +362,9 @@ func TestTokenizer_Download_Success(t *testing.T) {
 	tokenizer := GetTokenizer(0)
 	input.Tokenizers = Tokenizers{tokenizer}
 	downloaderArgs := downloader.Args{
-		ModelName:   input.Name,
-		ModelModule: string(input.Module),
+		ModelName:     input.Name,
+		ModelModule:   string(input.Module),
+		DirectoryPath: app.DownloadDirectoryPath,
 	}
 
 	// Expected

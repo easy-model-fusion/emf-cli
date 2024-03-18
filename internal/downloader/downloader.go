@@ -41,6 +41,7 @@ type Args struct {
 	TokenizerOptions  []string
 	Skip              string
 	OnlyConfiguration bool
+	DirectoryPath     string
 }
 
 // Model represents a model returned by the downloader script.

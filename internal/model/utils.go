@@ -273,6 +273,7 @@ func (m *Model) Update() bool {
 		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
 		Skip:              skip,
 		OnlyConfiguration: false,
+		DirectoryPath:     app.DownloadDirectoryPath,
 	}
 
 	// Downloading model
@@ -337,6 +338,7 @@ func (m *Model) TidyConfiguredModel() (bool, bool) {
 		ModelClass:        m.Class,
 		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
 		OnlyConfiguration: false,
+		DirectoryPath:     app.DownloadDirectoryPath,
 	}
 
 	// Model has yet to be downloaded

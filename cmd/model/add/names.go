@@ -138,9 +138,10 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 
 		// Prepare the script arguments
 		downloaderArgs := downloader.Args{
-			ModelName:   currentModel.Name,
-			ModelModule: string(currentModel.Module),
-			ModelClass:  currentModel.Class,
+			ModelName:     currentModel.Name,
+			ModelModule:   string(currentModel.Module),
+			ModelClass:    currentModel.Class,
+			DirectoryPath: app.DownloadDirectoryPath,
 		}
 
 		var success bool

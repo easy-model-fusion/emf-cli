@@ -2,16 +2,19 @@ package downloader
 
 import (
 	"errors"
-	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
 	"testing"
 )
 
+var pythonObject python.Python
+var downloaderObject Downloader
+
 func TestMain(m *testing.M) {
-	app.SetUI(&mock.MockUI{})
-	app.SetPython(&mock.MockPython{})
+	pythonObject = &mock.MockPython{}
+	downloaderObject = &scriptDownloader{}
 	os.Exit(m.Run())
 }
 
@@ -21,7 +24,7 @@ func TestExecute_ArgsInvalid(t *testing.T) {
 	args := Args{}
 
 	// Execute
-	result, err := app.Downloader().Execute(args, app.Python())
+	result, err := downloaderObject.Execute(args, pythonObject)
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -31,14 +34,14 @@ func TestExecute_ArgsInvalid(t *testing.T) {
 // TestExecute_ScriptError tests the Execute function with failing script.
 func TestExecute_ScriptError(t *testing.T) {
 	// Mock python script to fail
-	app.Python().(*mock.MockPython).ScriptResult = []byte{}
-	app.Python().(*mock.MockPython).Error = errors.New("")
+	pythonObject.(*mock.MockPython).ScriptResult = []byte{}
+	pythonObject.(*mock.MockPython).Error = errors.New("")
 
 	// Init
 	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
-	result, err := app.Downloader().Execute(args, app.Python())
+	result, err := downloaderObject.Execute(args, pythonObject)
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -48,14 +51,14 @@ func TestExecute_ScriptError(t *testing.T) {
 // TestExecute_ResponseEmpty tests the Execute function with script returning no data.
 func TestExecute_ResponseEmpty(t *testing.T) {
 	// Mock python script to return no data
-	app.Python().(*mock.MockPython).ScriptResult = nil
-	app.Python().(*mock.MockPython).Error = nil
+	pythonObject.(*mock.MockPython).ScriptResult = nil
+	pythonObject.(*mock.MockPython).Error = nil
 
 	// Init
 	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
-	result, err := app.Downloader().Execute(args, app.Python())
+	result, err := downloaderObject.Execute(args, pythonObject)
 
 	// Assert
 	test.AssertEqual(t, err, nil)
@@ -65,14 +68,14 @@ func TestExecute_ResponseEmpty(t *testing.T) {
 // TestExecute_ResponseBadFormat tests the Execute function with script returning bad data.
 func TestExecute_ResponseBadFormat(t *testing.T) {
 	// Mock python script to return bad data
-	app.Python().(*mock.MockPython).ScriptResult = []byte("{ bad: property }")
-	app.Python().(*mock.MockPython).Error = nil
+	pythonObject.(*mock.MockPython).ScriptResult = []byte("{ bad: property }")
+	pythonObject.(*mock.MockPython).Error = nil
 
 	// Init
 	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
-	result, err := app.Downloader().Execute(args, app.Python())
+	result, err := downloaderObject.Execute(args, pythonObject)
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -82,14 +85,14 @@ func TestExecute_ResponseBadFormat(t *testing.T) {
 // TestExecute_Success tests the Execute function with succeeding script.
 func TestExecute_Success(t *testing.T) {
 	// Mock python script to succeed
-	app.Python().(*mock.MockPython).ScriptResult = []byte("{}")
-	app.Python().(*mock.MockPython).Error = nil
+	pythonObject.(*mock.MockPython).ScriptResult = []byte("{}")
+	pythonObject.(*mock.MockPython).Error = nil
 
 	// Init
 	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
-	result, err := app.Downloader().Execute(args, app.Python())
+	result, err := downloaderObject.Execute(args, pythonObject)
 
 	// Assert
 	test.AssertEqual(t, err, nil)

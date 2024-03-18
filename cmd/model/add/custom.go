@@ -27,6 +27,8 @@ var addCustomDownloaderArgs downloader.Args
 func init() {
 	// Bind cobra args to the downloader script args
 	addCustomDownloaderArgs.ToCobra(addCustomCmd)
+
+	addCustomDownloaderArgs.DirectoryPath = app.DownloadDirectoryPath
 }
 
 // runAddCustom runs add command to add a custom model
