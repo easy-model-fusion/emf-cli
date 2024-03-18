@@ -30,7 +30,7 @@ func RunBuild(customName, library, destDir string, compress, includeModels, oneF
 	if _, err := os.Stat(destDir); os.IsNotExist(err) {
 
 		if destDir == "dist" {
-			err = os.Mkdir(destDir, os.ModeDir)
+			err = os.Mkdir(destDir, os.ModePerm)
 			if err != nil {
 				pterm.Error.Println("Error creating dist folder")
 				return
