@@ -124,7 +124,7 @@ func getUpdatableModels(modelNames []string, hfModelsAvailable model.Models) (
 	return modelsToUpdate, notFoundModelNames, upToDateModelNames
 }
 
-// processModelsForUpdate
+// updateModels updates the given models
 func updateModels(modelsToUpdate model.Models) (err error) {
 	// Try to update all the given models
 	var failedModels []string
