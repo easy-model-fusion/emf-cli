@@ -5,6 +5,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/test"
+	mock "github.com/easy-model-fusion/emf-cli/test/mock"
 	"github.com/spf13/viper"
 	"os"
 	"testing"
@@ -120,7 +121,7 @@ func TestSelectModelsToDelete(t *testing.T) {
 	expectedSelections = append(expectedSelections, "model3")
 
 	// Create ui mock
-	ui := test.MockUI{MultiselectResult: expectedSelections}
+	ui := mock.MockUI{MultiselectResult: expectedSelections}
 	app.SetUI(ui)
 
 	// Select models
@@ -309,7 +310,7 @@ func TestProcessRemove_WithErrorOnLoadingConfigurationFile(t *testing.T) {
 	var args []string
 
 	//create mock UI
-	ui := test.MockUI{UserInputResult: "path/test"}
+	ui := mock.MockUI{UserInputResult: "path/test"}
 	app.SetUI(ui)
 
 	// Process remove
@@ -355,7 +356,7 @@ func TestRunModelRemove_WitInvalidConfigPath(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while changing directory")
 
 	//create mock UI
-	ui := test.MockUI{UserInputResult: "path/test"}
+	ui := mock.MockUI{UserInputResult: "path/test"}
 	app.SetUI(ui)
 
 	// Process remove

@@ -4,13 +4,14 @@ import (
 	"errors"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
 	"testing"
 )
 
 func TestMain(m *testing.M) {
-	app.SetUI(&test.MockUI{})
-	app.SetPython(&test.MockPython{})
+	app.SetUI(&mock.MockUI{})
+	app.SetPython(&mock.MockPython{})
 	os.Exit(m.Run())
 }
 
@@ -30,8 +31,8 @@ func TestExecute_ArgsInvalid(t *testing.T) {
 // TestExecute_ScriptError tests the Execute function with failing script.
 func TestExecute_ScriptError(t *testing.T) {
 	// Mock python script to fail
-	app.Python().(*test.MockPython).ScriptResult = []byte{}
-	app.Python().(*test.MockPython).Error = errors.New("")
+	app.Python().(*mock.MockPython).ScriptResult = []byte{}
+	app.Python().(*mock.MockPython).Error = errors.New("")
 
 	// Init
 	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
@@ -47,8 +48,8 @@ func TestExecute_ScriptError(t *testing.T) {
 // TestExecute_ResponseEmpty tests the Execute function with script returning no data.
 func TestExecute_ResponseEmpty(t *testing.T) {
 	// Mock python script to return no data
-	app.Python().(*test.MockPython).ScriptResult = nil
-	app.Python().(*test.MockPython).Error = nil
+	app.Python().(*mock.MockPython).ScriptResult = nil
+	app.Python().(*mock.MockPython).Error = nil
 
 	// Init
 	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
@@ -64,8 +65,8 @@ func TestExecute_ResponseEmpty(t *testing.T) {
 // TestExecute_ResponseBadFormat tests the Execute function with script returning bad data.
 func TestExecute_ResponseBadFormat(t *testing.T) {
 	// Mock python script to return bad data
-	app.Python().(*test.MockPython).ScriptResult = []byte("{ bad: property }")
-	app.Python().(*test.MockPython).Error = nil
+	app.Python().(*mock.MockPython).ScriptResult = []byte("{ bad: property }")
+	app.Python().(*mock.MockPython).Error = nil
 
 	// Init
 	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
@@ -81,8 +82,8 @@ func TestExecute_ResponseBadFormat(t *testing.T) {
 // TestExecute_Success tests the Execute function with succeeding script.
 func TestExecute_Success(t *testing.T) {
 	// Mock python script to succeed
-	app.Python().(*test.MockPython).ScriptResult = []byte("{}")
-	app.Python().(*test.MockPython).Error = nil
+	app.Python().(*mock.MockPython).ScriptResult = []byte("{}")
+	app.Python().(*mock.MockPython).Error = nil
 
 	// Init
 	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}

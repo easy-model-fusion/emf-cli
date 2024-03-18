@@ -4,13 +4,14 @@ import (
 	"errors"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/test"
+	mock "github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
 	"testing"
 )
 
 func TestCreateProjectFiles(t *testing.T) {
-	app.SetUI(&test.MockUI{})
-	app.SetGit(&test.MockGit{})
+	app.SetUI(&mock.MockUI{})
+	app.SetGit(&mock.MockGit{})
 
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
@@ -36,23 +37,23 @@ func TestCreateProjectFiles(t *testing.T) {
 		{"test/.gitignore"},
 		{"test/main.py"},
 	}
-	for _, test := range tests {
-		t.Run(test.path, func(t *testing.T) {
-			_, err = os.Stat(test.path)
+	for _, testInstance := range tests {
+		t.Run(testInstance.path, func(t *testing.T) {
+			_, err = os.Stat(testInstance.path)
 			if err != nil {
-				t.Errorf("%s should exist", test.path)
+				t.Errorf("%s should exist", testInstance.path)
 			}
 		})
 	}
 
 	// now test with each existing file then remove it (cover error cases)
-	for _, test := range tests {
-		t.Run(test.path, func(t *testing.T) {
+	for _, testInstance := range tests {
+		t.Run(testInstance.path, func(t *testing.T) {
 			err = createProjectFiles("test", "v1.0.0")
 			if err == nil {
-				t.Errorf("%s should return an error", test.path)
+				t.Errorf("%s should return an error", testInstance.path)
 			}
-			err = os.Remove(test.path)
+			err = os.Remove(testInstance.path)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -62,8 +63,8 @@ func TestCreateProjectFiles(t *testing.T) {
 }
 
 func TestCreateProjectFolder(t *testing.T) {
-	app.SetUI(&test.MockUI{})
-	app.SetGit(&test.MockGit{})
+	app.SetUI(&mock.MockUI{})
+	app.SetGit(&mock.MockGit{})
 
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
@@ -90,8 +91,8 @@ func TestCreateProjectFolder(t *testing.T) {
 }
 
 func TestCloneSDK(t *testing.T) {
-	mockGit := &test.MockGit{}
-	app.SetUI(&test.MockUI{})
+	mockGit := &mock.MockGit{}
+	app.SetUI(&mock.MockUI{})
 	app.SetGit(mockGit)
 
 	ts := test.TestSuite{}
