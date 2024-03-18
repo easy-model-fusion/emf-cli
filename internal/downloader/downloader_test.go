@@ -21,7 +21,7 @@ func TestExecute_ArgsInvalid(t *testing.T) {
 	args := Args{}
 
 	// Execute
-	result, err := Execute(args)
+	result, err := app.Downloader().Execute(args, app.Python())
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -38,7 +38,7 @@ func TestExecute_ScriptError(t *testing.T) {
 	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
-	result, err := Execute(args)
+	result, err := app.Downloader().Execute(args, app.Python())
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -55,7 +55,7 @@ func TestExecute_ResponseEmpty(t *testing.T) {
 	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
-	result, err := Execute(args)
+	result, err := app.Downloader().Execute(args, app.Python())
 
 	// Assert
 	test.AssertEqual(t, err, nil)
@@ -72,7 +72,7 @@ func TestExecute_ResponseBadFormat(t *testing.T) {
 	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
-	result, err := Execute(args)
+	result, err := app.Downloader().Execute(args, app.Python())
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -89,7 +89,7 @@ func TestExecute_Success(t *testing.T) {
 	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
-	result, err := Execute(args)
+	result, err := app.Downloader().Execute(args, app.Python())
 
 	// Assert
 	test.AssertEqual(t, err, nil)

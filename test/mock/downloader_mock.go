@@ -2,6 +2,7 @@ package mock
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 )
 
 type MockDownloader struct {
@@ -9,6 +10,6 @@ type MockDownloader struct {
 	DownloaderError error
 }
 
-func (d *MockDownloader) Execute(_ downloader.Args) (downloader.Model, error) {
+func (d *MockDownloader) Execute(_ downloader.Args, _ python.Python) (downloader.Model, error) {
 	return d.DownloaderModel, d.DownloaderError
 }
