@@ -10,7 +10,7 @@ import (
 func (m *Model) FromDownloaderModel(dlModel downloader.Model) {
 
 	// Check if ScriptModel is valid
-	if !downloader.EmptyModel(dlModel) {
+	if !dlModel.Empty() {
 		if len(dlModel.Path) != 0 {
 			m.Path = stringutil.PathUniformize(dlModel.Path)
 		}
@@ -20,7 +20,7 @@ func (m *Model) FromDownloaderModel(dlModel downloader.Model) {
 	}
 
 	// Check if ScriptTokenizer is valid
-	if !downloader.EmptyTokenizer(dlModel.Tokenizer) {
+	if !dlModel.Tokenizer.Empty() {
 
 		// Mapping to tokenizer
 		var tokenizer Tokenizer

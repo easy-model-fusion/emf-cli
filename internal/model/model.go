@@ -37,7 +37,6 @@ const (
 
 // Empty checks if the models slice is empty.
 func (m Models) Empty() bool {
-	// No models currently downloaded
 	return len(m) == 0
 }
 

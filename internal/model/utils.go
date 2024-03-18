@@ -321,6 +321,7 @@ func (m *Model) Update(mapConfigModels map[string]Model) bool {
 	return true
 }
 
+
 // UpdateTokenizer attempts to update the tokenizers.
 func (m *Model) UpdateTokenizer(
 	mapConfigModels map[string]Model,
