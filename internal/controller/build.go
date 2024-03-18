@@ -124,7 +124,7 @@ func createBuildArgs(customName, library, destDir string, oneFile bool) []string
 			buildArgs = append(buildArgs, "-F")
 		}
 
-		buildArgs = append(buildArgs, fmt.Sprintf("-n %s", customName))
+		buildArgs = append(buildArgs, fmt.Sprintf("--name=%s", customName))
 		buildArgs = append(buildArgs, fmt.Sprintf("--distpath=%s", destDir))
 		buildArgs = append(buildArgs, viper.GetStringSlice("build.pyinstaller.args")...)
 	case "nuitka":
