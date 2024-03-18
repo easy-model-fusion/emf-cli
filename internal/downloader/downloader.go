@@ -3,7 +3,7 @@ package downloader
 import (
 	"encoding/json"
 	"fmt"
-	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 )
 
