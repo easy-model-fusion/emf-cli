@@ -47,7 +47,7 @@ func RunTidy() {
 	}
 }
 
-// tidyModelsConfiguredButNotDownloaded downloads any missing model and its missing tokenizers as well
+// tidyModelsConfiguredButNotDownloaded downloads any missing model and its missing tokenizer as well
 func tidyModelsConfiguredButNotDownloaded(models model.Models) {
 	pterm.Info.Println("Verifying if all models are downloaded...")
 	// filter the models that should be added to binary
@@ -57,7 +57,7 @@ func tidyModelsConfiguredButNotDownloaded(models model.Models) {
 	var downloadedModels model.Models
 	var failedModels []string
 
-	// Tidying the configured but not downloaded models and also processing their tokenizers
+	// Tidying the configured but not downloaded models and also processing their tokenizer
 	for _, current := range models {
 
 		success, clean := current.TidyConfiguredModel()
@@ -138,7 +138,7 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 			continue
 		}
 
-		// If model is a transformer : checking tokenizers
+		// If model is a transformer : checking tokenizer
 		if current.Module == huggingface.TRANSFORMERS {
 
 			// Building map for faster lookup
@@ -171,8 +171,8 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 
 			// If at least one tokenizer was configured
 			if len(modelTokenizersToConfigure) > 0 {
-				// Since model is already configured : adding missing tokenizers and reconfiguring the model
-				// Note : there can't be any duplicated tokenizers in this case
+				// Since model is already configured : adding missing tokenizer and reconfiguring the model
+				// Note : there can't be any duplicated tokenizer in this case
 				configModel.Tokenizers = append(configModel.Tokenizers, modelTokenizersToConfigure...)
 				modelsToConfigure = append(modelsToConfigure, configModel)
 			}

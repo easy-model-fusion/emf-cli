@@ -201,7 +201,7 @@ func TestGetTokenizersNotDownloadedOnDevice_Missing(t *testing.T) {
 	test.AssertEqual(t, len(result), len(expected))
 }
 
-// TestGetTokenizersNotDownloadedOnDevice_NotMissing tests the Model.GetTokenizersNotDownloadedOnDevice function with missing tokenizers.
+// TestGetTokenizersNotDownloadedOnDevice_NotMissing tests the Model.GetTokenizersNotDownloadedOnDevice function with missing tokenizer.
 func TestGetTokenizersNotDownloadedOnDevice_NotMissing(t *testing.T) {
 	// Create a temporary directory representing the model base path
 	modelDirectory, err := os.MkdirTemp("", "modelDirectory")

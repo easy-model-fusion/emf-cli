@@ -81,7 +81,7 @@ func (m Models) Map() map[string]Model {
 	return modelsMap
 }
 
-// Map creates a map from tokenizers for faster lookup.
+// Map creates a map from tokenizer for faster lookup.
 func (t Tokenizers) Map() map[string]Tokenizer {
 	tokenizersMap := make(map[string]Tokenizer)
 	for _, current := range t {
@@ -99,7 +99,7 @@ func (m Models) GetNames() []string {
 	return modelNames
 }
 
-// GetNames retrieves the names from the tokenizers.
+// GetNames retrieves the names from the tokenizer.
 func (t Tokenizers) GetNames() []string {
 	var tokenizerNames []string
 	for _, current := range t {
