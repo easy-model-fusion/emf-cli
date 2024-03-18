@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/viper"
 	"os"
@@ -59,7 +60,7 @@ func SendUpdateSuggestion() {
 	}
 
 	pterm.DefaultBox.Println(fmt.Sprintf("A new version of the SDK (%s) is available!\n"+
-		"To update, run 'emf-cli update'", tag))
+		"To update, run 'emf-cli upgrade'", tag))
 	pterm.Println()
 
 	setUpdateSuggestion(true)
@@ -91,11 +92,35 @@ func Upgrade() error {
 
 	// clone sdk
 	spinner = app.UI().StartSpinner("Cloning latest sdk...")
-	err = app.G().CloneSDK(tag, filepath.Join("sdk"))
+	err = app.G().CloneSDK(tag, "sdk")
 	if err != nil {
 		spinner.Fail(err)
 		return err
 	}
+
+	spinner = app.UI().StartSpinner("Reorganizing SDK files")
+
+	// Move files from sdk/sdk to sdk/
+	err = fileutil.MoveFiles(filepath.Join("sdk", "sdk"), "sdk")
+	if err != nil {
+		spinner.Fail("Unable to move SDK files: ", err)
+		return err
+	}
+
+	// remove sdk/sdk folder
+	err = os.RemoveAll(filepath.Join("sdk", "sdk"))
+	if err != nil {
+		spinner.Fail("Unable to remove sdk/sdk folder: ", err)
+		return err
+	}
+
+	// remove .github/ folder
+	err = os.RemoveAll(filepath.Join("sdk", ".github"))
+	if err != nil {
+		spinner.Fail("Unable to remove .github folder: ", err)
+		return err
+	}
+	spinner.Success()
 
 	// update sdk tag
 	viper.Set("sdk-tag", tag)
