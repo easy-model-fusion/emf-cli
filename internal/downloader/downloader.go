@@ -7,6 +7,13 @@ import (
 	"github.com/pterm/pterm"
 )
 
+type scriptDownloader struct{}
+
+// NewScriptDownloader initialize a new script downloader
+func NewScriptDownloader() Downloader {
+	return &scriptDownloader{}
+}
+
 // Constants related to the downloader script python arguments.
 const (
 	ScriptPath         = "sdk/downloader.py"
@@ -55,7 +62,7 @@ type Tokenizer struct {
 }
 
 // Execute runs the downloader script and handles the result
-func Execute(downloaderArgs Args) (Model, error) {
+func (downloader *scriptDownloader) Execute(downloaderArgs Args) (Model, error) {
 
 	// Check arguments validity
 	err := downloaderArgs.Validate()
