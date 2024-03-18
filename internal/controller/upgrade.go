@@ -24,5 +24,22 @@ func RunUpgrade(yes bool) {
 		return
 	}
 
-	_ = sdk.Upgrade()
+	err = sdk.Upgrade()
+	if err != nil {
+		pterm.Error.Println("Error upgrading sdk:", err)
+		return
+	}
+
+	models, err := config.GetModels()
+	if err != nil {
+		pterm.Error.Println("Error regenerating code:", err)
+		return
+	}
+
+	err = regenerateCode(models)
+	if err != nil {
+		pterm.Error.Println("Error regenerating code:", err)
+		return
+	}
+
 }
