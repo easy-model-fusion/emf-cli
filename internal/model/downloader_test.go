@@ -6,6 +6,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/test"
+	mock "github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -43,19 +44,19 @@ func GetDownloaderResultForTransformersTokenizer() string {
 }
 
 func SetupDownloaderForFailure() {
-	app.Python().(*test.MockPython).ScriptResult = []byte{}
-	app.Python().(*test.MockPython).Error = errors.New("")
+	app.Python().(*mock.MockPython).ScriptResult = []byte{}
+	app.Python().(*mock.MockPython).Error = errors.New("")
 }
 
 func SetupDownloaderForSuccess(result string) {
 	// Mock python script to succeed
-	app.Python().(*test.MockPython).ScriptResult = []byte(result)
-	app.Python().(*test.MockPython).Error = nil
+	app.Python().(*mock.MockPython).ScriptResult = []byte(result)
+	app.Python().(*mock.MockPython).Error = nil
 }
 
 func TestMain(m *testing.M) {
-	app.SetUI(&test.MockUI{})
-	app.SetPython(&test.MockPython{})
+	app.SetUI(&mock.MockUI{})
+	app.SetPython(&mock.MockPython{})
 	os.Exit(m.Run())
 }
 
