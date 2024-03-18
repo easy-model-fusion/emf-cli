@@ -3,13 +3,13 @@ package model
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 )
 
-// FromDownloaderModel maps data from downloader.Model to Model and keeps unchanged properties of Model.
-func (m *Model) FromDownloaderModel(dlModel downloader.Model) {
+// FromDownloaderModel maps data from downloadermodel.Model to Model and keeps unchanged properties of Model.
+func (m *Model) FromDownloaderModel(dlModel downloadermodel.Model) {
 
 	// Check if ScriptModel is valid
 	if !dlModel.Empty() {
@@ -52,7 +52,7 @@ func (m *Model) FromDownloaderModel(dlModel downloader.Model) {
 }
 
 // GetConfig attempts to get the model's configuration
-func (m *Model) GetConfig(downloaderArgs downloader.Args) bool {
+func (m *Model) GetConfig(downloaderArgs downloadermodel.Args) bool {
 	// Add OnlyConfiguration flag to the command
 	downloaderArgs.OnlyConfiguration = true
 
@@ -61,7 +61,7 @@ func (m *Model) GetConfig(downloaderArgs downloader.Args) bool {
 }
 
 // Download attempts to download the model
-func (m *Model) Download(downloaderArgs downloader.Args) bool {
+func (m *Model) Download(downloaderArgs downloadermodel.Args) bool {
 	// Running the script
 	succeeded := m.executeDownload(downloaderArgs)
 
@@ -74,10 +74,10 @@ func (m *Model) Download(downloaderArgs downloader.Args) bool {
 }
 
 // DownloadTokenizer attempts to download the tokenizer
-func (m *Model) DownloadTokenizer(tokenizer Tokenizer, downloaderArgs downloader.Args) bool {
+func (m *Model) DownloadTokenizer(tokenizer Tokenizer, downloaderArgs downloadermodel.Args) bool {
 
 	// Building downloader args for the tokenizer
-	downloaderArgs.Skip = downloader.SkipValueModel
+	downloaderArgs.Skip = downloadermodel.SkipValueModel
 	downloaderArgs.TokenizerClass = tokenizer.Class
 	downloaderArgs.TokenizerOptions = stringutil.OptionsMapToSlice(tokenizer.Options)
 
@@ -85,12 +85,12 @@ func (m *Model) DownloadTokenizer(tokenizer Tokenizer, downloaderArgs downloader
 	return m.executeDownload(downloaderArgs)
 }
 
-func (m *Model) executeDownload(downloaderArgs downloader.Args) bool {
+func (m *Model) executeDownload(downloaderArgs downloadermodel.Args) bool {
 
 	// Preparing spinner message
 	var downloaderItemMessage string
 	switch downloaderArgs.Skip {
-	case downloader.SkipValueModel:
+	case downloadermodel.SkipValueModel:
 		downloaderItemMessage = fmt.Sprintf("tokenizer '%s' for model '%s'...",
 			downloaderArgs.TokenizerClass, downloaderArgs.ModelName)
 	default:

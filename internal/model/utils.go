@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
@@ -260,13 +260,13 @@ func (m *Model) Update() bool {
 
 			// No tokenizer is selected : skipping so that it doesn't overwrite the default one
 			if len(tokenizerNames) > 0 {
-				skip = downloader.SkipValueTokenizer
+				skip = downloadermodel.SkipValueTokenizer
 			}
 		}
 	}
 
 	// Prepare the script arguments
-	downloaderArgs := downloader.Args{
+	downloaderArgs := downloadermodel.Args{
 		ModelName:         m.Name,
 		ModelModule:       string(m.Module),
 		ModelClass:        m.Class,
@@ -332,7 +332,7 @@ func (m *Model) TidyConfiguredModel() (bool, bool) {
 	}
 
 	// Prepare the script arguments
-	downloaderArgs := downloader.Args{
+	downloaderArgs := downloadermodel.Args{
 		ModelName:         m.Name,
 		ModelModule:       string(m.Module),
 		ModelClass:        m.Class,

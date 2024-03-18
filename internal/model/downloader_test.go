@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/test"
 	mock "github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
@@ -63,12 +63,12 @@ func TestMain(m *testing.M) {
 // TestFromDownloaderModel_Empty tests the Model.FromDownloaderModel to return the correct Model.
 func TestFromDownloaderModel_Empty(t *testing.T) {
 	// Init
-	downloaderModel := downloader.Model{
+	downloaderModel := downloadermodel.Model{
 		Path:    "",
 		Module:  "",
 		Class:   "",
 		Options: map[string]string{},
-		Tokenizer: downloader.Tokenizer{
+		Tokenizer: downloadermodel.Tokenizer{
 			Path:    "",
 			Class:   "",
 			Options: map[string]string{},
@@ -112,7 +112,7 @@ func TestFromDownloaderModel_Empty(t *testing.T) {
 // TestFromDownloaderModel_Fill tests the Model.FromDownloaderModel to return the correct Model.
 func TestFromDownloaderModel_Fill(t *testing.T) {
 	// Init
-	downloaderModel := downloader.Model{
+	downloaderModel := downloadermodel.Model{
 		Path:   "/path/to/model",
 		Module: "module_name",
 		Class:  "class_name",
@@ -120,7 +120,7 @@ func TestFromDownloaderModel_Fill(t *testing.T) {
 			"option1": "true",
 			"option2": "'text'",
 		},
-		Tokenizer: downloader.Tokenizer{
+		Tokenizer: downloadermodel.Tokenizer{
 			Path:  "/path/to/tokenizer",
 			Class: "tokenizer_class",
 			Options: map[string]string{
@@ -167,12 +167,12 @@ func TestFromDownloaderModel_Fill(t *testing.T) {
 // TestFromDownloaderModel_ReplaceTokenizer tests the Model.FromDownloaderModel to return the correct Model.
 func TestFromDownloaderModel_ReplaceTokenizer(t *testing.T) {
 	// Init
-	downloaderModel := downloader.Model{
+	downloaderModel := downloadermodel.Model{
 		Path:    "/path/to/model",
 		Module:  "module_name",
 		Class:   "class_name",
 		Options: map[string]string{},
-		Tokenizer: downloader.Tokenizer{
+		Tokenizer: downloadermodel.Tokenizer{
 			Path:  "/path/to/tokenizer",
 			Class: "tokenizer_class",
 			Options: map[string]string{
@@ -220,7 +220,7 @@ func TestGetConfig_Failure(t *testing.T) {
 
 	// Init
 	input := GetModel(0)
-	downloaderArgs := downloader.Args{
+	downloaderArgs := downloadermodel.Args{
 		ModelName:     input.Name,
 		ModelModule:   string(input.Module),
 		DirectoryPath: app.DownloadDirectoryPath,
@@ -245,14 +245,14 @@ func TestGetConfig_Success(t *testing.T) {
 
 	// Init
 	input := GetModel(0)
-	downloaderArgs := downloader.Args{
+	downloaderArgs := downloadermodel.Args{
 		ModelName:     input.Name,
 		ModelModule:   string(input.Module),
 		DirectoryPath: app.DownloadDirectoryPath,
 	}
 
 	// Expected
-	var expectedDownloaderResult downloader.Model
+	var expectedDownloaderResult downloadermodel.Model
 	err := json.Unmarshal([]byte(output), &expectedDownloaderResult)
 	if err != nil {
 		t.FailNow()
@@ -275,7 +275,7 @@ func TestModel_Download_Failure(t *testing.T) {
 
 	// Init
 	input := GetModel(0)
-	downloaderArgs := downloader.Args{
+	downloaderArgs := downloadermodel.Args{
 		ModelName:     input.Name,
 		ModelModule:   string(input.Module),
 		DirectoryPath: app.DownloadDirectoryPath,
@@ -300,14 +300,14 @@ func TestModel_Download_Success(t *testing.T) {
 
 	// Init
 	input := GetModel(0)
-	downloaderArgs := downloader.Args{
+	downloaderArgs := downloadermodel.Args{
 		ModelName:     input.Name,
 		ModelModule:   string(input.Module),
 		DirectoryPath: app.DownloadDirectoryPath,
 	}
 
 	// Expected
-	var expectedDownloaderResult downloader.Model
+	var expectedDownloaderResult downloadermodel.Model
 	err := json.Unmarshal([]byte(output), &expectedDownloaderResult)
 	if err != nil {
 		t.FailNow()
@@ -334,7 +334,7 @@ func TestTokenizer_Download_Failure(t *testing.T) {
 	input := GetModel(0)
 	tokenizer := GetTokenizer(0)
 	input.Tokenizers = Tokenizers{tokenizer}
-	downloaderArgs := downloader.Args{
+	downloaderArgs := downloadermodel.Args{
 		ModelName:     input.Name,
 		ModelModule:   string(input.Module),
 		DirectoryPath: app.DownloadDirectoryPath,
@@ -361,14 +361,14 @@ func TestTokenizer_Download_Success(t *testing.T) {
 	input := GetModel(0)
 	tokenizer := GetTokenizer(0)
 	input.Tokenizers = Tokenizers{tokenizer}
-	downloaderArgs := downloader.Args{
+	downloaderArgs := downloadermodel.Args{
 		ModelName:     input.Name,
 		ModelModule:   string(input.Module),
 		DirectoryPath: app.DownloadDirectoryPath,
 	}
 
 	// Expected
-	var expectedDownloaderResult downloader.Model
+	var expectedDownloaderResult downloadermodel.Model
 	err := json.Unmarshal([]byte(output), &expectedDownloaderResult)
 	if err != nil {
 		t.FailNow()

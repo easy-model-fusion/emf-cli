@@ -3,6 +3,7 @@ package downloader
 import (
 	"encoding/json"
 	"fmt"
+	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 )
 
@@ -12,24 +13,6 @@ type scriptDownloader struct{}
 func NewScriptDownloader() Downloader {
 	return &scriptDownloader{}
 }
-
-// Constants related to the downloader script python arguments.
-const (
-	ScriptPath         = "sdk/downloader.py"
-	TagPrefix          = "--"
-	ModelName          = "model-name"
-	ModelModule        = "model-module"
-	ModelClass         = "model-class"
-	ModelOptions       = "model-options"
-	TokenizerClass     = "tokenizer-class"
-	TokenizerOptions   = "tokenizer-options"
-	Overwrite          = "overwrite"
-	Skip               = "skip"
-	SkipValueModel     = "model"
-	SkipValueTokenizer = "tokenizer"
-	EmfClient          = "emf-client"
-	OnlyConfiguration  = "only-configuration"
-)
 
 // Args represents the arguments for the script.
 type Args struct {
@@ -62,35 +45,35 @@ type Tokenizer struct {
 }
 
 // Execute runs the downloader script and handles the result
-func (downloader *scriptDownloader) Execute(downloaderArgs Args, python python.Python) (Model, error) {
+func (downloader *scriptDownloader) Execute(downloaderArgs downloadermodel.Args, python python.Python) (downloadermodel.Model, error) {
 
 	// Check arguments validity
 	err := downloaderArgs.Validate()
 	if err != nil {
-		return Model{}, fmt.Errorf("arguments provided are invalid : %s", err)
+		return downloadermodel.Model{}, fmt.Errorf("arguments provided are invalid : %s", err)
 	}
 
 	// Building args for the python script
 	args := downloaderArgs.ToPython()
 
 	// Run the script to download the model
-	scriptModel, err, _ := python.ExecuteScript(".venv", ScriptPath, args)
+	scriptModel, err, _ := python.ExecuteScript(".venv", downloadermodel.ScriptPath, args)
 
 	// An error occurred while running the script
 	if err != nil {
-		return Model{}, err
+		return downloadermodel.Model{}, err
 	}
 
 	// No data was returned by the script
 	if scriptModel == nil {
-		return Model{IsEmpty: true}, fmt.Errorf("the script didn't return any data")
+		return downloadermodel.Model{IsEmpty: true}, fmt.Errorf("the script didn't return any data")
 	}
 
 	// Unmarshall JSON response
-	var model Model
+	var model downloadermodel.Model
 	err = json.Unmarshal(scriptModel, &model)
 	if err != nil {
-		return Model{}, fmt.Errorf("failed to process the script return data : %s", err)
+		return downloadermodel.Model{}, fmt.Errorf("failed to process the script return data : %s", err)
 	}
 
 	// Download was successful

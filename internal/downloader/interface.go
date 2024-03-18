@@ -1,7 +1,10 @@
 package downloader
 
-import "github.com/easy-model-fusion/emf-cli/internal/utils/python"
+import (
+	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
+)
 
 type Downloader interface {
-	Execute(downloaderArgs Args, python python.Python) (Model, error)
+	Execute(downloaderArgs downloadermodel.Args, python python.Python) (downloadermodel.Model, error)
 }

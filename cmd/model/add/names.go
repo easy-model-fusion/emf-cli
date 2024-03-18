@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
@@ -137,7 +137,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 		}
 
 		// Prepare the script arguments
-		downloaderArgs := downloader.Args{
+		downloaderArgs := downloadermodel.Args{
 			ModelName:     currentModel.Name,
 			ModelModule:   string(currentModel.Module),
 			ModelClass:    currentModel.Class,

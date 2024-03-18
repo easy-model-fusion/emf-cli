@@ -2,6 +2,7 @@ package downloader
 
 import (
 	"errors"
+	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
@@ -21,7 +22,7 @@ func TestMain(m *testing.M) {
 // TestExecute_ArgsInvalid tests the Execute function with bad input arguments.
 func TestExecute_ArgsInvalid(t *testing.T) {
 	// Init
-	args := Args{}
+	args := downloadermodel.Args{}
 
 	// Execute
 	result, err := downloaderObject.Execute(args, pythonObject)
@@ -38,7 +39,7 @@ func TestExecute_ScriptError(t *testing.T) {
 	pythonObject.(*mock.MockPython).Error = errors.New("")
 
 	// Init
-	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
+	args := downloadermodel.Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
 	result, err := downloaderObject.Execute(args, pythonObject)
@@ -55,7 +56,7 @@ func TestExecute_ResponseEmpty(t *testing.T) {
 	pythonObject.(*mock.MockPython).Error = nil
 
 	// Init
-	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
+	args := downloadermodel.Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
 	result, err := downloaderObject.Execute(args, pythonObject)
@@ -72,7 +73,7 @@ func TestExecute_ResponseBadFormat(t *testing.T) {
 	pythonObject.(*mock.MockPython).Error = nil
 
 	// Init
-	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
+	args := downloadermodel.Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
 	result, err := downloaderObject.Execute(args, pythonObject)
@@ -89,7 +90,7 @@ func TestExecute_Success(t *testing.T) {
 	pythonObject.(*mock.MockPython).Error = nil
 
 	// Init
-	args := Args{ModelName: "ModelName", ModelModule: "ModelModule"}
+	args := downloadermodel.Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
 	result, err := downloaderObject.Execute(args, pythonObject)

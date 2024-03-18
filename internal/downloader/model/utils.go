@@ -1,4 +1,4 @@
-package downloader
+package downloadermodel
 
 import (
 	"errors"
