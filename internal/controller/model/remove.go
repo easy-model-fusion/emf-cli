@@ -6,6 +6,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/pterm/pterm"
 )
 
@@ -53,7 +54,7 @@ func processRemove(args []string, modelRemoveAllFlag bool) (string, string, erro
 		selectedModels = selectModelsToDelete(modelNames, modelRemoveAllFlag)
 	} else {
 		// Get the selected models from the args
-		selectedModels = args
+		selectedModels = stringutil.SliceRemoveDuplicates(args)
 	}
 
 	// Remove the selected models

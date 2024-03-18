@@ -215,11 +215,7 @@ func FromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 }
 
 // Update attempts to update the model
-func (m *Model) Update(mapConfigModels map[string]Model) bool {
-
-	// Checking if the model is already configured
-	_, configured := mapConfigModels[m.Name]
-
+func (m *Model) Update() bool {
 	// Check if model is physically present on the device
 	m.UpdatePaths()
 	downloaded, err := m.DownloadedOnDevice(false)
@@ -229,19 +225,13 @@ func (m *Model) Update(mapConfigModels map[string]Model) bool {
 
 	// Process internal state of the model
 	install := false
-	if !configured && !downloaded {
-		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be added. "+
-			"Would you like to add it?", m.Name))
-	} else if configured && !downloaded {
-		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
-			"Would you like to download it?", m.Name))
-	} else if !configured && downloaded {
-		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' already exists. "+
-			"Would you like to overwrite it?", m.Name))
-	} else {
+	if downloaded {
 		// Model already configured and downloaded : a new version is available
 		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
 			"Would you like to overwrite its old version?", m.Name))
+	} else {
+		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
+			"Would you like to download it?", m.Name))
 	}
 
 	// Model will not be downloaded or overwritten, nothing more to do here
