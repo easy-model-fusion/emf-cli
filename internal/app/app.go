@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 )
 
 const Name = "emf-cli"
@@ -16,6 +17,7 @@ var (
 )
 
 var _ui ui.UI
+var _python python.Python
 
 func Init(version, buildDate string) {
 	Version = version
@@ -24,6 +26,9 @@ func Init(version, buildDate string) {
 
 	// Initialize the UI
 	_ui = ui.NewPTermUI() // currently only pterm is supported
+
+	// Initialize Python
+	_python = python.NewPython()
 }
 
 // UI returns the current UI instance
@@ -37,4 +42,17 @@ func UI() ui.UI {
 // SetUI sets the current UI with a new one
 func SetUI(newUI ui.UI) {
 	_ui = newUI
+}
+
+// Python returns the current Python instance
+func Python() python.Python {
+	if _python == nil {
+		fatal("Python not initialized")
+	}
+	return _python
+}
+
+// SetPython sets the current Python with a new one
+func SetPython(newPython python.Python) {
+	_python = newPython
 }

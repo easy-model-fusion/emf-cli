@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -47,19 +48,19 @@ func RunTidy() {
 }
 
 // tidyModelsConfiguredButNotDownloaded downloads any missing model and its missing tokenizers as well
-func tidyModelsConfiguredButNotDownloaded(models []model.Model) {
+func tidyModelsConfiguredButNotDownloaded(models model.Models) {
 	pterm.Info.Println("Verifying if all models are downloaded...")
 	// filter the models that should be added to binary
-	models = model.GetModelsWithAddToBinaryFileTrue(models)
+	models = models.FilterWithAddToBinaryFileTrue()
 
 	// Search for the models that need to be downloaded
-	var downloadedModels []model.Model
+	var downloadedModels model.Models
 	var failedModels []string
 
 	// Tidying the configured but not downloaded models and also processing their tokenizers
 	for _, current := range models {
 
-		success, clean := model.TidyConfiguredModel(current)
+		success, clean := current.TidyConfiguredModel()
 		if !success {
 			failedModels = append(failedModels, current.Name)
 		} else if !clean {
@@ -88,21 +89,35 @@ func tidyModelsConfiguredButNotDownloaded(models []model.Model) {
 
 // tidyModelsDownloadedButNotConfigured configuring the downloaded models that aren't configured in the configuration file
 // and then asks the user if he wants to delete them or add them to the configuration file
-func tidyModelsDownloadedButNotConfigured(configModels []model.Model) {
+func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 	pterm.Info.Println("Verifying if all downloaded models are configured...")
 
 	// Get the list of downloaded models
 	downloadedModels := model.BuildModelsFromDevice()
 
 	// Building map for faster lookup
-	mapConfigModels := model.ModelsToMap(configModels)
+	mapConfigModels := configModels.Map()
 
 	// Checking if every model is well configured
-	var modelsToConfigure []model.Model
+	var modelsToConfigure model.Models
 	for _, current := range downloadedModels {
 
 		// Checking if the downloaded model is already configured
 		configModel, configured := mapConfigModels[current.Name]
+
+		// Try to get model configuration
+		if current.Module != "" {
+			downloaderArgs := downloader.Args{
+				ModelName:   current.Name,
+				ModelModule: string(current.Module),
+			}
+
+			// Getting model class
+			success := current.GetConfig(downloaderArgs)
+			if !success && current.Class == "" {
+				current.Class = current.GetModuleAutoPipelineClassName()
+			}
+		}
 
 		// Model not configured
 		if !configured {
@@ -127,10 +142,10 @@ func tidyModelsDownloadedButNotConfigured(configModels []model.Model) {
 		if current.Module == huggingface.TRANSFORMERS {
 
 			// Building map for faster lookup
-			mapConfigModelTokenizers := model.TokenizersToMap(configModel)
+			mapConfigModelTokenizers := configModel.Tokenizers.Map()
 
 			// Checking if every tokenizer is well configured
-			var modelTokenizersToConfigure []model.Tokenizer
+			var modelTokenizersToConfigure model.Tokenizers
 			for _, tokenizer := range current.Tokenizers {
 
 				// Checking if the downloaded tokenizer is already configured
@@ -177,7 +192,7 @@ func tidyModelsDownloadedButNotConfigured(configModels []model.Model) {
 }
 
 // regenerateCode generates new default python code
-func regenerateCode(models []model.Model) error {
+func regenerateCode(models model.Models) error {
 	// TODO: modify this logic when code generator is completed
 	pterm.Info.Println("Generating new default python code...")
 

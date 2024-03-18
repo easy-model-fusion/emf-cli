@@ -49,7 +49,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	}
 
 	var selectedModelNames []string
-	var selectedModels []model.Model
+	var selectedModels model.Models
 
 	// Add models passed in args
 	if len(args) > 0 {
@@ -63,7 +63,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 		// Fetching the requested models
 		for _, name := range args {
 			// Verify if model already exists in the project
-			exist := model.ContainsByName(existingModels, name)
+			exist := existingModels.ContainsByName(name)
 			if exist {
 				// Model already exists : skipping to the next one
 				existingModelNames = append(existingModelNames, name)
@@ -79,7 +79,7 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 				continue
 			}
 			// Map API response to model.Model
-			modelMapped := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+			modelMapped := model.FromHuggingfaceModel(huggingfaceModel)
 			// Saving the model data in the variables
 			selectedModels = append(selectedModels, modelMapped)
 		}
@@ -119,42 +119,22 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	}
 
 	// Get all selected models names
-	selectedModelNames = model.GetNames(selectedModels)
+	selectedModelNames = selectedModels.GetNames()
 
 	// User choose the models he wishes to install now
 	selectedModels = selectModelsToInstall(selectedModels, selectedModelNames)
 	app.UI().DisplaySelectedItems(selectedModelNames)
 
-	// Search for invalid models (Not configured but already downloaded,
-	// and for which the user refused to overwrite/delete)
-	invalidModels, err := searchForInvalidModels(selectedModels)
-	if err != nil {
-		pterm.Error.Println(err.Error())
-		return
-	}
-
-	// Indicate the models that were skipped and need to be treated manually
-	if len(invalidModels) > 0 {
-		pterm.Warning.Println("These model(s) are already downloaded "+
-			"and should be checked manually", model.GetNames(invalidModels))
-	}
-
-	// Exclude Invalid models
-	selectedModels = model.Difference(selectedModels, invalidModels)
-
 	// Download the models
-	var models []model.Model
-	var failedModels []model.Model
+	var models model.Models
+	var failedModels model.Models
 	for _, currentModel := range selectedModels {
 
-		// Exclude from download if not requested
-		if !currentModel.AddToBinaryFile {
-			models = append(models, currentModel)
+		// Validate model for download
+		if !config.Validate(currentModel) {
+			failedModels = append(failedModels, currentModel)
 			continue
 		}
-
-		// Reset in case the download fails
-		currentModel.AddToBinaryFile = false
 
 		// Prepare the script arguments
 		downloaderArgs := downloader.Args{
@@ -163,22 +143,31 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 			ModelClass:  currentModel.Class,
 		}
 
-		// Downloading model
-		result, success := model.Download(currentModel, downloaderArgs)
+		var success bool
+		if currentModel.AddToBinaryFile {
+			// Downloading model
+			success = currentModel.Download(downloaderArgs)
+		} else {
+			// Getting model configuration
+			success = currentModel.GetConfig(downloaderArgs)
+		}
+
 		if !success {
+			// Reset in case the download fails
+			currentModel.AddToBinaryFile = false
 			failedModels = append(failedModels, currentModel)
 		} else {
-			models = append(models, result)
+			models = append(models, currentModel)
 		}
 	}
 
 	// Indicate models that failed to download
-	if !model.Empty(failedModels) {
-		pterm.Error.Println("These models couldn't be downloaded", model.GetNames(failedModels))
+	if !failedModels.Empty() {
+		pterm.Error.Println("These models couldn't be downloaded", failedModels.GetNames())
 		return
 	}
 	// No models were downloaded : stopping there
-	if model.Empty(models) {
+	if models.Empty() {
 		pterm.Info.Println("There isn't any model to add to the configuration file.")
 		return
 	}
@@ -191,12 +180,21 @@ func runAddByNames(cmd *cobra.Command, args []string) {
 	} else {
 		spinner.Success()
 	}
+
+	// Attempt to generate code
+	spinner = app.UI().StartSpinner("Generating python code...")
+	err = config.GenerateExistingModelsPythonCode()
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error while generating python code for added models: %s", err))
+	} else {
+		spinner.Success()
+	}
 }
 
 // selectModels displays a multiselect of models from which the user will choose to add to his project
-func selectModels(tags []string, currentSelectedModels []model.Model, existingModels []model.Model) ([]model.Model, error) {
+func selectModels(tags []string, currentSelectedModels model.Models, existingModels model.Models) (model.Models, error) {
 	spinner := app.UI().StartSpinner("Listing all models with selected tags...")
-	var allModelsWithTags []model.Model
+	var allModelsWithTags model.Models
 	// Get list of models with current tags
 	for _, tag := range tags {
 		huggingfaceModels, err := app.H().GetModelsByPipelineTag(huggingface.PipelineTag(tag), 0)
@@ -204,10 +202,10 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 			spinner.Fail(fmt.Sprintf("Error while fetching the models from hugging face api: %s", err))
 			return nil, fmt.Errorf("error while calling api endpoint")
 		}
-		// Map API responses to []model.Model
-		var mappedModels []model.Model
+		// Map API responses to model.Models
+		var mappedModels model.Models
 		for _, huggingfaceModel := range huggingfaceModels {
-			mappedModel := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
+			mappedModel := model.FromHuggingfaceModel(huggingfaceModel)
 			mappedModels = append(mappedModels, mappedModel)
 		}
 		allModelsWithTags = append(allModelsWithTags, mappedModels...)
@@ -216,10 +214,10 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 
 	// Excluding models entered in args + configuration file models
 	modelsToExclude := append(currentSelectedModels, existingModels...)
-	availableModels := model.Difference(allModelsWithTags, modelsToExclude)
+	availableModels := allModelsWithTags.Difference(modelsToExclude)
 
 	// Build a multiselect with each model name
-	availableModelNames := model.GetNames(availableModels)
+	availableModelNames := availableModels.GetNames()
 	message := "Please select the model(s) to be added"
 	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
 	selectedModelNames := app.UI().DisplayInteractiveMultiselect(message, availableModelNames, checkMark, false, true)
@@ -230,7 +228,7 @@ func selectModels(tags []string, currentSelectedModels []model.Model, existingMo
 	}
 
 	// Get newly selected models
-	selectedModels := model.GetModelsByNames(availableModels, selectedModelNames)
+	selectedModels := availableModels.FilterWithNames(selectedModelNames)
 
 	// returns newly selected models + models entered in args
 	return append(currentSelectedModels, selectedModels...), nil
@@ -247,81 +245,16 @@ func selectTags() []string {
 }
 
 // selectModelsToInstall returns updated models objects with excluded/included from binary
-func selectModelsToInstall(models []model.Model, modelNames []string) []model.Model {
+func selectModelsToInstall(models model.Models, modelNames []string) model.Models {
 	// Build a multiselect with each selected model name to exclude/include in the binary
 	message := "Please select the model(s) to install later"
 	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Blue("-")}
 	installsToExclude := app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false, false)
-	var updatedModels []model.Model
+	var updatedModels model.Models
 	for _, currentModel := range models {
 		currentModel.AddToBinaryFile = !stringutil.SliceContainsItem(installsToExclude, currentModel.Name)
 		updatedModels = append(updatedModels, currentModel)
 	}
 
 	return updatedModels
-}
-
-// alreadyDownloadedModels this function returns models that are requested to be added but are already downloaded
-func alreadyDownloadedModels(models []model.Model) (downloadedModels []model.Model, err error) {
-	for _, currentModel := range models {
-		currentModel = model.ConstructConfigPaths(currentModel)
-		downloaded, err := model.ModelDownloadedOnDevice(currentModel)
-		// TODO : check if tokenizer already exists => Waiting for issue #63 : [Client] Validate models for download
-		if err != nil {
-			return nil, err
-		}
-		if downloaded {
-			downloadedModels = append(downloadedModels, currentModel)
-		}
-	}
-
-	return downloadedModels, nil
-}
-
-// processAlreadyDownloadedModels this function processes models that are requested to be added
-// Pre-condition the models are not in the configuration file but are already downloaded
-func processAlreadyDownloadedModels(downloadedModels []model.Model) (modelsToDelete []model.Model,
-	failedModels []model.Model) {
-	for _, currentModel := range downloadedModels {
-		var message string
-		if currentModel.AddToBinaryFile {
-			message = fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?", currentModel.Name)
-		} else {
-			message = fmt.Sprintf("This model %s is already downloaded do you wish to delete it?", currentModel.Name)
-		}
-		yes := app.UI().AskForUsersConfirmation(message)
-
-		if yes {
-			// If the user accepted the proposed action, the model will be deleted
-			modelsToDelete = append(modelsToDelete, currentModel)
-		} else {
-			// If the user refused the proposed action, there is nothing we can do
-			// and the model should be skipped and treated manually
-			failedModels = append(failedModels, currentModel)
-		}
-	}
-
-	return modelsToDelete, failedModels
-}
-
-// searchForInvalidModels this function returns models that
-// are already downloaded and need to be skipped and treated manually
-func searchForInvalidModels(models []model.Model) (invalidModels []model.Model, err error) {
-	alreadyDownloadModels, err := alreadyDownloadedModels(models)
-	if err != nil {
-		return nil, err
-	}
-
-	// Retrieve models which the user accepted/refused to delete
-	modelsToDelete, invalidModels := processAlreadyDownloadedModels(alreadyDownloadModels)
-
-	// Delete models which the user accepted to delete
-	for _, modelToDelete := range modelsToDelete {
-		err = config.RemoveModelPhysically(modelToDelete.Name)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return invalidModels, nil
 }

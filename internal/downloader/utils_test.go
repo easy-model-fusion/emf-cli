@@ -6,105 +6,105 @@ import (
 	"testing"
 )
 
-// TestEmptyModel_True tests the EmptyModel to return true.
-func TestEmptyModel_True(t *testing.T) {
+// TestEmpty_Model_True tests the EmptyModel to return true.
+func TestEmpty_Model_True(t *testing.T) {
 	// Init
-	sm := Model{}
+	model := Model{}
 
 	// Execute
-	result := EmptyModel(sm)
+	result := model.Empty()
 
 	// Assert
 	test.AssertEqual(t, true, result)
 }
 
-// TestEmptyModel_False tests the EmptyModel to return true.
-func TestEmptyModel_False(t *testing.T) {
+// TestEmpty_Model_False tests the EmptyModel to return true.
+func TestEmpty_Model_False(t *testing.T) {
 	// Init
-	sm := Model{
+	model := Model{
 		Path:   "/path/to/model",
 		Module: "module_name",
 		Class:  "class_name",
 	}
 
 	// Execute
-	result := EmptyModel(sm)
+	result := model.Empty()
 
 	// Assert
 	test.AssertEqual(t, false, result)
 }
 
-// TestEmptyTokenizer_True tests the EmptyTokenizer to return true.
-func TestEmptyTokenizer_True(t *testing.T) {
+// TestEmpty_Tokenizer_True tests the EmptyTokenizer to return true.
+func TestEmpty_Tokenizer_True(t *testing.T) {
 	// Init
-	st := Tokenizer{}
+	tokenizer := Tokenizer{}
 
 	// Execute
-	result := EmptyTokenizer(st)
+	result := tokenizer.Empty()
 
 	// Assert
 	test.AssertEqual(t, true, result)
 }
 
-// TestEmptyTokenizer_False tests the EmptyTokenizer to return true.
-func TestEmptyTokenizer_False(t *testing.T) {
+// TestEmpty_Tokenizer_False tests the EmptyTokenizer to return true.
+func TestEmpty_Tokenizer_False(t *testing.T) {
 	// Init
-	st := Tokenizer{
+	tokenizer := Tokenizer{
 		Path:  "/path/to/tokenizer",
 		Class: "tokenizer_class",
 	}
 
 	// Execute
-	result := EmptyTokenizer(st)
+	result := tokenizer.Empty()
 
 	// Assert
 	test.AssertEqual(t, false, result)
 }
 
-// TestArgsValidate_MissingName tests the ArgsValidate function to return an error.
-func TestArgsValidate_MissingName(t *testing.T) {
+// TestValidate_MissingName tests the ArgsValidate function to return an error.
+func TestValidate_MissingName(t *testing.T) {
 	// Init
 	args := Args{ModelModule: "present"}
 
 	// Execute
-	result := ArgsValidate(args)
+	result := args.Validate()
 
 	// Assert
 	test.AssertNotEqual(t, result, nil)
 }
 
-// TestArgsValidate_MissingModule tests the ArgsValidate function to return an error.
-func TestArgsValidate_MissingModule(t *testing.T) {
+// TestValidate_MissingModule tests the ArgsValidate function to return an error.
+func TestValidate_MissingModule(t *testing.T) {
 	// Init
 	args := Args{ModelName: "present"}
 
 	// Execute
-	result := ArgsValidate(args)
+	result := args.Validate()
 
 	// Assert
 	test.AssertNotEqual(t, result, nil)
 }
 
-// TestArgsValidate_Success tests the ArgsValidate function to succeed.
-func TestArgsValidate_Success(t *testing.T) {
+// TestValidate_Success tests the ArgsValidate function to succeed.
+func TestValidate_Success(t *testing.T) {
 	// Init
 	args := Args{ModelName: "present", ModelModule: "present"}
 
 	// Execute
-	result := ArgsValidate(args)
+	result := args.Validate()
 
 	// Assert
 	test.AssertEqual(t, result, nil)
 }
 
-// TestArgsGetForCobra tests the ArgsGetForCobra.
-func TestArgsGetForCobra(t *testing.T) {
+// TestToCobra tests the ArgsGetForCobra.
+func TestToCobra(t *testing.T) {
 	// Init
 	cmd := &cobra.Command{}
 	args := &Args{}
 
 	// Execute
-	ArgsGetForCobra(cmd, args)
+	args.ToCobra(cmd)
 
 	// Assert
 	test.AssertNotEqual(t, cmd.Flags().Lookup(ModelName), nil)
@@ -125,17 +125,18 @@ func TestArgsGetForCobra(t *testing.T) {
 	test.AssertEqual(t, args.Skip, "")
 }
 
-// TestArgsProcessForPython tests the ArgsProcessForPython.
-func TestArgsProcessForPython(t *testing.T) {
+// TestToPython tests the ArgsProcessForPython.
+func TestToPython(t *testing.T) {
 	// Init
 	args := Args{
-		ModelName:        "model",
-		ModelModule:      "module",
-		ModelClass:       "class",
-		ModelOptions:     []string{"opt1=val1", "opt2=val2"},
-		TokenizerClass:   "tokenizer",
-		TokenizerOptions: []string{"tok_opt1=val1"},
-		Skip:             "model",
+		ModelName:         "model",
+		ModelModule:       "module",
+		ModelClass:        "class",
+		ModelOptions:      []string{"opt1=val1", "opt2=val2"},
+		TokenizerClass:    "tokenizer",
+		TokenizerOptions:  []string{"tok_opt1=val1"},
+		Skip:              "model",
+		OnlyConfiguration: true,
 	}
 	expected := []string{
 		TagPrefix + EmfClient, TagPrefix + Overwrite,
@@ -145,10 +146,11 @@ func TestArgsProcessForPython(t *testing.T) {
 		TagPrefix + TokenizerClass, "tokenizer",
 		TagPrefix + TokenizerOptions, "tok_opt1=val1",
 		TagPrefix + Skip, "model",
+		TagPrefix + OnlyConfiguration,
 	}
 
 	// Execute
-	result := ArgsProcessForPython(args)
+	result := args.ToPython()
 
 	// Assert
 	test.AssertEqual(t, len(result), len(expected))

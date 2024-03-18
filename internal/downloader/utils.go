@@ -7,86 +7,90 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// EmptyModel checks if a Model is empty.
-func EmptyModel(model Model) bool {
-	return model.Path == "" && model.Module == "" && model.Class == ""
+// Empty checks if a Model is empty.
+func (m *Model) Empty() bool {
+	return m.Path == "" && m.Class == ""
 }
 
-// EmptyTokenizer checks if a Tokenizer is empty.
-func EmptyTokenizer(tokenizer Tokenizer) bool {
-	return tokenizer.Path == "" && tokenizer.Class == ""
+// Empty checks if a Tokenizer is empty.
+func (t *Tokenizer) Empty() bool {
+	return t.Path == "" && t.Class == ""
 }
 
-// ArgsValidate validates the mandatory fields for Args
-func ArgsValidate(args Args) error {
+// Validate validates the mandatory fields for Args
+func (a *Args) Validate() error {
 
 	// Name validity
-	if args.ModelName == "" {
+	if a.ModelName == "" {
 		return errors.New("missing name for the model")
 	}
 
 	// Module validity
-	if args.ModelModule == "" {
+	if a.ModelModule == "" {
 		return errors.New("missing module for the model")
 	}
 
 	return nil
 }
 
-// ArgsGetForCobra builds the arguments for running the cobra command
-func ArgsGetForCobra(cmd *cobra.Command, args *Args) {
+// ToCobra builds the arguments for running the cobra command
+func (a *Args) ToCobra(cmd *cobra.Command) {
 
 	// Pseudo mandatory : allowing to customize the calling command
-	cmd.Flags().StringVarP(&args.ModelName, ModelName, "n", "", "Name of the model")
-	cmd.Flags().StringVarP(&args.ModelModule, ModelModule, "m", "", "Python module used for download")
+	cmd.Flags().StringVarP(&a.ModelName, ModelName, "n", "", "Name of the model")
+	cmd.Flags().StringVarP(&a.ModelModule, ModelModule, "m", "", "Python module used for download")
 
 	// Optional for the model
-	cmd.Flags().StringVarP(&args.ModelClass, ModelClass, "c", "", "Python class within the module")
-	cmd.Flags().StringSliceVarP(&args.ModelOptions, ModelOptions, "o", []string{}, "List of model options")
+	cmd.Flags().StringVarP(&a.ModelClass, ModelClass, "c", "", "Python class within the module")
+	cmd.Flags().StringSliceVarP(&a.ModelOptions, ModelOptions, "o", []string{}, "List of model options")
 
 	// Optional for the tokenizer
-	cmd.Flags().StringVarP(&args.TokenizerClass, TokenizerClass, "t", "", "Tokenizer class (only for transformers)")
-	cmd.Flags().StringArrayVarP(&args.TokenizerOptions, TokenizerOptions, "T", []string{}, "List of tokenizer options (only for transformers)")
+	cmd.Flags().StringVarP(&a.TokenizerClass, TokenizerClass, "t", "", "Tokenizer class (only for transformers)")
+	cmd.Flags().StringArrayVarP(&a.TokenizerOptions, TokenizerOptions, "T", []string{}, "List of tokenizer options (only for transformers)")
 
 	// Situational
-	cmd.Flags().StringVarP(&args.Skip, Skip, "s", "", "Skip the model or tokenizer download")
+	cmd.Flags().StringVarP(&a.Skip, Skip, "s", "", "Skip the model or tokenizer download")
 }
 
-// ArgsProcessForPython builds the arguments for running the python script.
+// ToPython builds the arguments for running the python script.
 // Pre-condition : certain that the user authorized the overwriting when downloading the model.
-func ArgsProcessForPython(args Args) []string {
+func (a *Args) ToPython() []string {
 
 	// Mandatory arguments
-	cmdArgs := []string{TagPrefix + EmfClient, TagPrefix + Overwrite, app.DownloadDirectoryPath, args.ModelName, args.ModelModule}
+	cmdArgs := []string{TagPrefix + EmfClient, TagPrefix + Overwrite, app.DownloadDirectoryPath, a.ModelName, a.ModelModule}
 
 	// Optional arguments regarding the model
-	if args.ModelClass != "" {
-		cmdArgs = append(cmdArgs, TagPrefix+ModelClass, args.ModelClass)
+	if a.ModelClass != "" {
+		cmdArgs = append(cmdArgs, TagPrefix+ModelClass, a.ModelClass)
 	}
-	if len(args.ModelOptions) != 0 {
+	if len(a.ModelOptions) != 0 {
 		var options []string
-		for _, modelOption := range args.ModelOptions {
+		for _, modelOption := range a.ModelOptions {
 			options = append(options, stringutil.ParseOptions(modelOption)...)
 		}
 		cmdArgs = append(cmdArgs, append([]string{TagPrefix + ModelOptions}, options...)...)
 	}
 
 	// Optional arguments regarding the model's tokenizer
-	if args.TokenizerClass != "" {
-		cmdArgs = append(cmdArgs, TagPrefix+TokenizerClass, args.TokenizerClass)
+	if a.TokenizerClass != "" {
+		cmdArgs = append(cmdArgs, TagPrefix+TokenizerClass, a.TokenizerClass)
 	}
-	if len(args.TokenizerOptions) != 0 {
+	if len(a.TokenizerOptions) != 0 {
 		var options []string
-		for _, modelOption := range args.TokenizerOptions {
+		for _, modelOption := range a.TokenizerOptions {
 			options = append(options, stringutil.ParseOptions(modelOption)...)
 		}
 		cmdArgs = append(cmdArgs, append([]string{TagPrefix + TokenizerOptions}, options...)...)
 	}
 
 	// Global tags for the script
-	if len(args.Skip) != 0 {
-		cmdArgs = append(cmdArgs, TagPrefix+Skip, args.Skip)
+	if len(a.Skip) != 0 {
+		cmdArgs = append(cmdArgs, TagPrefix+Skip, a.Skip)
 	}
 
+	// Only configuration
+	if a.OnlyConfiguration {
+		cmdArgs = append(cmdArgs, TagPrefix+OnlyConfiguration)
+	}
 	return cmdArgs
 }

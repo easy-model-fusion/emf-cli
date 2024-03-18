@@ -26,7 +26,7 @@ var addCustomDownloaderArgs downloader.Args
 
 func init() {
 	// Bind cobra args to the downloader script args
-	downloader.ArgsGetForCobra(addCustomCmd, &addCustomDownloaderArgs)
+	addCustomDownloaderArgs.ToCobra(addCustomCmd)
 }
 
 // runAddCustom runs add command to add a custom model
@@ -62,21 +62,12 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		return
 	}
 	// Map API response to model.Model
-	modelObj := model.MapToModelFromHuggingfaceModel(huggingfaceModel)
-	modelObj = model.ConstructConfigPaths(modelObj)
+	modelObj := model.FromHuggingfaceModel(huggingfaceModel)
 
-	// Validate the model : if model is already downloaded
-	downloaded, err := model.ModelDownloadedOnDevice(modelObj)
-	if err != nil {
-		pterm.Error.Println(err)
+	// Validate model for download
+	modelObj.AddToBinaryFile = true
+	if !config.Validate(modelObj) {
 		return
-	} else if downloaded {
-		message := fmt.Sprintf("Model '%s' is already downloaded. Do you wish to overwrite it?", modelObj.Name)
-		overwrite := app.UI().AskForUsersConfirmation(message)
-		if !overwrite {
-			pterm.Warning.Println("This model is already downloaded and should be checked manually", modelObj.Name)
-			return
-		}
 	}
 
 	// Allow the user to choose flags and set their values
@@ -96,21 +87,27 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 		addCustomDownloaderArgs.ModelClass = modelObj.Class
 	}
 
-	// TODO : check if tokenizer already exists => Waiting for issue #63 : [Client] Validate models for download
-
 	// Downloading model
-	modelObj, success := model.Download(modelObj, addCustomDownloaderArgs)
+	success := modelObj.Download(addCustomDownloaderArgs)
 	if !success {
-		return
+		modelObj.AddToBinaryFile = false
 	}
 
 	// Add models to configuration file
 	spinner := app.UI().StartSpinner("Writing model to configuration file...")
-	err = config.AddModels([]model.Model{modelObj})
+	err = config.AddModels(model.Models{modelObj})
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the model to the configuration file: %s", err))
 	} else {
 		spinner.Success()
 	}
 
+	// Attempt to generate code
+	spinner = app.UI().StartSpinner("Generating python code...")
+	err = config.GenerateExistingModelsPythonCode()
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error while generating python code for added model: %s", err))
+	} else {
+		spinner.Success()
+	}
 }

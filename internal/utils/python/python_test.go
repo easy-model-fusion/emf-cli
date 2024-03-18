@@ -15,7 +15,7 @@ import (
 // It returns the path to the temporary directory and the path to the virtual environment.
 // If Python is not found, it skips the test.
 func CreateVenv(t *testing.T) (string, string) {
-	path, ok := CheckForPython()
+	path, ok := NewPython().CheckForPython()
 	if !ok {
 		t.SkipNow()
 	}
@@ -28,7 +28,7 @@ func CreateVenv(t *testing.T) (string, string) {
 	}
 
 	venvPath := filepath.Join(dname, "venv")
-	err = CreateVirtualEnv(path, venvPath)
+	err = NewPython().CreateVirtualEnv(path, venvPath)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -42,20 +42,20 @@ func TestCheckForPython(t *testing.T) {
 	checkFalse := true
 
 	if _, ok := executil.CheckForExecutable("python"); ok {
-		path, ok := CheckForPython()
+		path, ok := NewPython().CheckForPython()
 		test.AssertEqual(t, ok, true)
 		test.AssertNotEqual(t, path, "")
 		checkFalse = false
 	}
 	if _, ok := executil.CheckForExecutable("python3"); ok {
-		path, ok := CheckForPython()
+		path, ok := NewPython().CheckForPython()
 		test.AssertEqual(t, ok, true)
 		test.AssertNotEqual(t, path, "")
 		checkFalse = false
 	}
 
 	if checkFalse {
-		path, ok := CheckForPython()
+		path, ok := NewPython().CheckForPython()
 		test.AssertEqual(t, ok, false)
 		test.AssertNotEqual(t, path, "")
 	}
@@ -64,24 +64,24 @@ func TestCheckForPython(t *testing.T) {
 // TestCheckPythonVersion tests the CheckPythonVersion function.
 func TestCheckPythonVersion(t *testing.T) {
 	if _, ok := executil.CheckForExecutable("python"); ok {
-		path, ok := CheckPythonVersion("python")
+		path, ok := NewPython().CheckPythonVersion("python")
 		test.AssertEqual(t, ok, true)
 		test.AssertNotEqual(t, path, "")
 	}
 	if _, ok := executil.CheckForExecutable("python3"); ok {
-		path, ok := CheckPythonVersion("python3")
+		path, ok := NewPython().CheckPythonVersion("python3")
 		test.AssertEqual(t, ok, true)
 		test.AssertNotEqual(t, path, "")
 	}
 
-	path, ok := CheckPythonVersion("anexecutablethatcouldnotexists-yeahhh")
+	path, ok := NewPython().CheckPythonVersion("anexecutablethatcouldnotexists-yeahhh")
 	test.AssertEqual(t, ok, false)
 	test.AssertEqual(t, path, "")
 }
 
 // TestCreateVirtualEnv_Success tests the CreateVirtualEnv function to successfully create a venv.
 func TestCreateVirtualEnv_Success(t *testing.T) {
-	path, ok := CheckForPython()
+	path, ok := NewPython().CheckForPython()
 	if !ok {
 		t.SkipNow()
 	}
@@ -94,7 +94,7 @@ func TestCreateVirtualEnv_Success(t *testing.T) {
 	}
 	defer os.RemoveAll(dname)
 
-	err = CreateVirtualEnv(path, filepath.Join(dname, "venv"))
+	err = NewPython().CreateVirtualEnv(path, filepath.Join(dname, "venv"))
 	test.AssertEqual(t, err, nil)
 }
 
@@ -119,7 +119,7 @@ func TestFindVEnvExecutable_Success(t *testing.T) {
 	}
 
 	// Execute
-	pipPath, err := FindVEnvExecutable(venvPath, "pip")
+	pipPath, err := NewPython().FindVEnvExecutable(venvPath, "pip")
 
 	// Assert
 	test.AssertEqual(t, err, nil)
@@ -136,7 +136,7 @@ func TestFindVEnvExecutable_Fail(t *testing.T) {
 	}
 	defer os.RemoveAll(dname)
 
-	pipPath, err := FindVEnvExecutable(filepath.Join(dname, "venv"), "pip")
+	pipPath, err := NewPython().FindVEnvExecutable(filepath.Join(dname, "venv"), "pip")
 	test.AssertNotEqual(t, err, nil, "Should return an error")
 	test.AssertEqual(t, pipPath, "")
 }
@@ -144,7 +144,7 @@ func TestFindVEnvExecutable_Fail(t *testing.T) {
 // TestExecuteScript_MissingVenv tests the ExecuteScript function when the virtual environment is missing.
 func TestExecuteScript_MissingVenv(t *testing.T) {
 	// Execute
-	_, err, _ := ExecuteScript(".venv", "script.py", []string{})
+	_, err, _ := NewPython().ExecuteScript(".venv", "script.py", []string{})
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -160,7 +160,7 @@ func TestExecuteScript(t *testing.T) {
 	// ***************************
 
 	// Execute
-	_, err, _ := ExecuteScript(venvPath, "script.py", []string{})
+	_, err, _ := NewPython().ExecuteScript(venvPath, "script.py", []string{})
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -176,7 +176,7 @@ func TestExecuteScript(t *testing.T) {
 	}
 
 	// Execute
-	output, err, exitCode := ExecuteScript(venvPath, file.Name(), []string{})
+	output, err, exitCode := NewPython().ExecuteScript(venvPath, file.Name(), []string{})
 
 	// Assert
 	test.AssertEqual(t, err, nil)
@@ -207,7 +207,7 @@ func TestExecuteScript(t *testing.T) {
 	defer fileutil.CloseFile(file)
 
 	// Execute
-	output, err, exitCode = ExecuteScript(venvPath, file.Name(), []string{})
+	output, err, exitCode = NewPython().ExecuteScript(venvPath, file.Name(), []string{})
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -239,7 +239,7 @@ func TestExecuteScript(t *testing.T) {
 	defer os.RemoveAll(dname)
 
 	// Execute
-	output, err, exitCode = ExecuteScript(venvPath, file.Name(), []string{})
+	output, err, exitCode = NewPython().ExecuteScript(venvPath, file.Name(), []string{})
 
 	// Assert
 	test.AssertEqual(t, err, nil)
@@ -257,12 +257,12 @@ func TestExecuteScript(t *testing.T) {
 // TestCheckAskForPython_Success tests the CheckAskForPython function when Python is installed.
 func TestCheckAskForPython_Success(t *testing.T) {
 	// check python
-	a, ok := CheckForPython()
+	a, ok := NewPython().CheckForPython()
 	if !ok {
 		return
 	}
 
-	b, ok := CheckAskForPython(ui.NewPTermUI())
+	b, ok := NewPython().CheckAskForPython(ui.NewPTermUI())
 	test.AssertEqual(t, ok, true, "Should return true if python is installed")
 	test.AssertEqual(t, a, b, "Should return the same value as CheckForPython")
 }

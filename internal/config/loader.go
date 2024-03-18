@@ -18,6 +18,7 @@ func Load(confDirPath string) error {
 	return viper.ReadInConfig()
 }
 
+// UpdateConfigFilePath updates configuration file path
 func UpdateConfigFilePath() string {
 	FilePath = app.UI().AskForUsersInput("Enter the configuration file path")
 	return FilePath

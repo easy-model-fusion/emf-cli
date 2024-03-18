@@ -6,7 +6,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 	"github.com/easy-model-fusion/emf-cli/sdk"
 	"github.com/pterm/pterm"
 	"github.com/spf13/viper"
@@ -55,7 +54,7 @@ func createProject(projectName string, useTorchCuda bool, customTag string) (err
 	}
 
 	// Check if user has python installed
-	pythonPath, ok := python.CheckAskForPython(app.UI())
+	pythonPath, ok := app.Python().CheckAskForPython(app.UI())
 	if !ok {
 		os.Exit(1)
 	}
@@ -67,7 +66,7 @@ func createProject(projectName string, useTorchCuda bool, customTag string) (err
 
 	// Create virtual environment
 	spinner := app.UI().StartSpinner("Creating virtual environment")
-	err = python.CreateVirtualEnv(pythonPath, filepath.Join(projectName, ".venv"))
+	err = app.Python().CreateVirtualEnv(pythonPath, filepath.Join(projectName, ".venv"))
 	if err != nil {
 		spinner.Fail("Unable to create venv: ", err)
 		return err
@@ -159,13 +158,13 @@ func createProjectFiles(projectName, sdkTag string) (err error) {
 // installDependencies installs the dependencies for the project
 func installDependencies(projectName string, useTorchCuda bool) (err error) {
 	// Install dependencies
-	pipPath, err := python.FindVEnvExecutable(filepath.Join(projectName, ".venv"), "pip")
+	pipPath, err := app.Python().FindVEnvExecutable(filepath.Join(projectName, ".venv"), "pip")
 	if err != nil {
 		return err
 	}
 
 	spinner := app.UI().StartSpinner("Installing dependencies")
-	err = python.InstallDependencies(pipPath, filepath.Join(projectName, initDependenciesPath))
+	err = app.Python().InstallDependencies(pipPath, filepath.Join(projectName, initDependenciesPath))
 	if err != nil {
 		spinner.Fail("Unable to install dependencies: ", err)
 		return err
@@ -174,13 +173,13 @@ func installDependencies(projectName string, useTorchCuda bool) (err error) {
 
 	if useTorchCuda {
 		spinner = app.UI().StartSpinner("Installing torch cuda")
-		err = python.ExecutePip(pipPath, []string{"uninstall", "-y", "torch"})
+		err = app.Python().ExecutePip(pipPath, []string{"uninstall", "-y", "torch"})
 		if err != nil {
 			spinner.Fail("Unable to uninstall torch: ", err)
 			return err
 		}
 
-		err = python.ExecutePip(pipPath, []string{"install", "torch", "-f", "https://download.pytorch.org/whl/torch_stable.html"})
+		err = app.Python().ExecutePip(pipPath, []string{"install", "torch", "-f", "https://download.pytorch.org/whl/torch_stable.html"})
 		if err != nil {
 			spinner.Fail("Unable to install torch cuda: ", err)
 			return err
