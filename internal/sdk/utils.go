@@ -120,7 +120,6 @@ func Upgrade() error {
 		spinner.Fail("Unable to remove .github folder: ", err)
 		return err
 	}
-	spinner.Success()
 
 	// update sdk tag
 	viper.Set("sdk-tag", tag)
