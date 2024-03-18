@@ -40,7 +40,8 @@ func TestRunModelUpdate_Success(t *testing.T) {
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
-	setupConfigFile(models)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
 	RunModelUpdate(args)
@@ -82,7 +83,8 @@ func TestRunModelUpdate_Fail(t *testing.T) {
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
-	setupConfigFile(models)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
 	RunModelUpdate(args)
@@ -124,7 +126,8 @@ func TestProcessUpdate(t *testing.T) {
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
-	setupConfigFile(models)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
 	warningMessage, infoMessage, err := processUpdate(args)
@@ -163,7 +166,8 @@ func TestProcessUpdate_WithNoArgs(t *testing.T) {
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
-	setupConfigFile(models)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
 	warningMessage, infoMessage, err := processUpdate(args)
@@ -200,7 +204,8 @@ func TestProcessUpdate_WithNoModelsSelected(t *testing.T) {
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
-	setupConfigFile(models)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
 	warningMessage, infoMessage, err := processUpdate(args)

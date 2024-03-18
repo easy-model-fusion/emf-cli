@@ -39,7 +39,8 @@ func TestRunModelUpdate(t *testing.T) {
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
-	setupConfigFile(models)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
 	runModelUpdate(nil, args)
