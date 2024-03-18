@@ -1,9 +1,9 @@
 package cmd
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"os"
@@ -24,6 +24,14 @@ var buildCmd = &cobra.Command{
 	Short: "Build the project",
 	Long:  `Build the project.`,
 	Run:   runBuild,
+}
+
+func init() {
+	buildCmd.Flags().StringVarP(&buildDestination, "out-dir", "o", "", "Destination directory where the project will be built")
+	buildCmd.Flags().StringVarP(&buildCustomName, "name", "n", "", "Custom name for the executable")
+	buildCmd.Flags().BoolVarP(&buildOneFile, "one-file", "f", false, "Build the project in one file")
+	buildCmd.Flags().BoolVarP(&buildCompress, "compress", "c", false, "Compress the output file(s) into a tarball file")
+	buildCmd.Flags().BoolVarP(&buildIncludeModels, "include-models", "m", false, "Include models in the build compressed file")
 }
 
 func runBuild(cmd *cobra.Command, args []string) {
@@ -50,7 +58,7 @@ func runBuild(cmd *cobra.Command, args []string) {
 	}
 
 	// Install dependencies
-	pythonPath, err := utils.FindVEnvExecutable(".venv", "python")
+	pythonPath, err := app.Python().FindVEnvExecutable(".venv", "python")
 	if err != nil {
 		pterm.Error.Println("Error finding python executable")
 		return
@@ -74,14 +82,4 @@ func runBuild(cmd *cobra.Command, args []string) {
 	// }
 
 	pterm.Success.Println("Project built successfully!")
-}
-
-func init() {
-	buildCmd.Flags().StringVarP(&buildDestination, "out-dir", "o", "", "Destination directory where the project will be built")
-	buildCmd.Flags().StringVarP(&buildCustomName, "name", "n", "", "Custom name for the executable")
-	buildCmd.Flags().BoolVarP(&buildOneFile, "one-file", "f", false, "Build the project in one file")
-	buildCmd.Flags().BoolVarP(&buildCompress, "compress", "c", false, "Compress the output file(s) into a tarball file")
-	buildCmd.Flags().BoolVarP(&buildIncludeModels, "include-models", "m", false, "Include models in the build compressed file")
-
-	rootCmd.AddCommand(buildCmd)
 }

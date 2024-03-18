@@ -2,14 +2,14 @@ package cmdmodeladd
 
 import (
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
-	"github.com/easy-model-fusion/emf-cli/internal/script"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/utils"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
-	"path"
 )
 
 const addCustomCommandName = "custom"
@@ -22,7 +22,12 @@ var addCustomCmd = &cobra.Command{
 	Run:   runAddCustom,
 }
 
-var addCustomDownloaderArgs script.DownloaderArgs
+var addCustomDownloaderArgs downloader.Args
+
+func init() {
+	// Bind cobra args to the downloader script args
+	addCustomDownloaderArgs.ToCobra(addCustomCmd)
+}
 
 // runAddCustom runs add command to add a custom model
 func runAddCustom(cmd *cobra.Command, args []string) {
@@ -33,87 +38,76 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
 
-	// TODO: Get flags or default values
-
 	// Searching for the currentCmd : when 'cmd' differs from 'addCustomCmd' (i.e. run through parent multiselect)
-	currentCmd, found := utils.CobraFindSubCommand(cmd, addCustomCommandName)
+	currentCmd, found := cobrautil.FindSubCommand(cmd, addCustomCommandName)
 	if !found {
 		pterm.Error.Println(fmt.Sprintf("Something went wrong : the '%s' command was not found. Please try again.", addCustomCommandName))
 		return
 	}
 
-	// Asks for the mandatory args if they are not provided
+	// Model name is mandatory
 	if addCustomDownloaderArgs.ModelName == "" {
-		err := utils.CobraAskFlagInput(currentCmd, currentCmd.Flag(script.ModelName))
+		err := cobrautil.AskFlagInput(currentCmd, currentCmd.Flag(downloader.ModelName))
 		if err != nil {
-			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", script.ModelName, err))
-			return
-		}
-	}
-	if addCustomDownloaderArgs.ModelModule == "" {
-		err := utils.CobraAskFlagInput(currentCmd, currentCmd.Flag(script.ModelModule))
-		if err != nil {
-			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", script.ModelModule, err))
+			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", downloader.ModelName, err))
 			return
 		}
 	}
 
-	// Allow the user to choose flags and specify their value
-	err := utils.CobraInputAmongRemainingFlags(currentCmd)
+	// Get model from huggingface : verify its existence and get mandatory data
+	huggingfaceModel, err := app.H().GetModelById(addCustomDownloaderArgs.ModelName)
 	if err != nil {
-		pterm.Error.Println(err)
+		// Model not found
+		pterm.Warning.Printfln("Model %s not valid : "+err.Error(), addCustomDownloaderArgs.ModelName)
 		return
 	}
+	// Map API response to model.Model
+	modelObj := model.FromHuggingfaceModel(huggingfaceModel)
 
-	valid, err := validateModel(addCustomDownloaderArgs.ModelName)
-	if err != nil {
-		pterm.Error.Println(err)
-		return
-	}
-	if !valid {
-		pterm.Warning.Println("This model is already downloaded "+
-			"and should be checked manually", addCustomDownloaderArgs.ModelName)
-		return
-	}
-
-	// Running the script
-	sdm, err := script.DownloaderExecute(addCustomDownloaderArgs)
-	if err != nil || sdm.IsEmpty {
-		// Something went wrong or returned data is empty
-		return
-	}
-
-	// Create the model for the configuration file
-	modelObj := model.Model{Name: addCustomDownloaderArgs.ModelName}
-	modelObj = model.MapToModelFromDownloaderModel(modelObj, sdm)
+	// Validate model for download
 	modelObj.AddToBinaryFile = true
-	modelObj.IsDownloaded = true
+	if !config.Validate(modelObj) {
+		return
+	}
+
+	// Allow the user to choose flags and set their values
+	err = cobrautil.AllowInputAmongRemainingFlags(currentCmd)
+	if err != nil {
+		pterm.Error.Println(err)
+		return
+	}
+
+	// Module not provided : get it from the API
+	if addCustomDownloaderArgs.ModelModule == "" {
+		addCustomDownloaderArgs.ModelModule = string(modelObj.Module)
+	}
+
+	// Class not provided : get it from the API
+	if addCustomDownloaderArgs.ModelClass == "" {
+		addCustomDownloaderArgs.ModelClass = modelObj.Class
+	}
+
+	// Downloading model
+	success := modelObj.Download(addCustomDownloaderArgs)
+	if !success {
+		modelObj.AddToBinaryFile = false
+	}
 
 	// Add models to configuration file
-	spinner, _ := pterm.DefaultSpinner.Start("Writing model to configuration file...")
-	err = config.AddModels([]model.Model{modelObj})
+	spinner := app.UI().StartSpinner("Writing model to configuration file...")
+	err = config.AddModels(model.Models{modelObj})
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the model to the configuration file: %s", err))
 	} else {
 		spinner.Success()
 	}
 
-}
-
-func validateModel(modelName string) (bool, error) {
-	exists, err := utils.IsExistingPath(path.Join(script.DownloadModelsPath, modelName))
+	// Attempt to generate code
+	spinner = app.UI().StartSpinner("Generating python code...")
+	err = config.GenerateExistingModelsPythonCode()
 	if err != nil {
-		return false, err
+		spinner.Fail(fmt.Sprintf("Error while generating python code for added model: %s", err))
+	} else {
+		spinner.Success()
 	}
-	if exists {
-		message := fmt.Sprintf("This model %s is already downloaded do you wish to overwrite it?", modelName)
-		valid := utils.AskForUsersConfirmation(message)
-		return valid, nil
-	}
-	return true, nil
-}
-
-func init() {
-	// Bind cobra args to the downloader script args
-	script.DownloaderArgsForCobra(addCustomCmd, &addCustomDownloaderArgs)
 }
