@@ -14,8 +14,13 @@ import (
 
 // RunAdd runs the add command to add models by name
 func RunAdd(args []string) {
-	if config.GetViperConfig(config.FilePath) != nil {
-		return
+
+}
+
+func processAdd(args []string) (warning string, err error) {
+	err = config.GetViperConfig(config.FilePath)
+	if err != nil {
+		return warning, err
 	}
 
 	// Initialize hugging face api
@@ -26,8 +31,7 @@ func RunAdd(args []string) {
 	// Get all existing models
 	existingModels, err := config.GetModels()
 	if err != nil {
-		pterm.Error.Println(err.Error())
-		return
+		return warning, err
 	}
 
 	var selectedModel model.Model
@@ -39,38 +43,37 @@ func RunAdd(args []string) {
 		exist := existingModels.ContainsByName(name)
 		if exist {
 			// Model already exists
-			pterm.Error.Printfln(fmt.Sprintf("The following model already exist "+
-				"and will be ignored : %s", name))
-			return
+			err = fmt.Errorf("the following model already exist and will be ignored : %s", name)
+			return warning, err
 		}
 
 		// Verify if the model is a valid hugging face model
 		huggingfaceModel, err := app.H().GetModelById(name)
 		if err != nil {
 			// Model not found : skipping to the next one
-			pterm.Error.Printfln("Model %s not valid : "+err.Error(), name)
-			return
+			err = fmt.Errorf("Model %s not valid : "+err.Error(), name)
+			return warning, err
 		}
 
 		// Map API response to model.Model
 		selectedModel = model.FromHuggingfaceModel(huggingfaceModel)
 	} else if len(args) > 1 {
-		pterm.Error.Println("You can enter only one model at a time")
-		return
+		err = fmt.Errorf("you can enter only one model at a time")
+		return warning, err
 	} else {
 		// If no models entered by user or if user entered -s/--select
 		// Get selected tags
 		selectedTags := selectTags()
 		if len(selectedTags) == 0 {
-			pterm.Warning.Println("Please select a model type")
+			warning = "Please select a model type"
 			RunAdd(args)
 		}
 		// Get selected models
-		selectedModel, err = selectModel(selectedTags, existingModels)
+		availableModels, err := getModelsList(selectedTags, existingModels)
 		if err != nil {
-			pterm.Error.Println(err.Error())
-			return
+			return warning, err
 		}
+		selectedModel = selectModel(availableModels)
 	}
 
 	// User choose if he wishes to install the model directly
@@ -80,36 +83,13 @@ func RunAdd(args []string) {
 	// Validate model for download
 	warningMessage, valid, err := config.Validate(selectedModel)
 	if !valid {
-		if warningMessage != "" {
-			pterm.Warning.Println(warningMessage)
-		} else {
-			pterm.Error.Println(err.Error())
-		}
-		return
+		return warningMessage, err
 	}
 
-	// Prepare the script arguments
-	downloaderArgs := downloadermodel.Args{
-		ModelName:     selectedModel.Name,
-		ModelModule:   string(selectedModel.Module),
-		ModelClass:    selectedModel.Class,
-		DirectoryPath: app.DownloadDirectoryPath,
-	}
-
-	var success bool
-	if selectedModel.AddToBinaryFile {
-		// Downloading model
-		success = selectedModel.Download(downloaderArgs)
-	} else {
-		// Getting model configuration
-		success = selectedModel.GetConfig(downloaderArgs)
-	}
-
-	if !success {
-		// Reset in case the download fails
-		selectedModel.AddToBinaryFile = false
-		pterm.Error.Printfln("This model %s couldn't be downloaded", selectedModel.Name)
-		return
+	// Try to download model
+	err = downloadModel(selectedModel)
+	if err != nil {
+		return warning, err
 	}
 
 	// Add models to configuration file
@@ -129,30 +109,22 @@ func RunAdd(args []string) {
 	} else {
 		spinner.Success()
 	}
+
+	return warning, err
 }
 
 // selectModel displays a selector of models from which the user will choose to add to his project
-func selectModel(tags []string, existingModels model.Models) (model.Model, error) {
-	spinner := app.UI().StartSpinner("Listing all models with selected tags...")
-	allModelsWithTags, err := getModelsList(tags)
-	if err != nil {
-		spinner.Fail(fmt.Sprintf("Error while fetching the models from hugging face api: %s", err))
-	}
-	spinner.Success()
-
-	// Excluding configuration file models
-	availableModels := allModelsWithTags.Difference(existingModels)
-
+func selectModel(models model.Models) model.Model {
 	// Build a selector with each model name
-	availableModelNames := availableModels.GetNames()
+	availableModelNames := models.GetNames()
 	message := "Please select the model(s) to be added"
 	selectedModelName := app.UI().DisplayInteractiveSelect(message, availableModelNames, true)
 
 	// Get newly selected models
-	selectedModels := availableModels.FilterWithNames([]string{selectedModelName})
+	selectedModels := models.FilterWithNames([]string{selectedModelName})
 
 	// returns newly selected models + models entered in args
-	return selectedModels[0], nil
+	return selectedModels[0]
 }
 
 // selectTags displays a multiselect to help the user choose the model types
@@ -165,7 +137,8 @@ func selectTags() []string {
 	return selectedTags
 }
 
-func getModelsList(tags []string) (model.Models, error) {
+// getModelsList get list of models to display
+func getModelsList(tags []string, existingModels model.Models) (model.Models, error) {
 	allModelsWithTags, err := app.H().GetModelsByMultiplePipelineTags(tags)
 	// Map API responses to model.Models
 	var mappedModels model.Models
@@ -177,5 +150,30 @@ func getModelsList(tags []string) (model.Models, error) {
 		return model.Models{}, fmt.Errorf("error while calling api endpoint")
 	}
 
-	return mappedModels, nil
+	return mappedModels.Difference(existingModels), nil
+}
+
+func downloadModel(selectedModel model.Model) error {
+	// Prepare the script arguments
+	downloaderArgs := downloadermodel.Args{
+		ModelName:     selectedModel.Name,
+		ModelModule:   string(selectedModel.Module),
+		ModelClass:    selectedModel.Class,
+		DirectoryPath: app.DownloadDirectoryPath,
+	}
+
+	var success bool
+	if selectedModel.AddToBinaryFile {
+		// Downloading model
+		success = selectedModel.Download(downloaderArgs)
+	} else {
+		// Getting model configuration
+		success = selectedModel.GetConfig(downloaderArgs)
+	}
+
+	if !success {
+		return fmt.Errorf("this model %s couldn't be downloaded", selectedModel.Name)
+	}
+
+	return nil
 }
