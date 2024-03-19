@@ -7,6 +7,10 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 )
 
+type Downloader interface {
+	Execute(downloaderArgs downloadermodel.Args, python python.Python) (downloadermodel.Model, error)
+}
+
 type scriptDownloader struct{}
 
 // NewScriptDownloader initialize a new script downloader
