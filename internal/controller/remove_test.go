@@ -13,6 +13,7 @@ import (
 func TestMain(m *testing.M) {
 	app.Init("", "")
 	app.InitGit("", "")
+	app.SetUI(&test.MockUI{})
 	os.Exit(m.Run())
 }
 
