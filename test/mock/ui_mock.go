@@ -5,6 +5,7 @@ import "github.com/easy-model-fusion/emf-cli/internal/ui"
 type MockUI struct {
 	UserInputResult        string
 	MultiselectResult      []string
+	SelectResult           string
 	UserConfirmationResult bool
 }
 
@@ -29,6 +30,10 @@ func (m MockUI) AskForUsersInput(_ string) string {
 
 func (m MockUI) DisplayInteractiveMultiselect(_ string, _ []string, _ ui.Checkmark, _, _ bool) []string {
 	return m.MultiselectResult
+}
+
+func (m MockUI) DisplayInteractiveSelect(_ string, _ []string, _ bool) string {
+	return m.SelectResult
 }
 
 func (m MockUI) DisplaySelectedItems(_ []string) {

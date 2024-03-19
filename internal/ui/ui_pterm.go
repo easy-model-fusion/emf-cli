@@ -38,6 +38,17 @@ func (p ptermUI) DisplayInteractiveMultiselect(msg string, options []string, che
 	return selectedOptions
 }
 
+// DisplayInteractiveSelect displays an interactive select (only one selectable option)
+func (p ptermUI) DisplayInteractiveSelect(msg string, options []string, filter bool) string {
+	selectedOption, _ := pterm.DefaultInteractiveSelect.
+		WithOptions(options).
+		WithDefaultText(msg).
+		WithFilter(filter).
+		Show()
+
+	return selectedOption
+}
+
 // DisplaySelectedItems prints the selected items in green color.
 func (p ptermUI) DisplaySelectedItems(items []string) {
 	// Print the selected options, highlighted in green.
