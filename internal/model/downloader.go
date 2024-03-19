@@ -1,13 +1,15 @@
 package model
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 )
 
-// FromDownloaderModel maps data from downloader.Model to Model and keeps unchanged properties of Model.
-func (m *Model) FromDownloaderModel(dlModel downloader.Model) {
+// FromDownloaderModel maps data from downloadermodel.Model to Model and keeps unchanged properties of Model.
+func (m *Model) FromDownloaderModel(dlModel downloadermodel.Model) {
 
 	// Check if ScriptModel is valid
 	if !dlModel.Empty() {
@@ -50,59 +52,77 @@ func (m *Model) FromDownloaderModel(dlModel downloader.Model) {
 }
 
 // GetConfig attempts to get the model's configuration
-func (m *Model) GetConfig(downloaderArgs downloader.Args) bool {
+func (m *Model) GetConfig(downloaderArgs downloadermodel.Args) bool {
 	// Add OnlyConfiguration flag to the command
 	downloaderArgs.OnlyConfiguration = true
 
 	// Running the script
-	dlModel, err := downloader.Execute(downloaderArgs)
-
-	// Something went wrong or no data has been returned
-	if err != nil || dlModel.IsEmpty {
-		return false
-	}
-
-	// Update the model for the configuration file
-	m.FromDownloaderModel(dlModel)
-
-	return true
+	return m.executeDownload(downloaderArgs)
 }
 
 // Download attempts to download the model
-func (m *Model) Download(downloaderArgs downloader.Args) bool {
+func (m *Model) Download(downloaderArgs downloadermodel.Args) bool {
 	// Running the script
-	dlModel, err := downloader.Execute(downloaderArgs)
+	succeeded := m.executeDownload(downloaderArgs)
 
-	// Something went wrong or no data has been returned
-	if err != nil || dlModel.IsEmpty {
-		return false
+	if succeeded {
+		m.AddToBinaryFile = !downloaderArgs.OnlyConfiguration
+		m.IsDownloaded = !downloaderArgs.OnlyConfiguration
 	}
 
-	// Update the model for the configuration file
-	m.FromDownloaderModel(dlModel)
-	m.AddToBinaryFile = !downloaderArgs.OnlyConfiguration
-	m.IsDownloaded = !downloaderArgs.OnlyConfiguration
-
-	return true
+	return succeeded
 }
 
 // DownloadTokenizer attempts to download the tokenizer
-func (m *Model) DownloadTokenizer(tokenizer Tokenizer, downloaderArgs downloader.Args) bool {
+func (m *Model) DownloadTokenizer(tokenizer Tokenizer, downloaderArgs downloadermodel.Args) bool {
 
 	// Building downloader args for the tokenizer
-	downloaderArgs.Skip = downloader.SkipValueModel
+	downloaderArgs.Skip = downloadermodel.SkipValueModel
 	downloaderArgs.TokenizerClass = tokenizer.Class
 	downloaderArgs.TokenizerOptions = stringutil.OptionsMapToSlice(tokenizer.Options)
 
 	// Running the script for the tokenizer only
-	dlModel, err := downloader.Execute(downloaderArgs)
+	return m.executeDownload(downloaderArgs)
+}
 
-	// Something went wrong or no data has been returned
-	if err != nil || dlModel.IsEmpty {
-		return false
+func (m *Model) executeDownload(downloaderArgs downloadermodel.Args) bool {
+
+	// Preparing spinner message
+	var downloaderItemMessage string
+	switch downloaderArgs.Skip {
+	case downloadermodel.SkipValueModel:
+		downloaderItemMessage = fmt.Sprintf("tokenizer '%s' for model '%s'...",
+			downloaderArgs.TokenizerClass, downloaderArgs.ModelName)
+	default:
+		downloaderItemMessage = fmt.Sprintf("model '%s'...", downloaderArgs.ModelName)
+	}
+	customMessage := "Downloading "
+	if downloaderArgs.OnlyConfiguration {
+		customMessage = "Getting configuration for "
 	}
 
-	// Update the model with the tokenizer for the configuration file
+	// Start spinner
+	spinner := app.UI().StartSpinner(customMessage + downloaderItemMessage)
+
+	// Running the script
+	dlModel, err := app.Downloader().Execute(downloaderArgs, app.Python())
+
+	if err != nil {
+		// Something went wrong or no data has been returned
+		spinner.Fail(err.Error())
+		return false
+	} else {
+		// Updating spinner messages
+		if downloaderArgs.OnlyConfiguration {
+			customMessage = "got configuration for "
+		} else {
+			customMessage = "downloaded "
+		}
+		// Download was successful
+		spinner.Success("Successfully " + customMessage + downloaderItemMessage)
+	}
+
+	// Update the model for the configuration file
 	m.FromDownloaderModel(dlModel)
 
 	return true
