@@ -1,38 +1,28 @@
 package controller
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"testing"
+
+	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/model"
 )
 
-// TestTokenizerUpdateCmd tests the TokenizerUpdateCmd function
-func TestTokenizerUpdateCmd(t *testing.T) {
-
+func TestRunTokenizerUpdate(t *testing.T) {
 	var models model.Models
-
-	var tokenizers model.Tokenizers
-	tokenizers = append(tokenizers, model.Tokenizer{
-		Path:    "path/to/tokenizer1",
-		Class:   "tokenizer1",
-		Options: nil,
-	})
-
 	models = append(models, model.Model{
-		Name:            "model1",
-		Path:            "path/to/model1",
-		Source:          "CUSTOM",
-		AddToBinaryFile: true,
-		IsDownloaded:    true,
+		Name:   "model1",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: model.Tokenizers{
+			{Path: "path1", Class: "tokenizer1", Options: map[string]string{"option1": "value1"}},
+		},
 	})
-	models = append(models, model.Model{
-		Name:            "model2",
-		Path:            "path/to/model1",
-		Source:          "CUSTOM",
-		AddToBinaryFile: true,
-		IsDownloaded:    true,
-		Tokenizers:      tokenizers,
-	})
+	// Initialize selected models list
+	var args []string
+	args = append(args, "model1")
+	args = append(args, "tokenizer1")
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
@@ -41,27 +31,119 @@ func TestTokenizerUpdateCmd(t *testing.T) {
 	err := setupConfigFile(models)
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 
-	// Test with valid arguments
-	t.Run("ValidArguments", func(t *testing.T) {
-		args := []string{"model1", "tokenizer1"}
-		TokenizerUpdateCmd(args)
-		// Assert the output here based on your implementation
-		test.AssertEqual(t, err, true, "Operation succeeded.")
+	// Process update
+	TokenizerUpdateCmd(args)
+	test.AssertEqual(t, err, nil, "No error expected while processing update")
+	_, err = config.GetModels()
+	test.AssertEqual(t, err, nil, "No error expected on getting models")
+}
+
+func TestNoModuleTransformersUpdate(t *testing.T) {
+	var models model.Models
+	models = append(models, model.Model{
+		Name: "model1",
+		Tokenizers: model.Tokenizers{
+			{Path: "path1", Class: "tokenizer1", Options: map[string]string{"option1": "value1"}},
+		},
+	})
+	// Initialize selected models list
+	var args []string
+	args = append(args, "model1")
+	args = append(args, "tokenizer1")
+
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+
+	// Process update
+	TokenizerUpdateCmd(args)
+	test.AssertEqual(t, err, nil, "No error expected while processing Update")
+	_, err = config.GetModels()
+	test.AssertEqual(t, err, nil, "No error expected on getting models")
+}
+
+func TestWrongModelNameUpdate(t *testing.T) {
+	var models model.Models
+	models = append(models, model.Model{
+		Name:   "model1",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: model.Tokenizers{
+			{Path: "path1", Class: "tokenizer1", Options: map[string]string{"option1": "value1"}},
+		},
+	})
+	// Initialize selected models list
+	var args []string
+	args = append(args, "modelX")
+	args = append(args, "tokenizer1")
+
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+
+	// Process update
+	TokenizerUpdateCmd(args)
+	test.AssertEqual(t, err, nil, "No error expected while processing update")
+}
+
+func TestNoArgsUpdate(t *testing.T) {
+	var models model.Models
+	models = append(models, model.Model{
+		Name:   "model1",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: model.Tokenizers{
+			{Path: "path1", Class: "tokenizer1", Options: map[string]string{"option1": "value1"}},
+		},
+	})
+	// Initialize selected models list
+	var args []string
+
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+
+	// Process remove
+	TokenizerUpdateCmd(args)
+	test.AssertEqual(t, err, nil, "No error expected while processing remove")
+}
+
+func TestNoTokenizersArgsUpdate(t *testing.T) {
+	var models model.Models
+	models = append(models, model.Model{
+		Name:   "model1",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: model.Tokenizers{
+			{Path: "path1", Class: "tokenizer1", Options: map[string]string{"option1": "value1"}},
+		},
 	})
 
-	// Test with missing arguments
-	t.Run("MissingArguments", func(t *testing.T) {
-		var args []string
-		TokenizerUpdateCmd(args)
-		// Assert the output here based on your implementation
-		test.AssertEqual(t, err, false, "Tokenizer not updated.")
-	})
+	var expectedSelections []string
+	expectedSelections = append(expectedSelections, "tokenizer1")
 
-	// Test with non-existent model
-	t.Run("NonExistentModel", func(t *testing.T) {
-		args := []string{"nonexistent_model"}
-		TokenizerUpdateCmd(args)
-		// Assert the output here based on your implementation
-		test.AssertEqual(t, err, false, "Tokenizer not updated.")
-	})
+	// Create ui mock
+	ui := test.MockUI{MultiselectResult: expectedSelections}
+	app.SetUI(ui)
+
+	// Initialize selected models list
+	var args []string
+	args = append(args, "model1")
+
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+
+	// Process update
+	TokenizerUpdateCmd(args)
+	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
