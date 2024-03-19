@@ -20,3 +20,6 @@ func (hf *MockHuggingFace) GetModelById(_ string) (huggingface.Model, error) {
 func (hf *MockHuggingFace) ValidModel(_ string) (bool, error) {
 	return hf.ValidModelResult, hf.Error
 }
+func (hf *MockHuggingFace) GetModelsByMultiplePipelineTags(_ []string) (allModelsWithTags huggingface.Models, err error) {
+	return hf.GetModelsResult, hf.Error
+}

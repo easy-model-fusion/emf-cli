@@ -69,3 +69,16 @@ func (h huggingFace) ValidModel(id string) (bool, error) {
 	}
 	return true, nil
 }
+
+func (h huggingFace) GetModelsByMultiplePipelineTags(tags []string) (allModelsWithTags Models, err error) {
+	// Get list of models with current tags
+	for _, tag := range tags {
+		huggingfaceModels, err := h.GetModelsByPipelineTag(PipelineTag(tag), 0)
+		if err != nil {
+			return Models{}, fmt.Errorf("error while calling api endpoint")
+		}
+		allModelsWithTags = append(allModelsWithTags, huggingfaceModels...)
+	}
+
+	return allModelsWithTags, err
+}

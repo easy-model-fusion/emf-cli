@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
@@ -133,28 +133,23 @@ func RunAdd(args []string) {
 // selectModel displays a selector of models from which the user will choose to add to his project
 func selectModel(tags []string, existingModels model.Models) (model.Model, error) {
 	spinner := app.UI().StartSpinner("Listing all models with selected tags...")
-	var allModelsWithTags model.Models
-	// Get list of models with current tags
-	for _, tag := range tags {
-		huggingfaceModels, err := app.H().GetModelsByPipelineTag(huggingface.PipelineTag(tag), 0)
-		if err != nil {
-			spinner.Fail(fmt.Sprintf("Error while fetching the models from hugging face api: %s", err))
-			return model.Model{}, fmt.Errorf("error while calling api endpoint")
-		}
-		// Map API responses to model.Models
-		var mappedModels model.Models
-		for _, huggingfaceModel := range huggingfaceModels {
-			mappedModel := model.FromHuggingfaceModel(huggingfaceModel)
-			mappedModels = append(mappedModels, mappedModel)
-		}
-		allModelsWithTags = append(allModelsWithTags, mappedModels...)
+	allModelsWithTags, err := app.H().GetModelsByMultiplePipelineTags(tags)
+	// Map API responses to model.Models
+	var mappedModels model.Models
+	for _, huggingfaceModel := range allModelsWithTags {
+		mappedModel := model.FromHuggingfaceModel(huggingfaceModel)
+		mappedModels = append(mappedModels, mappedModel)
+	}
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error while fetching the models from hugging face api: %s", err))
+		return model.Model{}, fmt.Errorf("error while calling api endpoint")
 	}
 	spinner.Success()
 
-	// Excluding models entered in args + configuration file models
-	availableModels := allModelsWithTags.Difference(existingModels)
+	// Excluding configuration file models
+	availableModels := mappedModels.Difference(existingModels)
 
-	// Build a multiselect with each model name
+	// Build a selector with each model name
 	availableModelNames := availableModels.GetNames()
 	message := "Please select the model(s) to be added"
 	selectedModelName := app.UI().DisplayInteractiveSelect(message, availableModelNames, true)
