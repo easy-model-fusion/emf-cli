@@ -31,17 +31,42 @@ func TokenizerUpdateCmd(args []string) {
 
 func processUpdateTokenizer(args []string) (string, string, error) {
 	// Load the configuration file
-	err := config.GetViperConfig(config.FilePath)
-	if err != nil {
-		return "", "", err
+	if config.GetViperConfig(config.FilePath) != nil {
 	}
+
+	sdk.SendUpdateSuggestion()
+
+	// Get all models from configuration file
+	configModels, err := config.GetModels()
+	if err != nil {
+		pterm.Error.Println(err.Error())
+	}
+
+	// Keep the downloaded models coming from huggingface (i.e. those that could potentially be updated)
+	hfModels := configModels.FilterWithSourceHuggingface()
+	hfModelsAvailable := hfModels.FilterWithIsDownloadedTrue()
 
 	// Get all configured models objects/names
+	var selectedModelNames []string
+	var selectedModels string
 	if len(args) < 1 {
-		return "", "", err
+		message := "Please select the model for which to update tokenizer"
+		values := hfModelsAvailable.GetNames()
+		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+		selectedModelNames = app.UI().DisplayInteractiveMultiselect(message, values, checkMark, false, true)
+		app.UI().DisplaySelectedItems(selectedModelNames)
+
+	}
+	if len(selectedModelNames) == 0 && len(args) == 0 {
+		pterm.Error.Println("Please select at least one Model !")
 	}
 
-	selectedModels := args[0]
+	if len(selectedModelNames) > 0 {
+		selectedModels = selectedModelNames[0]
+	} else {
+		selectedModels = args[0]
+	}
+
 	var models model.Models
 	models, err = config.GetModels()
 	if err != nil {
@@ -59,7 +84,7 @@ func processUpdateTokenizer(args []string) (string, string, error) {
 	var tokenizerNames []string
 	if modelsToUse.Module == huggingface.TRANSFORMERS {
 		availableNames := modelsToUse.Tokenizers.GetNames()
-		if len(availableNames) > 0 && len(args) == 1 {
+		if len(availableNames) > 0 {
 			message := "Please select the tokenizer(s) to be updated"
 			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
 			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
