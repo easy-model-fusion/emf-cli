@@ -44,7 +44,7 @@ func processRemoveTokenizer(args []string) (string, string, error) {
 	}
 
 	// Get all configured models objects/names and args model
-	selectedModels := args[0]
+	selectedModel := args[0]
 	var models model.Models
 	models, err = config.GetModels()
 	if err != nil {
@@ -55,7 +55,7 @@ func processRemoveTokenizer(args []string) (string, string, error) {
 
 	// checks the presence of the model
 	configModelsMap := models.Map()
-	modelsToUse, exists := configModelsMap[selectedModels]
+	modelsToUse, exists := configModelsMap[selectedModel]
 	if !exists {
 		return "", "model do not exist", err
 	}
@@ -116,6 +116,5 @@ func processRemoveTokenizer(args []string) (string, string, error) {
 			spinner.Success()
 		}
 	}
-	pterm.Success.Printfln("tokenizer: ", modelsToUse.Tokenizers)
 	return "", "", err
 }
