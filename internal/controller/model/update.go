@@ -89,7 +89,7 @@ func processUpdate(args []string) (warning string, info string, err error) {
 
 // getUpdatableModels returns the models available for an update
 func getUpdatableModels(modelNames []string, hfModelsAvailable model.Models) (
-	modelsToUpdate model.Models, notFoundModelNames []string, upToDateModelNames []string) {
+	modelsToUpdate model.Models, notFoundModelNames, upToDateModelNames []string) {
 
 	// Bind the downloaded models coming from huggingface to a map for faster lookup
 	// Used to check whether a model has already been downloaded
