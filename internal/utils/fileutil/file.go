@@ -1,6 +1,9 @@
 package fileutil
 
 import (
+	"archive/tar"
+	"bufio"
+	"compress/gzip"
 	"embed"
 	"fmt"
 	"github.com/pterm/pterm"
@@ -123,5 +126,99 @@ func MoveFiles(sourceDir, destinationDir string) error {
 
 	}
 
+	return nil
+}
+
+// Compress compresses a file or a folder
+// Source: https://github.com/mimoo/eureka/blob/master/folders.go
+func Compress(src, dst string) error {
+	// is file a folder and does it exist?
+	fi, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	// create a new file dst
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer CloseFile(out)
+
+	// create a new buffer writer
+	buf := bufio.NewWriter(out)
+	// tar > gzip > buf
+	zr := gzip.NewWriter(buf)
+	tw := tar.NewWriter(zr)
+
+	mode := fi.Mode()
+	if mode.IsRegular() {
+		// get header
+		header, err := tar.FileInfoHeader(fi, src)
+		if err != nil {
+			return err
+		}
+		// write header
+		if err = tw.WriteHeader(header); err != nil {
+			return err
+		}
+		// get content
+		data, err := os.Open(src)
+		if err != nil {
+			return err
+		}
+		if _, err = io.Copy(tw, data); err != nil {
+			return err
+		}
+	} else if mode.IsDir() { // folder
+
+		// walk through every file in the folder
+		err = filepath.Walk(src, func(file string, fi os.FileInfo, err error) error {
+			// generate tar header
+			header, err := tar.FileInfoHeader(fi, file)
+			if err != nil {
+				return err
+			}
+
+			// must provide real name
+			// (see https://golang.org/src/archive/tar/common.go?#L626)
+			header.Name = filepath.ToSlash(file)
+
+			// write header
+			if err = tw.WriteHeader(header); err != nil {
+				return err
+			}
+			// if not a dir, write file content
+			if !fi.IsDir() {
+				data, err := os.Open(file)
+				if err != nil {
+					return err
+				}
+				if _, err = io.Copy(tw, data); err != nil {
+					return err
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	} else {
+		return fmt.Errorf("error: file type not supported")
+	}
+
+	// produce tar
+	if err = tw.Close(); err != nil {
+		return err
+	}
+	// produce gzip
+	if err = zr.Close(); err != nil {
+		return err
+	}
+
+	err = buf.Flush()
+	if err != nil {
+		return err
+	}
 	return nil
 }
