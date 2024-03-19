@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"

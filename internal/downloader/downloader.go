@@ -3,45 +3,19 @@ package downloader
 import (
 	"encoding/json"
 	"fmt"
-	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 )
+
+type Downloader interface {
+	Execute(downloaderArgs downloadermodel.Args, python python.Python) (downloadermodel.Model, error)
+}
 
 type scriptDownloader struct{}
 
 // NewScriptDownloader initialize a new script downloader
 func NewScriptDownloader() Downloader {
 	return &scriptDownloader{}
-}
-
-// Args represents the arguments for the script.
-type Args struct {
-	ModelName         string
-	ModelModule       string
-	ModelClass        string
-	ModelOptions      []string
-	TokenizerClass    string
-	TokenizerOptions  []string
-	Skip              string
-	OnlyConfiguration bool
-	DirectoryPath     string
-}
-
-// Model represents a model returned by the downloader script.
-type Model struct {
-	Path      string            `json:"path"`
-	Module    string            `json:"module"`
-	Class     string            `json:"class"`
-	Options   map[string]string `json:"options"`
-	Tokenizer Tokenizer         `json:"tokenizer"`
-	IsEmpty   bool
-}
-
-// Tokenizer represents a tokenizer returned by the downloader script.
-type Tokenizer struct {
-	Path    string            `json:"path"`
-	Class   string            `json:"class"`
-	Options map[string]string `json:"options"`
 }
 
 // Execute runs the downloader script and handles the result

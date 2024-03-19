@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 )
@@ -110,6 +110,7 @@ func (m *Model) executeDownload(downloaderArgs downloadermodel.Args) bool {
 	if err != nil {
 		// Something went wrong or no data has been returned
 		spinner.Fail(err.Error())
+		return false
 	} else {
 		// Updating spinner messages
 		if downloaderArgs.OnlyConfiguration {
