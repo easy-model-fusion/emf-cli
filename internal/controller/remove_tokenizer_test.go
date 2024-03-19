@@ -10,7 +10,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 )
 
-func TestRunTokenizerRemove(t *testing.T) {
+func TestRemoveTokenizer(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
@@ -41,7 +41,7 @@ func TestRunTokenizerRemove(t *testing.T) {
 	test.AssertEqual(t, len(newModels[0].Tokenizers), 0, "Only one model should be left.")
 }
 
-func TestNoModuleTransformers(t *testing.T) {
+func TestRemoveTokenizer_withNoModule(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name: "model1",
@@ -71,7 +71,7 @@ func TestNoModuleTransformers(t *testing.T) {
 	test.AssertEqual(t, len(newModels[0].Tokenizers), 1, "Only one model should be left.")
 }
 
-func TestWrongModelName(t *testing.T) {
+func TestRemoveTokenizer_withWrongModule(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
@@ -97,7 +97,7 @@ func TestWrongModelName(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
 
-func TestNoArgs(t *testing.T) {
+func TestRemoveTokenizer_withNoArgs(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
@@ -121,7 +121,7 @@ func TestNoArgs(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
 
-func TestNoTokenizersArgs(t *testing.T) {
+func TestRemoveTokenizer_withNoTokenizerArgs(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
