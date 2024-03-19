@@ -56,6 +56,7 @@ func RunAdd(args []string) {
 		selectedModel = model.FromHuggingfaceModel(huggingfaceModel)
 	} else if len(args) > 1 {
 		pterm.Error.Println("You can enter only one model at a time")
+		return
 	} else {
 		// If no models entered by user or if user entered -s/--select
 		// Get selected tags
@@ -133,21 +134,14 @@ func RunAdd(args []string) {
 // selectModel displays a selector of models from which the user will choose to add to his project
 func selectModel(tags []string, existingModels model.Models) (model.Model, error) {
 	spinner := app.UI().StartSpinner("Listing all models with selected tags...")
-	allModelsWithTags, err := app.H().GetModelsByMultiplePipelineTags(tags)
-	// Map API responses to model.Models
-	var mappedModels model.Models
-	for _, huggingfaceModel := range allModelsWithTags {
-		mappedModel := model.FromHuggingfaceModel(huggingfaceModel)
-		mappedModels = append(mappedModels, mappedModel)
-	}
+	allModelsWithTags, err := getModelsList(tags)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while fetching the models from hugging face api: %s", err))
-		return model.Model{}, fmt.Errorf("error while calling api endpoint")
 	}
 	spinner.Success()
 
 	// Excluding configuration file models
-	availableModels := mappedModels.Difference(existingModels)
+	availableModels := allModelsWithTags.Difference(existingModels)
 
 	// Build a selector with each model name
 	availableModelNames := availableModels.GetNames()
@@ -169,4 +163,19 @@ func selectTags() []string {
 	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, false, true)
 
 	return selectedTags
+}
+
+func getModelsList(tags []string) (model.Models, error) {
+	allModelsWithTags, err := app.H().GetModelsByMultiplePipelineTags(tags)
+	// Map API responses to model.Models
+	var mappedModels model.Models
+	for _, huggingfaceModel := range allModelsWithTags {
+		mappedModel := model.FromHuggingfaceModel(huggingfaceModel)
+		mappedModels = append(mappedModels, mappedModel)
+	}
+	if err != nil {
+		return model.Models{}, fmt.Errorf("error while calling api endpoint")
+	}
+
+	return mappedModels, nil
 }
