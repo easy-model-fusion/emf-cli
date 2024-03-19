@@ -3,6 +3,7 @@ package huggingface
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"net/url"
 )
 
@@ -35,7 +36,7 @@ func (h huggingFace) GetModelsByPipelineTag(tag PipelineTag, limit int) (Models,
 	}
 
 	// Execute API call
-	return models, err
+	return getModelsByModules(models), err
 }
 
 // GetModelById from hugging face api by id
@@ -58,6 +59,12 @@ func (h huggingFace) GetModelById(id string) (Model, error) {
 		return Model{}, err
 	}
 
+	// Verify if the library is compatible
+	modules := AllModulesString()
+	if !stringutil.SliceContainsItem(modules, string(model.LibraryName)) {
+		return Model{}, fmt.Errorf("downloading models from %s library is not allowed", model.LibraryName)
+	}
+
 	return model, nil
 }
 
@@ -70,6 +77,7 @@ func (h huggingFace) ValidModel(id string) (bool, error) {
 	return true, nil
 }
 
+// GetModelsByMultiplePipelineTags get the list of models with given types
 func (h huggingFace) GetModelsByMultiplePipelineTags(tags []string) (allModelsWithTags Models, err error) {
 	// Get list of models with current tags
 	for _, tag := range tags {
@@ -81,4 +89,16 @@ func (h huggingFace) GetModelsByMultiplePipelineTags(tags []string) (allModelsWi
 	}
 
 	return allModelsWithTags, err
+}
+
+// getModelsByModules filters a list of models and return only the models with handled module types
+func getModelsByModules(models []Model) (returnedModels []Model) {
+	modules := AllModulesString()
+	for _, currentModel := range models {
+		if stringutil.SliceContainsItem(modules, string(currentModel.LibraryName)) {
+			returnedModels = append(returnedModels, currentModel)
+		}
+	}
+
+	return returnedModels
 }
