@@ -77,8 +77,13 @@ func RunAdd(args []string) {
 	selectedModel.AddToBinaryFile = app.UI().AskForUsersConfirmation(message)
 
 	// Validate model for download
-	if !config.Validate(selectedModel) {
-		// todo add error message
+	warningMessage, valid, err := config.Validate(selectedModel)
+	if !valid {
+		if warningMessage != "" {
+			pterm.Warning.Println(warningMessage)
+		} else {
+			pterm.Error.Println(err.Error())
+		}
 		return
 	}
 

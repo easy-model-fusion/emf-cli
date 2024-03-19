@@ -7,7 +7,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
-	"github.com/pterm/pterm"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
@@ -164,18 +163,17 @@ func RemoveModelsByNames(models model.Models, modelsNamesToRemove []string) (war
 }
 
 // Validate to validate a model before adding it.
-func Validate(current model.Model) bool {
+func Validate(current model.Model) (warning string, success bool, err error) {
 
 	// Check if model is already configured
 	models, err := GetModels()
 	if err != nil {
-		pterm.Error.Println(err.Error())
-		return false
+		return warning, false, err
 	}
 
 	if models.ContainsByName(current.Name) {
-		pterm.Warning.Printfln("Model '%s' is already configured", current.Name)
-		return false
+		warning = fmt.Sprintf("Model '%s' is already configured", current.Name)
+		return warning, false, err
 	}
 
 	// Build path for validation
@@ -184,33 +182,32 @@ func Validate(current model.Model) bool {
 	// Validate the model : if model is already downloaded
 	downloaded, err := current.DownloadedOnDevice(true)
 	if err != nil {
-		pterm.Error.Println(err)
-		return false
+		return warning, false, err
 	} else if downloaded && !current.AddToBinaryFile {
 		// Model won't be downloaded but a version is already downloaded
 		message := fmt.Sprintf("Model '%s' is already downloaded. Do you wish to delete it?", current.Name)
 		overwrite := app.UI().AskForUsersConfirmation(message)
 		if !overwrite {
-			pterm.Warning.Println("This model is already downloaded and should be checked manually", current.Name)
-			return false
+			warning = fmt.Sprintf("This model is already downloaded and should be checked manually %s", current.Name)
+			return warning, false, err
 		}
 
 		// Removing model
 		err = RemoveModelPhysically(current.Name)
 		if err != nil {
-			return false
+			return warning, false, err
 		}
 	} else if downloaded {
 		// A version of the model is already downloaded
 		message := fmt.Sprintf("Model '%s' is already downloaded. Do you wish to overwrite it?", current.Name)
 		overwrite := app.UI().AskForUsersConfirmation(message)
 		if !overwrite {
-			pterm.Warning.Println("This model is already downloaded and should be checked manually", current.Name)
-			return false
+			warning = fmt.Sprintf("This model is already downloaded and should be checked manually %s", current.Name)
+			return warning, false, err
 		}
 	}
 
-	return true
+	return warning, true, err
 }
 
 // GenerateExistingModelsPythonCode generates the python code for all the configured models

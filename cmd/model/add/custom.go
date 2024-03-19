@@ -68,7 +68,8 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 
 	// Validate model for download
 	modelObj.AddToBinaryFile = true
-	if !config.Validate(modelObj) {
+	_, valid, _ := config.Validate(modelObj)
+	if !valid {
 		return
 	}
 
