@@ -7,7 +7,7 @@ import (
 
 // tokenizerUpdateCmd represents the model update command
 var tokenizerUpdateCmd = &cobra.Command{
-	Use:   "update <model name> [<tokenizers>...]",
+	Use:   "update <model_name> [tokenizer..]",
 	Short: "Update one or more tokenizers",
 	Long:  "Update one or more tokenizers",
 	Run:   runTokenizerUpdate,

@@ -351,40 +351,6 @@ func (m *Model) UpdateTokenizer(
 	// Downloader script to skip the tokenizers download process if none selected
 	var skip string
 
-	// If transformers : select the tokenizers to update using a multiselect
-	var tokenizerNames []string
-	if m.Module == huggingface.TRANSFORMERS {
-
-		// Get tokenizer names for the model
-		availableNames := m.Tokenizers.GetNames()
-
-		// Allow to select only if at least one tokenizer is available
-		if len(availableNames) > 0 && len(selectedTokenizerNames) == 0 {
-			// Prepare the tokenizers multiselect
-			message := "Please select the tokenizer(s) to be updated"
-			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
-			app.UI().DisplaySelectedItems(tokenizerNames)
-
-			// No tokenizer is selected : skipping so that it doesn't overwrite the default one
-			if len(tokenizerNames) > 0 {
-				skip = downloader.SkipValueTokenizer
-			}
-		} else if len(selectedTokenizerNames) > 0 {
-			// Check if selectedTokenizerNames elements exist in tokenizerNames and add them to a new list
-			var selectedAndAvailableTokenizerNames []string
-			for _, name := range selectedTokenizerNames {
-				for _, availableName := range tokenizerNames {
-					if name == availableName {
-						selectedAndAvailableTokenizerNames = append(selectedAndAvailableTokenizerNames, name)
-						break
-					}
-				}
-			}
-			tokenizerNames = selectedAndAvailableTokenizerNames
-		}
-	}
-
 	// Prepare the script arguments
 	downloaderArgs := downloader.Args{
 		ModelName:         m.Name,
@@ -398,18 +364,21 @@ func (m *Model) UpdateTokenizer(
 	success := false
 
 	// If transformers and at least one tokenizer were asked for an update
-	if len(tokenizerNames) > 0 {
+	if len(selectedTokenizerNames) > 0 {
 
 		// Bind the model tokenizers to a map for faster lookup
 		mapModelTokenizers := m.Tokenizers.Map()
 
 		var failedTokenizers []string
-		for _, tokenizerName := range tokenizerNames {
+		for _, tokenizerName := range selectedTokenizerNames {
 			tokenizer := mapModelTokenizers[tokenizerName]
 
 			// Downloading tokenizer
+			print("downloading tokenizer")
+
 			success = m.DownloadTokenizer(tokenizer, downloaderArgs)
 			if !success {
+				print("download failed")
 				// Download failed
 				failedTokenizers = append(failedTokenizers, tokenizer.Class)
 				continue
