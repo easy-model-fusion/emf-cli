@@ -14,13 +14,30 @@ import (
 
 // RunAdd runs the add command to add models by name
 func RunAdd(args []string) {
+	selectedModel, err := getRequestedModel(args)
+	if err != nil {
+		pterm.Error.Println(err.Error())
+		return
+	}
+	if selectedModel.Name == "" {
+		pterm.Warning.Println("Please select a model type")
+		RunAdd(args)
+		return
+	}
 
+	warningMessage, err := processAdd(selectedModel)
+	if warningMessage != "" {
+		pterm.Warning.Println(warningMessage)
+	}
+	if err != nil {
+		pterm.Error.Println(err.Error())
+	}
 }
 
-func processAdd(args []string) (warning string, err error) {
-	err = config.GetViperConfig(config.FilePath)
+func getRequestedModel(args []string) (model.Model, error) {
+	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
-		return warning, err
+		return model.Model{}, err
 	}
 
 	// Initialize hugging face api
@@ -31,7 +48,7 @@ func processAdd(args []string) (warning string, err error) {
 	// Get all existing models
 	existingModels, err := config.GetModels()
 	if err != nil {
-		return warning, err
+		return model.Model{}, err
 	}
 
 	var selectedModel model.Model
@@ -43,39 +60,42 @@ func processAdd(args []string) (warning string, err error) {
 		exist := existingModels.ContainsByName(name)
 		if exist {
 			// Model already exists
-			err = fmt.Errorf("the following model already exist and will be ignored : %s", name)
-			return warning, err
+			return model.Model{}, fmt.Errorf("the following model already exist and will be ignored : %s", name)
 		}
 
 		// Verify if the model is a valid hugging face model
 		huggingfaceModel, err := app.H().GetModelById(name)
 		if err != nil {
-			// Model not found : skipping to the next one
-			err = fmt.Errorf("Model %s not valid : "+err.Error(), name)
-			return warning, err
+			// Model not found
+			return model.Model{}, fmt.Errorf("Model %s not valid : "+err.Error(), name)
 		}
 
 		// Map API response to model.Model
 		selectedModel = model.FromHuggingfaceModel(huggingfaceModel)
 	} else if len(args) > 1 {
-		err = fmt.Errorf("you can enter only one model at a time")
-		return warning, err
+		return model.Model{}, fmt.Errorf("you can enter only one model at a time")
 	} else {
 		// If no models entered by user or if user entered -s/--select
 		// Get selected tags
-		selectedTags := selectTags()
+		var selectedTags []string
+		selectedTags = selectTags()
 		if len(selectedTags) == 0 {
-			warning = "Please select a model type"
-			RunAdd(args)
+			return model.Model{}, nil
 		}
 		// Get selected models
+		spinner := app.UI().StartSpinner("Listing all models with selected tags...")
 		availableModels, err := getModelsList(selectedTags, existingModels)
 		if err != nil {
-			return warning, err
+			spinner.Fail(err.Error())
+			return model.Model{}, err
 		}
+		spinner.Success()
 		selectedModel = selectModel(availableModels)
 	}
+	return selectedModel, nil
+}
 
+func processAdd(selectedModel model.Model) (warning string, err error) {
 	// User choose if he wishes to install the model directly
 	message := fmt.Sprintf("Do you wish to install %s directly?", selectedModel.Name)
 	selectedModel.AddToBinaryFile = app.UI().AskForUsersConfirmation(message)
@@ -87,14 +107,14 @@ func processAdd(args []string) (warning string, err error) {
 	}
 
 	// Try to download model
-	err = downloadModel(selectedModel)
+	updatedModel, err := downloadModel(selectedModel)
 	if err != nil {
 		return warning, err
 	}
 
 	// Add models to configuration file
 	spinner := app.UI().StartSpinner("Adding model to configuration file...")
-	err = config.AddModels(model.Models{selectedModel})
+	err = config.AddModels(model.Models{updatedModel})
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while adding the model to the configuration file: %s", err))
 	} else {
@@ -153,7 +173,7 @@ func getModelsList(tags []string, existingModels model.Models) (model.Models, er
 	return mappedModels.Difference(existingModels), nil
 }
 
-func downloadModel(selectedModel model.Model) error {
+func downloadModel(selectedModel model.Model) (model.Model, error) {
 	// Prepare the script arguments
 	downloaderArgs := downloadermodel.Args{
 		ModelName:     selectedModel.Name,
@@ -172,8 +192,8 @@ func downloadModel(selectedModel model.Model) error {
 	}
 
 	if !success {
-		return fmt.Errorf("this model %s couldn't be downloaded", selectedModel.Name)
+		return model.Model{}, fmt.Errorf("this model %s couldn't be downloaded", selectedModel.Name)
 	}
 
-	return nil
+	return selectedModel, nil
 }
