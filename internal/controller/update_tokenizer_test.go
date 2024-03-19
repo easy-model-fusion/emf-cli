@@ -8,9 +8,16 @@ import (
 
 // TestTokenizerUpdateCmd tests the TokenizerUpdateCmd function
 func TestTokenizerUpdateCmd(t *testing.T) {
-	// Test with valid arguments
 
 	var models model.Models
+
+	var tokenizers model.Tokenizers
+	tokenizers = append(tokenizers, model.Tokenizer{
+		Path:    "path/to/tokenizer1",
+		Class:   "tokenizer1",
+		Options: nil,
+	})
+
 	models = append(models, model.Model{
 		Name:            "model1",
 		Path:            "path/to/model1",
@@ -24,12 +31,7 @@ func TestTokenizerUpdateCmd(t *testing.T) {
 		Source:          "CUSTOM",
 		AddToBinaryFile: true,
 		IsDownloaded:    true,
-	})
-	var tokenizer model.Tokenizers
-	tokenizer = append(tokenizer, model.Tokenizer{
-		Path:    "path/to/tokenizer1",
-		Class:   "tokenizer1",
-		Options: nil,
+		Tokenizers:      tokenizers,
 	})
 
 	// Create temporary configuration file
@@ -39,11 +41,12 @@ func TestTokenizerUpdateCmd(t *testing.T) {
 	err := setupConfigFile(models)
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 
+	// Test with valid arguments
 	t.Run("ValidArguments", func(t *testing.T) {
 		args := []string{"model1", "tokenizer1"}
 		TokenizerUpdateCmd(args)
 		// Assert the output here based on your implementation
-		test.AssertEqual(t, true, "Tokenizer updated.")
+		test.AssertEqual(t, err, true, "Operation succeeded.")
 	})
 
 	// Test with missing arguments
@@ -61,5 +64,4 @@ func TestTokenizerUpdateCmd(t *testing.T) {
 		// Assert the output here based on your implementation
 		test.AssertEqual(t, err, false, "Tokenizer not updated.")
 	})
-
 }
