@@ -1,4 +1,4 @@
-package controller
+package modelcontroller
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"

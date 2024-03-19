@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
@@ -215,11 +215,7 @@ func FromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 }
 
 // Update attempts to update the model
-func (m *Model) Update(mapConfigModels map[string]Model) bool {
-
-	// Checking if the model is already configured
-	_, configured := mapConfigModels[m.Name]
-
+func (m *Model) Update() bool {
 	// Check if model is physically present on the device
 	m.UpdatePaths()
 	downloaded, err := m.DownloadedOnDevice(false)
@@ -229,19 +225,13 @@ func (m *Model) Update(mapConfigModels map[string]Model) bool {
 
 	// Process internal state of the model
 	install := false
-	if !configured && !downloaded {
-		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be added. "+
-			"Would you like to add it?", m.Name))
-	} else if configured && !downloaded {
-		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
-			"Would you like to download it?", m.Name))
-	} else if !configured && downloaded {
-		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' already exists. "+
-			"Would you like to overwrite it?", m.Name))
-	} else {
+	if downloaded {
 		// Model already configured and downloaded : a new version is available
 		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
 			"Would you like to overwrite its old version?", m.Name))
+	} else {
+		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
+			"Would you like to download it?", m.Name))
 	}
 
 	// Model will not be downloaded or overwritten, nothing more to do here
@@ -270,19 +260,20 @@ func (m *Model) Update(mapConfigModels map[string]Model) bool {
 
 			// No tokenizer is selected : skipping so that it doesn't overwrite the default one
 			if len(tokenizerNames) > 0 {
-				skip = downloader.SkipValueTokenizer
+				skip = downloadermodel.SkipValueTokenizer
 			}
 		}
 	}
 
 	// Prepare the script arguments
-	downloaderArgs := downloader.Args{
+	downloaderArgs := downloadermodel.Args{
 		ModelName:         m.Name,
 		ModelModule:       string(m.Module),
 		ModelClass:        m.Class,
 		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
 		Skip:              skip,
 		OnlyConfiguration: false,
+		DirectoryPath:     app.DownloadDirectoryPath,
 	}
 
 	// Downloading model
@@ -341,12 +332,13 @@ func (m *Model) TidyConfiguredModel() (bool, bool) {
 	}
 
 	// Prepare the script arguments
-	downloaderArgs := downloader.Args{
+	downloaderArgs := downloadermodel.Args{
 		ModelName:         m.Name,
 		ModelModule:       string(m.Module),
 		ModelClass:        m.Class,
 		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
 		OnlyConfiguration: false,
+		DirectoryPath:     app.DownloadDirectoryPath,
 	}
 
 	// Model has yet to be downloaded

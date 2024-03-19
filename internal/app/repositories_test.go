@@ -47,3 +47,14 @@ func TestSetGit(t *testing.T) {
 	// Assertions
 	test.AssertEqual(t, G(), &git)
 }
+
+func TestSetHuggingFace(t *testing.T) {
+	// Initialize huggingFace mock instance
+	huggingFace := mock.MockHuggingFace{}
+
+	// Set new huggingFace instance
+	SetHuggingFace(&huggingFace)
+
+	// Assertions
+	test.AssertEqual(t, H(), &huggingFace)
+}
