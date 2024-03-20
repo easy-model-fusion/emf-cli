@@ -6,7 +6,7 @@ import (
 
 // tokenizerAddCmd represents the tokenizer add command
 var tokenizerAddCmd = &cobra.Command{
-	Use:   "add <model name> [tokenizer names...]",
+	Use:   "add <model name> <tokenizer name> [<other tokenizer names>...]",
 	Short: "Add one or more tokenizers",
 	Long:  "Add one or more tokenizers",
 	Run:   runTokenizerAdd,
