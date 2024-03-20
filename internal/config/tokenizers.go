@@ -52,16 +52,19 @@ func RemoveTokenizersByName(currentModel model.Model, tokenizersToRemove model.T
 	var removedTokenizers model.Tokenizers
 	// Trying to remove the tokenizers
 	for _, item := range tokenizersToRemove {
-		// Starting client spinner animation
-		spinner := app.UI().StartSpinner(fmt.Sprintf("Removing tokenizer %s...", tokenizersToRemove))
-		err := RemoveTokenizerPhysically(item.Path)
-		if err != nil {
-			spinner.Fail("failed to remove tokenizers")
-			failedTokenizers = append(failedTokenizers, item.Class)
-		} else {
-			spinner.Success()
-			removedTokenizers = append(removedTokenizers, item)
+		if item.Path != "" {
+			// Starting client spinner animation
+			spinner := app.UI().StartSpinner(fmt.Sprintf("Removing tokenizer %s...", tokenizersToRemove))
+			err := RemoveTokenizerPhysically(item.Path)
+			if err != nil {
+				spinner.Fail("failed to remove tokenizers")
+				failedTokenizers = append(failedTokenizers, item.Class)
+				continue
+			} else {
+				spinner.Success()
+			}
 		}
+		removedTokenizers = append(removedTokenizers, item)
 	}
 	// update config file
 	spinner := app.UI().StartSpinner("Writing tokenizer to configuration file...")

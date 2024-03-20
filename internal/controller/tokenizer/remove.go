@@ -106,7 +106,6 @@ func processRemove(args []string) (warning, info string, err error) {
 	}
 
 	// delete tokenizer file and remove tokenizer to config file
-
 	failedTokenizersRemove, err := config.RemoveTokenizersByName(modelToUse, tokenizersToRemove)
 	if err != nil {
 		return warning, info, err
