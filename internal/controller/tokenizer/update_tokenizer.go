@@ -1,4 +1,4 @@
-package controller
+package tokenizer
 
 import (
 	"fmt"
@@ -66,16 +66,8 @@ func processUpdateTokenizer(args []string) (warning, info string, err error) {
 	var updateTokenizers model.Tokenizers
 	if modelToUse.Module == huggingface.TRANSFORMERS {
 		availableNames := modelToUse.Tokenizers.GetNames()
-		if len(availableNames) > 0 {
-			message := "Please select the tokenizer(s) to be updated"
-			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-			tokenizerNames := app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
-			if len(tokenizerNames) != 0 {
-				app.UI().DisplaySelectedItems(tokenizerNames)
-				updateTokenizers = modelToUse.Tokenizers.FilterWithNames(tokenizerNames)
-			}
 
-		} else if len(args) > 1 {
+		if len(args) > 1 {
 			args = stringutil.SliceRemoveDuplicates(args)
 			configTokenizersMap := modelToUse.Tokenizers.Map()
 			// Check if selectedTokenizerNames elements exist in tokenizerNames and add them to a new list
@@ -89,6 +81,15 @@ func processUpdateTokenizer(args []string) (warning, info string, err error) {
 					updateTokenizers = append(updateTokenizers, tokenizer)
 				}
 			}
+		} else if len(availableNames) > 0 {
+			message := "Please select the tokenizer(s) to be updated"
+			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+			tokenizerNames := app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
+			if len(tokenizerNames) != 0 {
+				app.UI().DisplaySelectedItems(tokenizerNames)
+				updateTokenizers = modelToUse.Tokenizers.FilterWithNames(tokenizerNames)
+			}
+
 		}
 	}
 
