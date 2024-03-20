@@ -91,10 +91,7 @@ func processRemoveTokenizer(args []string) (string, string, error) {
 
 	// if one or more tokenizers selected
 	if len(tokenizerNames) > 0 {
-		classesMap := make(map[string]bool)
-		for _, class := range tokenizerNames {
-			classesMap[class] = true
-		}
+		var removedTokenizers model.Tokenizers
 
 		// delete tokenizer file and remove tokenizer to config file
 		for index, tokenizer := range modelsToUse.Tokenizers {
