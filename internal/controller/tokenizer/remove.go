@@ -46,7 +46,7 @@ func processRemove(args []string) (warning, info string, err error) {
 	}
 
 	// Get all configured models objects/names and args model
-	selectedModel := args[0]
+	selectedModelName := args[0]
 	var models model.Models
 	models, err = config.GetModels()
 	if err != nil {
@@ -57,10 +57,15 @@ func processRemove(args []string) (warning, info string, err error) {
 
 	// checks the presence of the model
 	configModelsMap := models.Map()
-	modelsToUse, exists := configModelsMap[selectedModel]
+	modelsToUse, exists := configModelsMap[selectedModelName]
 	if !exists {
 		return warning, "Model is not configured", err
 	}
+
+	// remove model name from arguments
+	args = stringutil.SliceDifference(args, []string{selectedModelName})
+
+	// verify model's module
 	if modelsToUse.Module != huggingface.TRANSFORMERS {
 		return warning, info, fmt.Errorf("only transformers models have tokzenizers")
 	}
@@ -69,17 +74,18 @@ func processRemove(args []string) (warning, info string, err error) {
 	var tokenizersToRemove model.Tokenizers
 	var invalidTokenizers []string
 	var tokenizerNames []string
-	// load tokenizer for the chosen model
 
-	// No tokenizer, asks for tokenizers names
-	if len(args) == 1 {
+	if len(args) == 0 {
+		// No tokenizer, asks for tokenizers names
 		availableNames := modelsToUse.Tokenizers.GetNames()
 		tokenizerNames = selectTokenizersToDelete(availableNames)
 
-	} else if len(args) > 1 {
-		// Check if selectedTokenizerNames elements exist in tokenizerNames and add them to a new list
+	} else if len(args) > 0 {
+		// Check for duplicates
 		tokenizerNames = stringutil.SliceRemoveDuplicates(args)
 	}
+
+	// check for valid tokenizers
 	for _, name := range tokenizerNames {
 		tokenizer, exists := configTokenizerMap[name]
 		if !exists {
@@ -98,22 +104,21 @@ func processRemove(args []string) (warning, info string, err error) {
 		return warning, info, err
 	}
 
-	// if one or more tokenizers selected
 	var removedTokenizers model.Tokenizers
 
 	// delete tokenizer file and remove tokenizer to config file
 	for _, tokenizer := range tokenizersToRemove {
 		err := os.RemoveAll(tokenizer.Path)
 		if err != nil {
-			pterm.Error.Println(err.Error())
-			return "", "Error remove tokenizer dir", err
+			return warning, info, fmt.Errorf("error remove tokenizer dir: %s", err.Error())
 		}
 		// Successfully removed tokenizer
 		removedTokenizers = append(removedTokenizers, tokenizer)
 
 	}
-	spinner := app.UI().StartSpinner("Writing model to configuration file...")
+
 	// update config file
+	spinner := app.UI().StartSpinner("Writing model to configuration file...")
 	err = config.AddModels(model.Models{modelsToUse})
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the model to the configuration file: %s", err))
@@ -126,7 +131,7 @@ func processRemove(args []string) (warning, info string, err error) {
 
 // selectTokenizersToDelete displays an interactive multiselect so the user can choose the tokenizers to remove
 func selectTokenizersToDelete(tokenizerNames []string) []string {
-	// Displays the multiselect only if the user has previously configured some models but hasn't selected all of them
+	// Displays the multiselect only if the user has previously configured some tokenizers
 	if len(tokenizerNames) > 0 {
 		message := "Please select the tokenizer(s) to be deleted"
 		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
