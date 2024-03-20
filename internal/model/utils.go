@@ -312,6 +312,79 @@ func (m *Model) Update() bool {
 	return true
 }
 
+// UpdateTokenizer attempts to update the tokenizers.
+func (m *Model) UpdateTokenizer(
+	selectedTokenizerNames []string,
+) bool {
+
+	// Check if model is physically present on the device
+	m.UpdatePaths()
+	downloaded, err := m.DownloadedOnDevice(false)
+	if err != nil {
+		return false
+	}
+
+	// Process internal state of the model
+	install := false
+	if !downloaded {
+		print("Model '%s' has yet to be " +
+			"added or downloaded. ")
+		return false
+	}
+
+	install = app.UI().AskForUsersConfirmation(m.Name)
+
+	// Model will not be downloaded or overwritten, nothing more to do here
+	if !install {
+		return false
+	}
+
+	// Downloader script to skip the tokenizers download process if none selected
+	var skip string
+
+	// Prepare the script arguments
+	downloaderArgs := downloadermodel.Args{
+		ModelName:         m.Name,
+		ModelModule:       string(m.Module),
+		ModelClass:        m.Class,
+		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
+		Skip:              skip,
+		OnlyConfiguration: false,
+	}
+
+	success := false
+
+	// If transformers and at least one tokenizer were asked for an update
+	if len(selectedTokenizerNames) > 0 {
+
+		// Bind the model tokenizers to a map for faster lookup
+		mapModelTokenizers := m.Tokenizers.Map()
+
+		var failedTokenizers []string
+		for _, tokenizerName := range selectedTokenizerNames {
+			tokenizer := mapModelTokenizers[tokenizerName]
+
+			// Downloading tokenizer
+			print("downloading tokenizer")
+
+			success = m.DownloadTokenizer(tokenizer, downloaderArgs)
+			if !success {
+				print("download failed")
+				// Download failed
+				failedTokenizers = append(failedTokenizers, tokenizer.Class)
+				continue
+			}
+		}
+
+		// The process failed for at least one tokenizer
+		if len(failedTokenizers) > 0 {
+			pterm.Error.Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
+		}
+	}
+
+	return true
+}
+
 // TidyConfiguredModel downloads the missing elements that were configured
 // first bool is true if success, second bool is true if model was clean from the start
 func (m *Model) TidyConfiguredModel() (bool, bool) {
