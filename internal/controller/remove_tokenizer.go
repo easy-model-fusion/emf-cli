@@ -104,7 +104,8 @@ func processRemoveTokenizer(args []string) (string, string, error) {
 					pterm.Error.Println(err.Error())
 					return "", "Error remove tokenizer dir", err
 				}
-				modelsToUse.Tokenizers = append(modelsToUse.Tokenizers[:index], modelsToUse.Tokenizers[index+1:]...)
+// Successfully removed tokenizer
+				removedTokenizers = append(removedTokenizers, tokenizer)
 			}
 		}
 		spinner := app.UI().StartSpinner("Writing model to configuration file...")
