@@ -5,7 +5,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
-	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -46,8 +45,6 @@ func processRemove(args []string) (warning, info string, err error) {
 	if err != nil {
 		return warning, info, fmt.Errorf("error get model: %s", err.Error())
 	}
-
-	sdk.SendUpdateSuggestion()
 
 	// checks the presence of the model
 	configModelsMap := models.Map()
