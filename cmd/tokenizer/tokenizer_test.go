@@ -2,5 +2,5 @@ package cmdtokenizer
 
 import "testing"
 
-func TestRunModel(t *testing.T) {
+func TestRunTokenizer(t *testing.T) {
 }
