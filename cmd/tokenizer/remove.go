@@ -7,7 +7,7 @@ import (
 
 // tokenizerRemoveCmd represents the tokenizer remove command
 var tokenizerRemoveCmd = &cobra.Command{
-	Use:   "remove <model_name> [tokenizer..]",
+	Use:   "remove <model name> <tokenizer name> [<other tokenizer names>...]",
 	Short: "Remove one or more tokenizer",
 	Long:  "Remove one or more tokenizer",
 	Args:  cobra.MinimumNArgs(1),
