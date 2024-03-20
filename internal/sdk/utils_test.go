@@ -11,6 +11,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	app.SetUI(&mock.MockUI{})
 	app.InitGit("https://github.com/SchawnnDev", "")
 	os.Exit(m.Run())
 }

@@ -12,6 +12,7 @@ import (
 func TestCreateProjectFiles(t *testing.T) {
 	app.SetUI(&mock.MockUI{})
 	app.SetGit(&mock.MockGit{})
+	ic := InitController{}
 
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
@@ -23,7 +24,7 @@ func TestCreateProjectFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = createProjectFiles("test", "v1.0.0")
+	err = ic.createProjectFiles("test", "v1.0.0")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +50,7 @@ func TestCreateProjectFiles(t *testing.T) {
 	// now test with each existing file then remove it (cover error cases)
 	for _, testInstance := range tests {
 		t.Run(testInstance.path, func(t *testing.T) {
-			err = createProjectFiles("test", "v1.0.0")
+			err = ic.createProjectFiles("test", "v1.0.0")
 			if err == nil {
 				t.Errorf("%s should return an error", testInstance.path)
 			}
@@ -65,12 +66,13 @@ func TestCreateProjectFiles(t *testing.T) {
 func TestCreateProjectFolder(t *testing.T) {
 	app.SetUI(&mock.MockUI{})
 	app.SetGit(&mock.MockGit{})
+	ic := InitController{}
 
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
 
-	err := createProjectFolder("test")
+	err := ic.createProjectFolder("test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +82,7 @@ func TestCreateProjectFolder(t *testing.T) {
 		t.Errorf("test should exist")
 	}
 
-	err = createProjectFolder("test")
+	err = ic.createProjectFolder("test")
 	if err == nil {
 		t.Errorf("test should return an error")
 	}
@@ -94,13 +96,14 @@ func TestCloneSDK(t *testing.T) {
 	mockGit := &mock.MockGit{}
 	app.SetUI(&mock.MockUI{})
 	app.SetGit(mockGit)
+	ic := InitController{}
 
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
 
 	// first test with no test/ directory created
-	err := cloneSDK("test", "")
+	err := ic.cloneSDK("test", "")
 	test.AssertNotEqual(t, err, nil, "Expected error")
 
 	// create the test directory
@@ -110,7 +113,7 @@ func TestCloneSDK(t *testing.T) {
 		t.FailNow()
 	}
 
-	err = cloneSDK("test", "")
+	err = ic.cloneSDK("test", "")
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -125,7 +128,7 @@ func TestCloneSDK(t *testing.T) {
 	recreateProjectFolder(t)
 
 	// test with custom tag
-	err = cloneSDK("test", "v1.0.0")
+	err = ic.cloneSDK("test", "v1.0.0")
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -136,14 +139,14 @@ func TestCloneSDK(t *testing.T) {
 	// test with getlatesttag error
 	mockGit.LatestTagError = errors.New("LatestTagError")
 
-	err = cloneSDK("test", "")
+	err = ic.cloneSDK("test", "")
 	t.Logf("%v", err)
 	test.AssertNotEqual(t, err, nil, "Expected error")
 
 	mockGit.LatestTagError = nil
 	mockGit.CloneSDKError = errors.New("CloneSDKError")
 
-	err = cloneSDK("test", "")
+	err = ic.cloneSDK("test", "")
 	t.Logf("%v", err)
 	test.AssertNotEqual(t, err, nil, "Expected error")
 	test.AssertEqual(t, err.Error(), "CloneSDKError", "Expected CloneSDKError error")
