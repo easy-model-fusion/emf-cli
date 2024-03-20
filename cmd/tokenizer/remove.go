@@ -18,5 +18,5 @@ var tokenizerRemoveCmd = &cobra.Command{
 // runTokenizerRemove runs the tokenizer remove command
 func runTokenizerRemove(cmd *cobra.Command, args []string) {
 	sdk.SendUpdateSuggestion()
-	tokenizer.TokenizerRemoveCmd(args)
+	tokenizer.RunTokenizerRemove(args)
 }

@@ -12,8 +12,8 @@ import (
 	"github.com/pterm/pterm"
 )
 
-// TokenizerRemoveCmd runs the tokenizer remove command
-func TokenizerRemoveCmd(args []string) {
+// RunTokenizerRemove runs the tokenizer remove command
+func RunTokenizerRemove(args []string) {
 	// Process remove operation with given arguments
 	warningMessage, infoMessage, err := processRemove(args)
 
@@ -37,11 +37,6 @@ func processRemove(args []string) (warning, info string, err error) {
 	err = config.GetViperConfig(config.FilePath)
 	if err != nil {
 		return warning, info, err
-	}
-
-	// No model name in args
-	if len(args) < 1 {
-		return warning, info, fmt.Errorf("enter a model in argument")
 	}
 
 	// Get all configured models objects/names and args model
