@@ -64,6 +64,7 @@ func processUpdateTokenizer(args []string) (warning, info string, err error) {
 	modelToUse.UpdatePaths()
 
 	var updateTokenizers model.Tokenizers
+	var failedTokenizers []string
 	if modelToUse.Module == huggingface.TRANSFORMERS {
 		availableNames := modelToUse.Tokenizers.GetNames()
 
@@ -71,7 +72,6 @@ func processUpdateTokenizer(args []string) (warning, info string, err error) {
 			args = stringutil.SliceRemoveDuplicates(args)
 			configTokenizersMap := modelToUse.Tokenizers.Map()
 			// Check if selectedTokenizerNames elements exist in tokenizerNames and add them to a new list
-			var failedTokenizers []string
 
 			for _, name := range args {
 				tokenizer, exists := configTokenizersMap[name]
@@ -94,7 +94,6 @@ func processUpdateTokenizer(args []string) (warning, info string, err error) {
 	}
 
 	// Try to update all the given models
-	var failedTokenizers []string
 	var updatedTokenizers model.Tokenizers
 	for _, tokenizer := range updateTokenizers {
 
