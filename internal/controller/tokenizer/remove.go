@@ -91,7 +91,7 @@ func processRemove(args []string) (warning, info string, err error) {
 	}
 
 	if len(tokenizersToRemove) == 0 {
-		return warning, fmt.Sprintf("no selected tokenizers to remove"), err
+		return warning, "no selected tokenizers to remove", err
 	}
 
 	// delete tokenizer file and remove tokenizer to config file
