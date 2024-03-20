@@ -57,7 +57,7 @@ func processRemoveTokenizer(args []string) (string, string, error) {
 	configModelsMap := models.Map()
 	modelsToUse, exists := configModelsMap[selectedModel]
 	if !exists {
-		return "", "model do not exist", err
+		return "", "Model is not configured", err
 	}
 
 	// load tokenizer for the chosen model
