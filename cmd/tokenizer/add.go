@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// tokenizerAddCmd represents the tokenizer ass command
+// tokenizerAddCmd represents the tokenizer add command
 var tokenizerAddCmd = &cobra.Command{
 	Use:   "add <model name> [tokenizer names...]",
 	Short: "Add one or more tokenizers",
