@@ -45,7 +45,6 @@ type InstallController struct{}
 
 // Run runs the init command
 func (ic InstallController) Run(args []string, useTorchCuda bool) error {
-
 	// Only clean if config file exists (so we know it's a EMF project)
 	if err := config.GetViperConfig(config.FilePath); err != nil {
 		return err
