@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/downloader"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
@@ -22,11 +22,13 @@ var addCustomCmd = &cobra.Command{
 	Run:   runAddCustom,
 }
 
-var addCustomDownloaderArgs downloader.Args
+var addCustomDownloaderArgs downloadermodel.Args
 
 func init() {
 	// Bind cobra args to the downloader script args
 	addCustomDownloaderArgs.ToCobra(addCustomCmd)
+
+	addCustomDownloaderArgs.DirectoryPath = app.DownloadDirectoryPath
 }
 
 // runAddCustom runs add command to add a custom model
@@ -47,9 +49,9 @@ func runAddCustom(cmd *cobra.Command, args []string) {
 
 	// Model name is mandatory
 	if addCustomDownloaderArgs.ModelName == "" {
-		err := cobrautil.AskFlagInput(currentCmd, currentCmd.Flag(downloader.ModelName))
+		err := cobrautil.AskFlagInput(currentCmd, currentCmd.Flag(downloadermodel.ModelName))
 		if err != nil {
-			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", downloader.ModelName, err))
+			pterm.Error.Println(fmt.Sprintf("Couldn't set the value for %s : %s", downloadermodel.ModelName, err))
 			return
 		}
 	}

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/downloader"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
 	"github.com/easy-model-fusion/emf-cli/test"
@@ -52,4 +53,15 @@ func TestPython(t *testing.T) {
 	var py python.Python
 	test.AssertEqual(t, Python(), py)
 	test.AssertEqual(t, fatalCalled, true, "Should call the fatal function")
+}
+
+func TestDownloader(t *testing.T) {
+	Init("1.0.0", "2021-01-01")
+
+	test.AssertNotEqual(t, Downloader(), nil, "Downloader should not be nil")
+
+	SetDownloader(nil)
+
+	var py downloader.Downloader
+	test.AssertEqual(t, Downloader(), py)
 }
