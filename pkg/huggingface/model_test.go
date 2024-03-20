@@ -11,8 +11,8 @@ var h HuggingFace
 type huggingFaceMock struct {
 }
 
-func (h *huggingFaceMock) GetModelsByPipelineTag(tag PipelineTag, limit int) ([]Model, error) {
-	return []Model{}, nil
+func (h *huggingFaceMock) GetModelsByPipelineTag(_ PipelineTag, _ int) (Models, error) {
+	return Models{}, nil
 }
 
 func (h *huggingFaceMock) GetModelById(id string) (Model, error) {

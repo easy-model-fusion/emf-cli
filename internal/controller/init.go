@@ -56,7 +56,7 @@ func createProject(projectName string, useTorchCuda bool, customTag string) (err
 	// Check if user has python installed
 	pythonPath, ok := app.Python().CheckAskForPython(app.UI())
 	if !ok {
-		os.Exit(1)
+		return errors.New("python not found")
 	}
 
 	// Clone sdk

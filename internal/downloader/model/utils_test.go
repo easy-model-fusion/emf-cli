@@ -1,4 +1,4 @@
-package downloader
+package downloadermodel
 
 import (
 	"github.com/easy-model-fusion/emf-cli/test"

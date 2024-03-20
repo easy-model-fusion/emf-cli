@@ -32,6 +32,11 @@ func InitHuggingFace(baseUrl, proxyUrl string) {
 	huggingFace = huggingface.NewHuggingFace(baseUrl, proxyUrl)
 }
 
+// SetHuggingFace sets the current hugging face instance
+func SetHuggingFace(hf huggingface.HuggingFace) {
+	huggingFace = hf
+}
+
 // InitGit Initialize git
 func InitGit(url, authToken string) {
 	gitInstance = git.NewGit(url, authToken)

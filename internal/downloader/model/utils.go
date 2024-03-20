@@ -1,8 +1,7 @@
-package downloader
+package downloadermodel
 
 import (
 	"errors"
-	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/spf13/cobra"
 )
@@ -57,7 +56,7 @@ func (a *Args) ToCobra(cmd *cobra.Command) {
 func (a *Args) ToPython() []string {
 
 	// Mandatory arguments
-	cmdArgs := []string{TagPrefix + EmfClient, TagPrefix + Overwrite, app.DownloadDirectoryPath, a.ModelName, a.ModelModule}
+	cmdArgs := []string{TagPrefix + EmfClient, TagPrefix + Overwrite, a.DirectoryPath, a.ModelName, a.ModelModule}
 
 	// Optional arguments regarding the model
 	if a.ModelClass != "" {
