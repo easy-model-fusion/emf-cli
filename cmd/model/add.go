@@ -1,7 +1,9 @@
 package cmdmodel
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	modelcontroller "github.com/easy-model-fusion/emf-cli/internal/controller/model"
+	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +15,15 @@ var modelAddCmd = &cobra.Command{
 	Run:   runAdd,
 }
 
+var customArgs downloadermodel.Args
+
+func init() {
+	// Bind cobra args to the downloader script args
+	customArgs.ToCobra(modelAddCmd)
+	customArgs.DirectoryPath = app.DownloadDirectoryPath
+}
+
 // runAddByNames runs the add command to add models by name
 func runAdd(cmd *cobra.Command, args []string) {
-	modelcontroller.RunAdd(args)
+	modelcontroller.RunAdd(args, customArgs)
 }

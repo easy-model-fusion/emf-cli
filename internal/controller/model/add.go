@@ -13,7 +13,7 @@ import (
 )
 
 // RunAdd runs the add command to add models by name
-func RunAdd(args []string) {
+func RunAdd(args []string, customArgs downloadermodel.Args) {
 	selectedModel, err := getRequestedModel(args)
 	if err != nil {
 		pterm.Error.Println(err.Error())
@@ -21,11 +21,11 @@ func RunAdd(args []string) {
 	}
 	if selectedModel.Name == "" {
 		pterm.Warning.Println("Please select a model type")
-		RunAdd(args)
+		RunAdd(args, customArgs)
 		return
 	}
 
-	warningMessage, err := processAdd(selectedModel)
+	warningMessage, err := processAdd(selectedModel, customArgs)
 	if warningMessage != "" {
 		pterm.Warning.Println(warningMessage)
 	}
@@ -34,6 +34,7 @@ func RunAdd(args []string) {
 	}
 }
 
+// getRequestedModel returns the model to be added
 func getRequestedModel(args []string) (model.Model, error) {
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
@@ -95,9 +96,9 @@ func getRequestedModel(args []string) (model.Model, error) {
 	return selectedModel, nil
 }
 
-func processAdd(selectedModel model.Model) (warning string, err error) {
+func processAdd(selectedModel model.Model, customArgs downloadermodel.Args) (warning string, err error) {
 	// User choose if he wishes to install the model directly
-	message := fmt.Sprintf("Do you wish to install %s directly?", selectedModel.Name)
+	message := fmt.Sprintf("Do you wish to directly download %s?", selectedModel.Name)
 	selectedModel.AddToBinaryFile = app.UI().AskForUsersConfirmation(message)
 
 	// Validate model for download
@@ -107,7 +108,7 @@ func processAdd(selectedModel model.Model) (warning string, err error) {
 	}
 
 	// Try to download model
-	updatedModel, err := downloadModel(selectedModel)
+	updatedModel, err := downloadModel(selectedModel, customArgs)
 	if err != nil {
 		return warning, err
 	}
@@ -173,13 +174,14 @@ func getModelsList(tags []string, existingModels model.Models) (model.Models, er
 	return mappedModels.Difference(existingModels), nil
 }
 
-func downloadModel(selectedModel model.Model) (model.Model, error) {
+func downloadModel(selectedModel model.Model, downloaderArgs downloadermodel.Args) (model.Model, error) {
 	// Prepare the script arguments
-	downloaderArgs := downloadermodel.Args{
-		ModelName:     selectedModel.Name,
-		ModelModule:   string(selectedModel.Module),
-		ModelClass:    selectedModel.Class,
-		DirectoryPath: app.DownloadDirectoryPath,
+	downloaderArgs.ModelName = selectedModel.Name
+	if downloaderArgs.ModelClass == "" {
+		downloaderArgs.ModelClass = selectedModel.Class
+	}
+	if downloaderArgs.ModelModule == "" {
+		downloaderArgs.ModelModule = string(selectedModel.Module)
 	}
 
 	var success bool
