@@ -9,6 +9,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
+	"path/filepath"
 )
 
 func RunTidy() {
@@ -132,7 +133,15 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 				modelsToConfigure = append(modelsToConfigure, current)
 			} else {
 				// User chose not to configure : removing the model
-				_ = config.RemoveModelPhysically(current.Name)
+				modelPath := filepath.Join(app.DownloadDirectoryPath, current.Name)
+				spinner := app.UI().StartSpinner(fmt.Sprintf("Removing tokenizer %s...", current.Name))
+				err := config.RemoveItemPhysically(modelPath)
+				if err != nil {
+					spinner.Fail("failed to remove item")
+					continue
+				} else {
+					spinner.Success()
+				}
 			}
 
 			// Highest configuration possible : nothing more to do here

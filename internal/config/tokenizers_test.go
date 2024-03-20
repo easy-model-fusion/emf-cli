@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/spf13/viper"
-	"os"
 	"testing"
 )
 
@@ -28,52 +26,6 @@ func getModelWithTokenizer(suffix int) model.Model {
 		},
 		AddToBinaryFile: true,
 	}
-}
-
-// TestRemoveTokenizerPhysically_AddToBinaryFalse tests the RemoveTokenizerPhysically with the property addToBinary to false.
-func TestRemoveTokenizerPhysically_AddToBinaryFalse(t *testing.T) {
-	// Init
-	modelToRemove := getModel(0)
-	modelToRemove.AddToBinaryFile = false
-
-	// Execute
-	err := RemoveTokenizerPhysically(modelToRemove.Name)
-	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
-}
-
-// TestRemoveTokenizerPhysically_NotPhysical tests the RemoveTokenizerPhysically with a non-physically present tokenizer.
-func TestRemoveTokenizerPhysically_NotPhysical(t *testing.T) {
-	// Init
-	modelToRemove := getModel(0)
-
-	// Execute
-	err := RemoveTokenizerPhysically(modelToRemove.Name)
-	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
-}
-
-// TestRemoveTokenizerPhysically_Success tests the RemoveTokenizerPhysically with a physically present tokenizer.
-func TestRemoveTokenizerPhysically_Success(t *testing.T) {
-	// Init
-	modelToUse := getModelWithTokenizer(0)
-
-	configTokenizerMap := modelToUse.Tokenizers.Map()
-
-	tokenizer, _ := configTokenizerMap["tokenizer0"]
-
-	// Create temporary tokenizer
-	setupModelDirectory(t, tokenizer.Path)
-	defer os.RemoveAll(tokenizer.Path)
-
-	// Execute
-	err := RemoveTokenizerPhysically(tokenizer.Path)
-	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
-
-	// Assert that the model was physically removed
-	exists, err := fileutil.IsExistingPath(tokenizer.Path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	test.AssertEqual(t, false, exists, "Model should have been removed.")
 }
 
 // TestRemoveTokenizer_Success tests the RemoveTokenizersByName function for successful removal of specified tokenizer.

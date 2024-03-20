@@ -52,37 +52,28 @@ func AddModels(updatedModels model.Models) error {
 	return nil
 }
 
-// RemoveModelPhysically only removes the model from the project's downloaded models
-func RemoveModelPhysically(modelName string) error {
+// RemoveItemPhysically only removes the item from the project's downloaded item
+func RemoveItemPhysically(itemPath string) error {
 
-	// Path to the model
-	modelPath := filepath.Join(app.DownloadDirectoryPath, modelName)
-
-	// Starting client spinner animation
-	spinner := app.UI().StartSpinner(fmt.Sprintf("Removing model %s...", modelName))
-
-	// Check if the model_path exists
-	if exists, err := fileutil.IsExistingPath(modelPath); err != nil {
-		// Skipping model : an error occurred
-		spinner.Fail(err)
+	// Check if the item_path exists
+	if exists, err := fileutil.IsExistingPath(itemPath); err != nil {
+		// Skipping item : an error occurred
 		return err
 	} else if exists {
-		// Model path is in the current project
 
 		// Split the path into a slice of strings
-		directories := stringutil.SplitPath(modelPath)
+		directories := stringutil.SplitPath(itemPath)
 
-		// Removing model
-		err = os.RemoveAll(modelPath)
+		// Removing item
+		err = os.RemoveAll(itemPath)
 		if err != nil {
-			spinner.Fail(err)
 			return err
 		}
 
 		// Excluding the tail since it has already been removed
 		directories = directories[:len(directories)-1]
 
-		// Cleaning up : removing every empty directory on the way to the model (from tail to head)
+		// Cleaning up : removing every empty directory on the way to the item (from tail to head)
 		for i := len(directories) - 1; i >= 0; i-- {
 			// Build path to parent directory
 			path := filepath.Join(directories[:i+1]...)
@@ -90,13 +81,10 @@ func RemoveModelPhysically(modelName string) error {
 			// Delete directory if empty
 			err = fileutil.DeleteDirectoryIfEmpty(path)
 			if err != nil {
-				spinner.Fail(err)
 			}
 		}
-		spinner.Success(fmt.Sprintf("Removed model %s", modelName))
 	} else {
-		// Model path is not in the current project
-		spinner.Warning(fmt.Sprintf("Model '%s' was not found in the project directory. The model will be removed from this project's configuration file.", modelName))
+		// item path is not in the current project
 	}
 	return nil
 }
@@ -118,7 +106,15 @@ func RemoveAllModels() (info string, err error) {
 
 	// Trying to remove every model
 	for _, item := range models {
-		_ = RemoveModelPhysically(item.Name)
+		modelPath := filepath.Join(app.DownloadDirectoryPath, item.Name)
+		spinner := app.UI().StartSpinner(fmt.Sprintf("Removing item %s...", item.Name))
+		err = RemoveItemPhysically(modelPath)
+		if err != nil {
+			spinner.Fail("failed to remove item")
+			continue
+		} else {
+			spinner.Success()
+		}
 	}
 
 	// Empty the models
@@ -148,7 +144,15 @@ func RemoveModelsByNames(models model.Models, modelsNamesToRemove []string) (war
 
 	// Trying to remove the models
 	for _, item := range modelsToRemove {
-		_ = RemoveModelPhysically(item.Name)
+		modelPath := filepath.Join(app.DownloadDirectoryPath, item.Name)
+		spinner := app.UI().StartSpinner(fmt.Sprintf("Removing item %s...", item.Name))
+		err = RemoveItemPhysically(modelPath)
+		if err != nil {
+			spinner.Fail("failed to remove item")
+			continue
+		} else {
+			spinner.Success()
+		}
 	}
 
 	// Find all the remaining models
@@ -196,9 +200,13 @@ func Validate(current model.Model) bool {
 		}
 
 		// Removing model
-		err = RemoveModelPhysically(current.Name)
+		modelPath := filepath.Join(app.DownloadDirectoryPath, current.Name)
+		spinner := app.UI().StartSpinner(fmt.Sprintf("Removing item %s...", current.Name))
+		err = RemoveItemPhysically(modelPath)
 		if err != nil {
 			return false
+		} else {
+			spinner.Success()
 		}
 	} else if downloaded {
 		// A version of the model is already downloaded
