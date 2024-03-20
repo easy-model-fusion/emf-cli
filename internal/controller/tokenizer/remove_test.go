@@ -1,14 +1,29 @@
-package controller
+package tokenizer
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/mock"
+	"github.com/spf13/viper"
 	"testing"
 
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 )
+
+// Sets the configuration file with the given models
+func setupConfigFile(models model.Models) error {
+	config.FilePath = "."
+	// Load configuration file
+	err := config.GetViperConfig(".")
+	if err != nil {
+		return err
+	}
+	// Write models to the config file
+	viper.Set("models", models)
+	return config.WriteViperConfig()
+}
 
 func TestRemoveTokenizer(t *testing.T) {
 	var models model.Models
@@ -135,7 +150,7 @@ func TestRemoveTokenizer_withNoTokenizerArgs(t *testing.T) {
 	expectedSelections = append(expectedSelections, "tokenizer1")
 
 	// Create ui mock
-	ui := test.MockUI{MultiselectResult: expectedSelections}
+	ui := mock.MockUI{MultiselectResult: expectedSelections}
 	app.SetUI(ui)
 
 	// Initialize selected models list
