@@ -10,12 +10,12 @@ import (
 	"path/filepath"
 )
 
-// RemoveTokenizerPhysically only removes the model from the project's downloaded models
+// RemoveTokenizerPhysically only removes the tokenizer from the project's downloaded tokenizers
 func RemoveTokenizerPhysically(tokenizerPath string) error {
 
 	// Check if the tokenizer_path exists
 	if exists, err := fileutil.IsExistingPath(tokenizerPath); err != nil {
-		// Skipping model : an error occurred
+		// Skipping tokenizer : an error occurred
 		return err
 	} else if exists {
 
@@ -31,7 +31,7 @@ func RemoveTokenizerPhysically(tokenizerPath string) error {
 		// Excluding the tail since it has already been removed
 		directories = directories[:len(directories)-1]
 
-		// Cleaning up : removing every empty directory on the way to the model (from tail to head)
+		// Cleaning up : removing every empty directory on the way to the tokenizer (from tail to head)
 		for i := len(directories) - 1; i >= 0; i-- {
 			// Build path to parent directory
 			path := filepath.Join(directories[:i+1]...)
@@ -48,10 +48,9 @@ func RemoveTokenizerPhysically(tokenizerPath string) error {
 }
 
 // RemoveTokenizersByName removes specified tokenizers
-func RemoveTokenizersByName(currentModel model.Model, tokenizersToRemove model.Tokenizers) error {
-	var failedTokenizers []string
+func RemoveTokenizersByName(currentModel model.Model, tokenizersToRemove model.Tokenizers) (failedTokenizers []string, err error) {
 	var removedTokenizers model.Tokenizers
-	// Trying to remove the models
+	// Trying to remove the tokenizers
 	for _, item := range tokenizersToRemove {
 		// Starting client spinner animation
 		spinner := app.UI().StartSpinner(fmt.Sprintf("Removing tokenizer %s...", tokenizersToRemove))
@@ -67,11 +66,11 @@ func RemoveTokenizersByName(currentModel model.Model, tokenizersToRemove model.T
 	// update config file
 	spinner := app.UI().StartSpinner("Writing tokenizer to configuration file...")
 	currentModel.Tokenizers = currentModel.Tokenizers.Difference(removedTokenizers)
-	err := AddModels(model.Models{currentModel})
+	err = AddModels(model.Models{currentModel})
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while writing the tokenizer to the configuration file: %s", err))
 	} else {
 		spinner.Success()
 	}
-	return nil
+	return failedTokenizers, err
 }

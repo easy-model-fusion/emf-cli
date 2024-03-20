@@ -12,7 +12,7 @@ import (
 	"github.com/pterm/pterm"
 )
 
-// TokenizerRemoveCmd runs the model remove command
+// TokenizerRemoveCmd runs the tokenizer remove command
 func TokenizerRemoveCmd(args []string) {
 	// Process remove operation with given arguments
 	warningMessage, infoMessage, err := processRemove(args)
@@ -107,9 +107,12 @@ func processRemove(args []string) (warning, info string, err error) {
 
 	// delete tokenizer file and remove tokenizer to config file
 
-	err = config.RemoveTokenizersByName(modelToUse, tokenizersToRemove)
+	failedTokenizersRemove, err := config.RemoveTokenizersByName(modelToUse, tokenizersToRemove)
 	if err != nil {
 		return warning, info, err
+	}
+	if len(failedTokenizersRemove) > 0 {
+		info = fmt.Sprintf("failed to remove these tokenizers: %s", failedTokenizersRemove)
 	}
 
 	return warning, info, err
