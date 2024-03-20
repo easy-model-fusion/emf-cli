@@ -38,7 +38,7 @@ func TestRemoveTokenizer_Success(t *testing.T) {
 	configTokenizerMap := modelToUse.Tokenizers.Map()
 	var tokenizersToRemove model.Tokenizers
 
-	tokenizer, _ := configTokenizerMap["tokenizer0"]
+	tokenizer := configTokenizerMap["tokenizer0"]
 	tokenizersToRemove = append(tokenizersToRemove, tokenizer)
 
 	// Setup configuration directory and file

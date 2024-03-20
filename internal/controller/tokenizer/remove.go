@@ -63,7 +63,6 @@ func processRemove(args []string) (warning, info string, err error) {
 
 	configTokenizerMap := modelToUse.Tokenizers.Map()
 	var tokenizersToRemove model.Tokenizers
-	var tokenizersToRemoveNames []string
 	var invalidTokenizers []string
 	var tokenizerNames []string
 
@@ -84,7 +83,6 @@ func processRemove(args []string) (warning, info string, err error) {
 			invalidTokenizers = append(invalidTokenizers, name)
 		} else {
 			tokenizersToRemove = append(tokenizersToRemove, tokenizer)
-			tokenizersToRemoveNames = append(tokenizersToRemoveNames, name)
 		}
 	}
 
@@ -93,8 +91,7 @@ func processRemove(args []string) (warning, info string, err error) {
 	}
 
 	if len(tokenizersToRemove) == 0 {
-		info = fmt.Sprintf("no selected tokenizers to remove")
-		return warning, info, err
+		return warning, fmt.Sprintf("no selected tokenizers to remove"), err
 	}
 
 	// delete tokenizer file and remove tokenizer to config file

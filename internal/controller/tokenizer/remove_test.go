@@ -164,9 +164,6 @@ func TestRemoveTokenizer_WithWrongTokenizerArgs(t *testing.T) {
 		},
 	})
 
-	var expectedSelections []string
-	expectedSelections = append(expectedSelections, "tokenizer1")
-
 	// Initialize selected models list
 	var args []string
 	args = append(args, "model1")

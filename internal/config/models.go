@@ -81,10 +81,9 @@ func RemoveItemPhysically(itemPath string) error {
 			// Delete directory if empty
 			err = fileutil.DeleteDirectoryIfEmpty(path)
 			if err != nil {
+				return err
 			}
 		}
-	} else {
-		// item path is not in the current project
 	}
 	return nil
 }
