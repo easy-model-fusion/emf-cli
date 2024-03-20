@@ -1,38 +1,14 @@
 package huggingface
 
 import (
-	"errors"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"testing"
 )
 
 var h HuggingFace
 
-type huggingFaceMock struct {
-}
-
-func (h *huggingFaceMock) GetModelsByPipelineTag(_ PipelineTag, _ int) (Models, error) {
-	return Models{}, nil
-}
-
-func (h *huggingFaceMock) GetModelById(id string) (Model, error) {
-
-	if id == "Xibanya/sunset_city" {
-		return Model{Name: "Xibanya/sunset_city"}, nil
-	}
-
-	return Model{}, nil
-}
-
-func (h *huggingFaceMock) ValidModel(id string) (bool, error) {
-	if id == "not_valid" {
-		return false, errors.New("model not found")
-	}
-	return true, nil
-}
-
 func init() {
-	h = &huggingFaceMock{}
+	h = &MockHuggingFace{}
 }
 
 // TestGetModelsByPipelineTag_Success tests the GetModelsByPipelineTag method of the HuggingFace type.
