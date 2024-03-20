@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
+	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
-	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 )
@@ -29,81 +31,104 @@ func TokenizerUpdateCmd(args []string) {
 	}
 }
 
-func processUpdateTokenizer(args []string) (string, string, error) {
+func processUpdateTokenizer(args []string) (warning, info string, err error) {
 	// Load the configuration file
-	if config.GetViperConfig(config.FilePath) != nil {
-	}
-
-	sdk.SendUpdateSuggestion()
-
-	// Get all models from configuration file
-	configModels, err := config.GetModels()
+	err = config.GetViperConfig(config.FilePath)
 	if err != nil {
-		pterm.Error.Println(err.Error())
+		return warning, info, err
 	}
 
-	// Keep the downloaded models coming from huggingface (i.e. those that could potentially be updated)
-	hfModels := configModels.FilterWithSourceHuggingface()
-	hfModelsAvailable := hfModels.FilterWithIsDownloadedTrue()
-
-	// Get all configured models objects/names
-	var selectedModelNames []string
-	var selectedModels string
+	// No model name in args
 	if len(args) < 1 {
-		message := "Please select the model for which to update tokenizer"
-		values := hfModelsAvailable.GetNames()
-		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		selectedModelNames = app.UI().DisplayInteractiveMultiselect(message, values, checkMark, false, true)
-		app.UI().DisplaySelectedItems(selectedModelNames)
-
-	}
-	if len(selectedModelNames) == 0 && len(args) == 0 {
-		pterm.Error.Println("Please select at least one Model !")
+		return warning, info, fmt.Errorf("enter a model in argument")
 	}
 
-	if len(selectedModelNames) > 0 {
-		selectedModels = selectedModelNames[0]
-	} else {
-		selectedModels = args[0]
-	}
-
+	// Get all configured models objects/names and args model
+	selectedModel := args[0]
 	var models model.Models
 	models, err = config.GetModels()
 	if err != nil {
-		return "", "", err
+		return warning, info, fmt.Errorf("error get model: %s", err.Error())
 	}
 
-	sdk.SendUpdateSuggestion()
-
+	// checks the presence of the model
 	configModelsMap := models.Map()
-	modelsToUse, exists := configModelsMap[selectedModels]
+	modelToUse, exists := configModelsMap[selectedModel]
 	if !exists {
-		return "", "model do not exist", err
+		return warning, "Model is not configured", err
 	}
+	if modelToUse.Module != huggingface.TRANSFORMERS {
+		return warning, info, fmt.Errorf("only transformers models have tokzenizers")
+	}
+	// Check if model is physically present on the device
+	modelToUse.UpdatePaths()
 
-	var tokenizerNames []string
-	if modelsToUse.Module == huggingface.TRANSFORMERS {
-		availableNames := modelsToUse.Tokenizers.GetNames()
+	var updateTokenizers model.Tokenizers
+	if modelToUse.Module == huggingface.TRANSFORMERS {
+		availableNames := modelToUse.Tokenizers.GetNames()
 		if len(availableNames) > 0 {
 			message := "Please select the tokenizer(s) to be updated"
 			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
-			app.UI().DisplaySelectedItems(tokenizerNames)
+			tokenizerNames := app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
+			if len(tokenizerNames) != 0 {
+				app.UI().DisplaySelectedItems(tokenizerNames)
+				updateTokenizers = modelToUse.Tokenizers.FilterWithNames(tokenizerNames)
+			}
+
 		} else if len(args) > 1 {
+			args = stringutil.SliceRemoveDuplicates(args)
+			configTokenizersMap := modelToUse.Tokenizers.Map()
 			// Check if selectedTokenizerNames elements exist in tokenizerNames and add them to a new list
-			var selectedAndAvailableTokenizerNames []string
+			var failedTokenizers []string
+
 			for _, name := range args {
-				for _, availableName := range tokenizerNames {
-					if name == availableName {
-						selectedAndAvailableTokenizerNames = append(selectedAndAvailableTokenizerNames, name)
-						break
-					}
+				tokenizer, exists := configTokenizersMap[name]
+				if !exists {
+					failedTokenizers = append(failedTokenizers, name)
+				} else {
+					updateTokenizers = append(updateTokenizers, tokenizer)
 				}
 			}
-			tokenizerNames = selectedAndAvailableTokenizerNames
 		}
 	}
-	// Update the selected models'
-	modelsToUse.UpdateTokenizer(tokenizerNames)
-	return "", "Tokenizers update done", err
+
+	// Try to update all the given models
+	var failedTokenizers []string
+	var updatedTokenizers model.Tokenizers
+	for _, tokenizer := range updateTokenizers {
+
+		downloaderArgs := downloadermodel.Args{
+			ModelName:   modelToUse.Name,
+			ModelModule: string(modelToUse.Module),
+		}
+
+		success := modelToUse.DownloadTokenizer(tokenizer, downloaderArgs)
+		if !success {
+			failedTokenizers = append(failedTokenizers, tokenizer.Class)
+		} else {
+			updatedTokenizers = append(updatedTokenizers, tokenizer)
+		}
+	}
+
+	// Update tokenizers' configuration
+	if len(updatedTokenizers) > 0 {
+		//Reset model while keeping unchanged tokenizers
+		modelToUse.Tokenizers = modelToUse.Tokenizers.Difference(updatedTokenizers)
+		//Adding new version of updated tokenizers
+		modelToUse.Tokenizers = append(modelToUse.Tokenizers, updatedTokenizers...)
+
+		spinner, _ := pterm.DefaultSpinner.Start("Updating configuration file...")
+		err := config.AddModels(model.Models{modelToUse})
+		if err != nil {
+			spinner.Fail(fmt.Sprintf("Error while updating the configuration file: %s", err))
+		} else {
+			spinner.Success()
+		}
+	}
+
+	// Displaying the downloads that failed
+	if len(failedTokenizers) > 0 {
+		err = fmt.Errorf("the following models(s) couldn't be downloaded : %s", failedTokenizers)
+	}
+	return warning, "Tokenizers update done", err
 }

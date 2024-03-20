@@ -50,11 +50,32 @@ func (m Models) ContainsByName(name string) bool {
 	return false
 }
 
+// ContainsByName checks if a tokenizer slice contains the requested tokenizer name
+func (t Tokenizers) ContainsByName(class string) bool {
+	for _, currentModel := range t {
+		if currentModel.Class == class {
+			return true
+		}
+	}
+	return false
+}
+
 // Difference returns the models in that are not present in `slice`
 func (m Models) Difference(slice Models) Models {
 	var difference Models
 	for _, item := range m {
 		if !slice.ContainsByName(item.Name) {
+			difference = append(difference, item)
+		}
+	}
+	return difference
+}
+
+// Difference returns the tokenizers in that are not present in `slice`
+func (t Tokenizers) Difference(slice Tokenizers) Tokenizers {
+	var difference Tokenizers
+	for _, item := range t {
+		if !slice.ContainsByName(item.Class) {
 			difference = append(difference, item)
 		}
 	}
@@ -125,6 +146,24 @@ func (m Models) FilterWithNames(namesSlice []string) Models {
 	}
 
 	return namesModels
+}
+
+// FilterWithNames retrieves the tokenizers by their names given an input slice.
+func (t Tokenizers) FilterWithNames(namesSlice []string) Tokenizers {
+	// Create a map for faster lookup
+	namesMap := stringutil.SliceToMap(namesSlice)
+
+	// Slice of all the Tokenizers that were found
+	var namesTokenizers Tokenizers
+
+	// Find the requested Tokenizer
+	for _, existingTokenizer := range t {
+		// Check if this tokenizer exists and adds it to the result
+		if _, exists := namesMap[existingTokenizer.Class]; exists {
+			namesTokenizers = append(namesTokenizers, existingTokenizer)
+		}
+	}
+	return namesTokenizers
 }
 
 // FilterWithSourceHuggingface return a sub-slice of models sourcing from huggingface.
