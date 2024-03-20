@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
@@ -46,13 +48,30 @@ func RemoveTokenizerPhysically(tokenizerPath string) error {
 }
 
 // RemoveTokenizersByName removes specified tokenizers
-func RemoveTokenizersByName(tokenizersToRemove model.Tokenizers) error {
+func RemoveTokenizersByName(currentModel model.Model, tokenizersToRemove model.Tokenizers) error {
+	var failedTokenizers []string
+	var removedTokenizers model.Tokenizers
 	// Trying to remove the models
 	for _, item := range tokenizersToRemove {
+		// Starting client spinner animation
+		spinner := app.UI().StartSpinner(fmt.Sprintf("Removing tokenizer %s...", tokenizersToRemove))
 		err := RemoveTokenizerPhysically(item.Path)
 		if err != nil {
-			return err
+			spinner.Fail("failed to remove tokenizers")
+			failedTokenizers = append(failedTokenizers, item.Class)
+		} else {
+			spinner.Success()
+			removedTokenizers = append(removedTokenizers, item)
 		}
+	}
+	// update config file
+	spinner := app.UI().StartSpinner("Writing tokenizer to configuration file...")
+	currentModel.Tokenizers = currentModel.Tokenizers.Difference(removedTokenizers)
+	err := AddModels(model.Models{currentModel})
+	if err != nil {
+		spinner.Fail(fmt.Sprintf("Error while writing the tokenizer to the configuration file: %s", err))
+	} else {
+		spinner.Success()
 	}
 	return nil
 }

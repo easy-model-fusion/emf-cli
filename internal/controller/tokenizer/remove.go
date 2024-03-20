@@ -56,7 +56,7 @@ func processRemove(args []string) (warning, info string, err error) {
 
 	// checks the presence of the model
 	configModelsMap := models.Map()
-	modelsToUse, exists := configModelsMap[selectedModelName]
+	modelToUse, exists := configModelsMap[selectedModelName]
 	if !exists {
 		return warning, "Model is not configured", err
 	}
@@ -65,11 +65,11 @@ func processRemove(args []string) (warning, info string, err error) {
 	args = stringutil.SliceDifference(args, []string{selectedModelName})
 
 	// verify model's module
-	if modelsToUse.Module != huggingface.TRANSFORMERS {
+	if modelToUse.Module != huggingface.TRANSFORMERS {
 		return warning, info, fmt.Errorf("only transformers models have tokzenizers")
 	}
 
-	configTokenizerMap := modelsToUse.Tokenizers.Map()
+	configTokenizerMap := modelToUse.Tokenizers.Map()
 	var tokenizersToRemove model.Tokenizers
 	var tokenizersToRemoveNames []string
 	var invalidTokenizers []string
@@ -77,7 +77,7 @@ func processRemove(args []string) (warning, info string, err error) {
 
 	if len(args) == 0 {
 		// No tokenizer, asks for tokenizers names
-		availableNames := modelsToUse.Tokenizers.GetNames()
+		availableNames := modelToUse.Tokenizers.GetNames()
 		tokenizerNames = selectTokenizersToDelete(availableNames)
 
 	} else if len(args) > 0 {
@@ -106,24 +106,10 @@ func processRemove(args []string) (warning, info string, err error) {
 	}
 
 	// delete tokenizer file and remove tokenizer to config file
-	// Starting client spinner animation
-	spinner := app.UI().StartSpinner(fmt.Sprintf("Removing tokenizer %s...", tokenizersToRemoveNames))
 
-	err = config.RemoveTokenizersByName(tokenizersToRemove)
+	err = config.RemoveTokenizersByName(modelToUse, tokenizersToRemove)
 	if err != nil {
-		spinner.Fail("failed to remove tokenizers")
 		return warning, info, err
-	}
-
-	spinner.Success()
-
-	// update config file
-	spinner = app.UI().StartSpinner("Writing model to configuration file...")
-	err = config.AddModels(model.Models{modelsToUse})
-	if err != nil {
-		spinner.Fail(fmt.Sprintf("Error while writing the model to the configuration file: %s", err))
-	} else {
-		spinner.Success()
 	}
 
 	return warning, info, err
