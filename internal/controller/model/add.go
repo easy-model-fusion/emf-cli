@@ -13,7 +13,7 @@ import (
 )
 
 // RunAdd runs the add command to add models by name
-func RunAdd(args []string, customArgs downloadermodel.Args) {
+func RunAdd(args []string, customArgs downloadermodel.Args, yes bool) {
 	selectedModel, err := getRequestedModel(args)
 	if err != nil {
 		pterm.Error.Println(err.Error())
@@ -21,11 +21,11 @@ func RunAdd(args []string, customArgs downloadermodel.Args) {
 	}
 	if selectedModel.Name == "" {
 		pterm.Warning.Println("Please select a model type")
-		RunAdd(args, customArgs)
+		RunAdd(args, customArgs, yes)
 		return
 	}
 
-	warningMessage, err := processAdd(selectedModel, customArgs)
+	warningMessage, err := processAdd(selectedModel, customArgs, yes)
 	if warningMessage != "" {
 		pterm.Warning.Println(warningMessage)
 	}
@@ -96,13 +96,13 @@ func getRequestedModel(args []string) (model.Model, error) {
 	return selectedModel, nil
 }
 
-func processAdd(selectedModel model.Model, customArgs downloadermodel.Args) (warning string, err error) {
+func processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes bool) (warning string, err error) {
 	// User choose if he wishes to install the model directly
 	message := fmt.Sprintf("Do you wish to directly download %s?", selectedModel.Name)
-	selectedModel.AddToBinaryFile = app.UI().AskForUsersConfirmation(message)
+	selectedModel.AddToBinaryFile = yes || app.UI().AskForUsersConfirmation(message)
 
 	// Validate model for download
-	warningMessage, valid, err := config.Validate(selectedModel)
+	warningMessage, valid, err := config.Validate(selectedModel, yes)
 	if !valid {
 		return warningMessage, err
 	}

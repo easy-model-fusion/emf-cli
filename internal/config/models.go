@@ -163,7 +163,7 @@ func RemoveModelsByNames(models model.Models, modelsNamesToRemove []string) (war
 }
 
 // Validate to validate a model before adding it.
-func Validate(current model.Model) (warning string, success bool, err error) {
+func Validate(current model.Model, yes bool) (warning string, success bool, err error) {
 
 	// Check if model is already configured
 	models, err := GetModels()
@@ -186,7 +186,7 @@ func Validate(current model.Model) (warning string, success bool, err error) {
 	} else if downloaded && !current.AddToBinaryFile {
 		// Model won't be downloaded but a version is already downloaded
 		message := fmt.Sprintf("Model '%s' is already downloaded. Do you wish to delete it?", current.Name)
-		overwrite := app.UI().AskForUsersConfirmation(message)
+		overwrite := yes || app.UI().AskForUsersConfirmation(message)
 		if !overwrite {
 			warning = fmt.Sprintf("This model is already downloaded and should be checked manually %s", current.Name)
 			return warning, false, err
@@ -200,7 +200,7 @@ func Validate(current model.Model) (warning string, success bool, err error) {
 	} else if downloaded {
 		// A version of the model is already downloaded
 		message := fmt.Sprintf("Model '%s' is already downloaded. Do you wish to overwrite it?", current.Name)
-		overwrite := app.UI().AskForUsersConfirmation(message)
+		overwrite := yes || app.UI().AskForUsersConfirmation(message)
 		if !overwrite {
 			warning = fmt.Sprintf("This model is already downloaded and should be checked manually %s", current.Name)
 			return warning, false, err

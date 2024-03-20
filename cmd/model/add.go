@@ -16,14 +16,16 @@ var modelAddCmd = &cobra.Command{
 }
 
 var customArgs downloadermodel.Args
+var yes bool
 
 func init() {
 	// Bind cobra args to the downloader script args
 	customArgs.ToCobra(modelAddCmd)
 	customArgs.DirectoryPath = app.DownloadDirectoryPath
+	modelAddCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Automatic yes to prompts")
 }
 
 // runAddByNames runs the add command to add models by name
 func runAdd(cmd *cobra.Command, args []string) {
-	modelcontroller.RunAdd(args, customArgs)
+	modelcontroller.RunAdd(args, customArgs, yes)
 }
