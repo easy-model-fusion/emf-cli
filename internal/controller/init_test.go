@@ -37,6 +37,8 @@ func TestCreateProjectFiles(t *testing.T) {
 		{"test/config.yaml"},
 		{"test/.gitignore"},
 		{"test/main.py"},
+		{"test/requirements.txt"},
+		{"test/README.md"},
 	}
 	for _, testInstance := range tests {
 		t.Run(testInstance.path, func(t *testing.T) {
@@ -370,6 +372,8 @@ func testFilesCreated(t *testing.T) {
 		{"test/config.yaml"},
 		{"test/.gitignore"},
 		{"test/main.py"},
+		{"test/requirements.txt"},
+		{"test/README.md"},
 	}
 	for _, testInstance := range tests {
 		t.Run(testInstance.path, func(t *testing.T) {
