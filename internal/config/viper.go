@@ -9,16 +9,22 @@ import (
 // GetViperConfig Config loaded and return an error upon failure
 func GetViperConfig(confDirPath string) (err error) {
 	count := 0
+	// Store the current config file path to restore it in case of failure
+	tempConfPath := FilePath
+
+	// Try to load the config file 3 times max
 	for count < 3 {
 		err = Load(confDirPath)
 		if err != nil {
 			count++
 			confDirPath = UpdateConfigFilePath()
 		} else {
-			return err
+			return nil // Success
 		}
 	}
 
+	// restore the original config file path
+	FilePath = tempConfPath
 	app.UI().Error().Println(fmt.Sprintf("Error loading config file after %d attempts: %s", count, err))
 	return err
 }
