@@ -134,7 +134,7 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 			} else {
 				// User chose not to configure : removing the model
 				modelPath := filepath.Join(app.DownloadDirectoryPath, current.Name)
-				spinner := app.UI().StartSpinner(fmt.Sprintf("Removing tokenizer %s...", current.Name))
+				spinner := app.UI().StartSpinner(fmt.Sprintf("Removing model %s...", current.Name))
 				err := config.RemoveItemPhysically(modelPath)
 				if err != nil {
 					spinner.Fail("failed to remove item")
@@ -173,8 +173,15 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 						modelTokenizersToConfigure = append(modelTokenizersToConfigure, tokenizer)
 					} else {
 						// User chose not to configure : removing the tokenizer
-						// TODO : remove tokenizer => Waiting for issue 63 to be completed : [Client] Model tokenizer remove
-						continue // TODO : delete continue instruction
+						tokenizerPath := filepath.Join(app.DownloadDirectoryPath, tokenizer.Path)
+						spinner := app.UI().StartSpinner(fmt.Sprintf("Removing tokenizer %s...", tokenizer.Class))
+						err := config.RemoveItemPhysically(tokenizerPath)
+						if err != nil {
+							spinner.Fail("failed to remove item")
+							continue
+						} else {
+							spinner.Success()
+						}
 					}
 				}
 			}
