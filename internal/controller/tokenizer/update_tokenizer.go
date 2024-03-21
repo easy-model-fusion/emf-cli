@@ -72,7 +72,7 @@ func processUpdateTokenizer(args []string) (warning, info string, err error) {
 	availableNames := modelToUse.Tokenizers.GetNames()
 
 	// Processing arguments
-	if len(args) > 1 {
+	if len(args) == 0 {
 		args = stringutil.SliceRemoveDuplicates(args)
 		configTokenizersMap := modelToUse.Tokenizers.Map()
 		// Check if selectedTokenizerNames elements exist in tokenizerNames and add them to a new list
