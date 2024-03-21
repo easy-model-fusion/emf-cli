@@ -39,12 +39,15 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 type InstallController struct{}
 
 // Run runs the install command
 func (ic InstallController) Run(args []string, useTorchCuda bool) error {
+	start := time.Now()
+
 	// Only clean if config file exists (so we know it's a EMF project)
 	if err := config.GetViperConfig(config.FilePath); err != nil {
 		return err
@@ -73,6 +76,8 @@ func (ic InstallController) Run(args []string, useTorchCuda bool) error {
 
 	// handle errors in run tidy (new structure)
 	RunTidy()
+
+	app.UI().Success().Printfln("Project installed successfully in %v", time.Since(start))
 
 	return nil
 }
@@ -163,9 +168,9 @@ func (ic InstallController) installDependencies(pythonPath string, useTorchCuda 
 	err = app.Python().InstallDependencies(pipPath, "requirements.txt")
 	if err != nil {
 		spinner.Fail("Unable to install project dependencies: ", err)
-		return err
+	} else {
+		spinner.Success()
 	}
-	spinner.Success()
 
 	return nil
 }
