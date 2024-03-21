@@ -203,7 +203,7 @@ func Validate(current model.Model, yes bool) (warning string, success bool, err 
 			return warning, false, err
 		} else {
 			spinner.Success()
-			return warning, false, err
+			return warning, true, err
 		}
 	} else if downloaded {
 		// A version of the model is already downloaded
