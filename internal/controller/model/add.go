@@ -51,6 +51,7 @@ func getRequestedModel(args []string) (model.Model, error) {
 		return model.Model{}, err
 	}
 
+	// Verify if the user entered more than one argument
 	if len(args) > 1 {
 		return model.Model{}, fmt.Errorf("you can enter only one model at a time")
 	}
@@ -95,6 +96,7 @@ func getRequestedModel(args []string) (model.Model, error) {
 	return selectedModel, nil
 }
 
+// processAdd processes the selected model and tries to add it
 func processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes bool) (warning string, err error) {
 	// User choose if he wishes to install the model directly
 	message := fmt.Sprintf("Do you wish to directly download %s?", selectedModel.Name)

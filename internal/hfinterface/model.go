@@ -48,7 +48,7 @@ func GetModelsByMultiplePipelineTags(tags []string) (allModelsWithTags huggingfa
 }
 
 // getModelsByModules filters a list of models and return only the models with handled module types
-func getModelsByModules(models []huggingface.Model) (returnedModels []huggingface.Model) {
+func getModelsByModules(models huggingface.Models) (returnedModels huggingface.Models) {
 	modules := huggingface.AllModulesString()
 	for _, currentModel := range models {
 		if stringutil.SliceContainsItem(modules, string(currentModel.LibraryName)) {
