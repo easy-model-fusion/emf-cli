@@ -43,7 +43,7 @@ import (
 
 type InstallController struct{}
 
-// Run runs the init command
+// Run runs the install command
 func (ic InstallController) Run(args []string, useTorchCuda bool) error {
 	// Only clean if config file exists (so we know it's a EMF project)
 	if err := config.GetViperConfig(config.FilePath); err != nil {
@@ -56,18 +56,22 @@ func (ic InstallController) Run(args []string, useTorchCuda bool) error {
 		return errors.New("python not found")
 	}
 
+	// Create missing directories
 	if err := ic.createMissingDirectories(); err != nil {
 		return err
 	}
 
+	// Clone SDK & move files
 	if err := ic.cloneSDK(); err != nil {
 		return err
 	}
 
+	// Create virtual environment & install dependencies
 	if err := ic.installDependencies(pythonPath, useTorchCuda); err != nil {
 		return err
 	}
 
+	// handle errors in run tidy (new structure)
 	RunTidy()
 
 	return nil
@@ -101,18 +105,30 @@ func (ic InstallController) createMissingDirectories() (err error) {
 
 // installDependencies installs the dependencies for the project
 func (ic InstallController) installDependencies(pythonPath string, useTorchCuda bool) (err error) {
-	// Create virtual environment
-	spinner := app.UI().StartSpinner("Creating virtual environment")
-	err = app.Python().CreateVirtualEnv(pythonPath, ".venv")
+	// check if a venv is already installed
+	app.UI().Info().Println("Checking if a venv is already installed")
+
+	pipPath, err := app.Python().FindVEnvExecutable(".venv", "python")
 	if err != nil {
-		spinner.Fail("Unable to create venv: ", err)
-		return err
+		app.UI().Info().Println("No venv found, creating a new one")
+
+		// Create virtual environment
+		spinner := app.UI().StartSpinner("Creating virtual environment")
+
+		err = app.Python().CreateVirtualEnv(pythonPath, ".venv")
+		if err != nil {
+			spinner.Fail("Unable to create venv: ", err)
+			return err
+		}
+		spinner.Success()
+
+	} else {
+		app.UI().Info().Println("Venv found, installing dependencies")
 	}
-	spinner.Success()
 
 	// Install dependencies
-	spinner = app.UI().StartSpinner("Installing sdk dependencies")
-	pipPath, err := app.Python().FindVEnvExecutable(".venv", "pip")
+	spinner := app.UI().StartSpinner("Installing sdk dependencies")
+	pipPath, err = app.Python().FindVEnvExecutable(".venv", "pip")
 	if err != nil {
 		spinner.Fail("Unable to find pip: ", err)
 		return err
@@ -134,7 +150,7 @@ func (ic InstallController) installDependencies(pythonPath string, useTorchCuda 
 			return err
 		}
 
-		err = app.Python().ExecutePip(pipPath, []string{"install", "torch", "-f", "https://download.pytorch.org/whl/torch_stable.html"})
+		err = app.Python().ExecutePip(pipPath, []string{"install", "torch", "-f", app.TorchCudaURL})
 		if err != nil {
 			spinner.Fail("Unable to install torch cuda: ", err)
 			return err

@@ -197,7 +197,7 @@ func (ic InitController) installDependencies(projectName string, useTorchCuda bo
 			return err
 		}
 
-		err = app.Python().ExecutePip(pipPath, []string{"install", "torch", "-f", "https://download.pytorch.org/whl/torch_stable.html"})
+		err = app.Python().ExecutePip(pipPath, []string{"install", "torch", "-f", app.TorchCudaURL})
 		if err != nil {
 			spinner.Fail("Unable to install torch cuda: ", err)
 			return err
