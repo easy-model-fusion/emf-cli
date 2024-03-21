@@ -148,8 +148,8 @@ func (m Models) FilterWithNames(namesSlice []string) Models {
 	return namesModels
 }
 
-// FilterWithNames retrieves the tokenizers by their names given an input slice.
-func (t Tokenizers) FilterWithNames(namesSlice []string) Tokenizers {
+// FilterWithClass retrieves the tokenizers by their class given an input slice.
+func (t Tokenizers) FilterWithClass(namesSlice []string) Tokenizers {
 	// Create a map for faster lookup
 	namesMap := stringutil.SliceToMap(namesSlice)
 
