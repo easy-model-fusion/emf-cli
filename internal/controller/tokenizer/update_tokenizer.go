@@ -65,31 +65,33 @@ func processUpdateTokenizer(args []string) (warning, info string, err error) {
 
 	var updateTokenizers model.Tokenizers
 	var failedTokenizers []string
-	if modelToUse.Module == huggingface.TRANSFORMERS {
-		availableNames := modelToUse.Tokenizers.GetNames()
+	// Remove model name from arguments
+	args = args[1:]
+	
+	// Extracting available tokenizers
+	availableNames := modelToUse.Tokenizers.GetNames()
 
-		if len(args) > 1 {
-			args = stringutil.SliceRemoveDuplicates(args)
-			configTokenizersMap := modelToUse.Tokenizers.Map()
-			// Check if selectedTokenizerNames elements exist in tokenizerNames and add them to a new list
+	// Processing arguments
+	if len(args) > 1 {
+		args = stringutil.SliceRemoveDuplicates(args)
+		configTokenizersMap := modelToUse.Tokenizers.Map()
+		// Check if selectedTokenizerNames elements exist in tokenizerNames and add them to a new list
 
-			for _, name := range args {
-				tokenizer, exists := configTokenizersMap[name]
-				if !exists {
-					failedTokenizers = append(failedTokenizers, name)
-				} else {
-					updateTokenizers = append(updateTokenizers, tokenizer)
-				}
+		for _, name := range args {
+			tokenizer, exists := configTokenizersMap[name]
+			if !exists {
+				failedTokenizers = append(failedTokenizers, name)
+			} else {
+				updateTokenizers = append(updateTokenizers, tokenizer)
 			}
-		} else if len(availableNames) > 0 {
-			message := "Please select the tokenizer(s) to be updated"
-			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-			tokenizerNames := app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
-			if len(tokenizerNames) != 0 {
-				app.UI().DisplaySelectedItems(tokenizerNames)
-				updateTokenizers = modelToUse.Tokenizers.FilterWithNames(tokenizerNames)
-			}
-
+		}
+	} else if len(availableNames) > 0 {
+		message := "Please select the tokenizer(s) to be updated"
+		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+		tokenizerNames := app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
+		if len(tokenizerNames) != 0 {
+			app.UI().DisplaySelectedItems(tokenizerNames)
+			updateTokenizers = modelToUse.Tokenizers.FilterWithNames(tokenizerNames)
 		}
 	}
 
