@@ -13,8 +13,6 @@ const modelEndpoint = "/models"
 type HuggingFace interface {
 	GetModelsByPipelineTag(tag PipelineTag, limit int) (Models, error)
 	GetModelById(id string) (Model, error)
-	ValidModel(id string) (bool, error)
-	GetModelsByMultiplePipelineTags(tags []string) (allModelsWithTags Models, err error)
 }
 
 type huggingFace struct {

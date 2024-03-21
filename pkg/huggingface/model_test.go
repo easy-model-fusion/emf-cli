@@ -5,12 +5,6 @@ import (
 	"testing"
 )
 
-var h HuggingFace
-
-func init() {
-	h = &MockHuggingFace{}
-}
-
 // TestGetModelsByPipelineTag_Success tests the GetModelsByPipelineTag method of the HuggingFace type.
 // It initializes a HuggingFace instance and calls GetModelsByPipelineTag to retrieve models by pipeline tag.
 // It asserts that the API call is successful, the expected number of models are returned, and that each model has a non-empty name.
@@ -52,33 +46,4 @@ func TestGetModelById(t *testing.T) {
 	apiModel, err = h.GetModelById("Xibanya/sunset_city")
 	test.AssertNotEqual(t, err, nil, "The api call should've failed.")
 	test.AssertEqual(t, apiModel, Model{}, "The api call should've returned an empty model.")
-}
-
-// TestValidModel_Valid tests the ValidModel method of the HuggingFace type with a valid model ID.
-// It initializes a HuggingFace instance and calls ValidModel to check if a model with the specified ID exists.
-// It asserts that the API call is successful and that the model ID is valid.
-func TestValidModel_Valid(t *testing.T) {
-	h := NewHuggingFace(BaseUrl, "")
-	valid, err := h.ValidModel("Xibanya/sunset_city")
-	test.AssertEqual(t, err, nil, "The api call should've passed.")
-	test.AssertEqual(t, valid, true, "Model's name should be valid.")
-}
-
-// TestValidModel_NotValid tests the ValidModel method of the HuggingFace type with an invalid model ID.
-// It initializes a HuggingFace instance and calls ValidModel to check if a model with the specified ID exists.
-// It asserts that the API call fails and that the model ID is not valid.
-func TestValidModel_NotValid(t *testing.T) {
-	valid, err := h.ValidModel("not_valid")
-	test.AssertNotEqual(t, err, nil, "The api call shouldn't have passed.")
-	test.AssertEqual(t, valid, false, "Model's name shouldn't be valid.")
-}
-
-// TestValidModel_BadUrl tests the ValidModel method of the HuggingFace type with a bad URL.
-// It initializes a HuggingFace instance with a bad URL and calls ValidModel to check if a model with the specified ID exists.
-// It asserts that the API call fails and that the model ID is not valid.
-func TestValidModel_BadUrl(t *testing.T) {
-	h := NewHuggingFace("% xw*cbadurl", "")
-	valid, err := h.ValidModel("Xibanya/sunset_city")
-	test.AssertNotEqual(t, err, nil, "The api call shouldn't have passed.")
-	test.AssertEqual(t, valid, false, "Model's name shouldn't be valid.")
 }

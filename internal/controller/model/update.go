@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/hfinteface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
@@ -99,7 +100,7 @@ func getUpdatableModels(modelNames []string, hfModelsAvailable model.Models) (
 	for _, name := range modelNames {
 
 		// Fetching model from huggingface
-		huggingfaceModel, err := app.H().GetModelById(name)
+		huggingfaceModel, err := hfinteface.GetModelById(name)
 		if err != nil {
 			// Model not found : nothing more to do here, skipping to the next one
 			notFoundModelNames = append(notFoundModelNames, name)

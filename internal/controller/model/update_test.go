@@ -25,7 +25,7 @@ func TestRunModelUpdate_Success(t *testing.T) {
 	args = append(args, "model4")
 
 	// Create hugging face mock
-	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022"}}
+	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022", LibraryName: huggingface.TRANSFORMERS}}
 	app.SetHuggingFace(&huggingFaceInterface)
 
 	// Create Ui mock
@@ -68,7 +68,7 @@ func TestRunModelUpdate_Fail(t *testing.T) {
 	args = append(args, "model4")
 
 	// Create hugging face mock
-	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022"}}
+	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022", LibraryName: huggingface.TRANSFORMERS}}
 	app.SetHuggingFace(&huggingFaceInterface)
 
 	// Create Ui mock
@@ -111,7 +111,7 @@ func TestProcessUpdate(t *testing.T) {
 	args = append(args, "model4")
 
 	// Create hugging face mock
-	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022"}}
+	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022", LibraryName: huggingface.TRANSFORMERS}}
 	app.SetHuggingFace(&huggingFaceInterface)
 
 	// Create Ui mock
@@ -151,7 +151,7 @@ func TestProcessUpdate_WithNoArgs(t *testing.T) {
 	expectedSelections = append(expectedSelections, "model3")
 
 	// Create hugging face mock
-	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022"}}
+	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022", LibraryName: huggingface.TRANSFORMERS}}
 	app.SetHuggingFace(&huggingFaceInterface)
 
 	// Create Ui mock
@@ -189,7 +189,7 @@ func TestProcessUpdate_WithNoModelsSelected(t *testing.T) {
 	var expectedSelections []string
 
 	// Create hugging face mock
-	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022"}}
+	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022", LibraryName: huggingface.TRANSFORMERS}}
 	app.SetHuggingFace(&huggingFaceInterface)
 
 	// Create Ui mock
@@ -284,7 +284,7 @@ func TestGetUpdatableModels(t *testing.T) {
 	modelNames = append(modelNames, "model4")
 
 	// Create hugging face mock
-	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022"}}
+	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022", LibraryName: huggingface.TRANSFORMERS}}
 	app.SetHuggingFace(&huggingFaceInterface)
 
 	// get updatable models

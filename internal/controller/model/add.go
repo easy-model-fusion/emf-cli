@@ -5,6 +5,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
+	"github.com/easy-model-fusion/emf-cli/internal/hfinteface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
@@ -65,7 +66,7 @@ func getRequestedModel(args []string) (model.Model, error) {
 		}
 
 		// Verify if the model is a valid hugging face model
-		huggingfaceModel, err := app.H().GetModelById(name)
+		huggingfaceModel, err := hfinteface.GetModelById(name)
 		if err != nil {
 			// Model not found
 			return model.Model{}, fmt.Errorf("Model %s not valid : "+err.Error(), name)
@@ -160,7 +161,7 @@ func selectTags() []string {
 
 // getModelsList get list of models to display
 func getModelsList(tags []string, existingModels model.Models) (model.Models, error) {
-	allModelsWithTags, err := app.H().GetModelsByMultiplePipelineTags(tags)
+	allModelsWithTags, err := hfinteface.GetModelsByMultiplePipelineTags(tags)
 	// Map API responses to model.Models
 	var mappedModels model.Models
 	for _, huggingfaceModel := range allModelsWithTags {
