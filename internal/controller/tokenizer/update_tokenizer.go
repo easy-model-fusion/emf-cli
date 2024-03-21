@@ -12,7 +12,7 @@ import (
 	"github.com/pterm/pterm"
 )
 
-// TokenizerUpdateCmd TokenizerRemoveCmd runs the model remove command
+// TokenizerUpdateCmd TokenizerRemoveCmd runs the model update command
 func TokenizerUpdateCmd(args []string) {
 	// Process remove operation with given arguments
 	warningMessage, infoMessage, err := processUpdateTokenizer(args)
@@ -31,6 +31,7 @@ func TokenizerUpdateCmd(args []string) {
 	}
 }
 
+// processUpdateTokenizer processes tokenizers to be updated
 func processUpdateTokenizer(args []string) (warning, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
@@ -44,52 +45,53 @@ func processUpdateTokenizer(args []string) (warning, info string, err error) {
 	}
 
 	// Get all configured models objects/names and args model
-	selectedModel := args[0]
-	var models model.Models
-	models, err = config.GetModels()
+	models, err := config.GetModels()
 	if err != nil {
 		return warning, info, fmt.Errorf("error get model: %s", err.Error())
 	}
 
-	// checks the presence of the model
+	// Checks the presence of the model
+	selectedModel := args[0]
 	configModelsMap := models.Map()
 	modelToUse, exists := configModelsMap[selectedModel]
 	if !exists {
 		return warning, "Model is not configured", err
 	}
+
+	// Verify model's module
 	if modelToUse.Module != huggingface.TRANSFORMERS {
 		return warning, info, fmt.Errorf("only transformers models have tokzenizers")
 	}
-	// Check if model is physically present on the device
-	modelToUse.UpdatePaths()
 
 	var updateTokenizers model.Tokenizers
 	var failedTokenizers []string
-	if modelToUse.Module == huggingface.TRANSFORMERS {
-		availableNames := modelToUse.Tokenizers.GetNames()
+	// Remove model name from arguments
+	args = args[1:]
+	
+	// Extracting available tokenizers
+	availableNames := modelToUse.Tokenizers.GetNames()
 
-		if len(args) > 1 {
-			args = stringutil.SliceRemoveDuplicates(args)
-			configTokenizersMap := modelToUse.Tokenizers.Map()
-			// Check if selectedTokenizerNames elements exist in tokenizerNames and add them to a new list
+	// Processing arguments
+	if len(args) == 0 {
+		args = stringutil.SliceRemoveDuplicates(args)
+		configTokenizersMap := modelToUse.Tokenizers.Map()
+		// Check if selectedTokenizerNames elements exist in tokenizerNames and add them to a new list
 
-			for _, name := range args {
-				tokenizer, exists := configTokenizersMap[name]
-				if !exists {
-					failedTokenizers = append(failedTokenizers, name)
-				} else {
-					updateTokenizers = append(updateTokenizers, tokenizer)
-				}
+		for _, name := range args {
+			tokenizer, exists := configTokenizersMap[name]
+			if !exists {
+				failedTokenizers = append(failedTokenizers, name)
+			} else {
+				updateTokenizers = append(updateTokenizers, tokenizer)
 			}
-		} else if len(availableNames) > 0 {
-			message := "Please select the tokenizer(s) to be updated"
-			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-			tokenizerNames := app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
-			if len(tokenizerNames) != 0 {
-				app.UI().DisplaySelectedItems(tokenizerNames)
-				updateTokenizers = modelToUse.Tokenizers.FilterWithNames(tokenizerNames)
-			}
-
+		}
+	} else if len(availableNames) > 0 {
+		message := "Please select the tokenizer(s) to be updated"
+		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+		tokenizerNames := app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
+		if len(tokenizerNames) != 0 {
+			app.UI().DisplaySelectedItems(tokenizerNames)
+			updateTokenizers = modelToUse.Tokenizers.FilterWithNames(tokenizerNames)
 		}
 	}
 
