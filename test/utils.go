@@ -28,7 +28,7 @@ type TestSuite struct {
 }
 
 // CreateFullTestSuite Create a full test suite
-// Please delete the directory after use (defer os.RemoveAll(dname))
+// Please clean test suite after use (defer ts.CleanTestSuite())
 func (ts *TestSuite) CreateFullTestSuite(t *testing.T) (directoryPath string) {
 	// Create temporary directory
 	dname, err := os.MkdirTemp("", "emf-cli")

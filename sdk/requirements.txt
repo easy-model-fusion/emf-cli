@@ -1,0 +1,4 @@
+# Please add your requirements here
+# The requirements for the sdk are already installed
+# Please note that the requirements priority is lower than the sdk requirements
+# So if you have a requirement that is already installed by the sdk, you can remove it from here

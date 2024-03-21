@@ -43,6 +43,7 @@ func init() {
 	rootCmd.AddCommand(upgradeCmd)
 	rootCmd.AddCommand(buildCmd)
 	rootCmd.AddCommand(cleanCmd)
+	rootCmd.AddCommand(installCmd)
 	rootCmd.AddCommand(tidyCmd)
 	rootCmd.AddCommand(cmdmodel.ModelCmd)
 }
