@@ -30,8 +30,8 @@ func setupConfigFile(models model.Models) error {
 	return config.WriteViperConfig()
 }
 
-// TestTokenizerUpdateCmd tests the update command with valid args
-func TestTokenizerUpdateCmd(t *testing.T) {
+// TestTokenizerUpdateCmd_ValidArgs tests the update command with valid args
+func TestTokenizerUpdateCmd_ValidArgs(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
@@ -60,9 +60,9 @@ func TestTokenizerUpdateCmd(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
 }
 
-// TestNoModuleTransformersUpdate tests the update command
+// TestTokenizerUpdateCmd_NoModuleTransformersUpdate tests the update command
 // with non-existing tokenizer path
-func TestNoModuleTransformersUpdate(t *testing.T) {
+func TestTokenizerUpdateCmd_NoModuleTransformersUpdate(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name: "model1",
@@ -89,9 +89,9 @@ func TestNoModuleTransformersUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
 }
 
-// TestWrongModelNameUpdate tests the update command
+// TestTokenizerUpdateCmd_WrongModelNameUpdate tests the update command
 // with the wrong model name
-func TestWrongModelNameUpdate(t *testing.T) {
+func TestTokenizerUpdateCmd_WrongModelNameUpdate(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
@@ -117,9 +117,9 @@ func TestWrongModelNameUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Operation failed, no model found")
 }
 
-// TestNoArgsUpdate tests the update command
+// TestTokenizerUpdateCmd_NoArgs tests the update command
 // with no args
-func TestNoArgsUpdate(t *testing.T) {
+func TestTokenizerUpdateCmd_NoArgs(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
@@ -143,9 +143,9 @@ func TestNoArgsUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Operation failed.")
 }
 
-// TestNoTokenizersArgsUpdate tests the update command
+// TestTokenizerUpdateCmd_NoTokenizerInArgs tests the update command
 // with no tokenizers in args
-func TestNoTokenizersArgsUpdate(t *testing.T) {
+func TestTokenizerUpdateCmd_NoTokenizerInArgs(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
@@ -178,9 +178,9 @@ func TestNoTokenizersArgsUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
 
-// TestTokenizersUpdate tests the update command
-// with no tokenizers in args
-func TestTokenizersUpdate(t *testing.T) {
+// TestTokenizerUpdateCmd_NoTokenizerInArgsDownload tests the update command
+// with no tokenizers in args and downloading
+func TestTokenizerUpdateCmd_NoTokenizerInArgsDownload(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
@@ -217,8 +217,8 @@ func TestTokenizersUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
 
-// TestTokenizersUpdateError tests the error return of the update command
-func TestTokenizersUpdateError(t *testing.T) {
+// TestTokenizerUpdateCmd_UpdateError tests the error return of the update command
+func TestTokenizerUpdateCmd_UpdateError(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
