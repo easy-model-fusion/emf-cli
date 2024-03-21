@@ -4,6 +4,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	modelcontroller "github.com/easy-model-fusion/emf-cli/internal/controller/model"
 	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/spf13/cobra"
 )
 
@@ -27,5 +28,7 @@ func init() {
 
 // runAddByNames runs the add command to add models by name
 func runAdd(cmd *cobra.Command, args []string) {
+	// Initialize hugging face api
+	app.InitHuggingFace(huggingface.BaseUrl, "")
 	modelcontroller.RunAdd(args, customArgs, yes)
 }

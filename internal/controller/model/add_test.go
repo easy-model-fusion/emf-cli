@@ -505,3 +505,36 @@ func TestProcessAdd_WithErrorOnGenCode(t *testing.T) {
 	test.AssertEqual(t, len(models), 3)
 	test.AssertEqual(t, models[2].Name, "model2")
 }
+
+func TestRunAdd(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1"})
+	existingModels = append(existingModels, model.Model{Name: "model3"})
+	args := []string{"model2"}
+	downloaderArgs := downloadermodel.Args{}
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Create huggingface mock
+	huggingfaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{Name: "model2", LibraryName: huggingface.TRANSFORMERS}}
+	app.SetHuggingFace(&huggingfaceInterface)
+
+	//Create downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	app.SetDownloader(&downloader)
+
+	// Run add method
+	RunAdd(args, downloaderArgs, true)
+	models, err := config.GetModels()
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(models), 3)
+	test.AssertEqual(t, models[2].Name, "model2")
+}
