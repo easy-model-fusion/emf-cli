@@ -75,7 +75,7 @@ func (m Models) Difference(slice Models) Models {
 func (t Tokenizers) Difference(slice Tokenizers) Tokenizers {
 	var difference Tokenizers
 	for _, item := range t {
-		if !slice.ContainsByName(item.Class) {
+		if !slice.ContainsByClass(item.Class) {
 			difference = append(difference, item)
 		}
 	}
