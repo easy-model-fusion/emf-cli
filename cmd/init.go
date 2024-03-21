@@ -4,10 +4,12 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/controller"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var (
-	useTorchCuda bool
+	initUseTorchCuda bool
+	initController   controller.InitController
 )
 
 // initCmd represents the init command
@@ -20,9 +22,13 @@ var initCmd = &cobra.Command{
 }
 
 func runInit(cmd *cobra.Command, args []string) {
-	controller.RunInit(args, useTorchCuda, "")
+	err := initController.Run(args, initUseTorchCuda, "")
+	if err != nil {
+		os.Exit(1)
+	}
 }
 
 func init() {
-	initCmd.Flags().BoolVarP(&useTorchCuda, "cuda", "c", false, "Use torch with cuda")
+	initController = controller.InitController{}
+	initCmd.Flags().BoolVarP(&initUseTorchCuda, "cuda", "c", false, "Use torch with cuda")
 }
