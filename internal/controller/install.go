@@ -108,7 +108,7 @@ func (ic InstallController) installDependencies(pythonPath string, useTorchCuda 
 	// check if a venv is already installed
 	app.UI().Info().Println("Checking if a venv is already installed")
 
-	pipPath, err := app.Python().FindVEnvExecutable(".venv", "python")
+	_, err = app.Python().FindVEnvExecutable(".venv", "python")
 	if err != nil {
 		app.UI().Info().Println("No venv found, creating a new one")
 
@@ -128,7 +128,7 @@ func (ic InstallController) installDependencies(pythonPath string, useTorchCuda 
 
 	// Install dependencies
 	spinner := app.UI().StartSpinner("Installing sdk dependencies")
-	pipPath, err = app.Python().FindVEnvExecutable(".venv", "pip")
+	pipPath, err := app.Python().FindVEnvExecutable(".venv", "pip")
 	if err != nil {
 		spinner.Fail("Unable to find pip: ", err)
 		return err

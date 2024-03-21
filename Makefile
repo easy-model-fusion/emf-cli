@@ -1,5 +1,5 @@
 APP ?= emf-cli
-9 ?=
+GOOS ?=
 TAG ?= v1.0.0
 BUILD ?= 0
 BUILD_DATE = $(shell date +%FT%T)
