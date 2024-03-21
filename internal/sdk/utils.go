@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
-	"github.com/pterm/pterm"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
@@ -59,9 +58,9 @@ func SendUpdateSuggestion() {
 		return
 	}
 
-	pterm.DefaultBox.Println(fmt.Sprintf("A new version of the SDK (%s) is available!\n"+
+	app.UI().DefaultBox().Println(fmt.Sprintf("A new version of the SDK (%s) is available!\n"+
 		"To update, run 'emf-cli upgrade'", tag))
-	pterm.Println()
+	fmt.Println()
 
 	setUpdateSuggestion(true)
 }
@@ -71,7 +70,7 @@ func SendUpdateSuggestion() {
 func Upgrade() error {
 	tag, ok := checkForUpdates()
 	if !ok {
-		pterm.Info.Println("SDK is already up to date")
+		app.UI().Info().Println("SDK is already up to date")
 		return errors.New("sdk is already up to date")
 	}
 
@@ -131,6 +130,6 @@ func Upgrade() error {
 	}
 	spinner.Success()
 
-	pterm.Success.Println(fmt.Sprintf("SDK successfully updated to version %s", tag))
+	app.UI().Success().Println(fmt.Sprintf("SDK successfully updated to version %s", tag))
 	return nil
 }
