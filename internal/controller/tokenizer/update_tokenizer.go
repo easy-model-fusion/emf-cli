@@ -44,24 +44,23 @@ func processUpdateTokenizer(args []string) (warning, info string, err error) {
 	}
 
 	// Get all configured models objects/names and args model
-	selectedModel := args[0]
-	var models model.Models
-	models, err = config.GetModels()
+	models, err := config.GetModels()
 	if err != nil {
 		return warning, info, fmt.Errorf("error get model: %s", err.Error())
 	}
 
-	// checks the presence of the model
+	// Checks the presence of the model
+	selectedModel := args[0]
 	configModelsMap := models.Map()
 	modelToUse, exists := configModelsMap[selectedModel]
 	if !exists {
 		return warning, "Model is not configured", err
 	}
+	
+	// Verify model's module
 	if modelToUse.Module != huggingface.TRANSFORMERS {
 		return warning, info, fmt.Errorf("only transformers models have tokzenizers")
 	}
-	// Check if model is physically present on the device
-	modelToUse.UpdatePaths()
 
 	var updateTokenizers model.Tokenizers
 	var failedTokenizers []string
