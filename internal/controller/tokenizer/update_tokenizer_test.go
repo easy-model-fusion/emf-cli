@@ -30,6 +30,7 @@ func setupConfigFile(models model.Models) error {
 	return config.WriteViperConfig()
 }
 
+// TestTokenizerUpdateCmd tests the update command with valid args
 func TestTokenizerUpdateCmd(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
@@ -59,6 +60,8 @@ func TestTokenizerUpdateCmd(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
 }
 
+// TestNoModuleTransformersUpdate tests the update command
+// with non-existing tokenizer path
 func TestNoModuleTransformersUpdate(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
@@ -86,6 +89,8 @@ func TestNoModuleTransformersUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
 }
 
+// TestWrongModelNameUpdate tests the update command
+// with the wrong model name
 func TestWrongModelNameUpdate(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
@@ -112,6 +117,8 @@ func TestWrongModelNameUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Operation failed, no model found")
 }
 
+// TestNoArgsUpdate tests the update command
+// with no args
 func TestNoArgsUpdate(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
@@ -136,6 +143,8 @@ func TestNoArgsUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Operation failed.")
 }
 
+// TestNoTokenizersArgsUpdate tests the update command
+// with no tokenizers in args
 func TestNoTokenizersArgsUpdate(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
@@ -169,6 +178,8 @@ func TestNoTokenizersArgsUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
 
+// TestTokenizersUpdate tests the update command
+// with no tokenizers in args
 func TestTokenizersUpdate(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
@@ -206,6 +217,7 @@ func TestTokenizersUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
 
+// TestTokenizersUpdateError tests the error return of the update command
 func TestTokenizersUpdateError(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
