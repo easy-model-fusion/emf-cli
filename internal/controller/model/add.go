@@ -5,7 +5,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
-	"github.com/easy-model-fusion/emf-cli/internal/hfinteface"
+	"github.com/easy-model-fusion/emf-cli/internal/hfinterface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
@@ -51,8 +51,11 @@ func getRequestedModel(args []string) (model.Model, error) {
 		return model.Model{}, err
 	}
 
-	var selectedModel model.Model
+	if len(args) > 1 {
+		return model.Model{}, fmt.Errorf("you can enter only one model at a time")
+	}
 
+	var selectedModel model.Model
 	// Add models passed in args
 	if len(args) == 1 {
 		name := args[0]
@@ -64,7 +67,7 @@ func getRequestedModel(args []string) (model.Model, error) {
 		}
 
 		// Verify if the model is a valid hugging face model
-		huggingfaceModel, err := hfinteface.GetModelById(name)
+		huggingfaceModel, err := hfinterface.GetModelById(name)
 		if err != nil {
 			// Model not found
 			return model.Model{}, fmt.Errorf("Model %s not valid : "+err.Error(), name)
@@ -72,8 +75,6 @@ func getRequestedModel(args []string) (model.Model, error) {
 
 		// Map API response to model.Model
 		selectedModel = model.FromHuggingfaceModel(huggingfaceModel)
-	} else if len(args) > 1 {
-		return model.Model{}, fmt.Errorf("you can enter only one model at a time")
 	} else {
 		// If no models entered by user or if user entered -s/--select
 		// Get selected tags
@@ -161,7 +162,7 @@ func downloadModel(selectedModel model.Model, downloaderArgs downloadermodel.Arg
 
 // getModelsList get list of models to display
 func getModelsList(tags []string, existingModels model.Models) (model.Models, error) {
-	allModelsWithTags, err := hfinteface.GetModelsByMultiplePipelineTags(tags)
+	allModelsWithTags, err := hfinterface.GetModelsByMultiplePipelineTags(tags)
 	// Map API responses to model.Models
 	var mappedModels model.Models
 	for _, huggingfaceModel := range allModelsWithTags {

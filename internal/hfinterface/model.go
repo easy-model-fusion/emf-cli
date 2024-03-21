@@ -1,4 +1,4 @@
-package hfinteface
+package hfinterface
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package hfinteface
+package hfinterface
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
