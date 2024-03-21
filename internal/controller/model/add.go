@@ -135,46 +135,7 @@ func processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes 
 	return warning, err
 }
 
-// selectModel displays a selector of models from which the user will choose to add to his project
-func selectModel(models model.Models) model.Model {
-	// Build a selector with each model name
-	availableModelNames := models.GetNames()
-	message := "Please select the model(s) to be added"
-	selectedModelName := app.UI().DisplayInteractiveSelect(message, availableModelNames, true)
-
-	// Get newly selected models
-	selectedModels := models.FilterWithNames([]string{selectedModelName})
-
-	// returns newly selected models + models entered in args
-	return selectedModels[0]
-}
-
-// selectTags displays a multiselect to help the user choose the model types
-func selectTags() []string {
-	// Build a multiselect with each tag name
-	message := "Please select the type of models you want to add"
-	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, false, true)
-
-	return selectedTags
-}
-
-// getModelsList get list of models to display
-func getModelsList(tags []string, existingModels model.Models) (model.Models, error) {
-	allModelsWithTags, err := hfinteface.GetModelsByMultiplePipelineTags(tags)
-	// Map API responses to model.Models
-	var mappedModels model.Models
-	for _, huggingfaceModel := range allModelsWithTags {
-		mappedModel := model.FromHuggingfaceModel(huggingfaceModel)
-		mappedModels = append(mappedModels, mappedModel)
-	}
-	if err != nil {
-		return model.Models{}, fmt.Errorf("error while calling api endpoint")
-	}
-
-	return mappedModels.Difference(existingModels), nil
-}
-
+// downloadModel tries to download the selected model
 func downloadModel(selectedModel model.Model, downloaderArgs downloadermodel.Args) (model.Model, error) {
 	// Prepare the script arguments
 	downloaderArgs.ModelName = selectedModel.Name
@@ -199,4 +160,44 @@ func downloadModel(selectedModel model.Model, downloaderArgs downloadermodel.Arg
 	}
 
 	return selectedModel, nil
+}
+
+// getModelsList get list of models to display
+func getModelsList(tags []string, existingModels model.Models) (model.Models, error) {
+	allModelsWithTags, err := hfinteface.GetModelsByMultiplePipelineTags(tags)
+	// Map API responses to model.Models
+	var mappedModels model.Models
+	for _, huggingfaceModel := range allModelsWithTags {
+		mappedModel := model.FromHuggingfaceModel(huggingfaceModel)
+		mappedModels = append(mappedModels, mappedModel)
+	}
+	if err != nil {
+		return model.Models{}, fmt.Errorf("error while calling api endpoint")
+	}
+
+	return mappedModels.Difference(existingModels), nil
+}
+
+// selectTags displays a multiselect to help the user choose the model types
+func selectTags() []string {
+	// Build a multiselect with each tag name
+	message := "Please select the type of models you want to add"
+	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
+	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, false, true)
+
+	return selectedTags
+}
+
+// selectModel displays a selector of models from which the user will choose to add to his project
+func selectModel(models model.Models) model.Model {
+	// Build a selector with each model name
+	availableModelNames := models.GetNames()
+	message := "Please select the model(s) to be added"
+	selectedModelName := app.UI().DisplayInteractiveSelect(message, availableModelNames, true)
+
+	// Get newly selected models
+	selectedModels := models.FilterWithNames([]string{selectedModelName})
+
+	// returns newly selected models + models entered in args
+	return selectedModels[0]
 }
