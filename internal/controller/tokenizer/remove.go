@@ -39,24 +39,21 @@ func processRemove(args []string) (warning, info string, err error) {
 	}
 
 	// Get all configured models objects/names and args model
-	selectedModelName := args[0]
 	var models model.Models
 	models, err = config.GetModels()
 	if err != nil {
 		return warning, info, fmt.Errorf("error get model: %s", err.Error())
 	}
 
-	// checks the presence of the model
+	// Checks the presence of the model
+	selectedModelName := args[0]
 	configModelsMap := models.Map()
 	modelToUse, exists := configModelsMap[selectedModelName]
 	if !exists {
 		return warning, "Model is not configured", err
 	}
 
-	// remove model name from arguments
-	args = stringutil.SliceDifference(args, []string{selectedModelName})
-
-	// verify model's module
+	// Verify model's module
 	if modelToUse.Module != huggingface.TRANSFORMERS {
 		return warning, info, fmt.Errorf("only transformers models have tokzenizers")
 	}
@@ -66,6 +63,8 @@ func processRemove(args []string) (warning, info string, err error) {
 	var invalidTokenizers []string
 	var tokenizerNames []string
 
+       // Remove model name from arguments
+	args = args[1:]
 	if len(args) == 0 {
 		// No tokenizer, asks for tokenizers names
 		availableNames := modelToUse.Tokenizers.GetNames()
@@ -76,7 +75,7 @@ func processRemove(args []string) (warning, info string, err error) {
 		tokenizerNames = stringutil.SliceRemoveDuplicates(args)
 	}
 
-	// check for valid tokenizers
+	// Check for valid tokenizers
 	for _, name := range tokenizerNames {
 		tokenizer, exists := configTokenizerMap[name]
 		if !exists {
@@ -94,7 +93,7 @@ func processRemove(args []string) (warning, info string, err error) {
 		return warning, "no selected tokenizers to remove", err
 	}
 
-	// delete tokenizer file and remove tokenizer to config file
+	// Delete tokenizer file and remove tokenizer to config file
 	failedTokenizersRemove, err := config.RemoveTokenizersByName(modelToUse, tokenizersToRemove)
 	if err != nil {
 		return warning, info, err
