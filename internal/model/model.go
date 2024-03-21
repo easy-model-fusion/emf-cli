@@ -50,32 +50,11 @@ func (m Models) ContainsByName(name string) bool {
 	return false
 }
 
-// ContainsByName checks if a tokenizer slice contains the requested tokenizer name
-func (t Tokenizers) ContainsByName(class string) bool {
-	for _, currentModel := range t {
-		if currentModel.Class == class {
-			return true
-		}
-	}
-	return false
-}
-
 // Difference returns the models in that are not present in `slice`
 func (m Models) Difference(slice Models) Models {
 	var difference Models
 	for _, item := range m {
 		if !slice.ContainsByName(item.Name) {
-			difference = append(difference, item)
-		}
-	}
-	return difference
-}
-
-// Difference returns the tokenizers in that are not present in `slice`
-func (t Tokenizers) Difference(slice Tokenizers) Tokenizers {
-	var difference Tokenizers
-	for _, item := range t {
-		if !slice.ContainsByName(item.Class) {
 			difference = append(difference, item)
 		}
 	}
