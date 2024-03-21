@@ -126,6 +126,16 @@ func createProjectFiles(projectName, sdkTag string) (err error) {
 		return err
 	}
 
+	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "README.md", filepath.Join(projectName, "README.md"))
+	if err != nil {
+		return err
+	}
+
+	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "requirements.txt", filepath.Join(projectName, "requirements.txt"))
+	if err != nil {
+		return err
+	}
+
 	err = config.GetViperConfig(projectName)
 	if err != nil {
 		return err
