@@ -20,21 +20,21 @@ func RunAdd(args []string, customArgs downloadermodel.Args, yes bool) {
 
 	selectedModel, err := getRequestedModel(args)
 	if err != nil {
-		pterm.Error.Println(err.Error())
+		app.UI().Error().Println(err.Error())
 		return
 	}
 	if selectedModel.Name == "" {
-		pterm.Warning.Println("Please select a model type")
+		app.UI().Warning().Println("Please select a model type")
 		RunAdd(args, customArgs, yes)
 		return
 	}
 
 	warningMessage, err := processAdd(selectedModel, customArgs, yes)
 	if warningMessage != "" {
-		pterm.Warning.Println(warningMessage)
+		app.UI().Warning().Println(warningMessage)
 	}
 	if err != nil {
-		pterm.Error.Println(err.Error())
+		app.UI().Error().Println(err.Error())
 	}
 }
 
