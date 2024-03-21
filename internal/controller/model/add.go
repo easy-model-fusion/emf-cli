@@ -79,8 +79,7 @@ func getRequestedModel(args []string) (model.Model, error) {
 	} else {
 		// If no models entered by user or if user entered -s/--select
 		// Get selected tags
-		var selectedTags []string
-		selectedTags = selectTags()
+		selectedTags := selectTags()
 		if len(selectedTags) == 0 {
 			return model.Model{}, nil
 		}
