@@ -36,7 +36,7 @@ func TestExecute_ArgsInvalid(t *testing.T) {
 func TestExecute_ScriptError(t *testing.T) {
 	// Mock python script to fail
 	pythonInterface.(*mock.MockPython).ScriptResult = []byte{}
-	pythonInterface.(*mock.MockPython).Error = errors.New("")
+	pythonInterface.(*mock.MockPython).ExecuteScriptError = errors.New("")
 
 	// Init
 	args := downloadermodel.Args{ModelName: "ModelName", ModelModule: "ModelModule"}
@@ -53,7 +53,7 @@ func TestExecute_ScriptError(t *testing.T) {
 func TestExecute_ResponseEmpty(t *testing.T) {
 	// Mock python script to return no data
 	pythonInterface.(*mock.MockPython).ScriptResult = nil
-	pythonInterface.(*mock.MockPython).Error = nil
+	pythonInterface.(*mock.MockPython).ExecuteScriptError = nil
 
 	// Init
 	args := downloadermodel.Args{ModelName: "ModelName", ModelModule: "ModelModule"}
@@ -70,7 +70,7 @@ func TestExecute_ResponseEmpty(t *testing.T) {
 func TestExecute_ResponseBadFormat(t *testing.T) {
 	// Mock python script to return bad data
 	pythonInterface.(*mock.MockPython).ScriptResult = []byte("{ bad: property }")
-	pythonInterface.(*mock.MockPython).Error = nil
+	pythonInterface.(*mock.MockPython).ExecuteScriptError = nil
 
 	// Init
 	args := downloadermodel.Args{ModelName: "ModelName", ModelModule: "ModelModule"}
@@ -87,7 +87,7 @@ func TestExecute_ResponseBadFormat(t *testing.T) {
 func TestExecute_Success(t *testing.T) {
 	// Mock python script to succeed
 	pythonInterface.(*mock.MockPython).ScriptResult = []byte("{}")
-	pythonInterface.(*mock.MockPython).Error = nil
+	pythonInterface.(*mock.MockPython).ExecuteScriptError = nil
 
 	// Init
 	args := downloadermodel.Args{ModelName: "ModelName", ModelModule: "ModelModule"}

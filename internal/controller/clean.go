@@ -4,11 +4,10 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/pterm/pterm"
 	"os"
 )
 
-const cleanDirName = "build"
+const cleanDirName = "dist"
 
 func RunClean(allFlagDelete bool, authorizeAllDelete bool) {
 
@@ -32,26 +31,26 @@ func RunClean(allFlagDelete bool, authorizeAllDelete bool) {
 
 		info, err := config.RemoveAllModels()
 		if info != "" {
-			pterm.Info.Printfln(info)
+			app.UI().Info().Printfln(info)
 		}
 
 		if err == nil {
-			pterm.Success.Printfln("Operation succeeded.")
+			app.UI().Success().Printfln("Operation succeeded.")
 		} else {
-			pterm.Error.Printfln("Operation failed.")
+			app.UI().Error().Printfln("Operation failed.")
 		}
 
 	}
 
 	_, err := os.Stat(cleanDirName)
 	if os.IsNotExist(err) {
-		pterm.Success.Printfln("Operation succeeded.")
+		app.UI().Success().Printfln("Operation succeeded.")
 		return
 	}
 	err = os.RemoveAll(cleanDirName)
 	if err == nil {
-		pterm.Success.Printfln("Operation succeeded.")
+		app.UI().Success().Printfln("Operation succeeded.")
 	} else {
-		pterm.Error.Printfln("Operation failed.")
+		app.UI().Error().Printfln("Operation failed.")
 	}
 }
