@@ -36,6 +36,7 @@ const (
 	TagPrefix          = "--"
 	ModelName          = "model-name"
 	ModelModule        = "model-module"
+	Path               = "path"
 	ModelClass         = "model-class"
 	ModelOptions       = "model-options"
 	TokenizerClass     = "tokenizer-class"

@@ -24,7 +24,7 @@ func TestRunModelUpdate(t *testing.T) {
 	args = append(args, "model4")
 
 	// Create hugging face mock
-	huggingFace := mock.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022"}}
+	huggingFace := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022", LibraryName: huggingface.TRANSFORMERS}}
 	app.SetHuggingFace(&huggingFace)
 
 	// Create Ui mock

@@ -167,7 +167,7 @@ func (ic InstallController) installDependencies(pythonPath string, useTorchCuda 
 	spinner = app.UI().StartSpinner("Installing project dependencies")
 	err = app.Python().InstallDependencies(pipPath, "requirements.txt")
 	if err != nil {
-		spinner.Fail("Unable to install project dependencies: ", err)
+		spinner.Warning("Unable to install project dependencies: ", err)
 	} else {
 		spinner.Success()
 	}

@@ -1,7 +1,6 @@
 package cmdmodel
 
 import (
-	cmdmodeladd "github.com/easy-model-fusion/emf-cli/cmd/model/add"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -26,7 +25,7 @@ func init() {
 	// Adding the subcommands
 	ModelCmd.AddCommand(modelRemoveCmd)
 	ModelCmd.AddCommand(modelUpdateCmd)
-	ModelCmd.AddCommand(cmdmodeladd.ModelAddCmd)
+	ModelCmd.AddCommand(modelAddCmd)
 }
 
 // runModel runs model command
