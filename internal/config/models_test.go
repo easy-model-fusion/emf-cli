@@ -258,28 +258,28 @@ func TestErrorOnAddModelWithEmptyViper(t *testing.T) {
 	test.AssertNotEqual(t, err, nil, "Should get error while updating configuration file.")
 }
 
-// TestRemoveModelPhysically_AddToBinaryFalse tests the RemoveModelPhysically with the property addToBinary to false.
+// TestRemoveModelPhysically_AddToBinaryFalse tests the RemoveItemPhysically with the property addToBinary to false.
 func TestRemoveModelPhysically_AddToBinaryFalse(t *testing.T) {
 	// Init
 	modelToRemove := getModel(0)
 	modelToRemove.AddToBinaryFile = false
 
 	// Execute
-	err := RemoveModelPhysically(modelToRemove.Name)
+	err := RemoveItemPhysically(modelToRemove.Name)
 	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
 }
 
-// TestRemoveModelPhysically_NonPhysical tests the RemoveModelPhysically with a non-physically present model.
+// TestRemoveModelPhysically_NonPhysical tests the RemoveItemPhysically with a non-physically present model.
 func TestRemoveModelPhysically_NotPhysical(t *testing.T) {
 	// Init
 	modelToRemove := getModel(0)
 
 	// Execute
-	err := RemoveModelPhysically(modelToRemove.Name)
+	err := RemoveItemPhysically(modelToRemove.Name)
 	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
 }
 
-// TestRemoveModelPhysically_Success tests the RemoveModelPhysically with a physically present model.
+// TestRemoveModelPhysically_Success tests the RemoveItemPhysically with a physically present model.
 func TestRemoveModelPhysically_Success(t *testing.T) {
 	// Init
 	modelToRemove := getModel(0)
@@ -290,7 +290,7 @@ func TestRemoveModelPhysically_Success(t *testing.T) {
 	defer os.RemoveAll(modelPath)
 
 	// Execute
-	err := RemoveModelPhysically(modelToRemove.Name)
+	err := RemoveItemPhysically(modelPath)
 	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
 
 	// Assert that the model was physically removed
