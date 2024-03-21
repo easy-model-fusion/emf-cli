@@ -12,7 +12,7 @@ import (
 	"github.com/pterm/pterm"
 )
 
-// TokenizerUpdateCmd TokenizerRemoveCmd runs the model remove command
+// TokenizerUpdateCmd TokenizerRemoveCmd runs the model update command
 func TokenizerUpdateCmd(args []string) {
 	// Process remove operation with given arguments
 	warningMessage, infoMessage, err := processUpdateTokenizer(args)
@@ -31,6 +31,7 @@ func TokenizerUpdateCmd(args []string) {
 	}
 }
 
+// processUpdateTokenizer processes tokenizers to be updated
 func processUpdateTokenizer(args []string) (warning, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
@@ -56,7 +57,7 @@ func processUpdateTokenizer(args []string) (warning, info string, err error) {
 	if !exists {
 		return warning, "Model is not configured", err
 	}
-	
+
 	// Verify model's module
 	if modelToUse.Module != huggingface.TRANSFORMERS {
 		return warning, info, fmt.Errorf("only transformers models have tokzenizers")
