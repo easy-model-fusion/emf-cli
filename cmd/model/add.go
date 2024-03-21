@@ -20,6 +20,9 @@ var customArgs downloadermodel.Args
 var yes bool
 
 func init() {
+	// Initialize hugging face api
+	app.InitHuggingFace(huggingface.BaseUrl, "")
+
 	// Bind cobra args to the downloader script args
 	customArgs.ToCobra(modelAddCmd)
 	customArgs.DirectoryPath = app.DownloadDirectoryPath
@@ -28,7 +31,5 @@ func init() {
 
 // runAddByNames runs the add command to add models by name
 func runAdd(cmd *cobra.Command, args []string) {
-	// Initialize hugging face api
-	app.InitHuggingFace(huggingface.BaseUrl, "")
 	modelcontroller.RunAdd(args, customArgs, yes)
 }
