@@ -74,7 +74,7 @@ func TestGetModelsList(t *testing.T) {
 	hfModels = append(hfModels, huggingface.Model{Name: "model7", LibraryName: huggingface.TRANSFORMERS})
 
 	// Create huggingface mock
-	huggingfaceInterface := mock.MockHuggingFace{GetModelsResult: hfModels}
+	huggingfaceInterface := huggingface.MockHuggingFace{GetModelsResult: hfModels}
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get expectedModels list
@@ -98,7 +98,7 @@ func TestGetModelsList_Fail(t *testing.T) {
 	existingModels = append(existingModels, model.Model{Name: "model3"})
 
 	// Create huggingface mock
-	huggingfaceInterface := mock.MockHuggingFace{Error: fmt.Errorf("test")}
+	huggingfaceInterface := huggingface.MockHuggingFace{Error: fmt.Errorf("test")}
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get expectedModels list
@@ -159,6 +159,221 @@ func TestDownloadModel_Fail(t *testing.T) {
 
 	// Download model
 	_, err := downloadModel(selectedModel, downloaderArgs)
+
+	// Assertions
+	test.AssertNotEqual(t, err, nil)
+}
+
+// Tests getRequestedModel with valid model passed in arguments
+func TestGetRequestedModel_WithValidArg(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1"})
+	existingModels = append(existingModels, model.Model{Name: "model3"})
+	args := []string{"model2"}
+	expectedModel := model.Model{Name: "model2"}
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Create huggingface mock
+	huggingfaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{Name: "model2", LibraryName: huggingface.TRANSFORMERS}}
+	app.SetHuggingFace(&huggingfaceInterface)
+
+	// Get requested model
+	requestedModel, err := getRequestedModel(args)
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, requestedModel.Name, expectedModel.Name)
+}
+
+// Tests getRequestedModel with existing model requested
+func TestGetRequestedModel_WithInvalidArg(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1"})
+	existingModels = append(existingModels, model.Model{Name: "model3"})
+	args := []string{"model1"}
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Create huggingface mock
+	huggingfaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{Name: "model2", LibraryName: huggingface.TRANSFORMERS}}
+	app.SetHuggingFace(&huggingfaceInterface)
+
+	// Get requested model
+	_, err = getRequestedModel(args)
+
+	// Assertions
+	test.AssertEqual(t, err.Error(), "the following model already exist and will be ignored : model1")
+}
+
+// Tests getRequestedModel with model not found
+func TestGetRequestedModel_WithModelNotFound(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1"})
+	existingModels = append(existingModels, model.Model{Name: "model3"})
+	args := []string{"model2"}
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Create huggingface mock
+	huggingfaceInterface := huggingface.MockHuggingFace{Error: fmt.Errorf("test")}
+	app.SetHuggingFace(&huggingfaceInterface)
+
+	// Get requested model
+	_, err = getRequestedModel(args)
+
+	// Assertions
+	test.AssertEqual(t, err.Error(), "Model model2 not valid : test")
+}
+
+// Tests getRequestedModel with no arguments
+func TestGetRequestedModel_WithNoArgs(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1"})
+	existingModels = append(existingModels, model.Model{Name: "model3"})
+	var args []string
+	selectedTags := []string{"tag1"}
+	// Initialize api expectedModels list
+	var hfModels huggingface.Models
+	hfModels = append(hfModels, huggingface.Model{Name: "model1", LibraryName: huggingface.TRANSFORMERS})
+	hfModels = append(hfModels, huggingface.Model{Name: "model2", LibraryName: huggingface.TRANSFORMERS})
+	hfModels = append(hfModels, huggingface.Model{Name: "model3", LibraryName: huggingface.TRANSFORMERS})
+	hfModels = append(hfModels, huggingface.Model{Name: "model4", LibraryName: huggingface.TRANSFORMERS})
+	hfModels = append(hfModels, huggingface.Model{Name: "model5", LibraryName: huggingface.TRANSFORMERS})
+	hfModels = append(hfModels, huggingface.Model{Name: "model6", LibraryName: huggingface.TRANSFORMERS})
+	hfModels = append(hfModels, huggingface.Model{Name: "model7", LibraryName: huggingface.TRANSFORMERS})
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Create huggingface mock
+	huggingfaceInterface := huggingface.MockHuggingFace{GetModelsResult: hfModels}
+	app.SetHuggingFace(&huggingfaceInterface)
+
+	// Create ui mock
+	ui := mock.MockUI{SelectResult: "model2", MultiselectResult: selectedTags}
+	app.SetUI(ui)
+
+	// Get requested model
+	requestedModel, err := getRequestedModel(args)
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, requestedModel.Name, "model2")
+}
+
+// Tests getRequestedModel with no arguments and hugging face models fetch error
+func TestGetRequestedModel_WithNoArgsWithFailedModelsFetch(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1"})
+	existingModels = append(existingModels, model.Model{Name: "model3"})
+	var args []string
+	selectedTags := []string{"tag1"}
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Create huggingface mock
+	huggingfaceInterface := huggingface.MockHuggingFace{Error: fmt.Errorf("")}
+	app.SetHuggingFace(&huggingfaceInterface)
+
+	// Create ui mock
+	ui := mock.MockUI{SelectResult: "model2", MultiselectResult: selectedTags}
+	app.SetUI(ui)
+
+	// Get requested model
+	_, err = getRequestedModel(args)
+
+	// Assertions
+	test.AssertNotEqual(t, err, nil)
+}
+
+// Tests getRequestedModel with no arguments and no tags selected by the user
+func TestGetRequestedModel_WithNoArgsAndNoTags(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1"})
+	existingModels = append(existingModels, model.Model{Name: "model3"})
+	var args []string
+	var selectedTags []string
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Create ui mock
+	ui := mock.MockUI{SelectResult: "model2", MultiselectResult: selectedTags}
+	app.SetUI(ui)
+
+	// Get requested model
+	requestedModel, err := getRequestedModel(args)
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, requestedModel.Name, "")
+}
+
+// Tests getRequestedModel with more than 1 argument
+func TestGetRequestedModel_WithTooManyArgs(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1"})
+	existingModels = append(existingModels, model.Model{Name: "model3"})
+	args := []string{"model2", "model4"}
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Get requested model
+	_, err = getRequestedModel(args)
+
+	// Assertions
+	test.AssertEqual(t, err.Error(), "you can enter only one model at a time")
+}
+
+// Tests getRequestedModel with invalid configuration path
+func TestGetRequestedModel_WithInvalidConfigPath(t *testing.T) {
+	// Create mock UI
+	ui := mock.MockUI{UserInputResult: "invalid"}
+	app.SetUI(ui)
+
+	// Get requested model
+	_, err := getRequestedModel([]string{})
 
 	// Assertions
 	test.AssertNotEqual(t, err, nil)

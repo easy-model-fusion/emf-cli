@@ -15,6 +15,11 @@ import (
 
 // RunAdd runs the add command to add models by name
 func RunAdd(args []string, customArgs downloadermodel.Args, yes bool) {
+	// Initialize hugging face api
+	app.InitHuggingFace(huggingface.BaseUrl, "")
+
+	sdk.SendUpdateSuggestion() // TODO: here proxy?
+
 	selectedModel, err := getRequestedModel(args)
 	if err != nil {
 		pterm.Error.Println(err.Error())
@@ -41,11 +46,6 @@ func getRequestedModel(args []string) (model.Model, error) {
 	if err != nil {
 		return model.Model{}, err
 	}
-
-	// Initialize hugging face api
-	app.InitHuggingFace(huggingface.BaseUrl, "")
-
-	sdk.SendUpdateSuggestion() // TODO: here proxy?
 
 	// Get all existing models
 	existingModels, err := config.GetModels()
