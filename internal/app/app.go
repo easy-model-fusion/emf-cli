@@ -24,7 +24,6 @@ var _downloader downloader.Downloader
 func Init(version, buildDate string) {
 	Version = version
 	BuildDate = buildDate
-	initLogger()
 
 	// Initialize the UI
 	_ui = ui.NewPTermUI() // currently only pterm is supported

@@ -8,21 +8,21 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
-	"github.com/pterm/pterm"
+	"path/filepath"
 )
 
 func RunTidy() {
 	// get all models from config file
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
-		pterm.Error.Println(err.Error())
+		app.UI().Error().Println(err.Error())
 	}
 
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
 
 	models, err := config.GetModels()
 	if err != nil {
-		pterm.Error.Println(err.Error())
+		app.UI().Error().Println(err.Error())
 		return
 	}
 
@@ -35,21 +35,21 @@ func RunTidy() {
 	// Updating the models object since the configuration might have changed in between
 	models, err = config.GetModels()
 	if err != nil {
-		pterm.Error.Println(err.Error())
+		app.UI().Error().Println(err.Error())
 		return
 	}
 
 	// Regenerate python code
 	err = regenerateCode(models)
 	if err != nil {
-		pterm.Error.Println(err.Error())
+		app.UI().Error().Println(err.Error())
 		return
 	}
 }
 
 // tidyModelsConfiguredButNotDownloaded downloads any missing model and its missing tokenizers as well
 func tidyModelsConfiguredButNotDownloaded(models model.Models) {
-	pterm.Info.Println("Verifying if all models are downloaded...")
+	app.UI().Info().Println("Verifying if all models are downloaded...")
 	// filter the models that should be added to binary
 	models = models.FilterWithAddToBinaryFileTrue()
 
@@ -72,12 +72,12 @@ func tidyModelsConfiguredButNotDownloaded(models model.Models) {
 
 	// Displaying the downloads that failed
 	if len(failedModels) > 0 {
-		pterm.Error.Println(fmt.Sprintf("The following models(s) couldn't be downloaded : %s", failedModels))
+		app.UI().Error().Println(fmt.Sprintf("The following models(s) couldn't be downloaded : %s", failedModels))
 	}
 
 	if len(downloadedModels) > 0 {
 		// Add models to configuration file
-		spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+		spinner := app.UI().StartSpinner("Writing models to configuration file...")
 		err := config.AddModels(downloadedModels)
 		if err != nil {
 			spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
@@ -90,7 +90,7 @@ func tidyModelsConfiguredButNotDownloaded(models model.Models) {
 // tidyModelsDownloadedButNotConfigured configuring the downloaded models that aren't configured in the configuration file
 // and then asks the user if he wants to delete them or add them to the configuration file
 func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
-	pterm.Info.Println("Verifying if all downloaded models are configured...")
+	app.UI().Info().Println("Verifying if all downloaded models are configured...")
 
 	// Get the list of downloaded models
 	downloadedModels := model.BuildModelsFromDevice()
@@ -132,7 +132,15 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 				modelsToConfigure = append(modelsToConfigure, current)
 			} else {
 				// User chose not to configure : removing the model
-				_ = config.RemoveModelPhysically(current.Name)
+				modelPath := filepath.Join(app.DownloadDirectoryPath, current.Name)
+				spinner := app.UI().StartSpinner(fmt.Sprintf("Removing model %s...", current.Name))
+				err := config.RemoveItemPhysically(modelPath)
+				if err != nil {
+					spinner.Fail("failed to remove item")
+					continue
+				} else {
+					spinner.Success()
+				}
 			}
 
 			// Highest configuration possible : nothing more to do here
@@ -164,8 +172,15 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 						modelTokenizersToConfigure = append(modelTokenizersToConfigure, tokenizer)
 					} else {
 						// User chose not to configure : removing the tokenizer
-						// TODO : remove tokenizer => Waiting for issue 63 to be completed : [Client] Model tokenizer remove
-						continue // TODO : delete continue instruction
+						tokenizerPath := filepath.Join(app.DownloadDirectoryPath, tokenizer.Path)
+						spinner := app.UI().StartSpinner(fmt.Sprintf("Removing tokenizer %s...", tokenizer.Class))
+						err := config.RemoveItemPhysically(tokenizerPath)
+						if err != nil {
+							spinner.Fail("failed to remove item")
+							continue
+						} else {
+							spinner.Success()
+						}
 					}
 				}
 			}
@@ -182,7 +197,7 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 
 	if len(modelsToConfigure) > 0 {
 		// Add models to configuration file
-		spinner, _ := pterm.DefaultSpinner.Start("Writing models to configuration file...")
+		spinner := app.UI().StartSpinner("Writing models to configuration file...")
 		err := config.AddModels(modelsToConfigure)
 		if err != nil {
 			spinner.Fail(fmt.Sprintf("Error while writing the models to the configuration file: %s", err))
@@ -195,13 +210,13 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 // regenerateCode generates new default python code
 func regenerateCode(models model.Models) error {
 	// TODO: modify this logic when code generator is completed
-	pterm.Info.Println("Generating new default python code...")
+	app.UI().Info().Println("Generating new default python code...")
 
 	err := config.GenerateModelsPythonCode(models)
 	if err != nil {
 		return err
 	}
 
-	pterm.Success.Println("Python code generated")
+	app.UI().Success().Println("Python code generated")
 	return nil
 }

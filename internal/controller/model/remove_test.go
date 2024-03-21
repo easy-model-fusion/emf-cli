@@ -19,6 +19,7 @@ func TestMain(m *testing.M) {
 
 // Sets the configuration file with the given models
 func setupConfigFile(models model.Models) error {
+	config.FilePath = "."
 	// Load configuration file
 	err := config.GetViperConfig(".")
 	if err != nil {
