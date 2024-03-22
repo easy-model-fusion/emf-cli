@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/codegen"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"golang.org/x/text/cases"
@@ -8,15 +9,23 @@ import (
 	"strings"
 )
 
+var generationExcludedCharacters = []string{"-", "/", "."}
+
 // GetFormattedModelName format the model name in CapsWord start with "Model"
 func (m *Model) GetFormattedModelName() string {
-	return strings.Join([]string{
-		"Model",
-		strings.ReplaceAll(strings.ReplaceAll(
-			cases.Title(language.English, cases.Compact).String(m.Name),
-			"-", ""),
-			"/", ""),
-	}, "")
+	name := cases.Title(language.English, cases.Compact).String(m.Name)
+
+	// Remove special characters
+	for _, specialCharacter := range generationExcludedCharacters {
+		name = strings.ReplaceAll(name, specialCharacter, "")
+	}
+
+	// Check if first letter is a number
+	if strings.Contains("0123456789", string(name[0])) {
+		name = "Model" + name
+	}
+
+	return name
 }
 
 // GetSDKClassNameWithModule return the sdk model for the given model
@@ -37,7 +46,7 @@ func (m *Model) GetHuggingFaceClassImport() string {
 	case huggingface.DIFFUSERS:
 		return m.Class
 	case huggingface.TRANSFORMERS:
-		return strings.Join([]string{m.Class, m.Tokenizers[0].Class}, ", ")
+		return fmt.Sprintf("%s, %s", m.Class, m.Tokenizers[0].Class)
 	default:
 		return ""
 	}
@@ -150,7 +159,7 @@ func (m *Model) GenSuperInitParamsWithModule() []codegen.FunctionCallParameter {
 			}*/}
 
 	case huggingface.TRANSFORMERS:
-		return []codegen.FunctionCallParameter{
+		params := []codegen.FunctionCallParameter{
 			{
 				Name:  "model_name",
 				Value: "\"" + m.Name + "\"",
@@ -158,10 +167,6 @@ func (m *Model) GenSuperInitParamsWithModule() []codegen.FunctionCallParameter {
 			{
 				Name:  "model_path",
 				Value: "\"" + m.Path + "\"",
-			},
-			{
-				Name:  "tokenizer_path",
-				Value: "\"" + m.Tokenizers[0].Path + "\"",
 			},
 			{
 				Name:  "task",
@@ -172,13 +177,21 @@ func (m *Model) GenSuperInitParamsWithModule() []codegen.FunctionCallParameter {
 				Value: m.Class,
 			},
 			{
-				Name:  "tokenizer_class",
-				Value: m.Tokenizers[0].Class,
-			},
-			{
 				Name:  "device",
 				Value: "Devices.GPU",
 			}}
+
+		if len(m.Tokenizers) > 0 {
+			params = append(params, codegen.FunctionCallParameter{
+				Name:  "tokenizer_path",
+				Value: "\"" + m.Tokenizers[0].Path + "\"",
+			})
+			params = append(params, codegen.FunctionCallParameter{
+				Name:  "tokenizer_class",
+				Value: m.Tokenizers[0].Class,
+			})
+		}
+		return params
 
 	default:
 		return []codegen.FunctionCallParameter{}
