@@ -100,15 +100,15 @@ func TestModel_GetFormattedModelName(t *testing.T) {
 
 func TestModel_GetPipelineTagAbstractClassName(t *testing.T) {
 	model := Model{
-		PipelineTag: huggingface.TextToImage,
+		Module: huggingface.DIFFUSERS,
 	}
 
 	test.AssertEqual(t, model.GetSDKClassNameWithModule(), "ModelDiffusers", "The model name should be formatted correctly.")
 
-	model.PipelineTag = huggingface.TextGeneration
+	model.Module = huggingface.TRANSFORMERS
 
 	test.AssertEqual(t, model.GetSDKClassNameWithModule(), "ModelTransformers", "The model name should be formatted correctly.")
 
-	model.PipelineTag = "unknown"
+	model.Module = "unknown"
 	test.AssertEqual(t, model.GetSDKClassNameWithModule(), "", "The model name should be formatted correctly.")
 }
