@@ -13,7 +13,7 @@ func TestModel_GenClass(t *testing.T) {
 		Path:        "build/stabilityai/sdxl-turbo",
 		PipelineTag: huggingface.TextToImage,
 		Module:      huggingface.DIFFUSERS,
-		Class:       huggingface.AutoDiffusers,
+		Class:       "DiffusionPipeline",
 	}
 
 	class := model.GenClass()
@@ -31,13 +31,13 @@ func TestModel_GenClass(t *testing.T) {
 	}
 }
 
-func TestModel_GenFile(t *testing.T) {
+func TestModel_DiffuserGenFile(t *testing.T) {
 	model := Model{
 		Name:        "stabilityai/sdxl-turbo",
 		Path:        "build/stabilityai/sdxl-turbo",
 		PipelineTag: huggingface.TextToImage,
 		Module:      huggingface.DIFFUSERS,
-		Class:       huggingface.AutoDiffusers,
+		Class:       "DiffusionPipeline",
 	}
 
 	file := model.GenFile()
@@ -51,7 +51,38 @@ func TestModel_GenFile(t *testing.T) {
 		t.FailNow()
 	}
 
-	test.AssertEqual(t, file.Name, "StabilityaiSdxlTurbo.py", "The file name should be formatted correctly.")
+	test.AssertEqual(t, file.Name, "ModelStabilityaiSdxlTurbo.py", "The file name should be formatted correctly.")
+	test.AssertEqual(t, len(file.Classes), 1, "The file should contain one class.")
+	test.AssertEqual(t, len(file.HeaderComments), 2, "The file should contain two header comments.")
+}
+
+func TestModel_TransformersGenFile(t *testing.T) {
+	model := Model{
+		Name:        "microsoft/phi-2",
+		Path:        "build/microsoft/phi-2/model",
+		PipelineTag: huggingface.TextGeneration,
+		Module:      huggingface.TRANSFORMERS,
+		Class:       "AutoModelForCausalLM",
+		Tokenizers: Tokenizers{
+			{
+				Class: "AutoTokenizer",
+				Path:  "build/microsoft/phi-2/AutoTokenizer",
+			},
+		},
+	}
+
+	file := model.GenFile()
+	gen := codegen.NewPythonCodeGenerator(true)
+	result, err := gen.Generate(file)
+
+	t.Logf("\n%s", result)
+
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, file.Name, "ModelMicrosoftPhi2.py", "The file name should be formatted correctly.")
 	test.AssertEqual(t, len(file.Classes), 1, "The file should contain one class.")
 	test.AssertEqual(t, len(file.HeaderComments), 2, "The file should contain two header comments.")
 }
@@ -64,7 +95,7 @@ func TestModel_GetFormattedModelName(t *testing.T) {
 		Module:      huggingface.DIFFUSERS,
 	}
 
-	test.AssertEqual(t, model.GetFormattedModelName(), "StabilityaiSdxlTurbo", "The model name should be formatted correctly.")
+	test.AssertEqual(t, model.GetFormattedModelName(), "ModelStabilityaiSdxlTurbo", "The model name should be formatted correctly.")
 }
 
 func TestModel_GetPipelineTagAbstractClassName(t *testing.T) {
@@ -72,12 +103,12 @@ func TestModel_GetPipelineTagAbstractClassName(t *testing.T) {
 		PipelineTag: huggingface.TextToImage,
 	}
 
-	test.AssertEqual(t, model.GetPipelineTagAbstractClassName(), "ModelTextToImage", "The model name should be formatted correctly.")
+	test.AssertEqual(t, model.GetSDKClassNameWithModule(), "ModelDiffusers", "The model name should be formatted correctly.")
 
 	model.PipelineTag = huggingface.TextGeneration
 
-	test.AssertEqual(t, model.GetPipelineTagAbstractClassName(), "ModelTextToText", "The model name should be formatted correctly.")
+	test.AssertEqual(t, model.GetSDKClassNameWithModule(), "ModelTransformers", "The model name should be formatted correctly.")
 
 	model.PipelineTag = "unknown"
-	test.AssertEqual(t, model.GetPipelineTagAbstractClassName(), "", "The model name should be formatted correctly.")
+	test.AssertEqual(t, model.GetSDKClassNameWithModule(), "", "The model name should be formatted correctly.")
 }

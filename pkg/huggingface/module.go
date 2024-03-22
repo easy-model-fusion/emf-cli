@@ -13,8 +13,8 @@ const (
 )
 
 const (
-	AutoDiffusers    string = "DiffusionPipeline"
-	AutoTransformers string = "AutoModel"
+	SDKModelDiffusers    string = "ModelDiffusers"
+	SDKModelTransformers string = "ModelTransformers"
 )
 
 // AllModulesString returns all modules as a string slice
