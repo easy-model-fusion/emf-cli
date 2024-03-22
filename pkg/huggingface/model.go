@@ -60,12 +60,3 @@ func (h huggingFace) GetModelById(id string) (Model, error) {
 
 	return model, nil
 }
-
-// ValidModel checks if a model exists by id
-func (h huggingFace) ValidModel(id string) (bool, error) {
-	_, err := h.GetModelById(id)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}

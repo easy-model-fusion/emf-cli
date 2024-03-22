@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/hfinterface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
@@ -89,7 +90,7 @@ func processUpdate(args []string) (warning string, info string, err error) {
 
 // getUpdatableModels returns the models available for an update
 func getUpdatableModels(modelNames []string, hfModelsAvailable model.Models) (
-	modelsToUpdate model.Models, notFoundModelNames, upToDateModelNames []string) {
+	modelsToUpdate model.Models, notFoundModelNames []string, upToDateModelNames []string) {
 
 	// Bind the downloaded models coming from huggingface to a map for faster lookup
 	// Used to check whether a model has already been downloaded
@@ -99,7 +100,7 @@ func getUpdatableModels(modelNames []string, hfModelsAvailable model.Models) (
 	for _, name := range modelNames {
 
 		// Fetching model from huggingface
-		huggingfaceModel, err := app.H().GetModelById(name)
+		huggingfaceModel, err := hfinterface.GetModelById(name)
 		if err != nil {
 			// Model not found : nothing more to do here, skipping to the next one
 			notFoundModelNames = append(notFoundModelNames, name)

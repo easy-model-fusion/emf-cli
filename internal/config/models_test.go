@@ -514,7 +514,7 @@ func TestValidate_Configured_False(t *testing.T) {
 	modelToValidate := initialModels[0]
 
 	// Execute
-	valid := Validate(modelToValidate)
+	_, valid, _ := Validate(modelToValidate, false)
 
 	// Assert
 	test.AssertEqual(t, false, valid)
@@ -552,10 +552,10 @@ func TestValidate_DownloadedAndBinaryFalse_ConfirmFalse(t *testing.T) {
 	app.UI().(*mock.MockUI).UserConfirmationResult = false
 
 	// Execute
-	valid := Validate(modelToValidate)
+	_, valid, _ := Validate(modelToValidate, false)
 
 	// Assert
-	test.AssertEqual(t, false, valid)
+	test.AssertEqual(t, valid, false)
 
 	// Clean up config afterward
 	cleanConfDir(t, confDir)
@@ -590,7 +590,7 @@ func TestValidate_DownloadedAndBinaryFalse_ConfirmTrueAndRemove(t *testing.T) {
 	app.UI().(*mock.MockUI).UserConfirmationResult = true
 
 	// Execute
-	valid := Validate(modelToValidate)
+	_, valid, _ := Validate(modelToValidate, false)
 
 	// Assert
 	exists, err := fileutil.IsExistingPath(modelName)
@@ -633,7 +633,7 @@ func TestValidate_Downloaded_ConfirmFalse(t *testing.T) {
 	app.UI().(*mock.MockUI).UserConfirmationResult = false
 
 	// Execute
-	valid := Validate(modelToValidate)
+	_, valid, _ := Validate(modelToValidate, false)
 
 	// Assert
 	test.AssertEqual(t, false, valid)
@@ -671,7 +671,7 @@ func TestValidate_Downloaded_ConfirmTrue(t *testing.T) {
 	app.UI().(*mock.MockUI).UserConfirmationResult = true
 
 	// Execute
-	valid := Validate(modelToValidate)
+	_, valid, _ := Validate(modelToValidate, false)
 
 	// Assert
 	exists, err := fileutil.IsExistingPath(modelName)
@@ -691,7 +691,7 @@ func TestValidate_True(t *testing.T) {
 	modelToValidate := getModel(0)
 
 	// Execute
-	valid := Validate(modelToValidate)
+	_, valid, _ := Validate(modelToValidate, false)
 
 	// Assert
 	test.AssertEqual(t, true, valid)

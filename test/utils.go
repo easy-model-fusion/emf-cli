@@ -59,6 +59,14 @@ func (ts *TestSuite) CreateFullTestSuite(t *testing.T) (directoryPath string) {
 	err = os.WriteFile("config.yaml", content, os.ModePerm)
 	checkErrDeleteFolder(t, err, dname)
 
+	// Create generated code file from embedded file
+	err = os.Mkdir("sdk", os.ModePerm)
+	checkErrDeleteFolder(t, err, dname)
+	genFile, err := os.Create("sdk/generated_models.py")
+	checkErrDeleteFolder(t, err, dname)
+	err = genFile.Close()
+	checkErrDeleteFolder(t, err, dname)
+
 	return dname
 }
 
