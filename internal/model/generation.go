@@ -43,6 +43,18 @@ func (m *Model) GetHuggingFaceClassImport() string {
 	}
 }
 
+// GetModuleAutoPipelineClassName return the auto pipeline for the given model
+func (m *Model) GetModuleAutoPipelineClassName() string {
+	switch m.Module {
+	case huggingface.DIFFUSERS:
+		return huggingface.AutoDiffusers
+	case huggingface.TRANSFORMERS:
+		return huggingface.AutoTransformers
+	default:
+		return ""
+	}
+}
+
 // GenFile generates a single python file for the given model
 func (m *Model) GenFile() *codegen.File {
 	return &codegen.File{
