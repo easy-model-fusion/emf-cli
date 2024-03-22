@@ -1,22 +1,20 @@
 package cmdtokenizer
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/controller/model"
-	"github.com/easy-model-fusion/emf-cli/internal/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/controller"
 	"github.com/spf13/cobra"
 )
 
-// modelUpdateCmd represents the model update command
-var modelUpdateCmd = &cobra.Command{
-	Use:   "update <model name> [<other model names>...]",
-	Short: "Update one or more models",
-	Long:  "Update one or more models",
+// tokenizerUpdateCmd represents the model update command
+var tokenizerUpdateCmd = &cobra.Command{
+	Use:   "update <model_name> [tokenizer..]",
+	Short: "Update one or more tokenizers",
+	Long:  "Update one or more tokenizers",
 	Args:  cobra.MinimumNArgs(1),
-	Run:   runModelUpdate,
+	Run:   runTokenizerUpdate,
 }
 
-// runModelUpdate runs the model update command
-func runModelUpdate(cmd *cobra.Command, args []string) {
-	sdk.SendUpdateSuggestion()
-	modelcontroller.RunModelUpdate(args)
+// runTokenizerUpdate runs the model remove command
+func runTokenizerUpdate(cmd *cobra.Command, args []string) {
+	controller.TokenizerUpdateCmd(args)
 }
