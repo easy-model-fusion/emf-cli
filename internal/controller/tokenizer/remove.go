@@ -5,6 +5,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -13,6 +14,7 @@ import (
 
 // RunTokenizerRemove runs the tokenizer remove command
 func RunTokenizerRemove(args []string) {
+	sdk.SendUpdateSuggestion()
 	// Process remove operation with given arguments
 	warningMessage, infoMessage, err := processRemove(args)
 
@@ -63,7 +65,7 @@ func processRemove(args []string) (warning, info string, err error) {
 	var invalidTokenizers []string
 	var tokenizerNames []string
 
-       // Remove model name from arguments
+	// Remove model name from arguments
 	args = args[1:]
 	if len(args) == 0 {
 		// No tokenizer, asks for tokenizers names

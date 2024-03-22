@@ -6,6 +6,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -14,6 +15,7 @@ import (
 
 // TokenizerUpdateCmd TokenizerRemoveCmd runs the model update command
 func TokenizerUpdateCmd(args []string) {
+	sdk.SendUpdateSuggestion()
 	// Process remove operation with given arguments
 	warningMessage, infoMessage, err := processUpdateTokenizer(args)
 
