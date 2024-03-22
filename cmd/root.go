@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	cmdmodel "github.com/easy-model-fusion/emf-cli/cmd/model"
-	cmdtokenizer "github.com/easy-model-fusion/emf-cli/cmd/tokenizer"
+	"github.com/easy-model-fusion/emf-cli/cmd/model"
+	"github.com/easy-model-fusion/emf-cli/cmd/tokenizer"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
@@ -33,7 +33,7 @@ var rootCmd = &cobra.Command{
 func init() {
 	app.InitGit(app.Repository, "")
 	// Add persistent flag for configuration file path
-	rootCmd.PersistentFlags().StringVar(&config.FilePath, "path", ".", "config file path")
+	rootCmd.PersistentFlags().StringVar(&config.FilePath, "config-path", ".", "config file path")
 	rootCmd.PersistentFlags().StringVar(app.G().GetAuthToken(), "git-auth-token", "", "Git auth token")
 
 	// Adding subcommands
