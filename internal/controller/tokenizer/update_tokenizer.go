@@ -67,7 +67,7 @@ func processUpdateTokenizer(args []string) (warning, info string, err error) {
 	var failedTokenizers []string
 	// Remove model name from arguments
 	args = args[1:]
-	
+
 	// Extracting available tokenizers
 	availableNames := modelToUse.Tokenizers.GetNames()
 
@@ -91,7 +91,7 @@ func processUpdateTokenizer(args []string) (warning, info string, err error) {
 		tokenizerNames := app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
 		if len(tokenizerNames) != 0 {
 			app.UI().DisplaySelectedItems(tokenizerNames)
-			updateTokenizers = modelToUse.Tokenizers.FilterWithNames(tokenizerNames)
+			updateTokenizers = modelToUse.Tokenizers.FilterWithClass(tokenizerNames)
 		}
 	}
 

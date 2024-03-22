@@ -8,7 +8,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
-	"github.com/spf13/viper"
 	"os"
 	"testing"
 )
@@ -16,18 +15,6 @@ import (
 func TestMain(m *testing.M) {
 	app.Init("", "")
 	os.Exit(m.Run())
-}
-
-// Sets the configuration file with the given models
-func setupConfigFile(models model.Models) error {
-	// Load configuration file
-	err := config.GetViperConfig(".")
-	if err != nil {
-		return err
-	}
-	// Write models to the config file
-	viper.Set("models", models)
-	return config.WriteViperConfig()
 }
 
 // TestTokenizerUpdateCmd_ValidArgs tests the update command with valid args
