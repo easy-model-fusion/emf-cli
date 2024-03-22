@@ -161,3 +161,6 @@ cython_debug/
 
 # Models
 models/
+
+# emf-cli sdk folder, you can remove this if you want to keep the SDK in your project (not recommended)
+sdk/

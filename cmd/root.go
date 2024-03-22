@@ -2,6 +2,7 @@ package cmd
 
 import (
 	cmdmodel "github.com/easy-model-fusion/emf-cli/cmd/model"
+	cmdtokenizer "github.com/easy-model-fusion/emf-cli/cmd/tokenizer"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
@@ -43,8 +44,10 @@ func init() {
 	rootCmd.AddCommand(upgradeCmd)
 	rootCmd.AddCommand(buildCmd)
 	rootCmd.AddCommand(cleanCmd)
+	rootCmd.AddCommand(installCmd)
 	rootCmd.AddCommand(tidyCmd)
 	rootCmd.AddCommand(cmdmodel.ModelCmd)
+	rootCmd.AddCommand(cmdtokenizer.TokenizerCmd)
 }
 
 func runRoot(cmd *cobra.Command, args []string) {
