@@ -310,3 +310,30 @@ func TestUpdatePaths_TransformersTokenizers(t *testing.T) {
 	// Assert
 	test.AssertEqual(t, model.Tokenizers[0].Path, path.Join(app.DownloadDirectoryPath, model.Name, "tokenizer"))
 }
+
+func TestFilterWithClass(t *testing.T) {
+	//Init
+	tokenizers := GetTokenizers(2)
+	names := []string{tokenizers[0].Class, tokenizers[1].Class}
+
+	// Execute
+	result := tokenizers.FilterWithClass(names)
+
+	// Assert
+	test.AssertEqual(t, len(tokenizers), len(result), "Lengths should be equal.")
+
+}
+
+// TestFilterWithClass_Success tests the Tokenizers.FilterWithClass function to return the correct models.
+func TestFilterWithClass_Success(t *testing.T) {
+	//Init
+	tokenizers := GetTokenizers(2)
+	names := []string{tokenizers[0].Class, tokenizers[1].Class}
+
+	// Execute
+	result := tokenizers.FilterWithClass(names)
+
+	// Assert
+	test.AssertEqual(t, len(tokenizers), len(result), "Lengths should be equal.")
+
+}

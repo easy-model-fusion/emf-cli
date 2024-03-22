@@ -71,17 +71,6 @@ func (m Models) Difference(slice Models) Models {
 	return difference
 }
 
-// Difference returns the tokenizers in that are not present in `slice`
-func (t Tokenizers) Difference(slice Tokenizers) Tokenizers {
-	var difference Tokenizers
-	for _, item := range t {
-		if !slice.ContainsByClass(item.Class) {
-			difference = append(difference, item)
-		}
-	}
-	return difference
-}
-
 // Union returns the models present in `slice` as well
 func (m Models) Union(slice Models) Models {
 	var union Models
