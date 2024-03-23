@@ -1,3 +1,19 @@
+// Package controller
+// This file contains the init controller which is responsible for initializing a new project.
+// Whenever a user wants to create a new project, he will run the init command that uses the init controller.
+// The init controller will create a new project folder with the given name.
+// It will check if the user has python installed and clone the sdk into the project.
+// After that, it will create a virtual environment, install the dependencies, and create the project files.
+//
+// The final project folder should contain the following files:
+// new-project/
+// ├── .gitignore
+// ├── config.yaml
+// ├── main.py
+// ├── requirements.txt
+// ├── sdk/
+// ├── models/
+// └── .venv/
 package controller
 
 import (
@@ -13,10 +29,12 @@ import (
 	"path/filepath"
 )
 
+type InitController struct{}
+
 var initDependenciesPath = filepath.Join("sdk", "requirements.txt")
 
-// RunInit runs the init command
-func RunInit(args []string, useTorchCuda bool, customTag string) {
+// Run runs the init command
+func (ic InitController) Run(args []string, useTorchCuda bool, customTag string) error {
 	var projectName string
 
 	// No args, check projectName in ui
@@ -26,41 +44,41 @@ func RunInit(args []string, useTorchCuda bool, customTag string) {
 		projectName = args[0]
 	}
 
-	err := createProject(projectName, useTorchCuda, customTag)
+	err := ic.createProject(projectName, useTorchCuda, customTag)
 
 	// check for errors
 	if err == nil {
-		pterm.Success.Println("Project created successfully!")
-		return
+		app.UI().Success().Println("Project created successfully!")
+		return nil
 	}
 
 	if !os.IsExist(err) {
 		removeErr := os.RemoveAll(projectName)
 		if removeErr != nil {
 			pterm.Warning.Println(fmt.Sprintf("Error deleting folder '%s': %s", projectName, removeErr))
-			os.Exit(1)
+			return removeErr
 		}
 	}
 
 	pterm.Error.Println(fmt.Sprintf("Error creating project '%s': %s", projectName, err))
-	os.Exit(1)
+	return err
 }
 
 // createProject creates a new project with the given name
-func createProject(projectName string, useTorchCuda bool, customTag string) (err error) {
+func (ic InitController) createProject(projectName string, useTorchCuda bool, customTag string) (err error) {
 	// Create project folder
-	if err = createProjectFolder(projectName); err != nil {
+	if err = ic.createProjectFolder(projectName); err != nil {
 		return err
 	}
 
 	// Check if user has python installed
 	pythonPath, ok := app.Python().CheckAskForPython(app.UI())
 	if !ok {
-		os.Exit(1)
+		return errors.New("python not found")
 	}
 
 	// Clone sdk
-	if err = cloneSDK(projectName, customTag); err != nil {
+	if err = ic.cloneSDK(projectName, customTag); err != nil {
 		return err
 	}
 
@@ -74,7 +92,7 @@ func createProject(projectName string, useTorchCuda bool, customTag string) (err
 	spinner.Success()
 
 	// Install dependencies
-	if err = installDependencies(projectName, useTorchCuda); err != nil {
+	if err = ic.installDependencies(projectName, useTorchCuda); err != nil {
 		return err
 	}
 
@@ -82,7 +100,7 @@ func createProject(projectName string, useTorchCuda bool, customTag string) (err
 }
 
 // createProjectFolder creates the project folder
-func createProjectFolder(projectName string) (err error) {
+func (ic InitController) createProjectFolder(projectName string) (err error) {
 	// check if folder exists
 	if _, err = os.Stat(projectName); err != nil && !os.IsNotExist(err) {
 		return err
@@ -100,7 +118,7 @@ func createProjectFolder(projectName string) (err error) {
 }
 
 // createProjectFiles creates the project files (main.py, config.yaml, .gitignore)
-func createProjectFiles(projectName, sdkTag string) (err error) {
+func (ic InitController) createProjectFiles(projectName, sdkTag string) (err error) {
 	spinner := app.UI().StartSpinner("Creating project files")
 	defer func() {
 		if err != nil {
@@ -122,6 +140,16 @@ func createProjectFiles(projectName, sdkTag string) (err error) {
 	}
 
 	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, ".gitignore", filepath.Join(projectName, ".gitignore"))
+	if err != nil {
+		return err
+	}
+
+	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "README.md", filepath.Join(projectName, "README.md"))
+	if err != nil {
+		return err
+	}
+
+	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "requirements.txt", filepath.Join(projectName, "requirements.txt"))
 	if err != nil {
 		return err
 	}
@@ -156,7 +184,7 @@ func createProjectFiles(projectName, sdkTag string) (err error) {
 }
 
 // installDependencies installs the dependencies for the project
-func installDependencies(projectName string, useTorchCuda bool) (err error) {
+func (ic InitController) installDependencies(projectName string, useTorchCuda bool) (err error) {
 	// Install dependencies
 	pipPath, err := app.Python().FindVEnvExecutable(filepath.Join(projectName, ".venv"), "pip")
 	if err != nil {
@@ -179,7 +207,7 @@ func installDependencies(projectName string, useTorchCuda bool) (err error) {
 			return err
 		}
 
-		err = app.Python().ExecutePip(pipPath, []string{"install", "torch", "-f", "https://download.pytorch.org/whl/torch_stable.html"})
+		err = app.Python().ExecutePip(pipPath, []string{"install", "torch", "-f", app.TorchCudaURL})
 		if err != nil {
 			spinner.Fail("Unable to install torch cuda: ", err)
 			return err
@@ -191,7 +219,7 @@ func installDependencies(projectName string, useTorchCuda bool) (err error) {
 }
 
 // cloneSDK clones the sdk into the project
-func cloneSDK(projectName, tag string) (err error) {
+func (ic InitController) cloneSDK(projectName, tag string) (err error) {
 	// Check the latest sdk version
 	if tag != "" {
 		pterm.Info.Println("Using custom sdk version: " + tag)
@@ -206,7 +234,7 @@ func cloneSDK(projectName, tag string) (err error) {
 	}
 
 	// Create project files
-	if err = createProjectFiles(projectName, tag); err != nil {
+	if err = ic.createProjectFiles(projectName, tag); err != nil {
 		return err
 	}
 

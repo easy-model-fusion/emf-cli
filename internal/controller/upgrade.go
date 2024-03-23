@@ -4,13 +4,12 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/pterm/pterm"
 )
 
 // RunUpgrade upgrades the sdk version of a EMF project to the latest version.
 func RunUpgrade(yes bool) {
-	pterm.Warning.Println("All the files in the folder sdk will be replaced with the latest version of the sdk.")
-	pterm.Warning.Println("Be sure to not have any custom files in the sdk folder, as they will be deleted.")
+	app.UI().Warning().Println("All the files in the folder sdk will be replaced with the latest version of the sdk.")
+	app.UI().Warning().Println("Be sure to not have any custom files in the sdk folder, as they will be deleted.")
 
 	if !yes {
 		yes = app.UI().AskForUsersConfirmation("Are you sure you want to upgrade the sdk version of this project?")
@@ -24,5 +23,22 @@ func RunUpgrade(yes bool) {
 		return
 	}
 
-	_ = sdk.Upgrade()
+	err = sdk.Upgrade()
+	if err != nil {
+		app.UI().Error().Println("Error upgrading sdk:", err)
+		return
+	}
+
+	models, err := config.GetModels()
+	if err != nil {
+		app.UI().Error().Println("Error regenerating code:", err)
+		return
+	}
+
+	err = regenerateCode(models)
+	if err != nil {
+		app.UI().Error().Println("Error regenerating code:", err)
+		return
+	}
+
 }

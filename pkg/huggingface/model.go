@@ -7,7 +7,7 @@ import (
 )
 
 // GetModelsByPipelineTag from hugging face api by pipeline tag
-func (h huggingFace) GetModelsByPipelineTag(tag PipelineTag, limit int) ([]Model, error) {
+func (h huggingFace) GetModelsByPipelineTag(tag PipelineTag, limit int) (Models, error) {
 	getModelsUrl, err := url.Parse(h.BaseUrl + modelEndpoint)
 	if err != nil {
 		return nil, err
@@ -25,13 +25,13 @@ func (h huggingFace) GetModelsByPipelineTag(tag PipelineTag, limit int) ([]Model
 	// Execute API call
 	response, err := h.apiGet(getModelsUrl)
 	if err != nil {
-		return []Model{}, err
+		return Models{}, err
 	}
 
 	// Unmarshal API response
-	var models []Model
+	var models Models
 	if err = json.Unmarshal(response, &models); err != nil {
-		return []Model{}, err
+		return Models{}, err
 	}
 
 	// Execute API call
@@ -59,13 +59,4 @@ func (h huggingFace) GetModelById(id string) (Model, error) {
 	}
 
 	return model, nil
-}
-
-// ValidModel checks if a model exists by id
-func (h huggingFace) ValidModel(id string) (bool, error) {
-	_, err := h.GetModelById(id)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
 }

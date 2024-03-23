@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/pterm/pterm"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
@@ -58,9 +58,9 @@ func SendUpdateSuggestion() {
 		return
 	}
 
-	pterm.DefaultBox.Println(fmt.Sprintf("A new version of the SDK (%s) is available!\n"+
-		"To update, run 'emf-cli update'", tag))
-	pterm.Println()
+	app.UI().DefaultBox().Println(fmt.Sprintf("A new version of the SDK (%s) is available!\n"+
+		"To update, run 'emf-cli upgrade'", tag))
+	fmt.Println()
 
 	setUpdateSuggestion(true)
 }
@@ -70,7 +70,7 @@ func SendUpdateSuggestion() {
 func Upgrade() error {
 	tag, ok := checkForUpdates()
 	if !ok {
-		pterm.Info.Println("SDK is already up to date")
+		app.UI().Info().Println("SDK is already up to date")
 		return errors.New("sdk is already up to date")
 	}
 
@@ -91,9 +91,32 @@ func Upgrade() error {
 
 	// clone sdk
 	spinner = app.UI().StartSpinner("Cloning latest sdk...")
-	err = app.G().CloneSDK(tag, filepath.Join("sdk"))
+	err = app.G().CloneSDK(tag, "sdk")
 	if err != nil {
 		spinner.Fail(err)
+		return err
+	}
+	spinner.Success()
+
+	// Move files from sdk/sdk to sdk/
+	spinner = app.UI().StartSpinner("Reorganizing SDK files")
+	err = fileutil.MoveFiles(filepath.Join("sdk", "sdk"), "sdk")
+	if err != nil {
+		spinner.Fail("Unable to move SDK files: ", err)
+		return err
+	}
+
+	// remove sdk/sdk folder
+	err = os.RemoveAll(filepath.Join("sdk", "sdk"))
+	if err != nil {
+		spinner.Fail("Unable to remove sdk/sdk folder: ", err)
+		return err
+	}
+
+	// remove .github/ folder
+	err = os.RemoveAll(filepath.Join("sdk", ".github"))
+	if err != nil {
+		spinner.Fail("Unable to remove .github folder: ", err)
 		return err
 	}
 
@@ -107,6 +130,6 @@ func Upgrade() error {
 	}
 	spinner.Success()
 
-	pterm.Success.Println(fmt.Sprintf("SDK successfully updated to version %s", tag))
+	app.UI().Success().Println(fmt.Sprintf("SDK successfully updated to version %s", tag))
 	return nil
 }

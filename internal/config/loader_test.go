@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
 	"path/filepath"
 	"testing"
@@ -55,7 +56,7 @@ func TestLoad(t *testing.T) {
 // Tests UpdateConfigFilePath
 func TestUpdateConfigFilePath(t *testing.T) {
 	//create mock UI
-	ui := test.MockUI{UserInputResult: "path/test"}
+	ui := mock.MockUI{UserInputResult: "path/test"}
 	app.SetUI(ui)
 
 	// Update the configuration file path

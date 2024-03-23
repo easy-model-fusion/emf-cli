@@ -11,9 +11,8 @@ const BaseUrl = "https://huggingface.co/api"
 const modelEndpoint = "/models"
 
 type HuggingFace interface {
-	GetModelsByPipelineTag(tag PipelineTag, limit int) ([]Model, error)
+	GetModelsByPipelineTag(tag PipelineTag, limit int) (Models, error)
 	GetModelById(id string) (Model, error)
-	ValidModel(id string) (bool, error)
 }
 
 type huggingFace struct {
@@ -37,6 +36,9 @@ func NewHuggingFace(baseUrl, proxyUrl string) HuggingFace {
 		Client:  client,
 	}
 }
+
+// Models Define a list of models to match the JSON response from the API
+type Models []Model
 
 // Model Define a model to match the JSON response from the API
 type Model struct {

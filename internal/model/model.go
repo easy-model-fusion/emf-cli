@@ -177,3 +177,24 @@ func (m *Model) UpdatePaths() {
 	}
 	m.Path = modelPath
 }
+
+// Difference returns the models in that are not present in `slice`
+func (t Tokenizers) Difference(slice Tokenizers) Tokenizers {
+	var difference Tokenizers
+	for _, item := range t {
+		if !slice.ContainsByClass(item.Class) {
+			difference = append(difference, item)
+		}
+	}
+	return difference
+}
+
+// ContainsByClass checks if a tokenizers slice contains the requested tokenizers name
+func (t Tokenizers) ContainsByClass(class string) bool {
+	for _, currentTokenizer := range t {
+		if currentTokenizer.Class == class {
+			return true
+		}
+	}
+	return false
+}

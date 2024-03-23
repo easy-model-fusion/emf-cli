@@ -1,8 +1,7 @@
-package downloader
+package downloadermodel
 
 import (
 	"errors"
-	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/spf13/cobra"
 )
@@ -36,13 +35,11 @@ func (a *Args) Validate() error {
 // ToCobra builds the arguments for running the cobra command
 func (a *Args) ToCobra(cmd *cobra.Command) {
 
-	// Pseudo mandatory : allowing to customize the calling command
-	cmd.Flags().StringVarP(&a.ModelName, ModelName, "n", "", "Name of the model")
-	cmd.Flags().StringVarP(&a.ModelModule, ModelModule, "m", "", "Python module used for download")
-
 	// Optional for the model
 	cmd.Flags().StringVarP(&a.ModelClass, ModelClass, "c", "", "Python class within the module")
 	cmd.Flags().StringSliceVarP(&a.ModelOptions, ModelOptions, "o", []string{}, "List of model options")
+	cmd.Flags().StringVarP(&a.ModelModule, ModelModule, "m", "", "Python module used for download")
+	cmd.Flags().StringVarP(&a.DirectoryPath, Path, "p", "", "Downloaded Model directory path")
 
 	// Optional for the tokenizer
 	cmd.Flags().StringVarP(&a.TokenizerClass, TokenizerClass, "t", "", "Tokenizer class (only for transformers)")
@@ -57,7 +54,7 @@ func (a *Args) ToCobra(cmd *cobra.Command) {
 func (a *Args) ToPython() []string {
 
 	// Mandatory arguments
-	cmdArgs := []string{TagPrefix + EmfClient, TagPrefix + Overwrite, app.DownloadDirectoryPath, a.ModelName, a.ModelModule}
+	cmdArgs := []string{TagPrefix + EmfClient, TagPrefix + Overwrite, a.DirectoryPath, a.ModelName, a.ModelModule}
 
 	// Optional arguments regarding the model
 	if a.ModelClass != "" {

@@ -184,11 +184,11 @@ func (p *python) CheckAskForPython(ui ui.UI) (string, bool) {
 	pterm.Info.Println("Checking for Python...")
 	path, ok := p.CheckForPython()
 	if ok {
-		pterm.Success.Println("Python executable found! (" + path + ")")
+		ui.Success().Println("Python executable found! (" + path + ")")
 		return path, true
 	}
 
-	pterm.Warning.Println("Python is not installed or not available in the PATH")
+	ui.Warning().Println("Python is not installed or not available in the PATH")
 
 	if ui.AskForUsersConfirmation("Do you want to specify the path to python?") {
 		result := ui.AskForUsersInput("Enter python PATH")
@@ -200,17 +200,17 @@ func (p *python) CheckAskForPython(ui ui.UI) (string, bool) {
 
 		path, ok = p.CheckPythonVersion(result)
 		if ok {
-			pterm.Success.Println("Python executable found! (" + path + ")")
+			ui.Success().Println("Python executable found! (" + path + ")")
 			return path, true
 		}
 
-		pterm.Error.Println("Could not run python with the --version flag, please check the path to python")
+		ui.Error().Println("Could not run python with the --version flag, please check the path to python")
 		return "", false
 	}
 
-	pterm.Warning.Println("Please install Python 3.10 or higher and add it to the PATH")
-	pterm.Warning.Println("You can download Python here: https://www.python.org/downloads/")
-	pterm.Warning.Println("If you have already installed Python, please add it to the PATH")
+	ui.Warning().Println("Please install Python 3.10 or higher and add it to the PATH")
+	ui.Warning().Println("You can download Python here: https://www.python.org/downloads/")
+	ui.Warning().Println("If you have already installed Python, please add it to the PATH")
 
 	return "", false
 }
