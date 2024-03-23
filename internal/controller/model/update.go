@@ -13,9 +13,9 @@ import (
 )
 
 // RunModelUpdate runs the model update command
-func RunModelUpdate(args []string) {
+func RunModelUpdate(args []string, yes bool) {
 	// Process update operation with given arguments
-	warningMessage, infoMessage, err := processUpdate(args)
+	warningMessage, infoMessage, err := processUpdate(args, yes)
 
 	// Display messages to user
 	if warningMessage != "" {
@@ -32,7 +32,7 @@ func RunModelUpdate(args []string) {
 }
 
 // processUpdate processes the update model operation
-func processUpdate(args []string) (warning string, info string, err error) {
+func processUpdate(args []string, yes bool) (warning string, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
 	if err != nil {
@@ -80,7 +80,7 @@ func processUpdate(args []string) (warning string, info string, err error) {
 		}
 
 		// Processing filtered models for an update
-		err = updateModels(modelsToUpdate)
+		err = updateModels(modelsToUpdate, yes)
 	} else {
 		info = "There is no models to be updated."
 	}
@@ -131,12 +131,12 @@ func getUpdatableModels(modelNames []string, hfModelsAvailable model.Models) (
 }
 
 // updateModels updates the given models
-func updateModels(modelsToUpdate model.Models) (err error) {
+func updateModels(modelsToUpdate model.Models, yes bool) (err error) {
 	// Try to update all the given models
 	var failedModels []string
 	var updatedModels model.Models
 	for _, current := range modelsToUpdate {
-		success := current.Update()
+		success := current.Update(yes)
 		if !success {
 			failedModels = append(failedModels, current.Name)
 		} else {

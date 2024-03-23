@@ -215,7 +215,7 @@ func FromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 }
 
 // Update attempts to update the model
-func (m *Model) Update() bool {
+func (m *Model) Update(yes bool) bool {
 	// Check if model is physically present on the device
 	m.UpdatePaths()
 	downloaded, err := m.DownloadedOnDevice(false)
@@ -227,10 +227,10 @@ func (m *Model) Update() bool {
 	install := false
 	if downloaded {
 		// Model already configured and downloaded : a new version is available
-		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
+		install = yes || app.UI().AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
 			"Would you like to overwrite its old version?", m.Name))
 	} else {
-		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
+		install = yes || app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
 			"Would you like to download it?", m.Name))
 	}
 
