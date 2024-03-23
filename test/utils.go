@@ -70,7 +70,7 @@ func (ts *TestSuite) CreateFullTestSuite(t *testing.T) (directoryPath string) {
 	return dname
 }
 
-const FullTestSuiteModelsCount = 3
+const FullTestSuiteModelsCount = 4
 
 // CreateModelsFolderFullTestSuite Create a full test suite
 // Please delete the directory after use (defer test.Clean())
@@ -88,6 +88,10 @@ func (ts *TestSuite) CreateModelsFolderFullTestSuite(t *testing.T) (directoryPat
 	err = os.MkdirAll(filepath.Join("models", "model2", "weights"), os.ModePerm)
 	checkErrDeleteFolder(t, err, dname)
 	err = os.MkdirAll(filepath.Join("models", "model3"), os.ModePerm)
+	checkErrDeleteFolder(t, err, dname)
+	err = os.MkdirAll(filepath.Join("models", "model4", "model", "weights"), os.ModePerm)
+	checkErrDeleteFolder(t, err, dname)
+	err = os.MkdirAll(filepath.Join("models", "model4", "tokenizer", "weights"), os.ModePerm)
 	checkErrDeleteFolder(t, err, dname)
 
 	return dname

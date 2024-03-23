@@ -46,6 +46,10 @@ func TestRunClean(t *testing.T) {
 			Name: "model3",
 			Path: "models/model3",
 		},
+		{
+			Name: "model4",
+			Path: "models/model4",
+		},
 	})
 	test.AssertEqual(t, err, nil, "Error adding models to config")
 
