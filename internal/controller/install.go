@@ -75,7 +75,9 @@ func (ic InstallController) Run(args []string, useTorchCuda bool) error {
 	}
 
 	// handle errors in run tidy (new structure)
-	tidyController.RunTidy(false)
+	if err := tidyController.RunTidy(false); err != nil {
+		return err
+	}
 
 	app.UI().Success().Printfln("Project installed successfully in %v", time.Since(start))
 

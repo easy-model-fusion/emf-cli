@@ -362,7 +362,7 @@ func TestRunTidy(t *testing.T) {
 
 	// Download missing models
 	var tidyController TidyController
-	tidyController.RunTidy(true)
+	_ = tidyController.RunTidy(true)
 	models, err := config.GetModels()
 
 	// Assertions
