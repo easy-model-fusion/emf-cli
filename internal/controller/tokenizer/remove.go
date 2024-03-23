@@ -1,3 +1,6 @@
+// Package tokenizer
+// This file contains the remove tokenizer controller which is responsible for removing
+// existing tokenizers in existing models
 package tokenizer
 
 import (
@@ -12,11 +15,13 @@ import (
 	"github.com/pterm/pterm"
 )
 
+type RemoveTokenizerController struct{}
+
 // RunTokenizerRemove runs the tokenizer remove command
-func RunTokenizerRemove(args []string) {
+func (ic RemoveTokenizerController) RunTokenizerRemove(args []string) {
 	sdk.SendUpdateSuggestion()
 	// Process remove operation with given arguments
-	warningMessage, infoMessage, err := processRemove(args)
+	warningMessage, infoMessage, err := ic.processRemove(args)
 
 	// Display messages to user
 	if warningMessage != "" {
@@ -33,7 +38,7 @@ func RunTokenizerRemove(args []string) {
 }
 
 // processRemove processes the remove tokenizer operation
-func processRemove(args []string) (warning, info string, err error) {
+func (ic RemoveTokenizerController) processRemove(args []string) (warning, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
 	if err != nil {

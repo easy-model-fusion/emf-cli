@@ -1,3 +1,8 @@
+// Package tokenizer
+// This file contains the update tokenizer controller which is responsible for
+// updating existing tokenizers in existing models
+//
+
 package tokenizer
 
 import (
@@ -13,11 +18,13 @@ import (
 	"github.com/pterm/pterm"
 )
 
+type UpdateTokenizerController struct{}
+
 // TokenizerUpdateCmd TokenizerRemoveCmd runs the model update command
-func TokenizerUpdateCmd(args []string) {
+func (ic UpdateTokenizerController) TokenizerUpdateCmd(args []string) {
 	sdk.SendUpdateSuggestion()
 	// Process remove operation with given arguments
-	warningMessage, infoMessage, err := processUpdateTokenizer(args)
+	warningMessage, infoMessage, err := ic.processUpdateTokenizer(args)
 
 	// Display messages to user
 	if warningMessage != "" {
@@ -34,7 +41,7 @@ func TokenizerUpdateCmd(args []string) {
 }
 
 // processUpdateTokenizer processes tokenizers to be updated
-func processUpdateTokenizer(args []string) (warning, info string, err error) {
+func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warning, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
 	if err != nil {

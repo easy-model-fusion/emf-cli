@@ -40,9 +40,9 @@ func TestTokenizerUpdateCmd_ValidArgs(t *testing.T) {
 	defer ts.CleanTestSuite(t)
 	err := setupConfigFile(models)
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
-
+	ic := UpdateTokenizerController{}
 	// Process update
-	TokenizerUpdateCmd(args)
+	ic.TokenizerUpdateCmd(args)
 	test.AssertEqual(t, err, nil, "No error expected while processing update")
 	_, err = config.GetModels()
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
@@ -69,9 +69,9 @@ func TestTokenizerUpdateCmd_NoModuleTransformersUpdate(t *testing.T) {
 	defer ts.CleanTestSuite(t)
 	err := setupConfigFile(models)
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
-
+	ic := UpdateTokenizerController{}
 	// Process update
-	TokenizerUpdateCmd(args)
+	ic.TokenizerUpdateCmd(args)
 	test.AssertEqual(t, err, nil, "No error expected while processing Update")
 	_, err = config.GetModels()
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
@@ -100,8 +100,9 @@ func TestTokenizerUpdateCmd_WrongModelNameUpdate(t *testing.T) {
 	err := setupConfigFile(models)
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 
+	ic := UpdateTokenizerController{}
 	// Process update
-	TokenizerUpdateCmd(args)
+	ic.TokenizerUpdateCmd(args)
 	test.AssertEqual(t, err, nil, "Operation failed, no model found")
 }
 
@@ -125,9 +126,9 @@ func TestTokenizerUpdateCmd_NoArgs(t *testing.T) {
 	defer ts.CleanTestSuite(t)
 	err := setupConfigFile(models)
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
-
-	// Process remove
-	TokenizerUpdateCmd(args)
+	ic := UpdateTokenizerController{}
+	// Process update
+	ic.TokenizerUpdateCmd(args)
 	test.AssertEqual(t, err, nil, "Operation failed.")
 }
 
@@ -161,8 +162,9 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgs(t *testing.T) {
 	err := setupConfigFile(models)
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 
+	ic := UpdateTokenizerController{}
 	// Process update
-	TokenizerUpdateCmd(args)
+	ic.TokenizerUpdateCmd(args)
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
 
@@ -200,8 +202,9 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgsDownload(t *testing.T) {
 	err := setupConfigFile(models)
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 
+	ic := UpdateTokenizerController{}
 	// Process update
-	TokenizerUpdateCmd(args)
+	ic.TokenizerUpdateCmd(args)
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
 
@@ -240,8 +243,8 @@ func TestTokenizerUpdateCmd_UpdateError(t *testing.T) {
 	defer ts.CleanTestSuite(t)
 	err := setupConfigFile(models)
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
-
+	ic := UpdateTokenizerController{}
 	// Process update
-	TokenizerUpdateCmd(args)
+	ic.TokenizerUpdateCmd(args)
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
