@@ -3,6 +3,7 @@ package cmdtokenizer
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/controller/tokenizer"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var (

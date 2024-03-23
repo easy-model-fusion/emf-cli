@@ -18,7 +18,7 @@ import (
 type RemoveTokenizerController struct{}
 
 // RunTokenizerRemove runs the tokenizer remove command
-func (ic RemoveTokenizerController) RunTokenizerRemove(args []string) {
+func (ic RemoveTokenizerController) RunTokenizerRemove(args []string) error {
 	sdk.SendUpdateSuggestion()
 	// Process remove operation with given arguments
 	warningMessage, infoMessage, err := ic.processRemove(args)
@@ -30,10 +30,13 @@ func (ic RemoveTokenizerController) RunTokenizerRemove(args []string) {
 
 	if infoMessage != "" {
 		pterm.Info.Printfln(infoMessage)
+		return nil
 	} else if err == nil {
 		pterm.Success.Printfln("Operation succeeded.")
+		return nil
 	} else {
 		pterm.Error.Printfln("Operation failed.")
+		return err
 	}
 }
 

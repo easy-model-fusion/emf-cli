@@ -21,7 +21,7 @@ import (
 type UpdateTokenizerController struct{}
 
 // TokenizerUpdateCmd TokenizerRemoveCmd runs the model update command
-func (ic UpdateTokenizerController) TokenizerUpdateCmd(args []string) {
+func (ic UpdateTokenizerController) TokenizerUpdateCmd(args []string) error {
 	sdk.SendUpdateSuggestion()
 	// Process remove operation with given arguments
 	warningMessage, infoMessage, err := ic.processUpdateTokenizer(args)
@@ -33,10 +33,13 @@ func (ic UpdateTokenizerController) TokenizerUpdateCmd(args []string) {
 
 	if infoMessage != "" {
 		pterm.Info.Printfln(infoMessage)
+		return nil
 	} else if err == nil {
 		pterm.Success.Printfln("Operation succeeded.")
+		return nil
 	} else {
 		pterm.Error.Printfln("Operation failed.")
+		return err
 	}
 }
 
