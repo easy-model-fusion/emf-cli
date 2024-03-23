@@ -1,9 +1,12 @@
 package model
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
+	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"github.com/pterm/pterm"
 	"os"
 	"path"
@@ -360,4 +363,125 @@ func TestFromHuggingfaceModel_Success(t *testing.T) {
 	test.AssertEqual(t, model.PipelineTag, huggingfaceModel.PipelineTag)
 	test.AssertEqual(t, model.Module, huggingfaceModel.LibraryName)
 	test.AssertEqual(t, model.Source, HUGGING_FACE)
+}
+
+// Tests TidyConfiguredModel on clean model
+func TestTidyConfiguredModel_CleanModel(t *testing.T) {
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+
+	// Init
+	model := Model{
+		Name:   "model1",
+		Path:   "models",
+		Module: huggingface.DIFFUSERS,
+	}
+
+	// Synchronize model
+	warning, success, clean := model.TidyConfiguredModel()
+
+	// Assertions
+	test.AssertEqual(t, success, true)
+	test.AssertEqual(t, clean, true)
+	test.AssertEqual(t, warning, "")
+}
+
+// Tests TidyConfiguredModel
+func TestTidyConfiguredModel_Success(t *testing.T) {
+	// Init
+	model := Model{
+		Name:   "Test",
+		Path:   "invalid/path",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: Tokenizers{
+			Tokenizer{
+				Class: "class1",
+				Path:  "invalid/Path",
+			},
+			Tokenizer{
+				Class: "class2",
+				Path:  "invalid/Path",
+			},
+		},
+	}
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	// Synchronize model
+	warning, success, clean := model.TidyConfiguredModel()
+
+	// Assertions
+	test.AssertEqual(t, success, true)
+	test.AssertEqual(t, clean, false)
+	test.AssertEqual(t, warning, "")
+}
+
+// Tests TidyConfiguredModel
+func TestTidyConfiguredModel_Fail(t *testing.T) {
+	// Init
+	model := Model{
+		Name:   "Test",
+		Path:   "invalid/path",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: Tokenizers{
+			Tokenizer{
+				Class: "class1",
+				Path:  "invalid/Path",
+			},
+			Tokenizer{
+				Class: "class2",
+				Path:  "invalid/Path",
+			},
+		},
+	}
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	app.SetDownloader(&downloader)
+
+	// Synchronize model
+	warning, success, clean := model.TidyConfiguredModel()
+
+	// Assertions
+	test.AssertEqual(t, success, false)
+	test.AssertEqual(t, clean, false)
+	test.AssertEqual(t, warning, "")
+}
+
+// Tests TidyConfiguredModel
+func TestTidyConfiguredModel_FailTokenizersTidy(t *testing.T) {
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+
+	// Init
+	model := Model{
+		Name:   "model4",
+		Path:   "./models/model4/model",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: Tokenizers{
+			Tokenizer{
+				Class: "tokenizer",
+				Path:  "models/model4/tokenizer",
+			},
+			Tokenizer{
+				Class: "tokenizer2",
+				Path:  "invalid/Path",
+			},
+		},
+	}
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	app.SetDownloader(&downloader)
+
+	// Synchronize model
+	warning, success, clean := model.TidyConfiguredModel()
+
+	// Assertions
+	test.AssertEqual(t, success, true)
+	test.AssertEqual(t, clean, false)
+	test.AssertEqual(t, warning, "The following tokenizer(s) couldn't be downloaded for 'model4': [tokenizer2]")
 }
