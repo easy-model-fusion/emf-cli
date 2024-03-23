@@ -1,9 +1,12 @@
 package model
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
+	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"github.com/pterm/pterm"
 	"os"
 	"path"
@@ -360,4 +363,108 @@ func TestFromHuggingfaceModel_Success(t *testing.T) {
 	test.AssertEqual(t, model.PipelineTag, huggingfaceModel.PipelineTag)
 	test.AssertEqual(t, model.Module, huggingfaceModel.LibraryName)
 	test.AssertEqual(t, model.Source, HUGGING_FACE)
+}
+
+// Tests successful update on diffusers model
+func TestModelUpdate_Diffusers(t *testing.T) {
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+
+	// Init
+	model := Model{
+		Name:   "model1",
+		Path:   "models",
+		Module: huggingface.DIFFUSERS,
+	}
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	// Update model
+	success := model.Update(true)
+
+	// Assertions
+	test.AssertEqual(t, success, true)
+}
+
+// Tests update on diffusers model with no user confirmation
+func TestModelUpdate_WithNoConfirmation(t *testing.T) {
+	// Init
+	model := Model{
+		Name:   "Test",
+		Path:   "invalid/path",
+		Module: huggingface.DIFFUSERS,
+	}
+
+	// Create ui mock
+	ui := mock.MockUI{UserConfirmationResult: false}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	// Update model
+	success := model.Update(false)
+
+	// Assertions
+	test.AssertEqual(t, success, false)
+}
+
+// Tests failed update
+func TestModelUpdate_Failed(t *testing.T) {
+	// Init
+	model := Model{
+		Name:   "Test",
+		Path:   "invalid/path",
+		Module: huggingface.DIFFUSERS,
+	}
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	app.SetDownloader(&downloader)
+
+	// Update model
+	success := model.Update(true)
+
+	// Assertions
+	test.AssertEqual(t, success, false)
+}
+
+// Tests successful update on transformers model
+func TestModelUpdate_Transformers(t *testing.T) {
+	// Init
+	model := Model{
+		Name:   "Test",
+		Path:   "invalid/path",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: Tokenizers{
+			Tokenizer{
+				Class: "class1",
+				Path:  "invalid/Path",
+			},
+			Tokenizer{
+				Class: "class2",
+				Path:  "invalid/Path",
+			},
+		},
+	}
+	expectedSelections := []string{"class1"}
+
+	// Create ui mock
+	ui := mock.MockUI{MultiselectResult: expectedSelections}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	// Update model
+	success := model.Update(true)
+
+	// Assertions
+	test.AssertEqual(t, success, true)
 }

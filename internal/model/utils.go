@@ -275,8 +275,7 @@ func (m *Model) Update(yes bool) bool {
 	}
 
 	// Downloading model
-	success := false
-	success = m.Download(downloaderArgs)
+	success := m.Download(downloaderArgs)
 	if !success {
 		// Download failed
 		return false
