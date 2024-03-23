@@ -46,7 +46,7 @@ func (a *Args) ToCobra(cmd *cobra.Command) {
 	cmd.Flags().StringArrayVarP(&a.TokenizerOptions, TokenizerOptions, "T", []string{}, "List of tokenizer options (only for transformers)")
 
 	// Situational
-	cmd.Flags().StringVarP(&a.Skip, Skip, "s", "", "Skip the model or tokenizer download")
+	cmd.Flags().BoolVarP(&a.OnlyConfiguration, "only-configuration", "O", false, "Only configure the model without downloading it")
 }
 
 // ToPython builds the arguments for running the python script.

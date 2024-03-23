@@ -100,7 +100,7 @@ func getRequestedModel(args []string) (model.Model, error) {
 func processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes bool) (warning string, err error) {
 	// User choose if he wishes to install the model directly
 	message := fmt.Sprintf("Do you wish to directly download %s?", selectedModel.Name)
-	selectedModel.AddToBinaryFile = yes || app.UI().AskForUsersConfirmation(message)
+	selectedModel.AddToBinaryFile = !customArgs.OnlyConfiguration && (yes || app.UI().AskForUsersConfirmation(message))
 
 	// Validate model for download
 	warningMessage, valid, err := config.Validate(selectedModel, yes)
