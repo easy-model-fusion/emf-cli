@@ -27,7 +27,11 @@ func RunTidy() {
 	}
 
 	// Tidy the models configured but not physically present on the device
-	tidyModelsConfiguredButNotDownloaded(models)
+	app.UI().Info().Println("Verifying if all models are downloaded...")
+	warning := tidyModelsConfiguredButNotDownloaded(models)
+	if warning != "" {
+		app.UI().Warning().Println(warning)
+	}
 
 	// Tidy the models physically present on the device but not configured
 	tidyModelsDownloadedButNotConfigured(models)
@@ -48,8 +52,7 @@ func RunTidy() {
 }
 
 // tidyModelsConfiguredButNotDownloaded downloads any missing model and its missing tokenizers as well
-func tidyModelsConfiguredButNotDownloaded(models model.Models) {
-	app.UI().Info().Println("Verifying if all models are downloaded...")
+func tidyModelsConfiguredButNotDownloaded(models model.Models) (warning string) {
 	// filter the models that should be added to binary
 	models = models.FilterWithAddToBinaryFileTrue()
 
@@ -72,7 +75,7 @@ func tidyModelsConfiguredButNotDownloaded(models model.Models) {
 
 	// Displaying the downloads that failed
 	if len(failedModels) > 0 {
-		app.UI().Error().Println(fmt.Sprintf("The following models(s) couldn't be downloaded : %s", failedModels))
+		warning = fmt.Sprintf("The following models(s) couldn't be downloaded : %s", failedModels)
 	}
 
 	if len(downloadedModels) > 0 {
@@ -85,6 +88,7 @@ func tidyModelsConfiguredButNotDownloaded(models model.Models) {
 			spinner.Success()
 		}
 	}
+	return warning
 }
 
 // tidyModelsDownloadedButNotConfigured configuring the downloaded models that aren't configured in the configuration file

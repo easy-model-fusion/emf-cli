@@ -8,8 +8,8 @@ import (
 // tidyCmd represents the model tidy command
 var tidyCmd = &cobra.Command{
 	Use:   "tidy",
-	Short: "add missing and remove unused models",
-	Long:  `add missing and remove unused models`,
+	Short: "synchronizes the configuration file with the downloaded models",
+	Long:  `synchronizes the configuration file with the downloaded models`,
 	Run:   runTidy,
 }
 
