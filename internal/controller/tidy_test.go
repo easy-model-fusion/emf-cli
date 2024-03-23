@@ -9,6 +9,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
+	"github.com/spf13/viper"
 	"os"
 	"testing"
 )
@@ -16,6 +17,19 @@ import (
 func TestMain(m *testing.M) {
 	app.Init("", "")
 	os.Exit(m.Run())
+}
+
+// Sets the configuration file with the given models
+func setupConfigFile(models model.Models) error {
+	config.FilePath = "."
+	// Load configuration file
+	err := config.GetViperConfig(".")
+	if err != nil {
+		return err
+	}
+	// Write models to the config file
+	viper.Set("models", models)
+	return config.WriteViperConfig()
 }
 
 // Tests tidyModelsConfiguredButNotDownloaded
@@ -141,19 +155,19 @@ func TestTidyModelsConfiguredButNotDownloaded_WithTokenizerFailure(t *testing.T)
 	// Init
 	var existingModels model.Models
 	existingModels = append(existingModels, model.Model{
-		Name:         "model1",
+		Name:         "model1/name",
 		Module:       huggingface.DIFFUSERS,
 		Class:        "test",
 		IsDownloaded: true,
 	})
 	existingModels = append(existingModels, model.Model{
-		Name:         "model2",
+		Name:         "model2/name",
 		Module:       huggingface.DIFFUSERS,
 		Class:        "test",
 		IsDownloaded: false,
 	})
 	existingModels = append(existingModels, model.Model{
-		Name:   "model4",
+		Name:   "model4/name",
 		Path:   "./models/model4/model",
 		Module: huggingface.TRANSFORMERS,
 		Tokenizers: model.Tokenizers{
@@ -183,5 +197,112 @@ func TestTidyModelsConfiguredButNotDownloaded_WithTokenizerFailure(t *testing.T)
 
 	// Assertions
 	test.AssertEqual(t, len(warnings), 1)
-	test.AssertEqual(t, warnings[0], "The following tokenizer(s) couldn't be downloaded for 'model4': [tokenizer2]")
+	test.AssertEqual(t, warnings[0], "The following tokenizer(s) couldn't be downloaded for 'model4/name': [tokenizer2]")
+}
+
+// Tests tidyModelsDownloadedButNotConfigured
+func TestTidyModelsDownloadedButNotConfigured(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{
+		Name:   "model1/name",
+		Module: huggingface.DIFFUSERS,
+		Class:  "test",
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:   "model2/name",
+		Module: huggingface.DIFFUSERS,
+		Class:  "test",
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:   "model4/name",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: model.Tokenizers{
+			model.Tokenizer{
+				Class: "tokenizer",
+			},
+			model.Tokenizer{
+				Class: "tokenizer2",
+			},
+		},
+	})
+
+	// Create huggingface mock
+	huggingfaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LibraryName: huggingface.TRANSFORMERS}}
+	app.SetHuggingFace(&huggingfaceInterface)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	app.SetDownloader(&downloader)
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Download missing models
+	tidyModelsDownloadedButNotConfigured(existingModels, true)
+	models, err := config.GetModels()
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(models), 4)
+	test.AssertEqual(t, models[3].Name, "model3/name")
+}
+
+// Tests tidyModelsDownloadedButNotConfigured with no user confirmation
+func TestTidyModelsDownloadedButNotConfigured_WithNoConfirmation(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{
+		Name:   "model1/name",
+		Module: huggingface.DIFFUSERS,
+		Class:  "test",
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:   "model2/name",
+		Module: huggingface.DIFFUSERS,
+		Class:  "test",
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:   "model4/name",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: model.Tokenizers{
+			model.Tokenizer{
+				Class: "tokenizer",
+			},
+			model.Tokenizer{
+				Class: "tokenizer2",
+			},
+		},
+	})
+
+	// Create huggingface mock
+	huggingfaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LibraryName: huggingface.TRANSFORMERS}}
+	app.SetHuggingFace(&huggingfaceInterface)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	app.SetDownloader(&downloader)
+
+	// Create Downloader mock
+	ui := mock.MockUI{UserConfirmationResult: false}
+	app.SetUI(&ui)
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Download missing models
+	tidyModelsDownloadedButNotConfigured(existingModels, false)
+	models, err := config.GetModels()
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(models), 3)
 }

@@ -13,7 +13,13 @@ var tidyCmd = &cobra.Command{
 	Run:   runTidy,
 }
 
+var yes bool
+
+func init() {
+	tidyCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Automatic yes to prompts")
+}
+
 // runTidy runs the model tidy command
 func runTidy(cmd *cobra.Command, args []string) {
-	controller.RunTidy()
+	controller.RunTidy(yes)
 }

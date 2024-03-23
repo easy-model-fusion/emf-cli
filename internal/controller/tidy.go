@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 )
 
-func RunTidy() {
+func RunTidy(yes bool) {
 	// get all models from config file
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
@@ -36,7 +36,8 @@ func RunTidy() {
 	}
 
 	// Tidy the models physically present on the device but not configured
-	tidyModelsDownloadedButNotConfigured(models)
+	app.UI().Info().Println("Verifying if all downloaded models are configured...")
+	tidyModelsDownloadedButNotConfigured(models, yes)
 
 	// Updating the models object since the configuration might have changed in between
 	models, err = config.GetModels()
@@ -46,6 +47,7 @@ func RunTidy() {
 	}
 
 	// Regenerate python code
+	app.UI().Info().Println("Generating new default python code...")
 	err = regenerateCode(models)
 	if err != nil {
 		app.UI().Error().Println(err.Error())
@@ -99,9 +101,7 @@ func tidyModelsConfiguredButNotDownloaded(models model.Models) (warnings []strin
 
 // tidyModelsDownloadedButNotConfigured configuring the downloaded models that aren't configured in the configuration file
 // and then asks the user if he wants to delete them or add them to the configuration file
-func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
-	app.UI().Info().Println("Verifying if all downloaded models are configured...")
-
+func tidyModelsDownloadedButNotConfigured(configModels model.Models, yes bool) {
 	// Get the list of downloaded models
 	downloadedModels := model.BuildModelsFromDevice()
 
@@ -129,12 +129,11 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 				current.Class = current.GetModuleAutoPipelineClassName()
 			}
 		}
-
 		// Model not configured
 		if !configured {
 
 			// Asking for permission to configure
-			configure := app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' wasn't found in your "+
+			configure := yes || app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' wasn't found in your "+
 				"configuration file. Confirm to configure, otherwise it will be removed.", current.Name))
 
 			// User chose to configure it
@@ -174,7 +173,7 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 				if !configured {
 
 					// Asking for permission to configure
-					configure := app.UI().AskForUsersConfirmation(fmt.Sprintf("Tokenizer '%s' for model '%s' wasn't found in your "+
+					configure := yes || app.UI().AskForUsersConfirmation(fmt.Sprintf("Tokenizer '%s' for model '%s' wasn't found in your "+
 						"configuration file. Confirm to configure, otherwise it will be removed.", tokenizer.Class, current.Name))
 
 					// User chose to configure it
@@ -220,8 +219,6 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 // regenerateCode generates new default python code
 func regenerateCode(models model.Models) error {
 	// TODO: modify this logic when code generator is completed
-	app.UI().Info().Println("Generating new default python code...")
-
 	err := config.GenerateModelsPythonCode(models)
 	if err != nil {
 		return err

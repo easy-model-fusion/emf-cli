@@ -459,7 +459,7 @@ func TestTidyConfiguredModel_FailTokenizersTidy(t *testing.T) {
 
 	// Init
 	model := Model{
-		Name:   "model4",
+		Name:   "model4/name",
 		Path:   "./models/model4/model",
 		Module: huggingface.TRANSFORMERS,
 		Tokenizers: Tokenizers{
@@ -483,7 +483,7 @@ func TestTidyConfiguredModel_FailTokenizersTidy(t *testing.T) {
 	// Assertions
 	test.AssertEqual(t, success, true)
 	test.AssertEqual(t, clean, false)
-	test.AssertEqual(t, warning, "The following tokenizer(s) couldn't be downloaded for 'model4': [tokenizer2]")
+	test.AssertEqual(t, warning, "The following tokenizer(s) couldn't be downloaded for 'model4/name': [tokenizer2]")
 }
 
 // Tests successful update on diffusers model
