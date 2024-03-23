@@ -20,5 +20,8 @@ var tokenizerRemoveCmd = &cobra.Command{
 
 // runTokenizerRemove runs the tokenizer remove command
 func runTokenizerRemove(cmd *cobra.Command, args []string) {
-	removeTokenizerController.RunTokenizerRemove(args)
+	err := removeTokenizerController.RunTokenizerRemove(args)
+	if err != nil {
+		os.Exit(1)
+	}
 }

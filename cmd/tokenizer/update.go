@@ -20,5 +20,8 @@ var tokenizerUpdateCmd = &cobra.Command{
 
 // runTokenizerUpdate runs the tokenizer update command
 func runTokenizerUpdate(cmd *cobra.Command, args []string) {
-	updateTokenizerController.TokenizerUpdateCmd(args)
+	err := updateTokenizerController.TokenizerUpdateCmd(args)
+	if err != nil {
+		os.Exit(1)
+	}
 }
