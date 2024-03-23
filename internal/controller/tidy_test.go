@@ -306,3 +306,56 @@ func TestTidyModelsDownloadedButNotConfigured_WithNoConfirmation(t *testing.T) {
 	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, len(models), 3)
 }
+
+func TestRunTidy_WithNoConfigurationFile(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{
+		Name:         "model1/name",
+		Module:       huggingface.DIFFUSERS,
+		Class:        "test",
+		IsDownloaded: true,
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:         "model2/name",
+		Module:       huggingface.DIFFUSERS,
+		Class:        "test",
+		IsDownloaded: false,
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:   "model4/name",
+		Path:   "./models/model4/model",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: model.Tokenizers{
+			model.Tokenizer{
+				Class: "tokenizer",
+				Path:  "models/model4/tokenizer",
+			},
+			model.Tokenizer{
+				Class: "tokenizer2",
+				Path:  "invalid/Path",
+			},
+		},
+		IsDownloaded: true,
+	})
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	app.SetDownloader(&downloader)
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Download missing models
+	RunTidy(true)
+	models, err := config.GetModels()
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(models), 4)
+	test.AssertEqual(t, models[3].Name, "model3/name")
+}

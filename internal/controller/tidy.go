@@ -47,11 +47,12 @@ func RunTidy(yes bool) {
 	}
 
 	// Regenerate python code
-	app.UI().Info().Println("Generating new default python code...")
+	spinner := app.UI().StartSpinner("Generating python code...")
 	err = regenerateCode(models)
 	if err != nil {
-		app.UI().Error().Println(err.Error())
-		return
+		spinner.Fail(fmt.Sprintf("Error while generating python: %s", err))
+	} else {
+		spinner.Success()
 	}
 }
 
@@ -224,6 +225,5 @@ func regenerateCode(models model.Models) error {
 		return err
 	}
 
-	app.UI().Success().Println("Python code generated")
 	return nil
 }
