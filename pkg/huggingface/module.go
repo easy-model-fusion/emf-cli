@@ -13,6 +13,11 @@ const (
 )
 
 const (
+	SDKModelDiffusers    string = "ModelDiffusers"
+	SDKModelTransformers string = "ModelTransformers"
+)
+
+const (
 	AutoDiffusers    string = "DiffusionPipeline"
 	AutoTransformers string = "AutoModel"
 )
