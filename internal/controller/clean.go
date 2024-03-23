@@ -5,7 +5,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/pterm/pterm"
 	"os"
 )
 
@@ -36,7 +35,7 @@ func RunClean(allFlagDelete bool, authorizeAllDelete bool) {
 		if err == nil {
 			spinner.Success()
 			if info != "" {
-				pterm.Info.Printfln(info)
+				app.UI().Info().Printfln(info)
 			}
 		} else {
 			spinner.Fail(fmt.Sprintf("Error cleaning all models: %s", err))
@@ -46,7 +45,7 @@ func RunClean(allFlagDelete bool, authorizeAllDelete bool) {
 
 	_, err := os.Stat(cleanDirName)
 	if os.IsNotExist(err) {
-		pterm.Success.Printfln("Operation succeeded.")
+		app.UI().Success().Printfln("Operation succeeded.")
 		return
 	}
 

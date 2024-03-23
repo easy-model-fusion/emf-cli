@@ -1,7 +1,7 @@
 package cmdmodel
 
 import (
-	"github.com/easy-model-fusion/emf-cli/internal/controller"
+	modelcontroller "github.com/easy-model-fusion/emf-cli/internal/controller/model"
 	"github.com/spf13/cobra"
 )
 
@@ -22,5 +22,5 @@ func init() {
 
 // runModelRemove runs the model remove command
 func runModelRemove(cmd *cobra.Command, args []string) {
-	controller.RunModelRemove(args, modelRemoveAllFlag)
+	modelcontroller.RunModelRemove(args, modelRemoveAllFlag)
 }

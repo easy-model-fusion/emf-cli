@@ -4,12 +4,14 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"github.com/spf13/viper"
 	"os"
 	"testing"
 )
 
 func TestMain(m *testing.M) {
+	app.SetUI(&mock.MockUI{})
 	app.InitGit("https://github.com/SchawnnDev", "")
 	os.Exit(m.Run())
 }
@@ -130,7 +132,7 @@ func TestUpgrade(t *testing.T) {
 	_ = ts.CreateFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
 
-	app.SetUI(&test.MockUI{})
+	app.SetUI(&mock.MockUI{})
 
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {

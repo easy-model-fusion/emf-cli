@@ -22,3 +22,8 @@
 #
 #     image = model_management.generate_prompt()
 #     image.show()
+#        ).images[0]
+#        image.show()
+
+if __name__ == '__main__':
+    print("Hello, EMF-World !")

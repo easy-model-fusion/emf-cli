@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"github.com/pterm/pterm"
 	"testing"
 )
@@ -38,11 +39,22 @@ func TestInitGit(t *testing.T) {
 
 func TestSetGit(t *testing.T) {
 	// Initialize git Instance
-	git := test.MockGit{Tag: "test-1.0"}
+	git := mock.MockGit{Tag: "test-1.0"}
 
 	// Set new git instance
 	SetGit(&git)
 
 	// Assertions
 	test.AssertEqual(t, G(), &git)
+}
+
+func TestSetHuggingFace(t *testing.T) {
+	// Initialize huggingFace mock instance
+	huggingFace := huggingface.MockHuggingFace{}
+
+	// Set new huggingFace instance
+	SetHuggingFace(&huggingFace)
+
+	// Assertions
+	test.AssertEqual(t, H(), &huggingFace)
 }

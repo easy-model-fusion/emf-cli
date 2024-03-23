@@ -7,6 +7,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
+	mock "github.com/easy-model-fusion/emf-cli/test/mock"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path"
@@ -257,28 +258,28 @@ func TestErrorOnAddModelWithEmptyViper(t *testing.T) {
 	test.AssertNotEqual(t, err, nil, "Should get error while updating configuration file.")
 }
 
-// TestRemoveModelPhysically_AddToBinaryFalse tests the RemoveModelPhysically with the property addToBinary to false.
+// TestRemoveModelPhysically_AddToBinaryFalse tests the RemoveItemPhysically with the property addToBinary to false.
 func TestRemoveModelPhysically_AddToBinaryFalse(t *testing.T) {
 	// Init
 	modelToRemove := getModel(0)
 	modelToRemove.AddToBinaryFile = false
 
 	// Execute
-	err := RemoveModelPhysically(modelToRemove.Name)
+	err := RemoveItemPhysically(modelToRemove.Name)
 	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
 }
 
-// TestRemoveModelPhysically_NonPhysical tests the RemoveModelPhysically with a non-physically present model.
+// TestRemoveModelPhysically_NonPhysical tests the RemoveItemPhysically with a non-physically present model.
 func TestRemoveModelPhysically_NotPhysical(t *testing.T) {
 	// Init
 	modelToRemove := getModel(0)
 
 	// Execute
-	err := RemoveModelPhysically(modelToRemove.Name)
+	err := RemoveItemPhysically(modelToRemove.Name)
 	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
 }
 
-// TestRemoveModelPhysically_Success tests the RemoveModelPhysically with a physically present model.
+// TestRemoveModelPhysically_Success tests the RemoveItemPhysically with a physically present model.
 func TestRemoveModelPhysically_Success(t *testing.T) {
 	// Init
 	modelToRemove := getModel(0)
@@ -289,7 +290,7 @@ func TestRemoveModelPhysically_Success(t *testing.T) {
 	defer os.RemoveAll(modelPath)
 
 	// Execute
-	err := RemoveModelPhysically(modelToRemove.Name)
+	err := RemoveItemPhysically(modelPath)
 	test.AssertEqual(t, nil, err, "Removal should not have failed since it's not physically downloaded.")
 
 	// Assert that the model was physically removed
@@ -513,7 +514,7 @@ func TestValidate_Configured_False(t *testing.T) {
 	modelToValidate := initialModels[0]
 
 	// Execute
-	valid := Validate(modelToValidate)
+	_, valid, _ := Validate(modelToValidate, false)
 
 	// Assert
 	test.AssertEqual(t, false, valid)
@@ -547,14 +548,14 @@ func TestValidate_DownloadedAndBinaryFalse_ConfirmFalse(t *testing.T) {
 	modelToValidate.Name = modelName
 
 	// test "no" to the confirmation
-	app.SetUI(&test.MockUI{})
-	app.UI().(*test.MockUI).UserConfirmationResult = false
+	app.SetUI(&mock.MockUI{})
+	app.UI().(*mock.MockUI).UserConfirmationResult = false
 
 	// Execute
-	valid := Validate(modelToValidate)
+	_, valid, _ := Validate(modelToValidate, false)
 
 	// Assert
-	test.AssertEqual(t, false, valid)
+	test.AssertEqual(t, valid, false)
 
 	// Clean up config afterward
 	cleanConfDir(t, confDir)
@@ -585,11 +586,11 @@ func TestValidate_DownloadedAndBinaryFalse_ConfirmTrueAndRemove(t *testing.T) {
 	modelToValidate.Name = modelName
 
 	// test "no" to the confirmation
-	app.SetUI(&test.MockUI{})
-	app.UI().(*test.MockUI).UserConfirmationResult = true
+	app.SetUI(&mock.MockUI{})
+	app.UI().(*mock.MockUI).UserConfirmationResult = true
 
 	// Execute
-	valid := Validate(modelToValidate)
+	_, valid, _ := Validate(modelToValidate, false)
 
 	// Assert
 	exists, err := fileutil.IsExistingPath(modelName)
@@ -628,11 +629,11 @@ func TestValidate_Downloaded_ConfirmFalse(t *testing.T) {
 	modelToValidate.Name = modelName
 
 	// test "no" to the confirmation
-	app.SetUI(&test.MockUI{})
-	app.UI().(*test.MockUI).UserConfirmationResult = false
+	app.SetUI(&mock.MockUI{})
+	app.UI().(*mock.MockUI).UserConfirmationResult = false
 
 	// Execute
-	valid := Validate(modelToValidate)
+	_, valid, _ := Validate(modelToValidate, false)
 
 	// Assert
 	test.AssertEqual(t, false, valid)
@@ -666,11 +667,11 @@ func TestValidate_Downloaded_ConfirmTrue(t *testing.T) {
 	modelToValidate.Name = modelName
 
 	// test "no" to the confirmation
-	app.SetUI(&test.MockUI{})
-	app.UI().(*test.MockUI).UserConfirmationResult = true
+	app.SetUI(&mock.MockUI{})
+	app.UI().(*mock.MockUI).UserConfirmationResult = true
 
 	// Execute
-	valid := Validate(modelToValidate)
+	_, valid, _ := Validate(modelToValidate, false)
 
 	// Assert
 	exists, err := fileutil.IsExistingPath(modelName)
@@ -690,7 +691,7 @@ func TestValidate_True(t *testing.T) {
 	modelToValidate := getModel(0)
 
 	// Execute
-	valid := Validate(modelToValidate)
+	_, valid, _ := Validate(modelToValidate, false)
 
 	// Assert
 	test.AssertEqual(t, true, valid)

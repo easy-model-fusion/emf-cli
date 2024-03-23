@@ -5,13 +5,14 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
 	"testing"
 )
 
 func TestRunClean(t *testing.T) {
-	app.SetUI(&test.MockUI{})
-	app.SetGit(&test.MockGit{})
+	app.SetUI(&mock.MockUI{})
+	app.SetGit(&mock.MockGit{})
 
 	ts := test.TestSuite{}
 	_ = ts.CreateModelsFolderFullTestSuite(t)

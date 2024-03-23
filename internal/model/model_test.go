@@ -310,3 +310,16 @@ func TestUpdatePaths_TransformersTokenizers(t *testing.T) {
 	// Assert
 	test.AssertEqual(t, model.Tokenizers[0].Path, path.Join(app.DownloadDirectoryPath, model.Name, "tokenizer"))
 }
+
+func TestTokenizers_Difference(t *testing.T) {
+	// Init
+	tokenizers := GetTokenizers(3)
+	sub := tokenizers[:2]
+	expected := tokenizers[2:]
+
+	// Execute
+	difference := tokenizers.Difference(sub)
+
+	// Assert
+	test.AssertEqual(t, len(expected), len(difference), "Lengths should be equal.")
+}
