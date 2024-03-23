@@ -324,3 +324,16 @@ func TestFilterWithClass_Success(t *testing.T) {
 	test.AssertEqual(t, len(tokenizers), len(result), "Lengths should be equal.")
 
 }
+
+func TestTokenizers_Difference(t *testing.T) {
+	// Init
+	tokenizers := GetTokenizers(3)
+	sub := tokenizers[:2]
+	expected := tokenizers[2:]
+
+	// Execute
+	difference := tokenizers.Difference(sub)
+
+	// Assert
+	test.AssertEqual(t, len(expected), len(difference), "Lengths should be equal.")
+}
