@@ -1,1 +1,187 @@
 package controller
+
+import (
+	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/config"
+	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
+	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
+	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/mock"
+	"os"
+	"testing"
+)
+
+func TestMain(m *testing.M) {
+	app.Init("", "")
+	os.Exit(m.Run())
+}
+
+// Tests tidyModelsConfiguredButNotDownloaded
+func TestTidyModelsConfiguredButNotDownloaded_Success(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{
+		Name:         "model1",
+		Module:       huggingface.DIFFUSERS,
+		Class:        "test",
+		IsDownloaded: true,
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:         "model2",
+		Module:       huggingface.DIFFUSERS,
+		Class:        "test",
+		IsDownloaded: false,
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:         "model5",
+		Module:       huggingface.DIFFUSERS,
+		Class:        "test",
+		IsDownloaded: true,
+	})
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := config.GetViperConfig(".")
+	test.AssertEqual(t, err, nil, "No error expected on loading configuration file")
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	// Download missing models
+	warnings := tidyModelsConfiguredButNotDownloaded(existingModels)
+
+	// Assertions
+	test.AssertEqual(t, len(warnings), 0)
+}
+
+// Tests tidyModelsConfiguredButNotDownloaded with no configuration file loaded
+func TestTidyModelsConfiguredButNotDownloaded_SuccessWithNoConfFile(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{
+		Name:         "model1",
+		Module:       huggingface.DIFFUSERS,
+		Class:        "test",
+		IsDownloaded: true,
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:         "model2",
+		Module:       huggingface.DIFFUSERS,
+		Class:        "test",
+		IsDownloaded: false,
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:         "model5",
+		Module:       huggingface.DIFFUSERS,
+		Class:        "test",
+		IsDownloaded: true,
+	})
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	// Download missing models
+	warnings := tidyModelsConfiguredButNotDownloaded(existingModels)
+
+	// Assertions
+	test.AssertEqual(t, len(warnings), 0)
+}
+
+// Tests tidyModelsConfiguredButNotDownloaded with download failure
+func TestTidyModelsConfiguredButNotDownloaded_Fail(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{
+		Name:         "model1",
+		Module:       huggingface.DIFFUSERS,
+		Class:        "test",
+		IsDownloaded: true,
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:         "model2",
+		Module:       huggingface.DIFFUSERS,
+		Class:        "test",
+		IsDownloaded: false,
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:         "model5",
+		Module:       huggingface.DIFFUSERS,
+		Class:        "test",
+		IsDownloaded: true,
+	})
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := config.GetViperConfig(".")
+	test.AssertEqual(t, err, nil, "No error expected on loading configuration file")
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	app.SetDownloader(&downloader)
+
+	// Download missing models
+	warnings := tidyModelsConfiguredButNotDownloaded(existingModels)
+
+	// Assertions
+	test.AssertEqual(t, len(warnings), 1)
+	test.AssertEqual(t, warnings[0], "The following models(s) couldn't be downloaded : [model5]")
+
+}
+
+// Tests tidyModelsConfiguredButNotDownloaded with tokenizer download failure
+func TestTidyModelsConfiguredButNotDownloaded_WithTokenizerFailure(t *testing.T) {
+	// Init
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{
+		Name:         "model1",
+		Module:       huggingface.DIFFUSERS,
+		Class:        "test",
+		IsDownloaded: true,
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:         "model2",
+		Module:       huggingface.DIFFUSERS,
+		Class:        "test",
+		IsDownloaded: false,
+	})
+	existingModels = append(existingModels, model.Model{
+		Name:   "model4",
+		Path:   "./models/model4/model",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: model.Tokenizers{
+			model.Tokenizer{
+				Class: "tokenizer",
+				Path:  "models/model4/tokenizer",
+			},
+			model.Tokenizer{
+				Class: "tokenizer2",
+				Path:  "invalid/Path",
+			},
+		},
+		IsDownloaded: true,
+	})
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	app.SetDownloader(&downloader)
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+
+	// Download missing models
+	warnings := tidyModelsConfiguredButNotDownloaded(existingModels)
+
+	// Assertions
+	test.AssertEqual(t, len(warnings), 1)
+	test.AssertEqual(t, warnings[0], "The following tokenizer(s) couldn't be downloaded for 'model4': [tokenizer2]")
+}
