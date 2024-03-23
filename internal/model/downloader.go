@@ -77,7 +77,8 @@ func (m *Model) Download(downloaderArgs downloadermodel.Args) bool {
 func (m *Model) DownloadTokenizer(tokenizer Tokenizer, downloaderArgs downloadermodel.Args) bool {
 
 	// Building downloader args for the tokenizer
-	downloaderArgs.Skip = downloadermodel.SkipValueModel
+	downloaderArgs.SkipModel = true
+	downloaderArgs.SkipTokenizer = false
 	downloaderArgs.TokenizerClass = tokenizer.Class
 	downloaderArgs.TokenizerOptions = stringutil.OptionsMapToSlice(tokenizer.Options)
 
@@ -89,11 +90,10 @@ func (m *Model) executeDownload(downloaderArgs downloadermodel.Args) bool {
 
 	// Preparing spinner message
 	var downloaderItemMessage string
-	switch downloaderArgs.Skip {
-	case downloadermodel.SkipValueModel:
+	if downloaderArgs.SkipModel {
 		downloaderItemMessage = fmt.Sprintf("tokenizer '%s' for model '%s'...",
 			downloaderArgs.TokenizerClass, downloaderArgs.ModelName)
-	default:
+	} else {
 		downloaderItemMessage = fmt.Sprintf("model '%s'...", downloaderArgs.ModelName)
 	}
 	customMessage := "Downloading "
