@@ -307,25 +307,29 @@ func TestTidyModelsDownloadedButNotConfigured_WithNoConfirmation(t *testing.T) {
 	test.AssertEqual(t, len(models), 3)
 }
 
-func TestRunTidy_WithNoConfigurationFile(t *testing.T) {
+// Tests RunTidy
+func TestRunTidy(t *testing.T) {
 	// Init
 	var existingModels model.Models
 	existingModels = append(existingModels, model.Model{
 		Name:         "model1/name",
 		Module:       huggingface.DIFFUSERS,
 		Class:        "test",
+		PipelineTag:  huggingface.TextToImage,
 		IsDownloaded: true,
 	})
 	existingModels = append(existingModels, model.Model{
 		Name:         "model2/name",
 		Module:       huggingface.DIFFUSERS,
 		Class:        "test",
+		PipelineTag:  huggingface.TextToImage,
 		IsDownloaded: false,
 	})
 	existingModels = append(existingModels, model.Model{
-		Name:   "model4/name",
-		Path:   "./models/model4/model",
-		Module: huggingface.TRANSFORMERS,
+		Name:        "model4/name",
+		Path:        "./models/model4/model",
+		Module:      huggingface.TRANSFORMERS,
+		PipelineTag: huggingface.TextToImage,
 		Tokenizers: model.Tokenizers{
 			model.Tokenizer{
 				Class: "tokenizer",
@@ -351,11 +355,20 @@ func TestRunTidy_WithNoConfigurationFile(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Download missing models
-	RunTidy(true)
+	var tidyController TidyController
+	err = tidyController.RunTidy(true)
 	models, err := config.GetModels()
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, len(models), 4)
 	test.AssertEqual(t, models[3].Name, "model3/name")
+}
+
+// Tests RunTidy with no configuration file
+func TestRunTidy_WithNoConfigurationFile(t *testing.T) {
+	// Download missing models
+	var tidyController TidyController
+	err := tidyController.RunTidy(true)
+	test.AssertNotEqual(t, err, nil, "An error expected on synchronizing models")
 }

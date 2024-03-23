@@ -44,6 +44,8 @@ import (
 
 type InstallController struct{}
 
+var tidyController TidyController
+
 // Run runs the install command
 func (ic InstallController) Run(args []string, useTorchCuda bool) error {
 	start := time.Now()
@@ -75,7 +77,7 @@ func (ic InstallController) Run(args []string, useTorchCuda bool) error {
 	}
 
 	// handle errors in run tidy (new structure)
-	RunTidy(false)
+	tidyController.RunTidy(false)
 
 	app.UI().Success().Printfln("Project installed successfully in %v", time.Since(start))
 

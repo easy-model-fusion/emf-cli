@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/controller"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 // tidyCmd represents the model tidy command
@@ -12,6 +13,9 @@ var tidyCmd = &cobra.Command{
 	Long:  `synchronizes the configuration file with the downloaded models`,
 	Run:   runTidy,
 }
+var (
+	tidyController controller.TidyController
+)
 
 var yes bool
 
@@ -21,5 +25,8 @@ func init() {
 
 // runTidy runs the model tidy command
 func runTidy(cmd *cobra.Command, args []string) {
-	controller.RunTidy(yes)
+	err := tidyController.RunTidy(yes)
+	if err != nil {
+		os.Exit(1)
+	}
 }

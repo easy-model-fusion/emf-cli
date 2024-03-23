@@ -11,11 +11,14 @@ import (
 	"path/filepath"
 )
 
-func RunTidy(yes bool) {
+type TidyController struct{}
+
+func (tc TidyController) RunTidy(yes bool) error {
 	// get all models from config file
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		app.UI().Error().Println(err.Error())
+		return err
 	}
 
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
@@ -23,7 +26,7 @@ func RunTidy(yes bool) {
 	models, err := config.GetModels()
 	if err != nil {
 		app.UI().Error().Println(err.Error())
-		return
+		return err
 	}
 
 	// Tidy the models configured but not physically present on the device
@@ -43,7 +46,7 @@ func RunTidy(yes bool) {
 	models, err = config.GetModels()
 	if err != nil {
 		app.UI().Error().Println(err.Error())
-		return
+		return err
 	}
 
 	// Regenerate python code
@@ -51,9 +54,11 @@ func RunTidy(yes bool) {
 	err = regenerateCode(models)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while generating python: %s", err))
-	} else {
-		spinner.Success()
+		return err
 	}
+	spinner.Success()
+
+	return nil
 }
 
 // tidyModelsConfiguredButNotDownloaded downloads any missing model and its missing tokenizers as well
