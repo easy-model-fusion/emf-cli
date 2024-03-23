@@ -6,6 +6,8 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 )
 
+var tidyController TidyController
+
 // RunUpgrade upgrades the sdk version of a EMF project to the latest version.
 func RunUpgrade(yes bool) {
 	app.UI().Warning().Println("All the files in the folder sdk will be replaced with the latest version of the sdk.")
@@ -35,7 +37,7 @@ func RunUpgrade(yes bool) {
 		return
 	}
 
-	err = regenerateCode(models)
+	err = tidyController.regenerateCode(models)
 	if err != nil {
 		app.UI().Error().Println("Error regenerating code:", err)
 		return

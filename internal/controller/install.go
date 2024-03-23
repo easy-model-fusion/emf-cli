@@ -44,8 +44,6 @@ import (
 
 type InstallController struct{}
 
-var tidyController TidyController
-
 // Run runs the install command
 func (ic InstallController) Run(args []string, useTorchCuda bool) error {
 	start := time.Now()

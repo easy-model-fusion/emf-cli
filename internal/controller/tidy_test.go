@@ -67,7 +67,8 @@ func TestTidyModelsConfiguredButNotDownloaded_Success(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Download missing models
-	warnings := tidyModelsConfiguredButNotDownloaded(existingModels)
+	var tidyController TidyController
+	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels)
 
 	// Assertions
 	test.AssertEqual(t, len(warnings), 0)
@@ -101,7 +102,8 @@ func TestTidyModelsConfiguredButNotDownloaded_SuccessWithNoConfFile(t *testing.T
 	app.SetDownloader(&downloader)
 
 	// Download missing models
-	warnings := tidyModelsConfiguredButNotDownloaded(existingModels)
+	var tidyController TidyController
+	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels)
 
 	// Assertions
 	test.AssertEqual(t, len(warnings), 0)
@@ -142,7 +144,8 @@ func TestTidyModelsConfiguredButNotDownloaded_Fail(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Download missing models
-	warnings := tidyModelsConfiguredButNotDownloaded(existingModels)
+	var tidyController TidyController
+	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels)
 
 	// Assertions
 	test.AssertEqual(t, len(warnings), 1)
@@ -193,7 +196,8 @@ func TestTidyModelsConfiguredButNotDownloaded_WithTokenizerFailure(t *testing.T)
 	defer ts.CleanTestSuite(t)
 
 	// Download missing models
-	warnings := tidyModelsConfiguredButNotDownloaded(existingModels)
+	var tidyController TidyController
+	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels)
 
 	// Assertions
 	test.AssertEqual(t, len(warnings), 1)
@@ -243,7 +247,8 @@ func TestTidyModelsDownloadedButNotConfigured(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Download missing models
-	tidyModelsDownloadedButNotConfigured(existingModels, true)
+	var tidyController TidyController
+	tidyController.tidyModelsDownloadedButNotConfigured(existingModels, true)
 	models, err := config.GetModels()
 
 	// Assertions
@@ -299,7 +304,8 @@ func TestTidyModelsDownloadedButNotConfigured_WithNoConfirmation(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Download missing models
-	tidyModelsDownloadedButNotConfigured(existingModels, false)
+	var tidyController TidyController
+	tidyController.tidyModelsDownloadedButNotConfigured(existingModels, false)
 	models, err := config.GetModels()
 
 	// Assertions

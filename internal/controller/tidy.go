@@ -31,7 +31,7 @@ func (tc TidyController) RunTidy(yes bool) error {
 
 	// Tidy the models configured but not physically present on the device
 	app.UI().Info().Println("Verifying if all models are downloaded...")
-	warningMessages := tidyModelsConfiguredButNotDownloaded(models)
+	warningMessages := tc.tidyModelsConfiguredButNotDownloaded(models)
 	if len(warningMessages) > 0 {
 		for _, warning := range warningMessages {
 			app.UI().Warning().Println(warning)
@@ -40,7 +40,7 @@ func (tc TidyController) RunTidy(yes bool) error {
 
 	// Tidy the models physically present on the device but not configured
 	app.UI().Info().Println("Verifying if all downloaded models are configured...")
-	tidyModelsDownloadedButNotConfigured(models, yes)
+	tc.tidyModelsDownloadedButNotConfigured(models, yes)
 
 	// Updating the models object since the configuration might have changed in between
 	models, err = config.GetModels()
@@ -51,7 +51,7 @@ func (tc TidyController) RunTidy(yes bool) error {
 
 	// Regenerate python code
 	spinner := app.UI().StartSpinner("Generating python code...")
-	err = regenerateCode(models)
+	err = tc.regenerateCode(models)
 	if err != nil {
 		spinner.Fail(fmt.Sprintf("Error while generating python: %s", err))
 		return err
@@ -62,7 +62,7 @@ func (tc TidyController) RunTidy(yes bool) error {
 }
 
 // tidyModelsConfiguredButNotDownloaded downloads any missing model and its missing tokenizers as well
-func tidyModelsConfiguredButNotDownloaded(models model.Models) (warnings []string) {
+func (tc TidyController) tidyModelsConfiguredButNotDownloaded(models model.Models) (warnings []string) {
 	// filter the models that should be added to binary
 	models = models.FilterWithIsDownloadedTrue()
 
@@ -107,7 +107,7 @@ func tidyModelsConfiguredButNotDownloaded(models model.Models) (warnings []strin
 
 // tidyModelsDownloadedButNotConfigured configuring the downloaded models that aren't configured in the configuration file
 // and then asks the user if he wants to delete them or add them to the configuration file
-func tidyModelsDownloadedButNotConfigured(configModels model.Models, yes bool) {
+func (tc TidyController) tidyModelsDownloadedButNotConfigured(configModels model.Models, yes bool) {
 	// Get the list of downloaded models
 	downloadedModels := model.BuildModelsFromDevice()
 
@@ -223,7 +223,7 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models, yes bool) {
 }
 
 // regenerateCode generates new default python code
-func regenerateCode(models model.Models) error {
+func (tc TidyController) regenerateCode(models model.Models) error {
 	// TODO: modify this logic when code generator is completed
 	err := config.GenerateModelsPythonCode(models)
 	if err != nil {
