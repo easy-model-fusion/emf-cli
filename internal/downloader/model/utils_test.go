@@ -122,7 +122,8 @@ func TestToCobra(t *testing.T) {
 	test.AssertEqual(t, len(args.ModelOptions), 0)
 	test.AssertEqual(t, args.TokenizerClass, "")
 	test.AssertEqual(t, len(args.TokenizerOptions), 0)
-	test.AssertEqual(t, args.Skip, "")
+	test.AssertEqual(t, args.SkipModel, false)
+	test.AssertEqual(t, args.SkipTokenizer, false)
 }
 
 // TestToPython tests the ArgsProcessForPython.
@@ -135,7 +136,8 @@ func TestToPython(t *testing.T) {
 		ModelOptions:      []string{"opt1=val1", "opt2=val2"},
 		TokenizerClass:    "tokenizer",
 		TokenizerOptions:  []string{"tok_opt1=val1"},
-		Skip:              "model",
+		SkipModel:         true,
+		SkipTokenizer:     false,
 		OnlyConfiguration: true,
 	}
 	expected := []string{

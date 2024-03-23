@@ -13,7 +13,11 @@ var modelUpdateCmd = &cobra.Command{
 	Run:   runModelUpdate,
 }
 
+func init() {
+	modelUpdateCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Automatic yes to prompts")
+}
+
 // runModelUpdate runs the model update command
 func runModelUpdate(cmd *cobra.Command, args []string) {
-	modelcontroller.RunModelUpdate(args)
+	modelcontroller.RunModelUpdate(args, yes)
 }

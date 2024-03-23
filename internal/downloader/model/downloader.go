@@ -25,7 +25,8 @@ type Args struct {
 	ModelOptions      []string
 	TokenizerClass    string
 	TokenizerOptions  []string
-	Skip              string
+	SkipTokenizer     bool
+	SkipModel         bool
 	OnlyConfiguration bool
 	DirectoryPath     string
 }
