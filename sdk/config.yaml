@@ -9,13 +9,20 @@ description: "This is an example application" # The description of the applicati
 # The following section is used to configure the SDK's components.
 sdk-tag: "v1.0.0" # The tag of the SDK to use, it will be used to download the SDK.
 
-# The following section is used to configure the list of  AI models to be used in the application.
+# The following section is used to configure the list of AI models to be used in the application.
 models: []
-#models: # Example of a model configuration
-#  - name: Xibanya/sunset_city # The name of the model
-#    config:
-#      diffusers:
-#        pipeline: StableDiffusionPipeline # The pipeline used to load the model
-#    pipelinetag: text-to-image # The pipeline tag of the model
-#    directorypath: ./Models # The path of the directory that will contain the model
-#    addtobinary: true # Indicates if the model should be added to the executable or not (true by default)
+# Example of a model configuration:
+# - name: microsoft/phi-2 # The name of the model
+#   path: models/microsoft/phi-2/model # The path of the directory that will contain the model
+#   module: transformers # The Python module used for download
+#   class: PhiForCausalLM # Python class within the module
+#   options: {} # List of model options
+#   tokenizers: # List of tokenizer configurations
+#     - path: models\microsoft\phi-2\AutoTokenizer # The path of the directory that will contain the tokenizer
+#       class: AutoTokenizer # Python class within the module
+#       options: {} # List of tokenizer options
+#   pipelinetag: text-generation # The pipeline tag of the model
+#   source: hugging_face # The source of the model (e.g., hugging_face)
+#   addtobinaryfile: true # Indicates if the model should be added to the executable (true by default)
+#   isdownloaded: true # Indicates if the model has been downloaded (true by default)
+#   version: "2024-02-06T12:36:24.000Z" # The version of the model
