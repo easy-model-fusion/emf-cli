@@ -5,6 +5,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	updateTokenizerController tokenizer.UpdateTokenizerController
+)
+
 // tokenizerUpdateCmd represents the tokenizer update command
 var tokenizerUpdateCmd = &cobra.Command{
 	Use:   "update <model name> <tokenizer name> [<other tokenizer names>...]",
@@ -16,5 +20,5 @@ var tokenizerUpdateCmd = &cobra.Command{
 
 // runTokenizerUpdate runs the tokenizer update command
 func runTokenizerUpdate(cmd *cobra.Command, args []string) {
-	tokenizer.TokenizerUpdateCmd(args)
+	updateTokenizerController.TokenizerUpdateCmd(args)
 }
