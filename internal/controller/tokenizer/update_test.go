@@ -14,6 +14,7 @@ import (
 
 func TestMain(m *testing.M) {
 	app.Init("", "")
+	app.InitGit("https://github.com/SchawnnDev", "")
 	os.Exit(m.Run())
 }
 
