@@ -4,7 +4,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
-	"github.com/pterm/pterm"
 	"path"
 )
 
@@ -176,7 +175,6 @@ func (m *Model) UpdatePaths() {
 			m.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
 		}
 	}
-	pterm.Info.Println(modelPath)
 	m.Path = modelPath
 }
 
