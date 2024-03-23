@@ -240,7 +240,7 @@ func (m *Model) Update() bool {
 	}
 
 	// Downloader script to skip the tokenizers download process if none selected
-	var skip string
+	var skipTokenizer bool
 
 	// If transformers : select the tokenizers to update using a multiselect
 	var tokenizerNames []string
@@ -259,9 +259,7 @@ func (m *Model) Update() bool {
 			app.UI().DisplaySelectedItems(tokenizerNames)
 
 			// No tokenizer is selected : skipping so that it doesn't overwrite the default one
-			if len(tokenizerNames) > 0 {
-				skip = downloadermodel.SkipValueTokenizer
-			}
+			skipTokenizer = len(tokenizerNames) > 0
 		}
 	}
 
@@ -271,7 +269,7 @@ func (m *Model) Update() bool {
 		ModelModule:       string(m.Module),
 		ModelClass:        m.Class,
 		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
-		Skip:              skip,
+		SkipTokenizer:     skipTokenizer,
 		OnlyConfiguration: false,
 		DirectoryPath:     app.DownloadDirectoryPath,
 	}

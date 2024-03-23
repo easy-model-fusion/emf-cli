@@ -47,6 +47,7 @@ func (a *Args) ToCobra(cmd *cobra.Command) {
 
 	// Situational
 	cmd.Flags().BoolVarP(&a.OnlyConfiguration, "only-configuration", "O", false, "Only configure the model without downloading it")
+	cmd.Flags().BoolVarP(&a.OnlyConfiguration, "skip-tokenizer", "s", false, "Skip tokenizer download")
 }
 
 // ToPython builds the arguments for running the python script.
@@ -81,8 +82,11 @@ func (a *Args) ToPython() []string {
 	}
 
 	// Global tags for the script
-	if len(a.Skip) != 0 {
-		cmdArgs = append(cmdArgs, TagPrefix+Skip, a.Skip)
+	if a.SkipTokenizer {
+		cmdArgs = append(cmdArgs, TagPrefix+Skip, SkipValueTokenizer)
+	}
+	if a.SkipModel {
+		cmdArgs = append(cmdArgs, TagPrefix+Skip, SkipValueModel)
 	}
 
 	// Only configuration
