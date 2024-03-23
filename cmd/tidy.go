@@ -15,9 +15,8 @@ var tidyCmd = &cobra.Command{
 }
 var (
 	tidyController controller.TidyController
+	yes            bool
 )
-
-var yes bool
 
 func init() {
 	tidyCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Automatic yes to prompts")
