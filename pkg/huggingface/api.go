@@ -49,9 +49,19 @@ type Model struct {
 }
 
 // apiGet performs an HTTP GET request to the specified URL.
-func (h huggingFace) apiGet(getModelUrl *url.URL) ([]byte, error) {
+func (h huggingFace) apiGet(getModelUrl *url.URL, authorizationKey string) ([]byte, error) {
+	// Create http request
+	req, err := http.NewRequest("GET", getModelUrl.String(), nil)
+	// Add authorization key when needed
+	if authorizationKey != "" {
+		req.Header.Set("Authorization", "Bearer "+authorizationKey)
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	// Execute API call
-	var response, err = h.Client.Get(getModelUrl.String())
+	response, err := h.Client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +69,12 @@ func (h huggingFace) apiGet(getModelUrl *url.URL) ([]byte, error) {
 
 	// Check response status
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failed to fetch model. Status code: %d", response.StatusCode)
+		// Read response body
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			fmt.Println("Error reading response body:", err)
+		}
+		return nil, fmt.Errorf("failed to fetch model. Status code: %s\n%s", response.Status, body)
 	}
 	body, err := io.ReadAll(response.Body)
 	if err != nil {

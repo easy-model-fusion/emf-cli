@@ -23,7 +23,7 @@ func (h huggingFace) GetModelsByPipelineTag(tag PipelineTag, limit int) (Models,
 	getModelsUrl.RawQuery = q.Encode()
 
 	// Execute API call
-	response, err := h.apiGet(getModelsUrl)
+	response, err := h.apiGet(getModelsUrl, "")
 	if err != nil {
 		return Models{}, err
 	}
@@ -47,7 +47,7 @@ func (h huggingFace) GetModelById(id string) (Model, error) {
 	}
 
 	// Execute API call
-	response, err := h.apiGet(getModelUrl)
+	response, err := h.apiGet(getModelUrl, "")
 	if err != nil {
 		return Model{}, err
 	}
@@ -57,6 +57,5 @@ func (h huggingFace) GetModelById(id string) (Model, error) {
 	if err = json.Unmarshal(response, &model); err != nil {
 		return Model{}, err
 	}
-
 	return model, nil
 }
