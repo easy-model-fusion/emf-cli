@@ -45,7 +45,7 @@ import (
 type InstallController struct{}
 
 // Run runs the install command
-func (ic InstallController) Run(args []string, useTorchCuda bool) error {
+func (ic InstallController) Run(args []string, useTorchCuda bool, accessToken string) error {
 	start := time.Now()
 
 	// Only clean if config file exists (so we know it's a EMF project)
@@ -75,7 +75,7 @@ func (ic InstallController) Run(args []string, useTorchCuda bool) error {
 	}
 
 	// handle errors in run tidy (new structure)
-	if err := tidyController.RunTidy(false, ""); err != nil {
+	if err := tidyController.RunTidy(false, accessToken); err != nil {
 		return err
 	}
 

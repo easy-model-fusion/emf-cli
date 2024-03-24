@@ -7,8 +7,9 @@ import (
 )
 
 var (
-	installUseTorchCuda bool
-	installController   controller.InstallController
+	protectedModelsAccessToken string
+	installUseTorchCuda        bool
+	installController          controller.InstallController
 )
 
 // installCmd represents the install command
@@ -20,7 +21,7 @@ var installCmd = &cobra.Command{
 }
 
 func runInstall(cmd *cobra.Command, args []string) {
-	err := installController.Run(args, installUseTorchCuda)
+	err := installController.Run(args, installUseTorchCuda, protectedModelsAccessToken)
 	if err != nil {
 		os.Exit(1)
 	}
@@ -28,4 +29,5 @@ func runInstall(cmd *cobra.Command, args []string) {
 
 func init() {
 	installCmd.Flags().BoolVarP(&installUseTorchCuda, "cuda", "c", false, "Use torch with cuda")
+	installCmd.Flags().StringVarP(&protectedModelsAccessToken, "access-token", "a", "", "Access token for gated models")
 }
