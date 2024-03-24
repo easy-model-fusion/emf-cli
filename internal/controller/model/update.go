@@ -100,7 +100,7 @@ func getUpdatableModels(modelNames []string, hfModelsAvailable model.Models) (
 	for _, name := range modelNames {
 
 		// Fetching model from huggingface
-		huggingfaceModel, err := hfinterface.GetModelById(name)
+		huggingfaceModel, err := hfinterface.GetModelById(name, "")
 		if err != nil {
 			// Model not found : nothing more to do here, skipping to the next one
 			notFoundModelNames = append(notFoundModelNames, name)

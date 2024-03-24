@@ -79,7 +79,7 @@ func TestGetModelsList(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get expectedModels list
-	models, err := getModelsList(tags, existingModels)
+	models, err := getModelsList(tags, existingModels, "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
@@ -103,7 +103,7 @@ func TestGetModelsList_Fail(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get expectedModels list
-	models, err := getModelsList(tags, existingModels)
+	models, err := getModelsList(tags, existingModels, "")
 
 	// Assertions
 	test.AssertNotEqual(t, err, nil)
@@ -186,7 +186,7 @@ func TestGetRequestedModel_WithValidArg(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get requested model
-	requestedModel, err := getRequestedModel(args)
+	requestedModel, err := getRequestedModel(args, "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
@@ -213,7 +213,7 @@ func TestGetRequestedModel_WithInvalidArg(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get requested model
-	_, err = getRequestedModel(args)
+	_, err = getRequestedModel(args, "")
 
 	// Assertions
 	test.AssertEqual(t, err.Error(), "the following model already exist and will be ignored : model1")
@@ -239,7 +239,7 @@ func TestGetRequestedModel_WithModelNotFound(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get requested model
-	_, err = getRequestedModel(args)
+	_, err = getRequestedModel(args, "")
 
 	// Assertions
 	test.AssertEqual(t, err.Error(), "Model model2 not valid : test")
@@ -279,7 +279,7 @@ func TestGetRequestedModel_WithNoArgs(t *testing.T) {
 	app.SetUI(ui)
 
 	// Get requested model
-	requestedModel, err := getRequestedModel(args)
+	requestedModel, err := getRequestedModel(args, "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
@@ -311,7 +311,7 @@ func TestGetRequestedModel_WithNoArgsWithFailedModelsFetch(t *testing.T) {
 	app.SetUI(ui)
 
 	// Get requested model
-	_, err = getRequestedModel(args)
+	_, err = getRequestedModel(args, "")
 
 	// Assertions
 	test.AssertNotEqual(t, err, nil)
@@ -338,7 +338,7 @@ func TestGetRequestedModel_WithNoArgsAndNoTags(t *testing.T) {
 	app.SetUI(ui)
 
 	// Get requested model
-	requestedModel, err := getRequestedModel(args)
+	requestedModel, err := getRequestedModel(args, "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
@@ -361,7 +361,7 @@ func TestGetRequestedModel_WithTooManyArgs(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Get requested model
-	_, err = getRequestedModel(args)
+	_, err = getRequestedModel(args, "")
 
 	// Assertions
 	test.AssertEqual(t, err.Error(), "you can enter only one model at a time")
@@ -374,7 +374,7 @@ func TestGetRequestedModel_WithInvalidConfigPath(t *testing.T) {
 	app.SetUI(ui)
 
 	// Get requested model
-	_, err := getRequestedModel([]string{})
+	_, err := getRequestedModel([]string{}, "")
 
 	// Assertions
 	test.AssertNotEqual(t, err, nil)

@@ -18,7 +18,7 @@ func RunAdd(args []string, customArgs downloadermodel.Args, yes bool) {
 
 	sdk.SendUpdateSuggestion() // TODO: here proxy?
 
-	selectedModel, err := getRequestedModel(args)
+	selectedModel, err := getRequestedModel(args, customArgs.AccessToken)
 	if err != nil {
 		app.UI().Error().Println(err.Error())
 		return
@@ -39,7 +39,7 @@ func RunAdd(args []string, customArgs downloadermodel.Args, yes bool) {
 }
 
 // getRequestedModel returns the model to be added
-func getRequestedModel(args []string) (model.Model, error) {
+func getRequestedModel(args []string, authorizationKey string) (model.Model, error) {
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		return model.Model{}, err
@@ -68,7 +68,7 @@ func getRequestedModel(args []string) (model.Model, error) {
 		}
 
 		// Verify if the model is a valid hugging face model
-		huggingfaceModel, err := hfinterface.GetModelById(name)
+		huggingfaceModel, err := hfinterface.GetModelById(name, authorizationKey)
 		if err != nil {
 			// Model not found
 			return model.Model{}, fmt.Errorf("Model %s not valid : "+err.Error(), name)
@@ -85,7 +85,7 @@ func getRequestedModel(args []string) (model.Model, error) {
 		}
 		// Get selected models
 		spinner := app.UI().StartSpinner("Listing all models with selected tags...")
-		availableModels, err := getModelsList(selectedTags, existingModels)
+		availableModels, err := getModelsList(selectedTags, existingModels, authorizationKey)
 		if err != nil {
 			spinner.Fail(err.Error())
 			return model.Model{}, err
@@ -163,8 +163,8 @@ func downloadModel(selectedModel model.Model, downloaderArgs downloadermodel.Arg
 }
 
 // getModelsList get list of models to display
-func getModelsList(tags []string, existingModels model.Models) (model.Models, error) {
-	allModelsWithTags, err := hfinterface.GetModelsByMultiplePipelineTags(tags)
+func getModelsList(tags []string, existingModels model.Models, authorizationKey string) (model.Models, error) {
+	allModelsWithTags, err := hfinterface.GetModelsByMultiplePipelineTags(tags, authorizationKey)
 	// Map API responses to model.Models
 	var mappedModels model.Models
 	for _, huggingfaceModel := range allModelsWithTags {

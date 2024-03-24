@@ -137,7 +137,7 @@ func BuildModelsFromDevice() Models {
 			modelPath := path.Join(providerPath, providerModel.Name())
 
 			// Fetching model from huggingface
-			huggingfaceModel, err := app.H().GetModelById(modelName)
+			huggingfaceModel, err := app.H().GetModelById(modelName, "")
 			if err != nil {
 				// Model not found : custom
 				models = append(models, Model{

@@ -11,8 +11,8 @@ const BaseUrl = "https://huggingface.co/api"
 const modelEndpoint = "/models"
 
 type HuggingFace interface {
-	GetModelsByPipelineTag(tag PipelineTag, limit int) (Models, error)
-	GetModelById(id string) (Model, error)
+	GetModelsByPipelineTag(tag PipelineTag, limit int, authorizationKey string) (Models, error)
+	GetModelById(id string, authorizationKey string) (Model, error)
 }
 
 type huggingFace struct {

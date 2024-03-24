@@ -6,10 +6,10 @@ type MockHuggingFace struct {
 	Error           error
 }
 
-func (hf *MockHuggingFace) GetModelsByPipelineTag(_ PipelineTag, _ int) (Models, error) {
+func (hf *MockHuggingFace) GetModelsByPipelineTag(_ PipelineTag, _ int, _ string) (Models, error) {
 	return hf.GetModelsResult, hf.Error
 }
-func (hf *MockHuggingFace) GetModelById(id string) (Model, error) {
+func (hf *MockHuggingFace) GetModelById(id string, _ string) (Model, error) {
 	hf.GetModelResult.Name = id
 	return hf.GetModelResult, hf.Error
 }
