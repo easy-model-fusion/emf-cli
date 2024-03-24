@@ -3,7 +3,6 @@ package model
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/dotenv"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"path"
@@ -255,9 +254,5 @@ func (m *Model) SaveAccessToken(accessToken string) error {
 
 // GetAccessToken gets the access token from the .env file
 func (m *Model) GetAccessToken() (string, error) {
-	exist, err := fileutil.IsExistingPath(".env")
-	if err != nil || !exist {
-		return "", err
-	}
 	return dotenv.GetEnvValue(m.AccessToken)
 }

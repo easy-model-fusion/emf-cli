@@ -2,12 +2,20 @@ package dotenv
 
 import (
 	"errors"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/joho/godotenv"
 )
 
 // GetEnvValue returns the value of a given environment variable
 func GetEnvValue(key string) (value string, err error) {
-	env, err := godotenv.Read()
+	// Check if the .env file exists
+	exist, err := fileutil.IsExistingPath(".env")
+	if err != nil || !exist {
+		return "", err
+	}
+
+	// Find environment variable
+	env, err := godotenv.Read(".env")
 	if err == nil {
 		value = env[key]
 	}
