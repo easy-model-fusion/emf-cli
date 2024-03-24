@@ -171,12 +171,12 @@ func TestTidyModelsConfiguredButNotDownloaded_WithTokenizerFailure(t *testing.T)
 	})
 	existingModels = append(existingModels, model.Model{
 		Name:   "model4/name",
-		Path:   "./models/model4/model",
+		Path:   "./models/model4/name/model",
 		Module: huggingface.TRANSFORMERS,
 		Tokenizers: model.Tokenizers{
 			model.Tokenizer{
 				Class: "tokenizer",
-				Path:  "models/model4/tokenizer",
+				Path:  "models/model4/name/tokenizer",
 			},
 			model.Tokenizer{
 				Class: "tokenizer2",

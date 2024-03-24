@@ -460,12 +460,12 @@ func TestTidyConfiguredModel_FailTokenizersTidy(t *testing.T) {
 	// Init
 	model := Model{
 		Name:   "model4/name",
-		Path:   "./models/model4/model",
+		Path:   "models/model4/name/model",
 		Module: huggingface.TRANSFORMERS,
 		Tokenizers: Tokenizers{
 			Tokenizer{
 				Class: "tokenizer",
-				Path:  "models/model4/tokenizer",
+				Path:  "models/model4/name/tokenizer",
 			},
 			Tokenizer{
 				Class: "tokenizer2",
