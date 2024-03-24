@@ -1,6 +1,7 @@
 package dotenv
 
 import (
+	"errors"
 	"github.com/joho/godotenv"
 )
 
@@ -21,12 +22,32 @@ func EnvVariableExists(key string) (bool, error) {
 
 // AddNewEnvVariable adds a new environment variable
 func AddNewEnvVariable(key string, value string) error {
-	env, err := godotenv.Read()
+	env, err := godotenv.Read(".env")
 	if err != nil {
 		return err
 	}
 	env[key] = value
-	return godotenv.Write(env, "./.env")
+	return godotenv.Write(env, ".env")
+}
+
+// RemoveEnvVariable removes an environment variable from a .env file
+func RemoveEnvVariable(key string) error {
+	// Read the current environment variables from .env file
+	env, err := godotenv.Read(".env")
+	if err != nil {
+		return err
+	}
+
+	// Check if the variable exists in the environment
+	if _, exists := env[key]; !exists {
+		return errors.New("environment variable does not exist")
+	}
+
+	// Remove the variable from the environment
+	delete(env, key)
+
+	// Write the updated environment back to .env file
+	return godotenv.Write(env, ".env")
 }
 
 // SetNewEnvKey sets new unique env key

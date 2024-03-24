@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/codegen"
+	"github.com/easy-model-fusion/emf-cli/internal/dotenv"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
@@ -148,8 +149,12 @@ func RemoveModelsByNames(models model.Models, modelsNamesToRemove []string) (war
 		if err != nil {
 			spinner.Fail("failed to remove item")
 			continue
-		} else {
-			spinner.Success()
+		}
+		spinner.Success()
+		if item.AccessToken != "" {
+			if err = dotenv.RemoveEnvVariable(item.AccessToken); err != nil {
+				warning = ""
+			}
 		}
 	}
 
