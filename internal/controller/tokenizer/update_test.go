@@ -42,10 +42,10 @@ func TestTokenizerUpdateCmd_ValidArgs(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 	ic := UpdateTokenizerController{}
 	// Process update
-	if err := ic.TokenizerUpdateCmd(args); err != nil {
-		test.AssertEqual(t, err, nil, "Error on update")
-	}
-	test.AssertEqual(t, err, nil, "No error expected while processing update")
+	err = ic.TokenizerUpdateCmd(args)
+	expectedErrMsg := "the following tokenizer(s) couldn't be downloaded : [tokenizer1]"
+	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
+
 	_, err = config.GetModels()
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
 }
@@ -55,7 +55,8 @@ func TestTokenizerUpdateCmd_ValidArgs(t *testing.T) {
 func TestTokenizerUpdateCmd_NoModuleTransformersUpdate(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
-		Name: "model1",
+		Name:   "model1",
+		Source: "CUSTOM",
 		Tokenizers: model.Tokenizers{
 			{Path: "path1", Class: "tokenizer1", Options: map[string]string{"option1": "value1"}},
 		},
@@ -73,16 +74,11 @@ func TestTokenizerUpdateCmd_NoModuleTransformersUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 	ic := UpdateTokenizerController{}
 	// Process update
-	if err := ic.TokenizerUpdateCmd(args); err == nil {
-		t.Error("Expected an error, but got nil")
-	} else {
-		expectedErrMsg := "only transformers models have tokenizers"
-		if err.Error() != expectedErrMsg {
-			t.Errorf("Expected error message '%s', but got '%s'", expectedErrMsg, err.Error())
-		}
-	}
 
-	test.AssertEqual(t, err, nil, "No error expected while processing Update")
+	err = ic.TokenizerUpdateCmd(args)
+	expectedErrMsg := "only transformers models have tokenizers"
+	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
+
 	_, err = config.GetModels()
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
 }
@@ -112,9 +108,7 @@ func TestTokenizerUpdateCmd_WrongModelNameUpdate(t *testing.T) {
 
 	ic := UpdateTokenizerController{}
 	// Process update
-	if err := ic.TokenizerUpdateCmd(args); err != nil {
-		test.AssertEqual(t, err, nil, "Error on update")
-	}
+	err = ic.TokenizerUpdateCmd(args)
 	test.AssertEqual(t, err, nil, "Operation failed, no model found")
 }
 
@@ -140,13 +134,10 @@ func TestTokenizerUpdateCmd_NoArgs(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 	ic := UpdateTokenizerController{}
 	// Process update
-	if err := ic.TokenizerUpdateCmd(args); err != nil {
-		expectedErrMsg := "enter a model in argument"
-		if err.Error() != expectedErrMsg {
-			t.Errorf("Expected error message '%s', but got '%s'", expectedErrMsg, err.Error())
-		}
-	}
-	test.AssertEqual(t, err, nil, "Operation failed.")
+	err = ic.TokenizerUpdateCmd(args)
+	expectedErrMsg := "enter a model in argument"
+	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
+
 }
 
 // TestTokenizerUpdateCmd_NoTokenizerInArgs tests the update command
@@ -181,10 +172,10 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgs(t *testing.T) {
 
 	ic := UpdateTokenizerController{}
 	// Process update
-	if err := ic.TokenizerUpdateCmd(args); err != nil {
-		test.AssertEqual(t, err, nil, "Error on update")
-	}
-	test.AssertEqual(t, err, nil, "No error expected while processing remove")
+	err = ic.TokenizerUpdateCmd(args)
+	expectedErrMsg := "the following tokenizer(s) couldn't be downloaded : [tokenizer1]"
+	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
+
 }
 
 // TestTokenizerUpdateCmd_NoTokenizerInArgsDownload tests the update command
@@ -223,9 +214,7 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgsDownload(t *testing.T) {
 
 	ic := UpdateTokenizerController{}
 	// Process update
-	if err := ic.TokenizerUpdateCmd(args); err != nil {
-		test.AssertEqual(t, err, nil, "Error on update")
-	}
+	err = ic.TokenizerUpdateCmd(args)
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
 
@@ -266,8 +255,8 @@ func TestTokenizerUpdateCmd_UpdateError(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 	ic := UpdateTokenizerController{}
 	// Process update
-	if err := ic.TokenizerUpdateCmd(args); err != nil {
-		test.AssertEqual(t, err, nil, "Error on update")
-	}
-	test.AssertEqual(t, err, nil, "No error expected while processing remove")
+
+	err = ic.TokenizerUpdateCmd(args)
+	expectedErrMsg := "the following tokenizer(s) couldn't be downloaded : [tokenizer1]"
+	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
 }

@@ -33,7 +33,7 @@ func (ic UpdateTokenizerController) TokenizerUpdateCmd(args []string) error {
 
 	if infoMessage != "" {
 		pterm.Info.Printfln(infoMessage)
-		return nil
+		return err
 	} else if err == nil {
 		pterm.Success.Printfln("Operation succeeded.")
 		return nil
@@ -142,7 +142,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 
 	// Displaying the downloads that failed
 	if len(failedTokenizers) > 0 {
-		err = fmt.Errorf("the following models(s) couldn't be downloaded : %s", failedTokenizers)
+		err = fmt.Errorf("the following tokenizer(s) couldn't be downloaded : %s", failedTokenizers)
 	}
 	return warning, "Tokenizers update done", err
 }
