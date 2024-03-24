@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
+	"github.com/easy-model-fusion/emf-cli/internal/dotenv"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/hfinterface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
@@ -118,7 +119,8 @@ func processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes 
 	if customArgs.AccessToken != "" {
 		save := yes || app.UI().AskForUsersConfirmation("Do you wish to save your access token?")
 		if save {
-			updatedModel.AccessToken = customArgs.AccessToken
+			dotenv.AddNewEnvVariable("test", customArgs.AccessToken)
+			updatedModel.AccessToken = "test"
 		}
 	}
 
