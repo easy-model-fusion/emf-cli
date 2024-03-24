@@ -30,7 +30,7 @@ func (ic RemoveTokenizerController) RunTokenizerRemove(args []string) error {
 
 	if infoMessage != "" {
 		pterm.Info.Printfln(infoMessage)
-		return nil
+		return err
 	} else if err == nil {
 		pterm.Success.Printfln("Operation succeeded.")
 		return nil
