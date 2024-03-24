@@ -114,6 +114,14 @@ func processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes 
 		return warning, err
 	}
 
+	// Save access token
+	if customArgs.AccessToken != "" {
+		save := yes || app.UI().AskForUsersConfirmation("Do you wish to save your access token?")
+		if save {
+			updatedModel.AccessToken = customArgs.AccessToken
+		}
+	}
+
 	// Add models to configuration file
 	spinner := app.UI().StartSpinner("Adding model to configuration file...")
 	err = config.AddModels(model.Models{updatedModel})

@@ -20,6 +20,7 @@ type Model struct {
 	AddToBinaryFile bool
 	IsDownloaded    bool
 	Version         string
+	AccessToken     string
 }
 
 type Tokenizers []Tokenizer
