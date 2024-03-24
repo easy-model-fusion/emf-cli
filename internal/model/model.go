@@ -2,9 +2,11 @@ package model
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/dotenv"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"path"
+	"strings"
 )
 
 type Models []Model
@@ -200,4 +202,25 @@ func (t Tokenizers) ContainsByClass(class string) bool {
 		}
 	}
 	return false
+}
+
+// SetAccessTokenKey sets unique access token key for model
+func (m *Model) SetAccessTokenKey() error {
+	// Convert model name to upper case
+	key := strings.ToUpper(m.Name)
+	// Replace "/", "." and "-" with "_"
+	key = strings.ReplaceAll(key, "/", "_")
+	key = strings.ReplaceAll(key, ".", "_")
+	key = strings.ReplaceAll(key, "-", "_")
+
+	// Prepend "ACCESS_TOKEN_" to the key
+	key = "ACCESS_TOKEN_" + key
+
+	// Check for duplicates
+	key, err := dotenv.SetNewEnvKey(key)
+	if err != nil {
+		return err
+	}
+	m.AccessToken = key
+	return nil
 }

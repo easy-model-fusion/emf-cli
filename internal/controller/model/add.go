@@ -119,8 +119,12 @@ func processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes 
 	if customArgs.AccessToken != "" {
 		save := yes || app.UI().AskForUsersConfirmation("Do you wish to save your access token?")
 		if save {
-			dotenv.AddNewEnvVariable("test", customArgs.AccessToken)
-			updatedModel.AccessToken = "test"
+			err = updatedModel.SetAccessTokenKey()
+			if err != nil {
+				warning = fmt.Sprintf("Failed to save access token")
+			} else {
+				dotenv.AddNewEnvVariable(updatedModel.AccessToken, customArgs.AccessToken)
+			}
 		}
 	}
 
