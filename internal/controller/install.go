@@ -75,7 +75,7 @@ func (ic InstallController) Run(args []string, useTorchCuda bool) error {
 	}
 
 	// handle errors in run tidy (new structure)
-	if err := tidyController.RunTidy(false); err != nil {
+	if err := tidyController.RunTidy(false, ""); err != nil {
 		return err
 	}
 

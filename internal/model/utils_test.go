@@ -252,7 +252,7 @@ func TestBuildModelsFromDevice_Custom(t *testing.T) {
 
 	// Execute
 	app.InitHuggingFace(huggingface.BaseUrl, "")
-	models := BuildModelsFromDevice()
+	models := BuildModelsFromDevice("")
 
 	// Assert
 	test.AssertEqual(t, len(models), 1)
@@ -275,7 +275,7 @@ func TestBuildModelsFromDevice_HuggingfaceEmpty(t *testing.T) {
 
 	// Execute
 	app.InitHuggingFace(huggingface.BaseUrl, "")
-	models := BuildModelsFromDevice()
+	models := BuildModelsFromDevice("")
 
 	// Assert
 	test.AssertEqual(t, len(models), 0)
@@ -294,7 +294,7 @@ func TestBuildModelsFromDevice_HuggingfaceDiffusers(t *testing.T) {
 
 	// Execute
 	app.InitHuggingFace(huggingface.BaseUrl, "")
-	models := BuildModelsFromDevice()
+	models := BuildModelsFromDevice("")
 
 	// Assert
 	test.AssertEqual(t, len(models), 1)
@@ -328,7 +328,7 @@ func TestBuildModelsFromDevice_HuggingfaceTransformers(t *testing.T) {
 
 	// Execute
 	app.InitHuggingFace(huggingface.BaseUrl, "")
-	models := BuildModelsFromDevice()
+	models := BuildModelsFromDevice("")
 
 	// Assert
 	test.AssertEqual(t, len(models), 1)
@@ -380,7 +380,7 @@ func TestTidyConfiguredModel_CleanModel(t *testing.T) {
 	}
 
 	// Synchronize model
-	warning, success, clean := model.TidyConfiguredModel()
+	warning, success, clean := model.TidyConfiguredModel("")
 
 	// Assertions
 	test.AssertEqual(t, success, true)
@@ -411,7 +411,7 @@ func TestTidyConfiguredModel_Success(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Synchronize model
-	warning, success, clean := model.TidyConfiguredModel()
+	warning, success, clean := model.TidyConfiguredModel("")
 
 	// Assertions
 	test.AssertEqual(t, success, true)
@@ -442,7 +442,7 @@ func TestTidyConfiguredModel_Fail(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Synchronize model
-	warning, success, clean := model.TidyConfiguredModel()
+	warning, success, clean := model.TidyConfiguredModel("")
 
 	// Assertions
 	test.AssertEqual(t, success, false)
@@ -478,7 +478,7 @@ func TestTidyConfiguredModel_FailTokenizersTidy(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Synchronize model
-	warning, success, clean := model.TidyConfiguredModel()
+	warning, success, clean := model.TidyConfiguredModel("")
 
 	// Assertions
 	test.AssertEqual(t, success, true)
