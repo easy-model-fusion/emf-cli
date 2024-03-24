@@ -84,7 +84,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 	availableNames := modelToUse.Tokenizers.GetNames()
 
 	// Processing arguments
-	if len(args) == 0 {
+	if len(args) > 0 {
 		args = stringutil.SliceRemoveDuplicates(args)
 		configTokenizersMap := modelToUse.Tokenizers.Map()
 		// Check if selectedTokenizerNames elements exist in tokenizerNames and add them to a new list
