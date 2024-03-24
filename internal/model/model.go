@@ -205,7 +205,7 @@ func (t Tokenizers) ContainsByClass(class string) bool {
 }
 
 // SetAccessTokenKey sets unique access token key for model
-func (m *Model) SetAccessTokenKey() error {
+func (m *Model) setAccessTokenKey() error {
 	// Convert model name to upper case
 	key := strings.ToUpper(m.Name)
 	// Replace "/", "." and "-" with "_"
@@ -223,4 +223,13 @@ func (m *Model) SetAccessTokenKey() error {
 	}
 	m.AccessToken = key
 	return nil
+}
+
+// SaveAccessToken saves the access token in the .env file
+func (m *Model) SaveAccessToken(accessToken string) error {
+	err := m.setAccessTokenKey()
+	if err != nil {
+		return err
+	}
+	return dotenv.AddNewEnvVariable(m.AccessToken, accessToken)
 }
