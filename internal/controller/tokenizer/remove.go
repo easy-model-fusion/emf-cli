@@ -1,3 +1,6 @@
+// Package tokenizer
+// This file contains the remove tokenizer controller which is responsible for removing
+// existing tokenizers in existing models
 package tokenizer
 
 import (
@@ -5,16 +8,20 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 )
 
+type RemoveTokenizerController struct{}
+
 // RunTokenizerRemove runs the tokenizer remove command
-func RunTokenizerRemove(args []string) {
+func (ic RemoveTokenizerController) RunTokenizerRemove(args []string) error {
+	sdk.SendUpdateSuggestion()
 	// Process remove operation with given arguments
-	warningMessage, infoMessage, err := processRemove(args)
+	warningMessage, infoMessage, err := ic.processRemove(args)
 
 	// Display messages to user
 	if warningMessage != "" {
@@ -23,15 +30,18 @@ func RunTokenizerRemove(args []string) {
 
 	if infoMessage != "" {
 		pterm.Info.Printfln(infoMessage)
+		return err
 	} else if err == nil {
 		pterm.Success.Printfln("Operation succeeded.")
+		return nil
 	} else {
 		pterm.Error.Printfln("Operation failed.")
+		return err
 	}
 }
 
 // processRemove processes the remove tokenizer operation
-func processRemove(args []string) (warning, info string, err error) {
+func (ic RemoveTokenizerController) processRemove(args []string) (warning, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
 	if err != nil {
@@ -55,7 +65,7 @@ func processRemove(args []string) (warning, info string, err error) {
 
 	// Verify model's module
 	if modelToUse.Module != huggingface.TRANSFORMERS {
-		return warning, info, fmt.Errorf("only transformers models have tokzenizers")
+		return warning, info, fmt.Errorf("only transformers models have tokenizers")
 	}
 
 	configTokenizerMap := modelToUse.Tokenizers.Map()
@@ -63,7 +73,7 @@ func processRemove(args []string) (warning, info string, err error) {
 	var invalidTokenizers []string
 	var tokenizerNames []string
 
-       // Remove model name from arguments
+	// Remove model name from arguments
 	args = args[1:]
 	if len(args) == 0 {
 		// No tokenizer, asks for tokenizers names

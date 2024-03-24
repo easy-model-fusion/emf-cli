@@ -9,22 +9,22 @@ import (
 // tidyCmd represents the model tidy command
 var tidyCmd = &cobra.Command{
 	Use:   "tidy",
-	Short: "synchronizes the configuration file with the downloaded models",
-	Long:  `synchronizes the configuration file with the downloaded models`,
+	Short: "Synchronizes the configuration file with the downloaded models",
+	Long:  `Synchronizes the configuration file with the downloaded models`,
 	Run:   runTidy,
 }
 var (
-	tidyController controller.TidyController
-	yes            bool
+	tidyController               controller.TidyController
+	authorizeAllSynchronisations bool
 )
 
 func init() {
-	tidyCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Automatic yes to prompts")
+	tidyCmd.Flags().BoolVarP(&authorizeAllSynchronisations, "yes", "y", false, "Automatic yes to prompts")
 }
 
 // runTidy runs the model tidy command
 func runTidy(cmd *cobra.Command, args []string) {
-	err := tidyController.RunTidy(yes)
+	err := tidyController.RunTidy(authorizeAllSynchronisations)
 	if err != nil {
 		os.Exit(1)
 	}

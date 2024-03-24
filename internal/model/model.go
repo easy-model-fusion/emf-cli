@@ -131,6 +131,24 @@ func (m Models) FilterWithNames(namesSlice []string) Models {
 	return namesModels
 }
 
+// FilterWithClass retrieves the tokenizers by their class given an input slice.
+func (t Tokenizers) FilterWithClass(namesSlice []string) Tokenizers {
+	// Create a map for faster lookup
+	namesMap := stringutil.SliceToMap(namesSlice)
+
+	// Slice of all the Tokenizers that were found
+	var namesTokenizers Tokenizers
+
+	// Find the requested Tokenizer
+	for _, existingTokenizer := range t {
+		// Check if this tokenizer exists and adds it to the result
+		if _, exists := namesMap[existingTokenizer.Class]; exists {
+			namesTokenizers = append(namesTokenizers, existingTokenizer)
+		}
+	}
+	return namesTokenizers
+}
+
 // FilterWithSourceHuggingface return a sub-slice of models sourcing from huggingface.
 func (m Models) FilterWithSourceHuggingface() Models {
 	var huggingfaceModels Models
