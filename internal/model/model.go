@@ -233,3 +233,8 @@ func (m *Model) SaveAccessToken(accessToken string) error {
 	}
 	return dotenv.AddNewEnvVariable(m.AccessToken, accessToken)
 }
+
+// GetAccessToken gets the access token from the .env file
+func (m *Model) GetAccessToken() (string, error) {
+	return dotenv.GetEnvValue(m.AccessToken)
+}

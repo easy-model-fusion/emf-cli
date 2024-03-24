@@ -264,6 +264,11 @@ func (m *Model) Update(yes bool) bool {
 	}
 
 	// Prepare the script arguments
+	accessToken, err := m.GetAccessToken()
+	if err != nil {
+		// Download failed
+		return false
+	}
 	downloaderArgs := downloadermodel.Args{
 		ModelName:         m.Name,
 		ModelModule:       string(m.Module),
@@ -272,7 +277,7 @@ func (m *Model) Update(yes bool) bool {
 		SkipTokenizer:     skipTokenizer,
 		OnlyConfiguration: false,
 		DirectoryPath:     app.DownloadDirectoryPath,
-		AccessToken:       m.AccessToken,
+		AccessToken:       accessToken,
 	}
 
 	// Downloading model
@@ -329,6 +334,11 @@ func (m *Model) TidyConfiguredModel() (warning string, success bool, clean bool)
 		return "", true, true
 	}
 	// Prepare the script arguments
+	accessToken, err := m.GetAccessToken()
+	if err != nil {
+		// Download failed
+		return warning, false, false
+	}
 	downloaderArgs := downloadermodel.Args{
 		ModelName:         m.Name,
 		ModelModule:       string(m.Module),
@@ -336,7 +346,7 @@ func (m *Model) TidyConfiguredModel() (warning string, success bool, clean bool)
 		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
 		OnlyConfiguration: false,
 		DirectoryPath:     app.DownloadDirectoryPath,
-		AccessToken:       m.AccessToken,
+		AccessToken:       accessToken,
 	}
 
 	// Model has yet to be downloaded
