@@ -118,7 +118,7 @@ func processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes 
 	if customArgs.AccessToken != "" {
 		err = updatedModel.SaveAccessToken(customArgs.AccessToken)
 		if err != nil {
-			warning = fmt.Sprintf("Failed to save access token")
+			warning = "Failed to save access token"
 		}
 	}
 

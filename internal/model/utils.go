@@ -215,7 +215,7 @@ func FromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 }
 
 // Update attempts to update the model
-func (m *Model) Update(yes bool) bool {
+func (m *Model) Update(yes bool, accessToken string) bool {
 	// Check if model is physically present on the device
 	m.UpdatePaths()
 	downloaded, err := m.DownloadedOnDevice(false)
@@ -262,12 +262,13 @@ func (m *Model) Update(yes bool) bool {
 			skipTokenizer = len(tokenizerNames) > 0
 		}
 	}
-
 	// Prepare the script arguments
-	accessToken, err := m.GetAccessToken()
-	if err != nil {
+	if accessToken == "" {
+		accessToken, err = m.GetAccessToken()
 		// Download failed
-		return false
+		if err != nil {
+			return false
+		}
 	}
 	downloaderArgs := downloadermodel.Args{
 		ModelName:         m.Name,

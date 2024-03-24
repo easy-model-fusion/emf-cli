@@ -505,7 +505,7 @@ func TestModelUpdate_Diffusers(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update model
-	success := model.Update(true)
+	success := model.Update(true, "")
 
 	// Assertions
 	test.AssertEqual(t, success, true)
@@ -529,7 +529,7 @@ func TestModelUpdate_WithNoConfirmation(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update model
-	success := model.Update(false)
+	success := model.Update(false, "")
 
 	// Assertions
 	test.AssertEqual(t, success, false)
@@ -549,7 +549,7 @@ func TestModelUpdate_Failed(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update model
-	success := model.Update(true)
+	success := model.Update(true, "")
 
 	// Assertions
 	test.AssertEqual(t, success, false)
@@ -584,7 +584,7 @@ func TestModelUpdate_Transformers(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update model
-	success := model.Update(true)
+	success := model.Update(true, "")
 
 	// Assertions
 	test.AssertEqual(t, success, true)
