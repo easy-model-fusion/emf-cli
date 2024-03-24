@@ -12,7 +12,7 @@ description: "Description for your awesome IA application."
 sdk-tag: "vX.Y.Z"
 
 # Model Configuration
-models:
+models: []
 
 # Diffusers model
 #  - name: stabilityai/sdxl-turbo
