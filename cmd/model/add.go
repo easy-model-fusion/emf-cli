@@ -16,8 +16,10 @@ var modelAddCmd = &cobra.Command{
 	Run:   runAdd,
 }
 
-var customArgs downloadermodel.Args
-var yes bool
+var (
+	customArgs        downloadermodel.Args
+	authorizeDownload bool
+)
 
 func init() {
 	// Initialize hugging face api
@@ -26,10 +28,10 @@ func init() {
 	// Bind cobra args to the downloader script args
 	customArgs.ToCobra(modelAddCmd)
 	customArgs.DirectoryPath = app.DownloadDirectoryPath
-	modelAddCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Automatic yes to prompts")
+	modelAddCmd.Flags().BoolVarP(&authorizeDownload, "yes", "y", false, "Automatic yes to prompts")
 }
 
 // runAddByNames runs the add command to add models by name
 func runAdd(cmd *cobra.Command, args []string) {
-	modelcontroller.RunAdd(args, customArgs, yes)
+	modelcontroller.RunAdd(args, customArgs, authorizeDownload)
 }

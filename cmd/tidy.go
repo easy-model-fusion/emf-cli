@@ -14,17 +14,17 @@ var tidyCmd = &cobra.Command{
 	Run:   runTidy,
 }
 var (
-	tidyController controller.TidyController
-	yes            bool
+	tidyController               controller.TidyController
+	authorizeAllSynchronisations bool
 )
 
 func init() {
-	tidyCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Automatic yes to prompts")
+	tidyCmd.Flags().BoolVarP(&authorizeAllSynchronisations, "yes", "y", false, "Automatic yes to prompts")
 }
 
 // runTidy runs the model tidy command
 func runTidy(cmd *cobra.Command, args []string) {
-	err := tidyController.RunTidy(yes)
+	err := tidyController.RunTidy(authorizeAllSynchronisations)
 	if err != nil {
 		os.Exit(1)
 	}
