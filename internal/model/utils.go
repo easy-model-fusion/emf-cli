@@ -272,6 +272,7 @@ func (m *Model) Update(yes bool) bool {
 		SkipTokenizer:     skipTokenizer,
 		OnlyConfiguration: false,
 		DirectoryPath:     app.DownloadDirectoryPath,
+		AccessToken:       m.AccessToken,
 	}
 
 	// Downloading model
@@ -335,6 +336,7 @@ func (m *Model) TidyConfiguredModel() (warning string, success bool, clean bool)
 		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
 		OnlyConfiguration: false,
 		DirectoryPath:     app.DownloadDirectoryPath,
+		AccessToken:       m.AccessToken,
 	}
 
 	// Model has yet to be downloaded
