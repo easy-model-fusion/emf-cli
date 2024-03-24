@@ -311,13 +311,13 @@ func (m *Model) Update(yes bool) bool {
 
 // TidyConfiguredModel downloads the missing elements that were configured
 // first bool is true if success, second bool is true if model was clean from the start
-func (m *Model) TidyConfiguredModel() (bool, bool) {
+func (m *Model) TidyConfiguredModel() (warning string, success bool, clean bool) {
 
 	// Check if model is physically present on the device
 	m.UpdatePaths()
 	downloaded, err := m.DownloadedOnDevice(false)
 	if err != nil {
-		return false, false
+		return warning, false, false
 	}
 
 	// Get all the configured but not downloaded tokenizers
@@ -325,9 +325,8 @@ func (m *Model) TidyConfiguredModel() (bool, bool) {
 
 	// Model is clean, nothing more to do here
 	if downloaded && len(missingTokenizers) == 0 {
-		return true, true
+		return "", true, true
 	}
-
 	// Prepare the script arguments
 	downloaderArgs := downloadermodel.Args{
 		ModelName:         m.Name,
@@ -340,13 +339,11 @@ func (m *Model) TidyConfiguredModel() (bool, bool) {
 
 	// Model has yet to be downloaded
 	if !downloaded {
-
 		// Downloading model
-		success := false
-		success = m.Download(downloaderArgs)
+		success := m.Download(downloaderArgs)
 		if !success {
 			// Download failed
-			return false, false
+			return warning, success, false
 		}
 	}
 
@@ -369,9 +366,9 @@ func (m *Model) TidyConfiguredModel() (bool, bool) {
 
 		// The process failed for at least one tokenizer
 		if len(failedTokenizers) > 0 {
-			pterm.Error.Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
+			warning = fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers)
 		}
 	}
 
-	return true, false
+	return warning, true, false
 }

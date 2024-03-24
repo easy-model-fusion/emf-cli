@@ -11,8 +11,8 @@ var cleanDeleteAllYes bool
 // cleanCmd represents the clean command
 var cleanCmd = &cobra.Command{
 	Use:   "clean",
-	Short: "Clean project files (e.g. build)",
-	Long:  "Clean project files (e.g. build)",
+	Short: "Clean project files (e.g. models, build)",
+	Long:  "Clean project files (e.g. models, build)",
 	Run:   runClean,
 }
 

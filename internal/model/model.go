@@ -185,15 +185,17 @@ func (m *Model) GetBasePath() string {
 
 // UpdatePaths to update the model's path to elements accordingly to its configuration.
 func (m *Model) UpdatePaths() {
-	basePath := m.GetBasePath()
-	modelPath := basePath
-	if m.Module == huggingface.TRANSFORMERS {
-		modelPath = path.Join(modelPath, "model")
-		for i, tokenizer := range m.Tokenizers {
-			m.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
+	if m.Path == "" {
+		basePath := m.GetBasePath()
+		modelPath := basePath
+		if m.Module == huggingface.TRANSFORMERS {
+			modelPath = path.Join(modelPath, "model")
+			for i, tokenizer := range m.Tokenizers {
+				m.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
+			}
 		}
+		m.Path = modelPath
 	}
-	m.Path = modelPath
 }
 
 // Difference returns the models in that are not present in `slice`
