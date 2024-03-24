@@ -65,7 +65,7 @@ func (ic RemoveTokenizerController) processRemove(args []string) (warning, info 
 
 	// Verify model's module
 	if modelToUse.Module != huggingface.TRANSFORMERS {
-		return warning, info, fmt.Errorf("only transformers models have tokzenizers")
+		return warning, info, fmt.Errorf("only transformers models have tokenizers")
 	}
 
 	configTokenizerMap := modelToUse.Tokenizers.Map()

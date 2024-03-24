@@ -52,7 +52,9 @@ func TestRemoveTokenizer_Success(t *testing.T) {
 	app.SetUI(ui)
 	ic := RemoveTokenizerController{}
 	// Process remove
-	ic.RunTokenizerRemove(args)
+	if err := ic.RunTokenizerRemove(args); err != nil {
+		test.AssertEqual(t, err, nil, "Error on update")
+	}
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 	newModels, err := config.GetModels()
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
@@ -84,7 +86,12 @@ func TestRemoveTokenizer_WithModuleNotTransformers(t *testing.T) {
 
 	ic := RemoveTokenizerController{}
 	// Process remove
-	ic.RunTokenizerRemove(args)
+	if err := ic.RunTokenizerRemove(args); err != nil {
+		expectedErrMsg := "only transformers models have tokenizers"
+		if err.Error() != expectedErrMsg {
+			t.Errorf("Expected error message '%s', but got '%s'", expectedErrMsg, err.Error())
+		}
+	}
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 	newModels, err := config.GetModels()
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
@@ -116,7 +123,9 @@ func TestRemoveTokenizer_WithWrongModel(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 	ic := RemoveTokenizerController{}
 	// Process remove
-	ic.RunTokenizerRemove(args)
+	if err := ic.RunTokenizerRemove(args); err != nil {
+		test.AssertEqual(t, err, nil, "Error on update")
+	}
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
 
@@ -150,7 +159,9 @@ func TestRemoveTokenizer_WithNoTokenizerArgs_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 	ic := RemoveTokenizerController{}
 	// Process remove
-	ic.RunTokenizerRemove(args)
+	if err := ic.RunTokenizerRemove(args); err != nil {
+		test.AssertEqual(t, err, nil, "Error on update")
+	}
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
 
@@ -178,6 +189,8 @@ func TestRemoveTokenizer_WithWrongTokenizerArgs(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 	ic := RemoveTokenizerController{}
 	// Process remove
-	ic.RunTokenizerRemove(args)
+	if err := ic.RunTokenizerRemove(args); err != nil {
+		test.AssertEqual(t, err, nil, "Error on update")
+	}
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }

@@ -72,7 +72,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 
 	// Verify model's module
 	if modelToUse.Module != huggingface.TRANSFORMERS {
-		return warning, info, fmt.Errorf("only transformers models have tokzenizers")
+		return warning, info, fmt.Errorf("only transformers models have tokenizers")
 	}
 
 	var updateTokenizers model.Tokenizers
