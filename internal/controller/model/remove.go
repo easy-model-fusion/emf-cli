@@ -17,15 +17,15 @@ func RunModelRemove(args []string, modelRemoveAllFlag bool) {
 
 	// Display messages to user
 	if warningMessage != "" {
-		pterm.Warning.Printfln(warningMessage)
+		app.UI().Warning().Println(warningMessage)
 	}
 
 	if infoMessage != "" {
-		pterm.Info.Printfln(infoMessage)
+		app.UI().Info().Println(infoMessage)
 	} else if err == nil {
-		pterm.Success.Printfln("Operation succeeded.")
+		app.UI().Success().Println("Operation succeeded.")
 	} else {
-		pterm.Error.Printfln("Operation failed.")
+		app.UI().Error().Println("Operation failed.")
 	}
 }
 

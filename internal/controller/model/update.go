@@ -19,15 +19,15 @@ func RunModelUpdate(args []string, yes bool, accessToken string) {
 
 	// Display messages to user
 	if warningMessage != "" {
-		pterm.Warning.Printfln(warningMessage)
+		app.UI().Warning().Printfln(warningMessage)
 	}
 	if infoMessage != "" {
-		pterm.Info.Printfln(infoMessage)
+		app.UI().Info().Printfln(infoMessage)
 	}
 	if err == nil {
-		pterm.Success.Printfln("Operation succeeded.")
+		app.UI().Success().Printfln("Operation succeeded.")
 	} else {
-		pterm.Error.Printfln("Operation failed.\n%s", err.Error())
+		app.UI().Error().Printfln("Operation failed.\n%s", err.Error())
 	}
 }
 
@@ -146,7 +146,7 @@ func updateModels(modelsToUpdate model.Models, yes bool, accessToken string) (er
 
 	// Update models' configuration
 	if len(updatedModels) > 0 {
-		spinner, _ := pterm.DefaultSpinner.Start("Updating configuration file...")
+		spinner := app.UI().StartSpinner("Updating configuration file...")
 		err := config.AddModels(updatedModels)
 		if err != nil {
 			spinner.Fail(fmt.Sprintf("Error while updating the configuration file: %s", err))
