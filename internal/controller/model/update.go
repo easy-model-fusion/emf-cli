@@ -66,7 +66,7 @@ func processUpdate(args []string, yes bool, accessToken string) (warning string,
 	// Verify if the user selected some models to update
 	if len(selectedModelNames) > 0 {
 		// Filter selected models to only keep those available for an update
-		modelsToUpdate, notFoundModelNames, upToDateModelNames := getUpdatableModels(selectedModelNames, hfModelsAvailable)
+		modelsToUpdate, notFoundModelNames, upToDateModelNames := getUpdatableModels(selectedModelNames, hfModelsAvailable, accessToken)
 
 		// Indicate the models that couldn't be found
 		if len(notFoundModelNames) > 0 {
@@ -89,7 +89,7 @@ func processUpdate(args []string, yes bool, accessToken string) (warning string,
 }
 
 // getUpdatableModels returns the models available for an update
-func getUpdatableModels(modelNames []string, hfModelsAvailable model.Models) (
+func getUpdatableModels(modelNames []string, hfModelsAvailable model.Models, accessToken string) (
 	modelsToUpdate model.Models, notFoundModelNames, upToDateModelNames []string) {
 
 	// Bind the downloaded models coming from huggingface to a map for faster lookup
@@ -98,9 +98,21 @@ func getUpdatableModels(modelNames []string, hfModelsAvailable model.Models) (
 
 	// Check which model can be updated
 	for _, name := range modelNames {
+		// Try to find the model in the map of downloaded models coming from huggingface
+		configModel, exists := mapHfModelsAvailable[name]
+
+		if !exists {
+			// Model not configured
+			notFoundModelNames = append(notFoundModelNames, name)
+			continue
+		}
 
 		// Fetching model from huggingface
-		huggingfaceModel, err := hfinterface.GetModelById(name, "")
+		token := configModel.AccessToken
+		if accessToken != "" {
+			token = accessToken
+		}
+		huggingfaceModel, err := hfinterface.GetModelById(name, token)
 		if err != nil {
 			// Model not found : nothing more to do here, skipping to the next one
 			notFoundModelNames = append(notFoundModelNames, name)
@@ -111,13 +123,7 @@ func getUpdatableModels(modelNames []string, hfModelsAvailable model.Models) (
 		// Map API response to model.Model
 		modelMapped := model.FromHuggingfaceModel(huggingfaceModel)
 
-		// Try to find the model in the map of downloaded models coming from huggingface
-		configModel, exists := mapHfModelsAvailable[name]
-
-		if !exists {
-			// Model not configured
-			notFoundModelNames = append(notFoundModelNames, name)
-		} else if configModel.Version != modelMapped.Version {
+		if configModel.Version != modelMapped.Version {
 			// Model already configured but not up-to-date
 			configModel.Version = modelMapped.Version
 			modelsToUpdate = append(modelsToUpdate, configModel)

@@ -288,7 +288,7 @@ func TestGetUpdatableModels(t *testing.T) {
 	app.SetHuggingFace(&huggingFaceInterface)
 
 	// get updatable models
-	modelsToUpdate, notFoundModelNames, upToDateModelNames := getUpdatableModels(modelNames, hfModelsAvailable)
+	modelsToUpdate, notFoundModelNames, upToDateModelNames := getUpdatableModels(modelNames, hfModelsAvailable, "")
 
 	// Assertions
 	test.AssertEqual(t, len(modelsToUpdate), 1)
@@ -313,7 +313,7 @@ func TestGetUpdatableModels_WithModelNotFound(t *testing.T) {
 	app.SetHuggingFace(&huggingFaceInterface)
 
 	// get updatable models
-	modelsToUpdate, notFoundModelNames, upToDateModelNames := getUpdatableModels(modelNames, hfModelsAvailable)
+	modelsToUpdate, notFoundModelNames, upToDateModelNames := getUpdatableModels(modelNames, hfModelsAvailable, "")
 
 	// Assertions
 	test.AssertEqual(t, len(modelsToUpdate), 0)
