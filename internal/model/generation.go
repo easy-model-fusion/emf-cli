@@ -153,10 +153,10 @@ func (m *Model) GenSuperInitParamsWithModule() []codegen.FunctionCallParameter {
 			{
 				Name:  "device",
 				Value: "Devices.GPU",
-			}, /*, ToDo : Add the Kwargs to the generation
+			},
 			{
 				Value: "**kwargs",
-			}*/}
+			}}
 
 	case huggingface.TRANSFORMERS:
 		params := []codegen.FunctionCallParameter{

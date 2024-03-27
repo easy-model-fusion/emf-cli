@@ -195,7 +195,7 @@ func TestModel_GenSuperInitParamsWithModule(t *testing.T) {
 
 	// testing diffusers
 	params := model.GenSuperInitParamsWithModule()
-	test.AssertEqual(t, len(params), 4, "The number of parameters should be correct.")
+	test.AssertEqual(t, len(params), 5, "The number of parameters should be correct.")
 
 	// testing transformers without tokenizers
 	model.Module = huggingface.TRANSFORMERS
