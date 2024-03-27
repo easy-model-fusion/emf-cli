@@ -1,6 +1,7 @@
 package python
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
@@ -21,7 +22,7 @@ type Python interface {
 	FindVEnvExecutable(venvPath string, executableName string) (string, error)
 	InstallDependencies(pipPath, path string) error
 	ExecutePip(pipPath string, args []string) error
-	ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int)
+	ExecuteScript(venvPath, filePath string, args []string, ctx context.Context) ([]byte, error, int)
 	CheckAskForPython(ui ui.UI) (string, bool)
 }
 
@@ -121,7 +122,7 @@ func (p *python) ExecutePip(pipPath string, args []string) error {
 }
 
 // ExecuteScript runs the requested python file with the requested arguments
-func (p *python) ExecuteScript(venvPath, filePath string, args []string) ([]byte, error, int) {
+func (p *python) ExecuteScript(venvPath, filePath string, args []string, ctx context.Context) ([]byte, error, int) {
 
 	// Find the python executable inside the venv to run the script
 	pythonPath, err := p.FindVEnvExecutable(venvPath, "python")
@@ -141,7 +142,7 @@ func (p *python) ExecuteScript(venvPath, filePath string, args []string) ([]byte
 	}
 
 	// Create command
-	var cmd = exec.Command(pythonPath, append([]string{filePath}, args...)...)
+	var cmd = exec.CommandContext(ctx, pythonPath, append([]string{filePath}, args...)...)
 
 	// Bind stderr to a buffer
 	var errBuf strings.Builder
@@ -194,7 +195,7 @@ func (p *python) CheckAskForPython(ui ui.UI) (string, bool) {
 		result := ui.AskForUsersInput("Enter python PATH")
 
 		if result == "" {
-			pterm.Error.Println("Please enter a valid path")
+			ui.Error().Println("Please enter a valid path")
 			return "", false
 		}
 

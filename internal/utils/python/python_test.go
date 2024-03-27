@@ -1,6 +1,7 @@
 package python
 
 import (
+	"context"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/executil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
@@ -144,7 +145,7 @@ func TestFindVEnvExecutable_Fail(t *testing.T) {
 // TestExecuteScript_MissingVenv tests the ExecuteScript function when the virtual environment is missing.
 func TestExecuteScript_MissingVenv(t *testing.T) {
 	// Execute
-	_, err, _ := NewPython().ExecuteScript(".venv", "script.py", []string{})
+	_, err, _ := NewPython().ExecuteScript(".venv", "script.py", []string{}, context.Background())
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -160,7 +161,7 @@ func TestExecuteScript(t *testing.T) {
 	// ***************************
 
 	// Execute
-	_, err, _ := NewPython().ExecuteScript(venvPath, "script.py", []string{})
+	_, err, _ := NewPython().ExecuteScript(venvPath, "script.py", []string{}, context.Background())
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -176,7 +177,7 @@ func TestExecuteScript(t *testing.T) {
 	}
 
 	// Execute
-	output, err, exitCode := NewPython().ExecuteScript(venvPath, file.Name(), []string{})
+	output, err, exitCode := NewPython().ExecuteScript(venvPath, file.Name(), []string{}, context.Background())
 
 	// Assert
 	test.AssertEqual(t, err, nil)
@@ -207,7 +208,7 @@ func TestExecuteScript(t *testing.T) {
 	defer fileutil.CloseFile(file)
 
 	// Execute
-	output, err, exitCode = NewPython().ExecuteScript(venvPath, file.Name(), []string{})
+	output, err, exitCode = NewPython().ExecuteScript(venvPath, file.Name(), []string{}, context.Background())
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -239,7 +240,7 @@ func TestExecuteScript(t *testing.T) {
 	defer os.RemoveAll(dname)
 
 	// Execute
-	output, err, exitCode = NewPython().ExecuteScript(venvPath, file.Name(), []string{})
+	output, err, exitCode = NewPython().ExecuteScript(venvPath, file.Name(), []string{}, context.Background())
 
 	// Assert
 	test.AssertEqual(t, err, nil)

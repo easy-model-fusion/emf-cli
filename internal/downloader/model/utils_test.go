@@ -137,8 +137,9 @@ func TestToPython(t *testing.T) {
 		TokenizerClass:    "tokenizer",
 		TokenizerOptions:  []string{"tok_opt1=val1"},
 		SkipModel:         true,
-		SkipTokenizer:     false,
+		SkipTokenizer:     true,
 		OnlyConfiguration: true,
+		DirectoryPath:     "/path/to/download",
 	}
 	expected := []string{
 		TagPrefix + EmfClient, TagPrefix + Overwrite,
@@ -147,6 +148,7 @@ func TestToPython(t *testing.T) {
 		TagPrefix + ModelOptions, "opt1=val1", "opt2=val2",
 		TagPrefix + TokenizerClass, "tokenizer",
 		TagPrefix + TokenizerOptions, "tok_opt1=val1",
+		TagPrefix + Skip, "tokenizer",
 		TagPrefix + Skip, "model",
 		TagPrefix + OnlyConfiguration,
 	}
@@ -156,4 +158,8 @@ func TestToPython(t *testing.T) {
 
 	// Assert
 	test.AssertEqual(t, len(result), len(expected))
+
+	for i := range result {
+		test.AssertEqual(t, result[i], expected[i])
+	}
 }

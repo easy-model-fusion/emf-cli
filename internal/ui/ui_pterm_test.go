@@ -93,3 +93,20 @@ func TestPtermUI_StartSpinner(t *testing.T) {
 	test.AssertNotEqual(t, spinner, nil, "Spinner should not be nil")
 	spinner.Fail("test")
 }
+
+func TestPtermUI_BasicCheckmark(t *testing.T) {
+	ui := NewPTermUI()
+	checkmark := ui.BasicCheckmark()
+	test.AssertEqual(t, checkmark.Checked, ui.Green("+"))
+	test.AssertEqual(t, checkmark.Unchecked, ui.Red("-"))
+}
+
+func TestPtermUI_Green(t *testing.T) {
+	ui := NewPTermUI()
+	t.Logf(ui.Green("test green ui pterm"))
+}
+
+func TestPtermUI_Red(t *testing.T) {
+	ui := NewPTermUI()
+	t.Logf(ui.Red("test red ui pterm"))
+}

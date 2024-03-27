@@ -1,6 +1,7 @@
 package downloader
 
 import (
+	"context"
 	"errors"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/python"
@@ -25,7 +26,7 @@ func TestExecute_ArgsInvalid(t *testing.T) {
 	args := downloadermodel.Args{}
 
 	// Execute
-	result, err := downloaderInterface.Execute(args, pythonInterface)
+	result, err := downloaderInterface.Execute(args, pythonInterface, context.Background())
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -42,7 +43,7 @@ func TestExecute_ScriptError(t *testing.T) {
 	args := downloadermodel.Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
-	result, err := downloaderInterface.Execute(args, pythonInterface)
+	result, err := downloaderInterface.Execute(args, pythonInterface, context.Background())
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -59,7 +60,7 @@ func TestExecute_ResponseEmpty(t *testing.T) {
 	args := downloadermodel.Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
-	result, err := downloaderInterface.Execute(args, pythonInterface)
+	result, err := downloaderInterface.Execute(args, pythonInterface, context.Background())
 
 	// Assert
 	test.AssertEqual(t, err.Error(), "the script didn't return any data")
@@ -76,7 +77,7 @@ func TestExecute_ResponseBadFormat(t *testing.T) {
 	args := downloadermodel.Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
-	result, err := downloaderInterface.Execute(args, pythonInterface)
+	result, err := downloaderInterface.Execute(args, pythonInterface, context.Background())
 
 	// Assert
 	test.AssertNotEqual(t, err, nil)
@@ -93,7 +94,7 @@ func TestExecute_Success(t *testing.T) {
 	args := downloadermodel.Args{ModelName: "ModelName", ModelModule: "ModelModule"}
 
 	// Execute
-	result, err := downloaderInterface.Execute(args, pythonInterface)
+	result, err := downloaderInterface.Execute(args, pythonInterface, context.Background())
 
 	// Assert
 	test.AssertEqual(t, err, nil)
