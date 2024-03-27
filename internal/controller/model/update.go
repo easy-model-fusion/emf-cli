@@ -145,7 +145,7 @@ func updateModels(modelsToUpdate model.Models, yes bool) (err error) {
 	// Update models' configuration
 	if len(updatedModels) > 0 {
 		spinner := app.UI().StartSpinner("Updating configuration file...")
-		err = config.AddModels(updatedModels)
+		err := config.AddModels(updatedModels)
 		if err != nil {
 			spinner.Fail(fmt.Sprintf("Error while updating the configuration file: %s", err))
 		} else {
