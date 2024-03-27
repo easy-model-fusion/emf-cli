@@ -7,7 +7,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
-	"github.com/pterm/pterm"
 )
 
 // RunModelRemove runs the model remove command
@@ -17,15 +16,15 @@ func RunModelRemove(args []string, modelRemoveAllFlag bool) {
 
 	// Display messages to user
 	if warningMessage != "" {
-		pterm.Warning.Printfln(warningMessage)
+		app.UI().Warning().Printfln(warningMessage)
 	}
 
 	if infoMessage != "" {
-		pterm.Info.Printfln(infoMessage)
+		app.UI().Info().Printfln(infoMessage)
 	} else if err == nil {
-		pterm.Success.Printfln("Operation succeeded.")
+		app.UI().Success().Printfln("Operation succeeded.")
 	} else {
-		pterm.Error.Printfln("Operation failed.")
+		app.UI().Error().Printfln("Operation failed.")
 	}
 }
 

@@ -195,7 +195,7 @@ func (p *python) CheckAskForPython(ui ui.UI) (string, bool) {
 		result := ui.AskForUsersInput("Enter python PATH")
 
 		if result == "" {
-			pterm.Error.Println("Please enter a valid path")
+			ui.Error().Println("Please enter a valid path")
 			return "", false
 		}
 
