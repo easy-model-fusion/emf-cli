@@ -65,7 +65,7 @@ func processRemove(args []string, modelRemoveAllFlag bool) (string, string, erro
 func selectModelsToDelete(modelNames []string, selectAllModels bool) []string {
 	// Displays the multiselect only if the user has previously configured some models but hasn't selected all of them
 	if !selectAllModels && len(modelNames) > 0 {
-		checkMark := ui.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")}
+		checkMark := ui.Checkmark{Checked: app.UI().Red("x"), Unchecked: app.UI().Blue("-")}
 		message := "Please select the model(s) to be deleted"
 		modelNames = app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false, false, 8)
 		app.UI().DisplaySelectedItems(modelNames)

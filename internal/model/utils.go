@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
-	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -254,8 +253,7 @@ func (m *Model) Update(yes bool) bool {
 
 			// Prepare the tokenizers multiselect
 			message := "Please select the tokenizer(s) to be updated"
-			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true, 8)
+			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, app.UI().BasicCheckmark(), true, true, 8)
 			app.UI().DisplaySelectedItems(tokenizerNames)
 
 			// No tokenizer is selected : skipping so that it doesn't overwrite the default one

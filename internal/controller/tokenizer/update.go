@@ -12,7 +12,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
@@ -99,8 +98,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 		}
 	} else if len(availableNames) > 0 {
 		message := "Please select the tokenizer(s) to be updated"
-		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		tokenizerNames := app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true, 8)
+		tokenizerNames := app.UI().DisplayInteractiveMultiselect(message, availableNames, app.UI().BasicCheckmark(), true, true, 8)
 		if len(tokenizerNames) != 0 {
 			app.UI().DisplaySelectedItems(tokenizerNames)
 			updateTokenizers = modelToUse.Tokenizers.FilterWithClass(tokenizerNames)

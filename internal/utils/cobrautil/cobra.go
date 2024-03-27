@@ -3,9 +3,7 @@ package cobrautil
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
-	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"strconv"
@@ -47,12 +45,12 @@ func GetSubCommands(cmd *cobra.Command, cmdsToHide []string) ([]string, map[stri
 
 // MultiselectSubcommands presents an interactive selection of available sub-commands and executes the chosen one.
 func MultiselectSubcommands(cmd *cobra.Command, args []string, commandsList []string, commandsMap map[string]func(*cobra.Command, []string)) {
-	selectedCommand, _ := pterm.DefaultInteractiveSelect.WithOptions(commandsList).Show()
+	selectedCommand := app.UI().DisplayInteractiveSelect("", commandsList, true, 8)
 
 	if runCommand, exists := commandsMap[selectedCommand]; exists {
 		runCommand(cmd, args)
 	} else {
-		pterm.Error.Println(fmt.Sprintf("Selected command '%s' not recognized", selectedCommand))
+		app.UI().Error().Println(fmt.Sprintf("Selected command '%s' not recognized", selectedCommand))
 	}
 }
 
@@ -87,8 +85,7 @@ func MultiselectRemainingFlags(cmd *cobra.Command) (map[string]*pflag.Flag, []st
 
 	// User multi-selects the flags he wishes to use
 	message := "Select any property you wish to set"
-	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedFlags := app.UI().DisplayInteractiveMultiselect(message, remainingFlagsUsages, checkMark, false, false, 5)
+	selectedFlags := app.UI().DisplayInteractiveMultiselect(message, remainingFlagsUsages, app.UI().BasicCheckmark(), false, false, 5)
 	app.UI().DisplaySelectedItems(selectedFlags)
 
 	return remainingFlagsMap, selectedFlags

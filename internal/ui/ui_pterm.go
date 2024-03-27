@@ -88,7 +88,7 @@ func (p ptermUI) DisplayInteractiveSelect(msg string, options []string, filter b
 // DisplaySelectedItems prints the selected items in green color.
 func (p ptermUI) DisplaySelectedItems(items []string) {
 	// Print the selected options, highlighted in green.
-	p.Info().Printfln("Selected options: %s", pterm.Green(items))
+	p.Info().Printfln("Selected options: %s", p.Green(items))
 }
 
 // AskForUsersConfirmation asks the user for a confirmation, returns true if the user confirms, false otherwise
@@ -127,6 +127,31 @@ func (p ptermUI) Warning() Printer {
 // DefaultBox returns a Printer interface for printing messages in a default box
 func (p ptermUI) DefaultBox() Printer {
 	return &p.defaultBoxPrinter
+}
+
+// Green returns the given arguments in green color
+func (p ptermUI) Green(i ...interface{}) string {
+	return pterm.Green(i...)
+}
+
+// Red returns the given arguments in red color
+func (p ptermUI) Red(i ...interface{}) string {
+	return pterm.Red(i...)
+}
+
+// Yellow returns the given arguments in yellow color
+func (p ptermUI) Yellow(i ...interface{}) string {
+	return pterm.Yellow(i...)
+}
+
+// Blue returns the given arguments in blue color
+func (p ptermUI) Blue(i ...interface{}) string {
+	return pterm.Blue(i...)
+}
+
+// BasicCheckmark returns a Checkmark with + and -
+func (p ptermUI) BasicCheckmark() Checkmark {
+	return Checkmark{Checked: p.Green("+"), Unchecked: p.Red("-")}
 }
 
 // Printfln prints the given arguments with a newline

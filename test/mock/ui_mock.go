@@ -79,6 +79,29 @@ func (m MockUI) DefaultBox() ui.Printer {
 	}
 }
 
+func (m MockUI) Green(a ...interface{}) string {
+	return fmt.Sprint(a...)
+}
+
+func (m MockUI) Red(a ...interface{}) string {
+	return fmt.Sprint(a...)
+}
+
+func (m MockUI) Yellow(a ...interface{}) string {
+	return fmt.Sprint(a...)
+}
+
+func (m MockUI) Blue(a ...interface{}) string {
+	return fmt.Sprint(a...)
+}
+
+func (m MockUI) BasicCheckmark() ui.Checkmark {
+	return ui.Checkmark{
+		Checked:   "+",
+		Unchecked: "-",
+	}
+}
+
 func (m mockPrinter) Printfln(format string, a ...interface{}) {
 	fmt.Printf("[%s] %s\n", m.printerType, fmt.Sprintf(format, a...))
 }

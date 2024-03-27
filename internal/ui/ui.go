@@ -32,4 +32,13 @@ type UI interface {
 	Error() Printer
 	Warning() Printer
 	DefaultBox() Printer
+
+	// Colors
+	Green(...interface{}) string
+	Red(...interface{}) string
+	Yellow(...interface{}) string
+	Blue(...interface{}) string
+
+	//
+	BasicCheckmark() Checkmark
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/hfinterface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/pterm/pterm"
 )
@@ -167,8 +166,7 @@ func updateModels(modelsToUpdate model.Models, yes bool) (err error) {
 func selectModelsToUpdate(modelNames []string) (selectedModelNames []string) {
 	if len(modelNames) > 0 {
 		message := "Please select the model(s) to be updated"
-		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		selectedModelNames = app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false, true, 8)
+		selectedModelNames = app.UI().DisplayInteractiveMultiselect(message, modelNames, app.UI().BasicCheckmark(), false, true, 8)
 		app.UI().DisplaySelectedItems(selectedModelNames)
 	}
 	return selectedModelNames
