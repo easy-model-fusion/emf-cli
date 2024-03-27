@@ -34,11 +34,11 @@ func (m MockUI) AskForUsersInput(_ string) string {
 	return m.UserInputResult
 }
 
-func (m MockUI) DisplayInteractiveMultiselect(_ string, _ []string, _ ui.Checkmark, _, _ bool) []string {
+func (m MockUI) DisplayInteractiveMultiselect(_ string, _ []string, _ ui.Checkmark, _, _ bool, _ int) []string {
 	return m.MultiselectResult
 }
 
-func (m MockUI) DisplayInteractiveSelect(_ string, _ []string, _ bool) string {
+func (m MockUI) DisplayInteractiveSelect(_ string, _ []string, _ bool, _ int) string {
 	return m.SelectResult
 }
 

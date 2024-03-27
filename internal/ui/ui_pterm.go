@@ -43,7 +43,7 @@ func (p ptermUI) AskForUsersInput(message string) string {
 // DisplayInteractiveMultiselect displays an interactive multiselect prompt to the user.
 // It presents a message and a list of options, allowing the user to select multiple options.
 // Returns the selected options.
-func (p ptermUI) DisplayInteractiveMultiselect(msg string, options []string, checkMark Checkmark, optionsDefaultAll, filter bool) []string {
+func (p ptermUI) DisplayInteractiveMultiselect(msg string, options []string, checkMark Checkmark, optionsDefaultAll, filter bool, maxHeight int) []string {
 	// Create a new interactive multiselect printer with the options
 	// Disable the filter and set the keys for confirming and selecting options
 	printer := pterm.DefaultInteractiveMultiselect.
@@ -51,6 +51,12 @@ func (p ptermUI) DisplayInteractiveMultiselect(msg string, options []string, che
 		WithFilter(filter).
 		WithCheckmark(&pterm.Checkmark{Checked: checkMark.Checked, Unchecked: checkMark.Unchecked}).
 		WithDefaultText(msg)
+
+	if maxHeight > 0 {
+		printer.MaxHeight = maxHeight
+	} else {
+		printer.MaxHeight = 5
+	}
 
 	if optionsDefaultAll {
 		printer = printer.WithDefaultOptions(options)
@@ -63,13 +69,19 @@ func (p ptermUI) DisplayInteractiveMultiselect(msg string, options []string, che
 }
 
 // DisplayInteractiveSelect displays an interactive select (only one selectable option)
-func (p ptermUI) DisplayInteractiveSelect(msg string, options []string, filter bool) string {
-	selectedOption, _ := pterm.DefaultInteractiveSelect.
+func (p ptermUI) DisplayInteractiveSelect(msg string, options []string, filter bool, maxHeight int) string {
+	interactiveSelect := pterm.DefaultInteractiveSelect.
 		WithOptions(options).
 		WithDefaultText(msg).
-		WithFilter(filter).
-		Show()
+		WithFilter(filter)
 
+	if maxHeight > 0 {
+		interactiveSelect.MaxHeight = maxHeight
+	} else {
+		interactiveSelect.MaxHeight = 5
+	}
+
+	selectedOption, _ := interactiveSelect.Show()
 	return selectedOption
 }
 

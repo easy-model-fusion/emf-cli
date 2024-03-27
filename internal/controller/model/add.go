@@ -183,7 +183,7 @@ func selectTags() []string {
 	// Build a multiselect with each tag name
 	message := "Please select the type of models you want to add"
 	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, false, true)
+	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, false, true, 8)
 
 	return selectedTags
 }
@@ -193,7 +193,7 @@ func selectModel(models model.Models) model.Model {
 	// Build a selector with each model name
 	availableModelNames := models.GetNames()
 	message := "Please select the model(s) to be added"
-	selectedModelName := app.UI().DisplayInteractiveSelect(message, availableModelNames, true)
+	selectedModelName := app.UI().DisplayInteractiveSelect(message, availableModelNames, true, 8)
 
 	// Get newly selected models
 	selectedModels := models.FilterWithNames([]string{selectedModelName})

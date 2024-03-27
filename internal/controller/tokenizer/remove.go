@@ -121,7 +121,7 @@ func selectTokenizersToDelete(tokenizerNames []string) []string {
 	if len(tokenizerNames) > 0 {
 		message := "Please select the tokenizer(s) to be deleted"
 		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, tokenizerNames, checkMark, false, true)
+		tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, tokenizerNames, checkMark, false, true, 8)
 		app.UI().DisplaySelectedItems(tokenizerNames)
 	}
 	return tokenizerNames

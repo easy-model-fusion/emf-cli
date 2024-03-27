@@ -100,7 +100,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 	} else if len(availableNames) > 0 {
 		message := "Please select the tokenizer(s) to be updated"
 		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		tokenizerNames := app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
+		tokenizerNames := app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true, 8)
 		if len(tokenizerNames) != 0 {
 			app.UI().DisplaySelectedItems(tokenizerNames)
 			updateTokenizers = modelToUse.Tokenizers.FilterWithClass(tokenizerNames)

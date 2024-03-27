@@ -20,8 +20,8 @@ type Printer interface {
 
 type UI interface {
 	AskForUsersInput(message string) string
-	DisplayInteractiveMultiselect(msg string, options []string, checkMark Checkmark, optionsDefaultAll, filter bool) []string
-	DisplayInteractiveSelect(msg string, options []string, filter bool) string
+	DisplayInteractiveMultiselect(msg string, options []string, checkMark Checkmark, optionsDefaultAll, filter bool, maxHeight int) []string
+	DisplayInteractiveSelect(msg string, options []string, filter bool, maxHeight int) string
 	DisplaySelectedItems(items []string)
 	AskForUsersConfirmation(message string) bool
 	StartSpinner(message string) Spinner

@@ -255,7 +255,7 @@ func (m *Model) Update(yes bool) bool {
 			// Prepare the tokenizers multiselect
 			message := "Please select the tokenizer(s) to be updated"
 			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
+			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true, 8)
 			app.UI().DisplaySelectedItems(tokenizerNames)
 
 			// No tokenizer is selected : skipping so that it doesn't overwrite the default one

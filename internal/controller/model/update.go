@@ -168,7 +168,7 @@ func selectModelsToUpdate(modelNames []string) (selectedModelNames []string) {
 	if len(modelNames) > 0 {
 		message := "Please select the model(s) to be updated"
 		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		selectedModelNames = app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false, true)
+		selectedModelNames = app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false, true, 8)
 		app.UI().DisplaySelectedItems(selectedModelNames)
 	}
 	return selectedModelNames
