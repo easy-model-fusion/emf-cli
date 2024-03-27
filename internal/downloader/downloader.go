@@ -1,6 +1,7 @@
 package downloader
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
@@ -8,7 +9,7 @@ import (
 )
 
 type Downloader interface {
-	Execute(downloaderArgs downloadermodel.Args, python python.Python) (downloadermodel.Model, error)
+	Execute(downloaderArgs downloadermodel.Args, python python.Python, ctx context.Context) (downloadermodel.Model, error)
 }
 
 type scriptDownloader struct{}
@@ -19,7 +20,7 @@ func NewScriptDownloader() Downloader {
 }
 
 // Execute runs the downloader script and handles the result
-func (downloader *scriptDownloader) Execute(downloaderArgs downloadermodel.Args, python python.Python) (downloadermodel.Model, error) {
+func (downloader *scriptDownloader) Execute(downloaderArgs downloadermodel.Args, python python.Python, ctx context.Context) (downloadermodel.Model, error) {
 
 	// Check arguments validity
 	err := downloaderArgs.Validate()
@@ -31,7 +32,7 @@ func (downloader *scriptDownloader) Execute(downloaderArgs downloadermodel.Args,
 	args := downloaderArgs.ToPython()
 
 	// Run the script to download the model
-	scriptModel, err, _ := python.ExecuteScript(".venv", downloadermodel.ScriptPath, args)
+	scriptModel, err, _ := python.ExecuteScript(".venv", downloadermodel.ScriptPath, args, ctx)
 
 	// An error occurred while running the script
 	if err != nil {
