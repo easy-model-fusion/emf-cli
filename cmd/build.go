@@ -1,8 +1,10 @@
 package cmd
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/controller"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var (
@@ -24,9 +26,15 @@ var buildCmd = &cobra.Command{
 			Note: if you want to use nuitka, you need to have a working C compiler.`,
 	Run: runBuild,
 }
+var buildController = controller.BuildController{}
 
 func runBuild(cmd *cobra.Command, args []string) {
-	controller.RunBuild(buildCustomName, buildLibrary, buildDestination, buildCompress, buildIncludeModels, buildOneFile)
+	err := buildController.RunBuild(buildCustomName, buildLibrary, buildDestination,
+		buildCompress, buildIncludeModels, buildOneFile)
+	if err != nil {
+		app.UI().Error().Println(err.Error())
+		os.Exit(1)
+	}
 }
 
 func init() {
