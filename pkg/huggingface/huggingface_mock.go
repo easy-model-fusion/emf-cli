@@ -1,7 +1,5 @@
 package huggingface
 
-import "fmt"
-
 type MockHuggingFace struct {
 	GetModelResult  Model
 	GetModelsResult Models
@@ -13,6 +11,5 @@ func (hf *MockHuggingFace) GetModelsByPipelineTag(_ PipelineTag, _ int) (Models,
 }
 func (hf *MockHuggingFace) GetModelById(id string) (Model, error) {
 	hf.GetModelResult.Name = id
-	fmt.Println("here")
 	return hf.GetModelResult, hf.Error
 }

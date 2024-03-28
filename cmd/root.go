@@ -6,7 +6,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/cobrautil"
-	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -55,6 +54,6 @@ func runRoot(cmd *cobra.Command, args []string) {
 	// Running command as palette : allowing user to choose subcommand
 	err := cobrautil.RunCommandAsPalette(cmd, args, rootCommandName, []string{completionCmd.Name()})
 	if err != nil {
-		pterm.Error.Println("Something went wrong :", err)
+		app.UI().Error().Println("Something went wrong :", err)
 	}
 }

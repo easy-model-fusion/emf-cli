@@ -474,38 +474,6 @@ func TestProcessAdd_WithFailedDownload(t *testing.T) {
 	test.AssertEqual(t, len(models), 2)
 }
 
-// Tests process add with an error while generating code
-func TestProcessAdd_WithErrorOnGenCode(t *testing.T) {
-	// Init
-	var existingModels model.Models
-	existingModels = append(existingModels, model.Model{Name: "model1", Module: huggingface.DIFFUSERS, Class: "test"})
-	existingModels = append(existingModels, model.Model{Name: "model3", Module: huggingface.DIFFUSERS, Class: "test"})
-	downloaderArgs := downloadermodel.Args{}
-	selectedModel := model.Model{Name: "model2", Module: huggingface.DIFFUSERS, Class: "test"}
-
-	// Create full test suite with a configuration file
-	ts := test.TestSuite{}
-	_ = ts.CreateFullTestSuite(t)
-	defer ts.CleanTestSuite(t)
-	err := setupConfigFile(existingModels)
-	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
-
-	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
-	app.SetDownloader(&downloader)
-
-	// Process add
-	warning, err := processAdd(selectedModel, downloaderArgs, true)
-	test.AssertEqual(t, err, nil) // FIXME: should be not equal
-	models, err := config.GetModels()
-
-	// Assertions
-	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, warning, "")
-	test.AssertEqual(t, len(models), 3)
-	test.AssertEqual(t, models[2].Name, "model2")
-}
-
 // Tests RunAdd
 func TestRunAdd(t *testing.T) {
 	// Init

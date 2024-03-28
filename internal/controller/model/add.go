@@ -8,9 +8,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/hfinterface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
-	"github.com/pterm/pterm"
 )
 
 // RunAdd runs the add command to add models by name
@@ -100,7 +98,7 @@ func getRequestedModel(args []string) (model.Model, error) {
 func processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes bool) (warning string, err error) {
 	// User choose if he wishes to install the model directly
 	message := fmt.Sprintf("Do you wish to directly download %s?", selectedModel.Name)
-	selectedModel.AddToBinaryFile = yes || app.UI().AskForUsersConfirmation(message)
+	selectedModel.AddToBinaryFile = !customArgs.OnlyConfiguration && (yes || app.UI().AskForUsersConfirmation(message))
 
 	// Validate model for download
 	warningMessage, valid, err := config.Validate(selectedModel, yes)
@@ -182,8 +180,7 @@ func getModelsList(tags []string, existingModels model.Models) (model.Models, er
 func selectTags() []string {
 	// Build a multiselect with each tag name
 	message := "Please select the type of models you want to add"
-	checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), checkMark, false, true)
+	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), app.UI().BasicCheckmark(), false, true, 8)
 
 	return selectedTags
 }
@@ -193,7 +190,7 @@ func selectModel(models model.Models) model.Model {
 	// Build a selector with each model name
 	availableModelNames := models.GetNames()
 	message := "Please select the model(s) to be added"
-	selectedModelName := app.UI().DisplayInteractiveSelect(message, availableModelNames, true)
+	selectedModelName := app.UI().DisplayInteractiveSelect(message, availableModelNames, true, 8)
 
 	// Get newly selected models
 	selectedModels := models.FilterWithNames([]string{selectedModelName})

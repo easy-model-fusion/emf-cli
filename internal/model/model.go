@@ -127,6 +127,24 @@ func (m Models) FilterWithNames(namesSlice []string) Models {
 	return namesModels
 }
 
+// FilterWithClass retrieves the tokenizers by their class given an input slice.
+func (t Tokenizers) FilterWithClass(namesSlice []string) Tokenizers {
+	// Create a map for faster lookup
+	namesMap := stringutil.SliceToMap(namesSlice)
+
+	// Slice of all the Tokenizers that were found
+	var namesTokenizers Tokenizers
+
+	// Find the requested Tokenizer
+	for _, existingTokenizer := range t {
+		// Check if this tokenizer exists and adds it to the result
+		if _, exists := namesMap[existingTokenizer.Class]; exists {
+			namesTokenizers = append(namesTokenizers, existingTokenizer)
+		}
+	}
+	return namesTokenizers
+}
+
 // FilterWithSourceHuggingface return a sub-slice of models sourcing from huggingface.
 func (m Models) FilterWithSourceHuggingface() Models {
 	var huggingfaceModels Models
@@ -167,15 +185,17 @@ func (m *Model) GetBasePath() string {
 
 // UpdatePaths to update the model's path to elements accordingly to its configuration.
 func (m *Model) UpdatePaths() {
-	basePath := m.GetBasePath()
-	modelPath := basePath
-	if m.Module == huggingface.TRANSFORMERS {
-		modelPath = path.Join(modelPath, "model")
-		for i, tokenizer := range m.Tokenizers {
-			m.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
+	if m.Path == "" {
+		basePath := m.GetBasePath()
+		modelPath := basePath
+		if m.Module == huggingface.TRANSFORMERS {
+			modelPath = path.Join(modelPath, "model")
+			for i, tokenizer := range m.Tokenizers {
+				m.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
+			}
 		}
+		m.Path = modelPath
 	}
-	m.Path = modelPath
 }
 
 // Difference returns the models in that are not present in `slice`

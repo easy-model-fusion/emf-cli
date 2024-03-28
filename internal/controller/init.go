@@ -23,7 +23,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/sdk"
-	"github.com/pterm/pterm"
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
@@ -55,12 +54,12 @@ func (ic InitController) Run(args []string, useTorchCuda bool, customTag string)
 	if !os.IsExist(err) {
 		removeErr := os.RemoveAll(projectName)
 		if removeErr != nil {
-			pterm.Warning.Println(fmt.Sprintf("Error deleting folder '%s': %s", projectName, removeErr))
+			app.UI().Warning().Println(fmt.Sprintf("Error deleting folder '%s': %s", projectName, removeErr))
 			return removeErr
 		}
 	}
 
-	pterm.Error.Println(fmt.Sprintf("Error creating project '%s': %s", projectName, err))
+	app.UI().Error().Println(fmt.Sprintf("Error creating project '%s': %s", projectName, err))
 	return err
 }
 
@@ -222,7 +221,7 @@ func (ic InitController) installDependencies(projectName string, useTorchCuda bo
 func (ic InitController) cloneSDK(projectName, tag string) (err error) {
 	// Check the latest sdk version
 	if tag != "" {
-		pterm.Info.Println("Using custom sdk version: " + tag)
+		app.UI().Info().Println("Using custom sdk version: " + tag)
 	} else {
 		spinner := app.UI().StartSpinner("Checking for latest sdk version")
 		tag, err = app.G().GetLatestTag("sdk")

@@ -70,7 +70,7 @@ func (ts *TestSuite) CreateFullTestSuite(t *testing.T) (directoryPath string) {
 	return dname
 }
 
-const FullTestSuiteModelsCount = 3
+const FullTestSuiteModelsCount = 4
 
 // CreateModelsFolderFullTestSuite Create a full test suite
 // Please delete the directory after use (defer test.Clean())
@@ -83,11 +83,15 @@ func (ts *TestSuite) CreateModelsFolderFullTestSuite(t *testing.T) (directoryPat
 	checkErrDeleteFolder(t, err, dname)
 
 	// Create mock models (if you change this, change FullTestSuiteModelsCount)
-	err = os.MkdirAll(filepath.Join("models", "model1", "weights"), os.ModePerm)
+	err = os.MkdirAll(filepath.Join("models", "model1", "name", "weights"), os.ModePerm)
 	checkErrDeleteFolder(t, err, dname)
-	err = os.MkdirAll(filepath.Join("models", "model2", "weights"), os.ModePerm)
+	err = os.MkdirAll(filepath.Join("models", "model2", "name", "weights"), os.ModePerm)
 	checkErrDeleteFolder(t, err, dname)
-	err = os.MkdirAll(filepath.Join("models", "model3"), os.ModePerm)
+	err = os.MkdirAll(filepath.Join("models", "model3", "name", "weights"), os.ModePerm)
+	checkErrDeleteFolder(t, err, dname)
+	err = os.MkdirAll(filepath.Join("models", "model4", "name", "model", "weights"), os.ModePerm)
+	checkErrDeleteFolder(t, err, dname)
+	err = os.MkdirAll(filepath.Join("models", "model4", "name", "tokenizer", "weights"), os.ModePerm)
 	checkErrDeleteFolder(t, err, dname)
 
 	return dname
