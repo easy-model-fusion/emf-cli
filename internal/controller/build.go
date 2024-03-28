@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
@@ -9,7 +10,9 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -40,19 +43,9 @@ func (bc BuildController) RunBuild(customName, library, destDir string, compress
 	}
 
 	// Install dependencies
-	pythonPath, err := app.Python().FindVEnvExecutable(".venv", "python")
+	pythonPath, err := bc.InstallDependencies(library)
 	if err != nil {
-		return fmt.Errorf("error finding python executable: %s", err.Error())
-	}
-
-	pipPath, err := app.Python().FindVEnvExecutable(".venv", "pip")
-	if err != nil {
-		return fmt.Errorf("error finding pip executable: %s", err.Error())
-	}
-
-	err = app.Python().ExecutePip(pipPath, []string{"install", library})
-	if err != nil {
-		return fmt.Errorf("error installing %s: %s", library, err.Error())
+		return err
 	}
 
 	var libraryPath string
@@ -67,40 +60,16 @@ func (bc BuildController) RunBuild(customName, library, destDir string, compress
 		libraryPath = pythonPath
 	}
 
-	buildArgs := bc.createBuildArgs(customName, library, destDir, oneFile)
-
-	app.UI().Info().Println(fmt.Sprintf("Building project using %s...", library))
-	app.UI().Info().Println(fmt.Sprintf("Using the following arguments: %s", buildArgs))
-	app.UI().Info().Println(fmt.Sprintf("The project will be built to %s", destDir))
-
-	command := exec.Command(libraryPath, buildArgs...)
-
-	var errBuf strings.Builder
-	command.Stderr = &errBuf
-
-	now := time.Now()
-	spinner := app.UI().StartSpinner("Building project...")
-	err = command.Run()
+	// Build the project
+	err = bc.Build(customName, library, destDir, libraryPath, oneFile)
 	if err != nil {
-		spinner.Fail("Error building project")
-		app.UI().Error().Println(errBuf.String())
-		return fmt.Errorf("error building project: %s", err.Error())
-	}
-	spinner.Success(fmt.Sprintf("Project built successfully in %s", time.Since(now).String()))
-
-	if !compress {
-		return nil
+		return err
 	}
 
-	app.UI().Info().Println("Compressing the output file(s) into a tarball file...")
-
-	if includeModels {
-		app.UI().Info().Println("Including models in the build compressed file...")
-	} else {
-		app.UI().Info().Println("Excluding models from the build compressed file...")
+	// Compress the output file(s) into a tarball file
+	if compress {
+		return bc.Compress(includeModels)
 	}
-
-	app.UI().Info().Println("This may take a while... don't close the terminal")
 
 	return nil
 }
@@ -137,4 +106,85 @@ func (bc BuildController) createBuildArgs(customName, library, destDir string, o
 	buildArgs = append(buildArgs, "main.py")
 
 	return stringutil.SliceRemoveDuplicates(buildArgs)
+}
+
+// InstallDependencies installs the dependencies for the project
+// returns the path to the python executable
+func (bc BuildController) InstallDependencies(library string) (string, error) {
+	pythonPath, err := app.Python().FindVEnvExecutable(".venv", "python")
+	if err != nil {
+		return "", fmt.Errorf("error finding python executable: %s", err.Error())
+	}
+
+	pipPath, err := app.Python().FindVEnvExecutable(".venv", "pip")
+	if err != nil {
+		return "", fmt.Errorf("error finding pip executable: %s", err.Error())
+	}
+
+	err = app.Python().ExecutePip(pipPath, []string{"install", library})
+	if err != nil {
+		return "", fmt.Errorf("error installing %s: %s", library, err.Error())
+	}
+
+	return pythonPath, nil
+}
+
+// Build builds the project
+func (bc BuildController) Build(customName, library, destDir, libraryPath string, oneFile bool) (err error) {
+	buildArgs := bc.createBuildArgs(customName, library, destDir, oneFile)
+
+	app.UI().Info().Println(fmt.Sprintf("Building project using %s...", library))
+	app.UI().Info().Println(fmt.Sprintf("Using the following arguments: %s", buildArgs))
+	app.UI().Info().Println(fmt.Sprintf("The project will be built to %s", destDir))
+
+	// Setup signal catching
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	command := exec.CommandContext(ctx, libraryPath, buildArgs...)
+
+	var errBuf strings.Builder
+	command.Stderr = &errBuf
+
+	spinner := app.UI().StartSpinner("Building project...")
+	now := time.Now()
+
+	// Running the build command in a goroutine (to handle cancellation, since the build can take a long time)
+	go func(err error) {
+		err = command.Run()
+		// Sending signal to the main goroutine that the script has finished
+		done <- syscall.SIGQUIT
+	}(err)
+
+	switch code := <-done; {
+	case code == syscall.SIGQUIT:
+		// Do nothing
+	case code == syscall.SIGINT:
+		fallthrough
+	case code == syscall.SIGTERM:
+		cancel()
+		spinner.Fail("Build cancelled manually after " + time.Since(now).String())
+		return err
+	}
+
+	// make sure that the context is cancelled, even if the build has finished
+	cancel()
+
+	spinner.Success(fmt.Sprintf("Project built successfully in %s", time.Since(now).String()))
+	return nil
+}
+
+// Compress compresses the output file(s) into a tarball file
+func (bc BuildController) Compress(includeModels bool) error {
+	app.UI().Info().Println("Compressing the output file(s) into a tarball file...")
+
+	if includeModels {
+		app.UI().Info().Println("Including models in the build compressed file...")
+	} else {
+		app.UI().Info().Println("Excluding models from the build compressed file...")
+	}
+
+	app.UI().Info().Println("This may take a while... don't close the terminal")
+	return nil
 }
