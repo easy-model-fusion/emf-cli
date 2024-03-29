@@ -1,3 +1,9 @@
+// Package controller
+// This file contains the build controller which is responsible for building the project.
+// Whenever a user wants to build the project, he will run the build command that uses the build controller.
+// The build controller will install the needed build dependencies and build the project using the selected library (pyinstaller or nuitka).
+// The final project will be built in the dist or the specified directory.
+// The build controller also creates a symbolic link to the models folder if the user wants to.
 package controller
 
 import (
@@ -11,6 +17,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path"
 	"strings"
 	"syscall"
 	"time"
@@ -18,7 +25,8 @@ import (
 
 type BuildController struct{}
 
-func (bc BuildController) RunBuild(customName, library, destDir string, compress, includeModels, oneFile bool) error {
+// RunBuild runs the build command
+func (bc BuildController) RunBuild(customName, library, destDir string, oneFile, modelsSymlink bool) error {
 	if err := config.GetViperConfig("."); err != nil {
 		return err
 	}
@@ -66,11 +74,15 @@ func (bc BuildController) RunBuild(customName, library, destDir string, compress
 		return err
 	}
 
-	// Compress the output file(s) into a tarball file
-	if compress {
-		return bc.Compress(includeModels)
+	if !modelsSymlink {
+		return nil
 	}
 
+	// Create symbolic link to models
+	err = bc.createModelsSymbolicLink(destDir)
+	if err != nil {
+		return fmt.Errorf("error creating symbolic link: %s", err.Error())
+	}
 	return nil
 }
 
@@ -175,16 +187,31 @@ func (bc BuildController) Build(customName, library, destDir, libraryPath string
 	return nil
 }
 
-// Compress compresses the output file(s) into a tarball file
-func (bc BuildController) Compress(includeModels bool) error {
-	app.UI().Info().Println("Compressing the output file(s) into a tarball file...")
+// createModelsSymbolicLink creates a symbolic link to the models folder
+func (bc BuildController) createModelsSymbolicLink(destDir string) error {
+	// Create symbolic link to models
+	modelsPath := "models"
+	distPath := path.Join(destDir, "models")
 
-	if includeModels {
-		app.UI().Info().Println("Including models in the build compressed file...")
-	} else {
-		app.UI().Info().Println("Excluding models from the build compressed file...")
+	app.UI().Info().Println(fmt.Sprintf("Creating symbolic link from %s to %s", modelsPath, distPath))
+
+	// Check if models folder exists
+	if _, err := os.Stat(modelsPath); os.IsNotExist(err) {
+		return fmt.Errorf("models folder does not exist")
 	}
 
-	app.UI().Info().Println("This may take a while... don't close the terminal")
+	// Check if dist folder exists
+	if _, err := os.Stat(distPath); os.IsNotExist(err) {
+		return fmt.Errorf("dist folder does not exist")
+	}
+
+	// Create symbolic link
+	err := os.Symlink(modelsPath, distPath)
+	if err != nil {
+		return fmt.Errorf("error creating symbolic link: %s", err.Error())
+	}
+
+	app.UI().Success().Println("Symbolic link created successfully")
+
 	return nil
 }
