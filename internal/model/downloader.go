@@ -107,7 +107,7 @@ func (m *Model) executeDownload(downloaderArgs downloadermodel.Args) bool {
 	}
 
 	// Start spinner
-	spinner := app.UI().StartSpinner(customMessage + downloaderItemMessage)
+	app.UI().Info().Println(customMessage + downloaderItemMessage)
 
 	// Running the script (with cancellation handling)
 	var dlModel downloadermodel.Model
@@ -132,7 +132,7 @@ func (m *Model) executeDownload(downloaderArgs downloadermodel.Args) bool {
 		fallthrough
 	case code == syscall.SIGTERM:
 		cancel() // Cancel the context (to stop the script)
-		spinner.Fail("Download cancelled manually")
+		app.UI().Error().Println("Download cancelled manually")
 		app.UI().Warning().Println("Please note that when cancelling the model, partial files may have been downloaded.")
 		app.UI().Warning().Println("Please remove the related model directory or the cache if you want to clean up the partial files.")
 		return false
@@ -143,7 +143,7 @@ func (m *Model) executeDownload(downloaderArgs downloadermodel.Args) bool {
 
 	if err != nil {
 		// Something went wrong or no data has been returned
-		spinner.Fail(err.Error())
+		app.UI().Error().Println(err.Error())
 		return false
 	} else {
 		// Updating spinner messages
@@ -153,7 +153,7 @@ func (m *Model) executeDownload(downloaderArgs downloadermodel.Args) bool {
 			customMessage = "downloaded "
 		}
 		// Download was successful
-		spinner.Success("Successfully " + customMessage + downloaderItemMessage)
+		app.UI().Success().Println("Successfully " + customMessage + downloaderItemMessage)
 	}
 
 	// Update the model for the configuration file

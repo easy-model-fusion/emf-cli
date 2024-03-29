@@ -2,12 +2,12 @@ package python
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/executil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/pterm/pterm"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -144,12 +144,29 @@ func (p *python) ExecuteScript(venvPath, filePath string, args []string, ctx con
 	// Create command
 	var cmd = exec.CommandContext(ctx, pythonPath, append([]string{filePath}, args...)...)
 
-	// Bind stderr to a buffer
-	var errBuf strings.Builder
-	cmd.Stderr = &errBuf
+	// Create pipe to capture stdout
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, err, 1
+	}
 
-	// Run command
-	output, err := cmd.Output()
+	// Bind stderr
+	cmd.Stderr = os.Stderr
+
+	// Start the command
+	err = cmd.Start()
+	if err != nil {
+		return nil, err, 1
+	}
+
+	// Read output from the pipe
+	output, err := io.ReadAll(stdoutPipe)
+	if err != nil {
+		return nil, err, 1
+	}
+
+	// Wait for the command to finish
+	err = cmd.Wait()
 
 	// Execution was successful but nothing returned
 	if err == nil && len(output) == 0 {
@@ -161,20 +178,7 @@ func (p *python) ExecuteScript(venvPath, filePath string, args []string, ctx con
 		return output, nil, 0
 	}
 
-	// If there was an error running the command, check if it's a command execution error
-	var exitCode int
-	var exitErr *exec.ExitError
-	if errors.As(err, &exitErr) {
-		exitCode = exitErr.ExitCode()
-	}
-
-	// Log the errors back
-	errBufStr := errBuf.String()
-	if errBufStr != "" {
-		return nil, fmt.Errorf("%s", errBufStr), exitCode
-	}
-
-	return nil, err, exitCode
+	return nil, err, 1
 }
 
 // CheckAskForPython checks if python is available in the PATH
