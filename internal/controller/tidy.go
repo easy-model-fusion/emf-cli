@@ -13,7 +13,7 @@ import (
 
 type TidyController struct{}
 
-func (tc TidyController) RunTidy(yes bool) error {
+func (tc TidyController) RunTidy(yes bool, accessToken string) error {
 	// get all models from config file
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
@@ -31,7 +31,7 @@ func (tc TidyController) RunTidy(yes bool) error {
 
 	// Tidy the models configured but not physically present on the device
 	app.UI().Info().Println("Verifying if all models are downloaded...")
-	warningMessages := tc.tidyModelsConfiguredButNotDownloaded(models)
+	warningMessages := tc.tidyModelsConfiguredButNotDownloaded(models, accessToken)
 	if len(warningMessages) > 0 {
 		for _, warning := range warningMessages {
 			app.UI().Warning().Println(warning)
@@ -40,7 +40,7 @@ func (tc TidyController) RunTidy(yes bool) error {
 
 	// Tidy the models physically present on the device but not configured
 	app.UI().Info().Println("Verifying if all downloaded models are configured...")
-	tc.tidyModelsDownloadedButNotConfigured(models, yes)
+	tc.tidyModelsDownloadedButNotConfigured(models, yes, accessToken)
 
 	// Updating the models object since the configuration might have changed in between
 	models, err = config.GetModels()
@@ -62,7 +62,7 @@ func (tc TidyController) RunTidy(yes bool) error {
 }
 
 // tidyModelsConfiguredButNotDownloaded downloads any missing model and its missing tokenizers as well
-func (tc TidyController) tidyModelsConfiguredButNotDownloaded(models model.Models) (warnings []string) {
+func (tc TidyController) tidyModelsConfiguredButNotDownloaded(models model.Models, accessToken string) (warnings []string) {
 	// filter the models that should be added to binary
 	models = models.FilterWithIsDownloadedTrue()
 
@@ -73,7 +73,7 @@ func (tc TidyController) tidyModelsConfiguredButNotDownloaded(models model.Model
 	// Tidying the configured but not downloaded models and also processing their tokenizers
 	for _, current := range models {
 
-		warning, success, clean := current.TidyConfiguredModel()
+		warning, success, clean := current.TidyConfiguredModel(accessToken)
 		if warning != "" {
 			warnings = append(warnings, warning)
 		}
@@ -107,9 +107,9 @@ func (tc TidyController) tidyModelsConfiguredButNotDownloaded(models model.Model
 
 // tidyModelsDownloadedButNotConfigured configuring the downloaded models that aren't configured in the configuration file
 // and then asks the user if he wants to delete them or add them to the configuration file
-func (tc TidyController) tidyModelsDownloadedButNotConfigured(configModels model.Models, yes bool) {
+func (tc TidyController) tidyModelsDownloadedButNotConfigured(configModels model.Models, yes bool, accessToken string) {
 	// Get the list of downloaded models
-	downloadedModels := model.BuildModelsFromDevice()
+	downloadedModels := model.BuildModelsFromDevice(accessToken)
 
 	// Building map for faster lookup
 	mapConfigModels := configModels.Map()

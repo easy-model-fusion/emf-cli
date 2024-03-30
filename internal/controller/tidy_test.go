@@ -68,7 +68,7 @@ func TestTidyModelsConfiguredButNotDownloaded_Success(t *testing.T) {
 
 	// Download missing models
 	var tidyController TidyController
-	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels)
+	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels, "")
 
 	// Assertions
 	test.AssertEqual(t, len(warnings), 0)
@@ -103,7 +103,7 @@ func TestTidyModelsConfiguredButNotDownloaded_SuccessWithNoConfFile(t *testing.T
 
 	// Download missing models
 	var tidyController TidyController
-	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels)
+	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels, "")
 
 	// Assertions
 	test.AssertEqual(t, len(warnings), 0)
@@ -145,7 +145,7 @@ func TestTidyModelsConfiguredButNotDownloaded_Fail(t *testing.T) {
 
 	// Download missing models
 	var tidyController TidyController
-	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels)
+	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels, "")
 
 	// Assertions
 	test.AssertEqual(t, len(warnings), 1)
@@ -197,7 +197,7 @@ func TestTidyModelsConfiguredButNotDownloaded_WithTokenizerFailure(t *testing.T)
 
 	// Download missing models
 	var tidyController TidyController
-	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels)
+	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels, "")
 
 	// Assertions
 	test.AssertEqual(t, len(warnings), 1)
@@ -248,7 +248,7 @@ func TestTidyModelsDownloadedButNotConfigured(t *testing.T) {
 
 	// Download missing models
 	var tidyController TidyController
-	tidyController.tidyModelsDownloadedButNotConfigured(existingModels, true)
+	tidyController.tidyModelsDownloadedButNotConfigured(existingModels, true, "")
 	models, err := config.GetModels()
 
 	// Assertions
@@ -305,7 +305,7 @@ func TestTidyModelsDownloadedButNotConfigured_WithNoConfirmation(t *testing.T) {
 
 	// Download missing models
 	var tidyController TidyController
-	tidyController.tidyModelsDownloadedButNotConfigured(existingModels, false)
+	tidyController.tidyModelsDownloadedButNotConfigured(existingModels, false, "")
 	models, err := config.GetModels()
 
 	// Assertions
@@ -362,7 +362,7 @@ func TestRunTidy(t *testing.T) {
 
 	// Download missing models
 	var tidyController TidyController
-	_ = tidyController.RunTidy(true)
+	_ = tidyController.RunTidy(true, "")
 	models, err := config.GetModels()
 
 	// Assertions
@@ -375,6 +375,6 @@ func TestRunTidy(t *testing.T) {
 func TestRunTidy_WithNoConfigurationFile(t *testing.T) {
 	// Download missing models
 	var tidyController TidyController
-	err := tidyController.RunTidy(true)
+	err := tidyController.RunTidy(true, "")
 	test.AssertNotEqual(t, err, nil, "An error expected on synchronizing models")
 }

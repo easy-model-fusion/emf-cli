@@ -337,3 +337,37 @@ func TestTokenizers_Difference(t *testing.T) {
 	// Assert
 	test.AssertEqual(t, len(expected), len(difference), "Lengths should be equal.")
 }
+
+func TestSetAccessTokenKey(t *testing.T) {
+	//Init
+	model := GetModel(1)
+	model.Name = "1model/name1.6-test_escape"
+	expected := "ACCESS_TOKEN_1MODEL_NAME1_6_TEST_ESCAPE"
+
+	// Set access token
+	err := model.setAccessTokenKey()
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, expected, model.AccessToken)
+}
+
+func TestModelSaveAndGetAccessToken(t *testing.T) {
+	//Init
+	model := GetModel(1)
+	model.Name = "1model/name1.6-test_escape"
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+
+	// Set access token
+	err := model.SaveAccessToken("token")
+	test.AssertEqual(t, err, nil)
+	savedToken, err := model.GetAccessToken()
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, savedToken, "token")
+}

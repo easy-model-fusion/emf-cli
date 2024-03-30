@@ -16,15 +16,17 @@ var tidyCmd = &cobra.Command{
 var (
 	tidyController               controller.TidyController
 	authorizeAllSynchronisations bool
+	accessToken                  string
 )
 
 func init() {
 	tidyCmd.Flags().BoolVarP(&authorizeAllSynchronisations, "yes", "y", false, "Automatic yes to prompts")
+	tidyCmd.Flags().StringVarP(&accessToken, "access-token", "a", "", "Access token for gated models")
 }
 
 // runTidy runs the model tidy command
 func runTidy(cmd *cobra.Command, args []string) {
-	err := tidyController.RunTidy(authorizeAllSynchronisations)
+	err := tidyController.RunTidy(authorizeAllSynchronisations, accessToken)
 	if err != nil {
 		os.Exit(1)
 	}
