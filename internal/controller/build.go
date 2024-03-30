@@ -25,8 +25,8 @@ import (
 
 type BuildController struct{}
 
-// RunBuild runs the build command
-func (bc BuildController) RunBuild(customName, library, destDir string, oneFile, modelsSymlink bool) error {
+// Run runs the build command
+func (bc BuildController) Run(customName, library, destDir string, oneFile, modelsSymlink bool) error {
 	if err := config.GetViperConfig("."); err != nil {
 		return err
 	}
@@ -39,14 +39,10 @@ func (bc BuildController) RunBuild(customName, library, destDir string, oneFile,
 
 	// check if destDir exists
 	if _, err := os.Stat(destDir); os.IsNotExist(err) {
-
-		if destDir == "dist" {
-			err = os.Mkdir(destDir, os.ModePerm)
-			if err != nil {
-				return fmt.Errorf("error creating dist folder: %s", err.Error())
-			}
-		} else {
-			return fmt.Errorf("destination directory does not exist")
+		app.UI().Info().Println(fmt.Sprintf("Creating dist folder %s", destDir))
+		err = os.Mkdir(destDir, os.ModePerm)
+		if err != nil {
+			return fmt.Errorf("error creating dist folder: %s", err.Error())
 		}
 	}
 
@@ -201,7 +197,7 @@ func (bc BuildController) createModelsSymbolicLink(destDir string) error {
 	}
 
 	// Check if dist folder exists
-	if _, err := os.Stat(distPath); os.IsNotExist(err) {
+	if _, err := os.Stat(destDir); os.IsNotExist(err) {
 		return fmt.Errorf("dist folder does not exist")
 	}
 

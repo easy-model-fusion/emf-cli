@@ -26,7 +26,7 @@ var buildCmd = &cobra.Command{
 var buildController = controller.BuildController{}
 
 func runBuild(cmd *cobra.Command, args []string) {
-	err := buildController.RunBuild(buildCustomName, buildLibrary, buildDestination, buildOneFile, buildModelsSymlink)
+	err := buildController.Run(buildCustomName, buildLibrary, buildDestination, buildOneFile, buildModelsSymlink)
 	if err != nil {
 		app.UI().Error().Println(err.Error())
 		os.Exit(1)
