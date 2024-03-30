@@ -1,4 +1,4 @@
-# Code of Conduct - Easy Model Fusion
+# Code of Conduct - EMF Command Line Interface (CLI)
 
 ## Our Pledge
 
