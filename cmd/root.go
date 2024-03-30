@@ -46,6 +46,7 @@ func init() {
 	rootCmd.AddCommand(installCmd)
 	rootCmd.AddCommand(tidyCmd)
 	rootCmd.AddCommand(cmdmodel.ModelCmd)
+	rootCmd.AddCommand(buildCmd)
 	rootCmd.AddCommand(cmdtokenizer.TokenizerCmd)
 }
 
