@@ -44,7 +44,7 @@ func TestRunModelUpdate_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
-	RunModelUpdate(args, false)
+	RunModelUpdate(args, false, "")
 	updatedModels, err := config.GetModels()
 
 	// Assertions
@@ -87,7 +87,7 @@ func TestRunModelUpdate_Fail(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
-	RunModelUpdate(args, false)
+	RunModelUpdate(args, false, "")
 	updatedModels, err := config.GetModels()
 
 	// Assertions
@@ -130,7 +130,7 @@ func TestProcessUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
-	warningMessage, infoMessage, err := processUpdate(args, false)
+	warningMessage, infoMessage, err := processUpdate(args, false, "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil, "No error expected")
@@ -170,7 +170,7 @@ func TestProcessUpdate_WithNoArgs(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
-	warningMessage, infoMessage, err := processUpdate(args, false)
+	warningMessage, infoMessage, err := processUpdate(args, false, "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil, "No error expected")
@@ -208,7 +208,7 @@ func TestProcessUpdate_WithNoModelsSelected(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
-	warningMessage, infoMessage, err := processUpdate(args, false)
+	warningMessage, infoMessage, err := processUpdate(args, false, "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil, "No error expected")
@@ -226,7 +226,7 @@ func TestProcessUpdate_WithErrorOnLoadingConfigurationFile(t *testing.T) {
 	app.SetUI(ui)
 
 	// Process update
-	warningMessage, infoMessage, err := processUpdate(args, false)
+	warningMessage, infoMessage, err := processUpdate(args, false, "")
 
 	// Assertions
 	test.AssertNotEqual(t, err, nil, "An error is expected")
@@ -288,7 +288,7 @@ func TestGetUpdatableModels(t *testing.T) {
 	app.SetHuggingFace(&huggingFaceInterface)
 
 	// get updatable models
-	modelsToUpdate, notFoundModelNames, upToDateModelNames := getUpdatableModels(modelNames, hfModelsAvailable)
+	modelsToUpdate, notFoundModelNames, upToDateModelNames := getUpdatableModels(modelNames, hfModelsAvailable, "")
 
 	// Assertions
 	test.AssertEqual(t, len(modelsToUpdate), 1)
@@ -313,7 +313,7 @@ func TestGetUpdatableModels_WithModelNotFound(t *testing.T) {
 	app.SetHuggingFace(&huggingFaceInterface)
 
 	// get updatable models
-	modelsToUpdate, notFoundModelNames, upToDateModelNames := getUpdatableModels(modelNames, hfModelsAvailable)
+	modelsToUpdate, notFoundModelNames, upToDateModelNames := getUpdatableModels(modelNames, hfModelsAvailable, "")
 
 	// Assertions
 	test.AssertEqual(t, len(modelsToUpdate), 0)
@@ -337,7 +337,7 @@ func TestUpdateModels_Success(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update models
-	err := updateModels(models, false)
+	err := updateModels(models, false, "")
 
 	// Assertions
 	test.AssertEqual(t, nil, err)
@@ -365,7 +365,7 @@ func TestUpdateModels_SuccessWithConfigurationAdded(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update models
-	err = updateModels(models, false)
+	err = updateModels(models, false, "")
 
 	// Assertions
 	test.AssertEqual(t, nil, err)
@@ -382,7 +382,7 @@ func TestUpdateModels_Fail(t *testing.T) {
 	app.SetUI(ui)
 
 	// Update models
-	err := updateModels(models, false)
+	err := updateModels(models, false, "")
 
 	// Assertions
 	test.AssertEqual(t, err.Error(), "the following models(s) couldn't be downloaded : [model1]")

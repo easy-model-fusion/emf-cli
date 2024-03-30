@@ -133,13 +133,14 @@ func TestToPython(t *testing.T) {
 		ModelName:         "model",
 		ModelModule:       "module",
 		ModelClass:        "class",
+		DirectoryPath:     "/path/to/download",
 		ModelOptions:      []string{"opt1=val1", "opt2=val2"},
 		TokenizerClass:    "tokenizer",
 		TokenizerOptions:  []string{"tok_opt1=val1"},
 		SkipModel:         true,
 		SkipTokenizer:     true,
 		OnlyConfiguration: true,
-		DirectoryPath:     "/path/to/download",
+		AccessToken:       "token",
 	}
 	expected := []string{
 		TagPrefix + EmfClient, TagPrefix + Overwrite,
@@ -151,6 +152,7 @@ func TestToPython(t *testing.T) {
 		TagPrefix + Skip, "tokenizer",
 		TagPrefix + Skip, "model",
 		TagPrefix + OnlyConfiguration,
+		TagPrefix + AccessToken, "token",
 	}
 
 	// Execute
@@ -158,8 +160,7 @@ func TestToPython(t *testing.T) {
 
 	// Assert
 	test.AssertEqual(t, len(result), len(expected))
-
-	for i := range result {
+	for i := range expected {
 		test.AssertEqual(t, result[i], expected[i])
 	}
 }

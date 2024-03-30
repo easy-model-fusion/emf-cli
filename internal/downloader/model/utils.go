@@ -48,6 +48,9 @@ func (a *Args) ToCobra(cmd *cobra.Command) {
 	// Situational
 	cmd.Flags().BoolVarP(&a.OnlyConfiguration, "only-configuration", "O", false, "Only configure the model without downloading it")
 	cmd.Flags().BoolVarP(&a.SkipTokenizer, "skip-tokenizer", "s", false, "Skip tokenizer download")
+
+	// Authorization token
+	cmd.Flags().StringVarP(&a.AccessToken, AccessToken, "a", "", "Access token for gated models")
 }
 
 // ToPython builds the arguments for running the python script.
@@ -92,6 +95,11 @@ func (a *Args) ToPython() []string {
 	// Only configuration
 	if a.OnlyConfiguration {
 		cmdArgs = append(cmdArgs, TagPrefix+OnlyConfiguration)
+	}
+
+	// Access token
+	if a.AccessToken != "" {
+		cmdArgs = append(cmdArgs, TagPrefix+AccessToken, a.AccessToken)
 	}
 	return cmdArgs
 }

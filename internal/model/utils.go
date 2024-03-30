@@ -99,7 +99,7 @@ func (m *Model) GetTokenizersNotDownloadedOnDevice() Tokenizers {
 }
 
 // BuildModelsFromDevice builds a slice of models recovered from the device folders.
-func BuildModelsFromDevice() Models {
+func BuildModelsFromDevice(accessToken string) Models {
 
 	// Get all the providers in the root folder
 	providers, err := os.ReadDir(app.DownloadDirectoryPath)
@@ -135,7 +135,7 @@ func BuildModelsFromDevice() Models {
 			modelPath := path.Join(providerPath, providerModel.Name())
 
 			// Fetching model from huggingface
-			huggingfaceModel, err := app.H().GetModelById(modelName)
+			huggingfaceModel, err := app.H().GetModelById(modelName, accessToken)
 			if err != nil {
 				// Model not found : custom
 				models = append(models, Model{
@@ -213,7 +213,7 @@ func FromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 }
 
 // Update attempts to update the model
-func (m *Model) Update(yes bool) bool {
+func (m *Model) Update(yes bool, accessToken string) bool {
 	// Check if model is physically present on the device
 	m.UpdatePaths()
 	downloaded, err := m.DownloadedOnDevice(false)
@@ -259,8 +259,14 @@ func (m *Model) Update(yes bool) bool {
 			skipTokenizer = len(tokenizerNames) > 0
 		}
 	}
-
 	// Prepare the script arguments
+	if accessToken == "" {
+		accessToken, err = m.GetAccessToken()
+		// Download failed
+		if err != nil {
+			return false
+		}
+	}
 	downloaderArgs := downloadermodel.Args{
 		ModelName:         m.Name,
 		ModelModule:       string(m.Module),
@@ -269,6 +275,7 @@ func (m *Model) Update(yes bool) bool {
 		SkipTokenizer:     skipTokenizer,
 		OnlyConfiguration: false,
 		DirectoryPath:     app.DownloadDirectoryPath,
+		AccessToken:       accessToken,
 	}
 
 	// Downloading model
@@ -308,7 +315,7 @@ func (m *Model) Update(yes bool) bool {
 
 // TidyConfiguredModel downloads the missing elements that were configured
 // first bool is true if success, second bool is true if model was clean from the start
-func (m *Model) TidyConfiguredModel() (warning string, success bool, clean bool) {
+func (m *Model) TidyConfiguredModel(accessToken string) (warning string, success bool, clean bool) {
 
 	// Check if model is physically present on the device
 	m.UpdatePaths()
@@ -325,6 +332,13 @@ func (m *Model) TidyConfiguredModel() (warning string, success bool, clean bool)
 		return "", true, true
 	}
 	// Prepare the script arguments
+	if accessToken == "" {
+		accessToken, err = m.GetAccessToken()
+		if err != nil {
+			// Download failed
+			return warning, false, false
+		}
+	}
 	downloaderArgs := downloadermodel.Args{
 		ModelName:         m.Name,
 		ModelModule:       string(m.Module),
@@ -332,6 +346,7 @@ func (m *Model) TidyConfiguredModel() (warning string, success bool, clean bool)
 		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
 		OnlyConfiguration: false,
 		DirectoryPath:     app.DownloadDirectoryPath,
+		AccessToken:       accessToken,
 	}
 
 	// Model has yet to be downloaded

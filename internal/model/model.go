@@ -2,9 +2,11 @@ package model
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/dotenv"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"path"
+	"strings"
 )
 
 type Models []Model
@@ -20,6 +22,7 @@ type Model struct {
 	AddToBinaryFile bool
 	IsDownloaded    bool
 	Version         string
+	AccessToken     string
 }
 
 type Tokenizers []Tokenizer
@@ -217,4 +220,39 @@ func (t Tokenizers) ContainsByClass(class string) bool {
 		}
 	}
 	return false
+}
+
+// SetAccessTokenKey sets unique access token key for model
+func (m *Model) setAccessTokenKey() error {
+	// Convert model name to upper case
+	key := strings.ToUpper(m.Name)
+	// Replace "/", "." and "-" with "_"
+	key = strings.ReplaceAll(key, "/", "_")
+	key = strings.ReplaceAll(key, ".", "_")
+	key = strings.ReplaceAll(key, "-", "_")
+
+	// Prepend "ACCESS_TOKEN_" to the key
+	key = "ACCESS_TOKEN_" + key
+
+	// Check for duplicates
+	key, err := dotenv.SetNewEnvKey(key)
+	if err != nil {
+		return err
+	}
+	m.AccessToken = key
+	return nil
+}
+
+// SaveAccessToken saves the access token in the .env file
+func (m *Model) SaveAccessToken(accessToken string) error {
+	err := m.setAccessTokenKey()
+	if err != nil {
+		return err
+	}
+	return dotenv.AddNewEnvVariable(m.AccessToken, accessToken)
+}
+
+// GetAccessToken gets the access token from the .env file
+func (m *Model) GetAccessToken() (string, error) {
+	return dotenv.GetEnvValue(m.AccessToken)
 }
