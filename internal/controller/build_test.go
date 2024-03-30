@@ -11,12 +11,13 @@ import (
 )
 
 func TestBuildController_WithSuccessfulBuild(t *testing.T) {
-	bc := BuildController{}
-	customName := "custom"
-	library := "pyinstaller"
-	destDir := "dist"
+	bc := BuildController{
+		CustomName:     "custom",
+		Library:        "pyinstaller",
+		DestinationDir: "dist",
+	}
 
-	err := bc.Build(customName, library, destDir, library, true)
+	err := bc.Build("dist")
 	test.AssertEqual(t, err, nil)
 }
 
@@ -28,13 +29,16 @@ func TestBuildController_Run_WithErrors(t *testing.T) {
 	app.SetPython(&pythonMock)
 	app.SetGit(&mock.MockGit{})
 
-	bc := BuildController{}
-	customName := "custom"
-	library := "invalid"
-	destDir := "dist"
+	bc := BuildController{
+		CustomName:     "custom",
+		Library:        "invalid",
+		DestinationDir: "dist",
+		OneFile:        true,
+		ModelsSymlink:  false,
+	}
 
 	// config file not found
-	err := bc.Run(customName, library, destDir, true, false)
+	err := bc.Run()
 	test.AssertNotEqual(t, err, nil)
 
 	// invalid library selected
@@ -42,13 +46,13 @@ func TestBuildController_Run_WithErrors(t *testing.T) {
 	_ = ts.CreateModelsFolderFullTestSuite(t)
 	defer ts.CleanTestSuite(t)
 
-	err = bc.Run(customName, library, destDir, true, false)
+	err = bc.Run()
 	test.AssertEqual(t, err.Error(), "invalid library selected")
 
 	// install dependencies error
-	library = "pyinstaller"
+	bc.Library = "pyinstaller"
 	pythonMock.FindVEnvExecutableError = errors.New("mock error")
-	err = bc.Run(customName, library, destDir, true, false)
+	err = bc.Run()
 	test.AssertNotEqual(t, err, nil)
 	test.AssertEqual(t, err.Error(), "error finding python executable: mock error")
 }
@@ -60,7 +64,13 @@ func TestBuildController_Run(t *testing.T) {
 	app.SetGit(&mock.MockGit{})
 
 	// create controller
-	bc := BuildController{}
+	bc := BuildController{
+		CustomName:     "custom",
+		Library:        "pyinstaller",
+		DestinationDir: "dist",
+		OneFile:        true,
+		ModelsSymlink:  false,
+	}
 
 	// create temp dir
 	ts := test.TestSuite{}
@@ -68,18 +78,16 @@ func TestBuildController_Run(t *testing.T) {
 	defer ts.CleanTestSuite(t)
 
 	// run build
-	customName := "custom"
-	library := "pyinstaller"
-	destDir := "dist"
-	err := bc.Run(customName, library, destDir, true, false)
+	err := bc.Run()
 	test.AssertEqual(t, err, nil)
 
 	// check if the dist folder has been created
 	_, err = os.Stat("dist")
 	test.AssertEqual(t, err, nil)
 
-	// test with symlin creation
-	err = bc.Run(customName, library, destDir, true, true)
+	// test with symlink creation
+	bc.ModelsSymlink = true
+	err = bc.Run()
 	test.AssertEqual(t, err, nil)
 
 	// check if the symlink exists
@@ -94,7 +102,9 @@ func TestBuildController_createModelsSymbolicLink(t *testing.T) {
 	app.SetUI(mock.MockUI{})
 
 	// create controller
-	bc := BuildController{}
+	bc := BuildController{
+		DestinationDir: "dist",
+	}
 
 	// create temp dir
 	ts := test.TestSuite{}
@@ -105,7 +115,7 @@ func TestBuildController_createModelsSymbolicLink(t *testing.T) {
 	err := os.Mkdir("dist", os.ModePerm)
 	test.AssertEqual(t, err, nil)
 
-	err = bc.createModelsSymbolicLink("dist")
+	err = bc.createModelsSymbolicLink()
 	test.AssertEqual(t, err, nil)
 
 	// check if the symlink exists
@@ -174,15 +184,16 @@ func TestBuildController_InstallDependenciesError(t *testing.T) {
 }
 
 func TestCreateBuildArgs_WithEmptyCustomName(t *testing.T) {
-	bc := BuildController{}
-	customName := ""
-	library := "pyinstaller"
-	destDir := "dist"
-	oneFile := false
+	bc := BuildController{
+		CustomName:     "",
+		Library:        "pyinstaller",
+		DestinationDir: "dist",
+		OneFile:        false,
+	}
 
 	viper.Set("name", "testName")
 
-	args := bc.createBuildArgs(customName, library, destDir, oneFile)
+	args := bc.createBuildArgs()
 	test.AssertEqual(t, len(args), 3)
 	test.AssertEqual(t, args[0], "--name=testName")
 	test.AssertEqual(t, args[1], "--distpath=dist")
@@ -190,15 +201,16 @@ func TestCreateBuildArgs_WithEmptyCustomName(t *testing.T) {
 }
 
 func TestCreateBuildArgs_WithPyInstallerAndOneFile(t *testing.T) {
-	bc := BuildController{}
-	customName := "custom"
-	library := "pyinstaller"
-	destDir := "dist"
-	oneFile := true
+	bc := BuildController{
+		CustomName:     "custom",
+		Library:        "pyinstaller",
+		DestinationDir: "dist",
+		OneFile:        true,
+	}
 
 	viper.Reset()
 
-	args := bc.createBuildArgs(customName, library, destDir, oneFile)
+	args := bc.createBuildArgs()
 	test.AssertEqual(t, len(args), 4)
 	test.AssertEqual(t, args[0], "-F")
 	test.AssertEqual(t, args[1], "--name=custom")
@@ -207,14 +219,16 @@ func TestCreateBuildArgs_WithPyInstallerAndOneFile(t *testing.T) {
 }
 
 func TestCreateBuildArgs_WithNuitkaAndOneFile(t *testing.T) {
-	bc := BuildController{}
-	customName := "custom"
-	library := "nuitka"
-	destDir := "dist"
+	bc := BuildController{
+		CustomName:     "custom",
+		Library:        "nuitka",
+		DestinationDir: "dist",
+		OneFile:        true,
+	}
 
 	viper.Reset()
 
-	args := bc.createBuildArgs(customName, library, destDir, true)
+	args := bc.createBuildArgs()
 	test.AssertEqual(t, len(args), 5)
 	test.AssertEqual(t, args[0], "-m nuitka")
 	test.AssertEqual(t, args[1], "--onefile")
