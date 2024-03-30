@@ -13,6 +13,7 @@ var (
 	buildOneFile       bool
 	buildModelsSymlink bool
 	buildLibrary       string
+	buildController    = controller.BuildController{}
 )
 
 // buildCmd represents the build command
@@ -23,7 +24,6 @@ var buildCmd = &cobra.Command{
 			Note: if you want to use nuitka, you need to have a working C compiler.`,
 	Run: runBuild,
 }
-var buildController = controller.BuildController{}
 
 func runBuild(cmd *cobra.Command, args []string) {
 	err := buildController.Run(buildCustomName, buildLibrary, buildDestination, buildOneFile, buildModelsSymlink)

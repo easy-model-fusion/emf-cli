@@ -11,33 +11,32 @@ import (
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 )
 
-// RunAdd runs the add command to add models by name
-func RunAdd(args []string, customArgs downloadermodel.Args, yes bool) {
+type AddController struct {
+	AuthorizeDownload bool
+}
 
+// Run runs the add command to add models by name
+func (ac AddController) Run(args []string, customArgs downloadermodel.Args) error {
 	sdk.SendUpdateSuggestion()
 
-	selectedModel, err := getRequestedModel(args, customArgs.AccessToken)
+	selectedModel, err := ac.getRequestedModel(args, customArgs.AccessToken)
 	if err != nil {
-		app.UI().Error().Println(err.Error())
-		return
+		return err
 	}
 	if selectedModel.Name == "" {
 		app.UI().Warning().Println("Please select a model type")
-		RunAdd(args, customArgs, yes)
-		return
+		return ac.Run(args, customArgs)
 	}
 
-	warningMessage, err := processAdd(selectedModel, customArgs, yes)
+	warningMessage, err := ac.processAdd(selectedModel, customArgs, ac.AuthorizeDownload)
 	if warningMessage != "" {
 		app.UI().Warning().Println(warningMessage)
 	}
-	if err != nil {
-		app.UI().Error().Println(err.Error())
-	}
+	return err
 }
 
 // getRequestedModel returns the model to be added
-func getRequestedModel(args []string, authorizationKey string) (model.Model, error) {
+func (ac AddController) getRequestedModel(args []string, authorizationKey string) (model.Model, error) {
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		return model.Model{}, err
@@ -77,25 +76,25 @@ func getRequestedModel(args []string, authorizationKey string) (model.Model, err
 	} else {
 		// If no models entered by user or if user entered -s/--select
 		// Get selected tags
-		selectedTags := selectTags()
+		selectedTags := ac.selectTags()
 		if len(selectedTags) == 0 {
 			return model.Model{}, nil
 		}
 		// Get selected models
 		spinner := app.UI().StartSpinner("Listing all models with selected tags...")
-		availableModels, err := getModelsList(selectedTags, existingModels, authorizationKey)
+		availableModels, err := ac.getModelsList(selectedTags, existingModels, authorizationKey)
 		if err != nil {
 			spinner.Fail(err.Error())
 			return model.Model{}, err
 		}
 		spinner.Success()
-		selectedModel = selectModel(availableModels)
+		selectedModel = ac.selectModel(availableModels)
 	}
 	return selectedModel, nil
 }
 
 // processAdd processes the selected model and tries to add it
-func processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes bool) (warning string, err error) {
+func (ac AddController) processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes bool) (warning string, err error) {
 	// User choose if he wishes to install the model directly
 	message := fmt.Sprintf("Do you wish to directly download %s?", selectedModel.Name)
 	selectedModel.AddToBinaryFile = !customArgs.OnlyConfiguration && (yes || app.UI().AskForUsersConfirmation(message))
@@ -107,7 +106,7 @@ func processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes 
 	}
 
 	// Try to download model
-	updatedModel, err := downloadModel(selectedModel, customArgs)
+	updatedModel, err := ac.downloadModel(selectedModel, customArgs)
 	if err != nil {
 		return warning, err
 	}
@@ -142,7 +141,7 @@ func processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes 
 }
 
 // downloadModel tries to download the selected model
-func downloadModel(selectedModel model.Model, downloaderArgs downloadermodel.Args) (model.Model, error) {
+func (ac AddController) downloadModel(selectedModel model.Model, downloaderArgs downloadermodel.Args) (model.Model, error) {
 	// Prepare the script arguments
 	downloaderArgs.ModelName = selectedModel.Name
 	if downloaderArgs.ModelClass == "" {
@@ -169,7 +168,7 @@ func downloadModel(selectedModel model.Model, downloaderArgs downloadermodel.Arg
 }
 
 // getModelsList get list of models to display
-func getModelsList(tags []string, existingModels model.Models, authorizationKey string) (model.Models, error) {
+func (ac AddController) getModelsList(tags []string, existingModels model.Models, authorizationKey string) (model.Models, error) {
 	allModelsWithTags, err := hfinterface.GetModelsByMultiplePipelineTags(tags, authorizationKey)
 	// Map API responses to model.Models
 	var mappedModels model.Models
@@ -185,7 +184,7 @@ func getModelsList(tags []string, existingModels model.Models, authorizationKey 
 }
 
 // selectTags displays a multiselect to help the user choose the model types
-func selectTags() []string {
+func (ac AddController) selectTags() []string {
 	// Build a multiselect with each tag name
 	message := "Please select the type of models you want to add"
 	selectedTags := app.UI().DisplayInteractiveMultiselect(message, huggingface.AllTagsString(), app.UI().BasicCheckmark(), false, true, 8)
@@ -194,7 +193,7 @@ func selectTags() []string {
 }
 
 // selectModel displays a selector of models from which the user will choose to add to his project
-func selectModel(models model.Models) model.Model {
+func (ac AddController) selectModel(models model.Models) model.Model {
 	// Build a selector with each model name
 	availableModelNames := models.GetNames()
 	message := "Please select the model(s) to be added"
