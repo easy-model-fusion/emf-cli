@@ -49,6 +49,25 @@ func (a *Args) ToCobra(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&a.Skip, Skip, "s", "", "Skip the model or tokenizer download")
 }
 
+//TODO Create ToCobra tokenizer func
+
+// ToCobraTokenizer builds the arguments for running the cobra command
+func (a *Args) ToCobraTokenizer(cmd *cobra.Command) {
+
+	// Optional for the model
+	//cmd.Flags().StringVarP(&a.ModelClass, ModelClass, "c", "", "Python class within the module")
+	//cmd.Flags().StringSliceVarP(&a.ModelOptions, ModelOptions, "o", []string{}, "List of model options")
+	//cmd.Flags().StringVarP(&a.ModelModule, ModelModule, "m", "", "Python module used for download")
+	//cmd.Flags().StringVarP(&a.DirectoryPath, Path, "p", "", "Downloaded Model directory path")
+
+	// Optional for the tokenizer
+	cmd.Flags().StringVarP(&a.TokenizerClass, TokenizerClass, "c", "", "Tokenizer class (only for transformers)")
+	cmd.Flags().StringArrayVarP(&a.TokenizerOptions, TokenizerOptions, "o", []string{}, "List of tokenizer options (only for transformers)")
+	cmd.Flags().StringVarP(&a.Skip, HELP, "h", "", "Get help on Usage)")
+	// Situational
+	cmd.Flags().StringVarP(&a.Skip, Skip, "s", "", "Skip the model or tokenizer download")
+}
+
 // ToPython builds the arguments for running the python script.
 // Pre-condition : certain that the user authorized the overwriting when downloading the model.
 func (a *Args) ToPython() []string {

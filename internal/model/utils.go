@@ -343,7 +343,7 @@ func (m *Model) UpdateTokenizer(
 	var skip string
 
 	// Prepare the script arguments
-	downloaderArgs := downloader.Args{
+	downloaderArgs := downloadermodel.Args{
 		ModelName:         m.Name,
 		ModelModule:       string(m.Module),
 		ModelClass:        m.Class,

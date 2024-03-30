@@ -2,20 +2,20 @@ package tokenizer
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
-	"github.com/easy-model-fusion/emf-cli/internal/ui"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
+	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 )
 
 // RunTokenizerAdd runs the tokenizer add command
-func RunTokenizerAdd(args []string) {
-	// Process remove operation with given arguments
-	warningMessage, infoMessage, err := processRemove(args)
+func RunTokenizerAdd(args []string, customArgs downloadermodel.Args, yes bool) {
+	sdk.SendUpdateSuggestion()
+
+	// Process add operation with given arguments
+	warningMessage, infoMessage, err := processAddTokenizer(args, customArgs, yes)
 
 	// Display messages to user
 	if warningMessage != "" {
@@ -32,7 +32,11 @@ func RunTokenizerAdd(args []string) {
 }
 
 // processAddTokenizer processes tokenizers to be added
-func processAddTokenizer(args []string) (warning, info string, err error) {
+func processAddTokenizer(
+	args []string,
+	customArgs downloadermodel.Args,
+	yes bool,
+) (warning, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
 	if err != nil {
@@ -62,62 +66,55 @@ func processAddTokenizer(args []string) (warning, info string, err error) {
 	if modelToUse.Module != huggingface.TRANSFORMERS {
 		return warning, info, fmt.Errorf("only transformers models have tokzenizers")
 	}
-
-	var updateTokenizers model.Tokenizers
-	var failedTokenizers []string
-	// Remove model name from arguments
-	args = args[1:]
-
-	// Extracting available tokenizers
-	availableNames := modelToUse.Tokenizers.GetNames()
-
-	// Processing arguments
-	if len(args) == 0 {
-		args = stringutil.SliceRemoveDuplicates(args)
-		configTokenizersMap := modelToUse.Tokenizers.Map()
-		// Check if selectedTokenizerNames elements exist in tokenizerNames and add them to a new list
-
-		for _, name := range args {
-			tokenizer, exists := configTokenizersMap[name]
-			if !exists {
-				failedTokenizers = append(failedTokenizers, name)
-			} else {
-				updateTokenizers = append(updateTokenizers, tokenizer)
-			}
-		}
-	} else if len(availableNames) > 0 {
-		message := "Please select the tokenizer(s) to be updated"
-		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		tokenizerNames := app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
-		if len(tokenizerNames) != 0 {
-			app.UI().DisplaySelectedItems(tokenizerNames)
-			updateTokenizers = modelToUse.Tokenizers.FilterWithClass(tokenizerNames)
-		}
+	// No tokenizer name in args
+	if len(args) < 2 {
+		return warning, info, fmt.Errorf("enter a tokenizer in argument")
 	}
 
+	// Setting tokenizer name from args
+	//tokenizerName := args[1]
+
+	// Extracting available tokenizers
+
+	//var downloadTokenizers []string
+	//tokenizerToDl
+	//TODO Add options
+	var addedTokenizer = model.Tokenizer{
+		Path:  modelToUse.Path,
+		Class: customArgs.TokenizerClass,
+	}
+	println("Class is ", customArgs.TokenizerClass)
+	modelToUse.Tokenizers = append(modelToUse.Tokenizers, addedTokenizer)
+
+	println("addind tok to model ", model.Tokenizers{})
 	// Try to update all the given models
-	var updatedTokenizers model.Tokenizers
-	for _, tokenizer := range updateTokenizers {
+	var downloadedTokenizers model.Tokenizers
+	var failedTokenizers []string
+
+	for tokenizer := range modelToUse.Tokenizers {
 
 		downloaderArgs := downloadermodel.Args{
 			ModelName:   modelToUse.Name,
 			ModelModule: string(modelToUse.Module),
 		}
-
-		success := modelToUse.DownloadTokenizer(tokenizer, downloaderArgs)
+		println("calling download")
+		success := modelToUse.DownloadTokenizer(addedTokenizer, downloaderArgs)
 		if !success {
-			failedTokenizers = append(failedTokenizers, tokenizer.Class)
+			println("fail dl ")
+			failedTokenizers = append(failedTokenizers, string(rune(tokenizer)))
 		} else {
-			updatedTokenizers = append(updatedTokenizers, tokenizer)
+			println("success download")
+			downloadedTokenizers = append(downloadedTokenizers, addedTokenizer)
 		}
 	}
+	println("here")
 
 	// Update tokenizers' configuration
-	if len(updatedTokenizers) > 0 {
+	if len(downloadedTokenizers) > 0 {
 		//Reset model while keeping unchanged tokenizers
-		modelToUse.Tokenizers = modelToUse.Tokenizers.Difference(updatedTokenizers)
-		//Adding new version of updated tokenizers
-		modelToUse.Tokenizers = append(modelToUse.Tokenizers, updatedTokenizers...)
+		modelToUse.Tokenizers = modelToUse.Tokenizers.Difference(downloadedTokenizers)
+		//Adding new version of downloaded tokenizers
+		modelToUse.Tokenizers = append(modelToUse.Tokenizers, downloadedTokenizers...)
 
 		spinner, _ := pterm.DefaultSpinner.Start("Updating configuration file...")
 		err := config.AddModels(model.Models{modelToUse})
@@ -130,7 +127,7 @@ func processAddTokenizer(args []string) (warning, info string, err error) {
 
 	// Displaying the downloads that failed
 	if len(failedTokenizers) > 0 {
-		err = fmt.Errorf("the following models(s) couldn't be downloaded : %s", failedTokenizers)
+		err = fmt.Errorf("the following tokenizers(s) couldn't be downloaded : %s", failedTokenizers)
 	}
 	return warning, "Tokenizers update done", err
 }
