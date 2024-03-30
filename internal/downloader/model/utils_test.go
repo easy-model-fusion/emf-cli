@@ -141,7 +141,6 @@ func TestToPython(t *testing.T) {
 		SkipTokenizer:     true,
 		OnlyConfiguration: true,
 		AccessToken:       "token",
-		DirectoryPath:     "/path/to/download",
 	}
 	expected := []string{
 		TagPrefix + EmfClient, TagPrefix + Overwrite,
