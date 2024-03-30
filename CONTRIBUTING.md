@@ -134,10 +134,33 @@ Enhancement suggestions are tracked as [GitHub issues](https://github.com/easy-m
 <!-- You might want to create an issue template for enhancement suggestions that can be used as a guide and that defines the structure of the information to be included. If you do so, reference it here in the description. -->
 
 ### Your First Code Contribution
-<!-- TODO
-include Setup of env, IDE and typical getting started instructions?
 
--->
+If you're new to contributing to EMF CLI, welcome aboard! Here's a guide to help you get started with your first code contribution:
+
+1. **Set Up Your Development Environment:**
+   - Clone the EMF CLI repository to your local machine. 
+   - Install any necessary dependencies outlined in the [Documentation](https://easy-model-fusion.github.io/docs/). 
+   - Set up your preferred Integrated Development Environment (IDE) for working with the project code. 
+2. **Familiarize Yourself with the Codebase:**
+   - Take some time to explore the project's directory structure. 
+   - Read through existing code to understand how different components interact. 
+   - Refer to the [Documentation](https://easy-model-fusion.github.io/docs/) and code comments for guidance.
+3. **Find an Issue to Work On:**
+   - Browse the project's issue tracker for tasks labeled as `good first issue` or `help wanted` to find beginner-friendly tasks.
+   - If you're unsure about what to work on, feel free to ask for guidance in the project's communication channels (e.g., Slack, Discord, or GitHub Discussions).
+4. **Make Your Contribution:**
+   - Once you've identified an issue to work on, fork the repository and create a new branch for your changes.
+   - Implement the necessary changes following the project's coding standards and guidelines (see [Styleguides](#styleguides)).
+   - Write tests to ensure that your code functions as expected and doesn't introduce any regressions.
+   - Make small, focused commits with clear and descriptive commit messages (see [Commit Messages](#commit-messages)).
+   - Once your changes are ready, submit a pull request ([PR](https://github.com/easy-model-fusion/emf-cli/pulls)) to the main repository.
+5. **Collaborate and Iterate:**
+   - Be open to feedback from maintainers and other contributors.
+   - Address any feedback or code review comments promptly and make necessary adjustments to your code.
+   - Work iteratively, updating your PR as needed until it meets the project's standards and is ready to be merged.
+6. **Celebrate Your Contribution:**
+   - Once your PR is merged, celebrate your contribution to the EMF CLI project!
+   - Consider adding your name to the list of contributors in the [humans.txt](humans.txt) file.
 
 ### Improving The Documentation
 <!-- TODO
