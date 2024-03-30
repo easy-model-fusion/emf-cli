@@ -189,9 +189,27 @@ Remember to follow the [Documentation](https://easy-model-fusion.github.io/docs/
 
 ## Styleguides
 ### Commit Messages
-<!-- TODO
 
--->
+When making commits to the EMF CLI repository, follow these guidelines for writing clear and informative commit messages:
+
+1. **Use a Descriptive Title:**
+    - Start your commit message with a brief, descriptive title that summarizes the changes introduced by the commit.
+2. **Provide Context and Detail:**
+    - After the title, provide additional context and detail about the changes in the commit message body.
+    - Explain why the changes were necessary and how they address a specific issue or contribute to the project's goals.
+3. **Reference Related Issues:**
+    - If the commit is related to a specific issue or feature request, reference the corresponding issue or pull request in the commit message.
+    - Use keywords like `Fixes`, `Resolves`, or `Addresses` followed by the issue or PR number to automatically close the referenced item upon merging the commit.
+4. **Keep Lines Short and Concise:**
+    - Limit each line of the commit message to 72 characters or less to ensure readability in various Git tools and interfaces.
+    - Use bullet points or paragraphs to organize longer commit messages for improved clarity and structure.
+5. **Use Imperative Mood:**
+    - Write commit messages in the imperative mood (e.g., "Fix bug" instead of "Fixed bug") to convey commands or actions performed by the commit.
+6. **Proofread and Edit:**
+    - Before finalizing your commit message, proofread it carefully to ensure accuracy, clarity, and professionalism.
+    - Edit the message as needed to remove redundancy, ambiguity, or irrelevant information.
+
+By following these guidelines, you can create meaningful and informative commit messages that facilitate collaboration and maintain clarity throughout the project's version history.
 
 ## The Project Team and Contributors
 
