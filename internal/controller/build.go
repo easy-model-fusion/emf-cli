@@ -159,11 +159,11 @@ func (bc BuildController) Build(customName, library, destDir, libraryPath string
 	now := time.Now()
 
 	// Running the build command in a goroutine (to handle cancellation, since the build can take a long time)
-	go func(err error) {
+	go func() {
 		err = command.Run()
 		// Sending signal to the main goroutine that the script has finished
 		done <- syscall.SIGQUIT
-	}(err)
+	}()
 
 	switch code := <-done; {
 	case code == syscall.SIGQUIT:
