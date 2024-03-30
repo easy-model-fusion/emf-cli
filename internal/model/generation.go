@@ -134,52 +134,44 @@ func (m *Model) GenInitParamsWithModule() []codegen.Parameter {
 
 // GenSuperInitParamsWithModule generate the init params for the super class
 func (m *Model) GenSuperInitParamsWithModule() []codegen.FunctionCallParameter {
+	params := []codegen.FunctionCallParameter{
+		{
+			Name:  "model_name",
+			Value: "\"" + m.Name + "\"",
+		},
+		{
+			Name:  "model_path",
+			Value: "\"" + m.Path + "\"",
+		},
+		{
+			Name:  "model_class",
+			Value: m.Class,
+		},
+		{
+			Name:  "device",
+			Value: "Devices.GPU",
+		},
+		{
+			Value: "**kwargs",
+		},
+	}
+
+	// If the model is a single file, we need to add the single file parameter
+	if m.SingleFile {
+		params = append(params, codegen.FunctionCallParameter{
+			Name:  "single_file",
+			Value: "True",
+		})
+	}
 
 	switch m.Module {
 	case huggingface.DIFFUSERS:
-		return []codegen.FunctionCallParameter{
-			{
-				Name:  "model_name",
-				Value: "\"" + m.Name + "\"",
-			},
-			{
-				Name:  "model_path",
-				Value: "\"" + m.Path + "\"",
-			},
-			{
-				Name:  "model_class",
-				Value: m.Class,
-			},
-			{
-				Name:  "device",
-				Value: "Devices.GPU",
-			},
-			{
-				Value: "**kwargs",
-			}}
-
+		return params
 	case huggingface.TRANSFORMERS:
-		params := []codegen.FunctionCallParameter{
-			{
-				Name:  "model_name",
-				Value: "\"" + m.Name + "\"",
-			},
-			{
-				Name:  "model_path",
-				Value: "\"" + m.Path + "\"",
-			},
-			{
-				Name:  "task",
-				Value: "\"" + string(m.PipelineTag) + "\"",
-			},
-			{
-				Name:  "model_class",
-				Value: m.Class,
-			},
-			{
-				Name:  "device",
-				Value: "Devices.GPU",
-			}}
+		params = append(params, codegen.FunctionCallParameter{
+			Name:  "task",
+			Value: "\"" + string(m.PipelineTag) + "\"",
+		})
 
 		if len(m.Tokenizers) > 0 {
 			params = append(params, codegen.FunctionCallParameter{

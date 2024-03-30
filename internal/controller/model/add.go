@@ -14,7 +14,7 @@ import (
 // RunAdd runs the add command to add models by name
 func RunAdd(args []string, customArgs downloadermodel.Args, yes bool) {
 
-	sdk.SendUpdateSuggestion() // TODO: here proxy?
+	sdk.SendUpdateSuggestion()
 
 	selectedModel, err := getRequestedModel(args, customArgs.AccessToken)
 	if err != nil {

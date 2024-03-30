@@ -21,6 +21,7 @@ type Model struct {
 	Source          string
 	AddToBinaryFile bool
 	IsDownloaded    bool
+	SingleFile      bool // Single file model is basically a model that consists of a single safetensors file
 	Version         string
 	AccessToken     string
 }

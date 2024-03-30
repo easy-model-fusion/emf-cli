@@ -42,3 +42,4 @@ models: []
 #    pipelinetag: text-to-image # The pipeline tag of the model
 #    directorypath: ./Models # The path of the directory that will contain the model
 #    addtobinary: true # Indicates if the model should be added to the executable or not (true by default)
+#    singlefile: false # Indicates if the model is a single file or not, most of the time it's a safetensors file (false by default)

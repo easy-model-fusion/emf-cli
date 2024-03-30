@@ -200,7 +200,7 @@ func TestModel_GenSuperInitParamsWithModule(t *testing.T) {
 	// testing transformers without tokenizers
 	model.Module = huggingface.TRANSFORMERS
 	params = model.GenSuperInitParamsWithModule()
-	test.AssertEqual(t, len(params), 5, "The number of parameters should be correct.")
+	test.AssertEqual(t, len(params), 6, "The number of parameters should be correct.")
 
 	// testing transformers with tokenizers
 	model.Tokenizers = Tokenizers{
@@ -210,10 +210,36 @@ func TestModel_GenSuperInitParamsWithModule(t *testing.T) {
 		},
 	}
 	params = model.GenSuperInitParamsWithModule()
-	test.AssertEqual(t, len(params), 7, "The number of parameters should be correct.")
+	test.AssertEqual(t, len(params), 8, "The number of parameters should be correct.")
 
 	// testing unknown
 	model.Module = "unknown"
 	params = model.GenSuperInitParamsWithModule()
 	test.AssertEqual(t, len(params), 0, "The number of parameters should be correct.")
+}
+
+func TestModel_GenFile_SingleFile(t *testing.T) {
+	model := Model{
+		Name:        "stabilityai/sdxl-turbo",
+		Path:        "build/stabilityai/sdxl-turbo",
+		PipelineTag: huggingface.TextToImage,
+		Module:      huggingface.DIFFUSERS,
+		Class:       huggingface.AutoDiffusers,
+		SingleFile:  true,
+	}
+
+	file := model.GenFile()
+	gen := codegen.NewPythonCodeGenerator(true)
+	result, err := gen.Generate(file)
+
+	t.Logf("\n%s", result)
+
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	test.AssertEqual(t, file.Name, "StabilityaiSdxlTurbo.py", "The file name should be formatted correctly.")
+	test.AssertEqual(t, len(file.Classes), 1, "The file should contain one class.")
+	test.AssertEqual(t, len(file.HeaderComments), 2, "The file should contain two header comments.")
 }
