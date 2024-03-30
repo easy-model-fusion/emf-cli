@@ -23,7 +23,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
   - [Improving The Documentation](#improving-the-documentation)
 - [Styleguides](#styleguides)
   - [Commit Messages](#commit-messages)
-- [Join The Project Team](#join-the-project-team)
+- [The Project Team and Contributors](#join-the-project-team)
 
 
 ## Code of Conduct
@@ -31,7 +31,7 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 This project and everyone participating in it is governed by the
 [EMF CLI Code of Conduct](https://github.com/easy-model-fusion/emf-cliblob/master/CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code. Please report unacceptable behavior
-to <>.
+to [easymodelfusion@gmail.com](mailto:easymodelfusion@gmail.com).
 
 
 ## I Have a Question
@@ -89,7 +89,7 @@ A good bug report shouldn't leave others needing to chase you up for more inform
 <!-- omit in toc -->
 #### How Do I Submit a Good Bug Report?
 
-> You must never report security related issues, vulnerabilities or bugs including sensitive information to the issue tracker, or elsewhere in public. Instead sensitive bugs must be sent by email to <>.
+> You must never report security related issues, vulnerabilities or bugs including sensitive information to the issue tracker, or elsewhere in public. Instead sensitive bugs must be sent by email to [easymodelfusion@gmail.com](mailto:easymodelfusion@gmail.com).
 <!-- You may add a PGP key to allow the messages to be sent encrypted as well. -->
 
 We use GitHub issues to track bugs and errors. If you run into an issue with the project:
@@ -151,7 +151,7 @@ Updating, improving and correcting the documentation
 
 -->
 
-## The Project Team
+## The Project Team and Contributors
 
 For information about the project team and contributors, please refer to the [humans.txt](humans.txt) file located in the project's root directory.
 
