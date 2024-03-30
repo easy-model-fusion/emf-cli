@@ -9,10 +9,8 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
-	"github.com/pterm/pterm"
 )
 
 type RemoveTokenizerController struct{}
@@ -25,17 +23,17 @@ func (ic RemoveTokenizerController) RunTokenizerRemove(args []string) error {
 
 	// Display messages to user
 	if warningMessage != "" {
-		pterm.Warning.Printfln(warningMessage)
+		app.UI().Warning().Printfln(warningMessage)
 	}
 
 	if infoMessage != "" {
-		pterm.Info.Printfln(infoMessage)
+		app.UI().Info().Printfln(infoMessage)
 		return err
 	} else if err == nil {
-		pterm.Success.Printfln("Operation succeeded.")
+		app.UI().Success().Printfln("Operation succeeded.")
 		return nil
 	} else {
-		pterm.Error.Printfln("Operation failed.")
+		app.UI().Error().Printfln("Operation failed.")
 		return err
 	}
 }
@@ -120,8 +118,7 @@ func selectTokenizersToDelete(tokenizerNames []string) []string {
 	// Displays the multiselect only if the user has previously configured some tokenizers
 	if len(tokenizerNames) > 0 {
 		message := "Please select the tokenizer(s) to be deleted"
-		checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-		tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, tokenizerNames, checkMark, false, true)
+		tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, tokenizerNames, app.UI().BasicCheckmark(), false, true, 8)
 		app.UI().DisplaySelectedItems(tokenizerNames)
 	}
 	return tokenizerNames
