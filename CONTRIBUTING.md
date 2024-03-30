@@ -163,10 +163,29 @@ If you're new to contributing to EMF CLI, welcome aboard! Here's a guide to help
    - Consider adding your name to the list of contributors in the [humans.txt](humans.txt) file.
 
 ### Improving The Documentation
-<!-- TODO
-Updating, improving and correcting the documentation
 
--->
+Improving documentation is a valuable way to contribute to the EMF CLI project. Here are some ways you can help enhance the project's documentation:
+
+1. **Update Existing Documentation:**
+    - Review the project's existing [Documentation](https://easy-model-fusion.github.io/docs/) to identify any outdated or inaccurate information.
+    - Make corrections, clarifications, or updates to ensure that the documentation reflects the current state of the project.
+2. **Add Missing Documentation:**
+    - Identify areas of the project that lack sufficient documentation, such as undocumented features, configuration options, or usage examples.
+    - Write clear and concise documentation to fill in these gaps and provide valuable information to users and contributors.
+3. **Improve Clarity and Readability:**
+    - Rewrite sections of the documentation to improve clarity, readability, and organization.
+    - Use descriptive headings, bullet points, and examples to make the documentation more accessible to users with varying levels of expertise.
+4. **Correct Grammar and Spelling Errors:**
+    - Proofread the documentation for grammar, spelling, and punctuation errors.
+    - Fix any typos or inconsistencies to maintain the professionalism and credibility of the documentation.
+5. **Provide Examples and Tutorials:**
+    - Include code [Demos](https://github.com/easy-model-fusion/demos), examples, tutorials, or walkthroughes to help users understand how to use the EMF CLI effectively.
+    - Illustrate common use cases or best practices to assist users in achieving their goals with the tool.
+6. **Solicit Feedback and Collaboration:**
+    - Encourage users and contributors to provide feedback on the documentation.
+    - Collaborate with other contributors to review and improve the documentation collaboratively.
+
+Remember to follow the [Documentation](https://easy-model-fusion.github.io/docs/) guidelines and conventions while making contributions to ensure consistency and coherence across the documentation.
 
 ## Styleguides
 ### Commit Messages
