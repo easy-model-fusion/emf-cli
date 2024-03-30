@@ -23,7 +23,6 @@ All types of contributions are encouraged and valued. See the [Table of Contents
   - [Improving The Documentation](#improving-the-documentation)
 - [Styleguides](#styleguides)
   - [Commit Messages](#commit-messages)
-- [The Project Team and Contributors](#join-the-project-team)
 
 
 ## Code of Conduct
@@ -160,7 +159,6 @@ If you're new to contributing to EMF CLI, welcome aboard! Here's a guide to help
    - Work iteratively, updating your PR as needed until it meets the project's standards and is ready to be merged.
 6. **Celebrate Your Contribution:**
    - Once your PR is merged, celebrate your contribution to the EMF CLI project!
-   - Consider adding your name to the list of contributors in the [humans.txt](humans.txt) file.
 
 ### Improving The Documentation
 
@@ -210,10 +208,6 @@ When making commits to the EMF CLI repository, follow these guidelines for writi
     - Edit the message as needed to remove redundancy, ambiguity, or irrelevant information.
 
 By following these guidelines, you can create meaningful and informative commit messages that facilitate collaboration and maintain clarity throughout the project's version history.
-
-## The Project Team and Contributors
-
-For information about the project team and contributors, please refer to the [humans.txt](humans.txt) file located in the project's root directory.
 
 <!-- omit in toc -->
 ## Attribution
