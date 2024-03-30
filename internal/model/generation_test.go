@@ -225,7 +225,7 @@ func TestModel_GenFile_SingleFile(t *testing.T) {
 		PipelineTag: huggingface.TextToImage,
 		Module:      huggingface.DIFFUSERS,
 		Class:       huggingface.AutoDiffusers,
-		SingleFile:  true,
+		Source:      CUSTOM,
 	}
 
 	file := model.GenFile()

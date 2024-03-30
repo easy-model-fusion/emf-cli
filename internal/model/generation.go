@@ -156,8 +156,8 @@ func (m *Model) GenSuperInitParamsWithModule() []codegen.FunctionCallParameter {
 		},
 	}
 
-	// If the model is a single file, we need to add the single file parameter
-	if m.SingleFile {
+	if m.Source == "CUSTOM" {
+		// If the model is a single file (source=="CUSTOM"), we need to add the single file parameter
 		params = append(params, codegen.FunctionCallParameter{
 			Name:  "single_file",
 			Value: "True",
