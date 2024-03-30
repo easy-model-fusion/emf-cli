@@ -151,8 +151,9 @@ Updating, improving and correcting the documentation
 
 -->
 
-## Join The Project Team
-<!-- TODO -->
+## The Project Team
+
+For information about the project team and contributors, please refer to the [humans.txt](humans.txt) file located in the project's root directory.
 
 <!-- omit in toc -->
 ## Attribution
