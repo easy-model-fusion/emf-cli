@@ -8,6 +8,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	addTokenizerController tokenizer.AddTokenizerController
+)
+
 // tokenizerAddCmd represents the tokenizer add command
 var tokenizerAddCmd = &cobra.Command{
 	Use:   "add <model name> <tokenizer name> [flags]]",
@@ -32,5 +36,5 @@ func init() {
 
 // runTokenizerAdd runs the tokenizer add command
 func runTokenizerAdd(cmd *cobra.Command, args []string) {
-	tokenizer.RunTokenizerAdd(args, customArgs)
+	addTokenizerController.RunTokenizerAdd(args, customArgs)
 }
