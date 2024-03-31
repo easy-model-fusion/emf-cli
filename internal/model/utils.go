@@ -341,7 +341,6 @@ func (m *Model) UpdateTokenizer(
 	}
 
 	// Downloader script to skip the tokenizers download process if none selected
-	var skip string
 
 	// Prepare the script arguments
 	downloaderArgs := downloadermodel.Args{
@@ -349,7 +348,6 @@ func (m *Model) UpdateTokenizer(
 		ModelModule:       string(m.Module),
 		ModelClass:        m.Class,
 		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
-		Skip:              skip,
 		OnlyConfiguration: false,
 	}
 

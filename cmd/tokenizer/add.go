@@ -10,7 +10,7 @@ import (
 
 // tokenizerAddCmd represents the tokenizer add command
 var tokenizerAddCmd = &cobra.Command{
-	Use:   "add <model name> <tokenizer name> [<other tokenizer names>...]",
+	Use:   "add <model name> <tokenizer name> [flags]]",
 	Short: "Add one or more tokenizers",
 	Long:  "Add one or more tokenizers",
 	Args:  cobra.MinimumNArgs(2),
@@ -25,12 +25,12 @@ func init() {
 	app.InitHuggingFace(huggingface.BaseUrl, "")
 
 	// Bind cobra args to the downloader script args
-	customArgs.ToCobra(tokenizerAddCmd)
+	customArgs.ToCobraTokenizer(tokenizerAddCmd)
 	customArgs.DirectoryPath = app.DownloadDirectoryPath
 	tokenizerAddCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Automatic yes to prompts")
 }
 
 // runTokenizerAdd runs the tokenizer add command
 func runTokenizerAdd(cmd *cobra.Command, args []string) {
-	tokenizer.RunTokenizerAdd(args, customArgs, yes)
+	tokenizer.RunTokenizerAdd(args, customArgs)
 }

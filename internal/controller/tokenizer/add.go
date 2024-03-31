@@ -11,11 +11,11 @@ import (
 )
 
 // RunTokenizerAdd runs the tokenizer add command
-func RunTokenizerAdd(args []string, customArgs downloadermodel.Args, yes bool) {
+func RunTokenizerAdd(args []string, customArgs downloadermodel.Args) {
 	sdk.SendUpdateSuggestion()
 
 	// Process add operation with given arguments
-	warningMessage, infoMessage, err := processAddTokenizer(args, customArgs, yes)
+	warningMessage, infoMessage, err := processAddTokenizer(args, customArgs)
 
 	// Display messages to user
 	if warningMessage != "" {
@@ -35,7 +35,6 @@ func RunTokenizerAdd(args []string, customArgs downloadermodel.Args, yes bool) {
 func processAddTokenizer(
 	args []string,
 	customArgs downloadermodel.Args,
-	yes bool,
 ) (warning, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
@@ -72,45 +71,57 @@ func processAddTokenizer(
 	}
 
 	// Setting tokenizer name from args
-	//tokenizerName := args[1]
+	tokenizerName := args[1]
 
-	// Extracting available tokenizers
-
-	//var downloadTokenizers []string
-	//tokenizerToDl
-	//TODO Add options
+	println("used path is ", modelToUse.Path)
 	var addedTokenizer = model.Tokenizer{
 		Path:  modelToUse.Path,
-		Class: customArgs.TokenizerClass,
+		Class: tokenizerName,
+		//Options: options,
 	}
-	println("Class is ", customArgs.TokenizerClass)
+
+	println("Class is ", tokenizerName)
+
 	modelToUse.Tokenizers = append(modelToUse.Tokenizers, addedTokenizer)
+	availableTok := model.Tokenizers{}
+	availableTok, err = config.GetModelTokenizers(modelToUse)
 
-	println("addind tok to model ", model.Tokenizers{})
-	// Try to update all the given models
-	var downloadedTokenizers model.Tokenizers
-	var failedTokenizers []string
-
-	for tokenizer := range modelToUse.Tokenizers {
-
-		downloaderArgs := downloadermodel.Args{
-			ModelName:   modelToUse.Name,
-			ModelModule: string(modelToUse.Module),
-		}
-		println("calling download")
-		success := modelToUse.DownloadTokenizer(addedTokenizer, downloaderArgs)
-		if !success {
-			println("fail dl ")
-			failedTokenizers = append(failedTokenizers, string(rune(tokenizer)))
-		} else {
-			println("success download")
-			downloadedTokenizers = append(downloadedTokenizers, addedTokenizer)
+	// Check if tokenizerName is in available_tok
+	var tokenizerToUse = model.Tokenizer{}
+	tokenizerFound := false
+	for _, tokenizer := range availableTok {
+		if tokenizerName == tokenizer.Class {
+			tokenizerFound = true
+			println("tokenizer Was found")
+			tokenizerToUse = tokenizer
+			break
 		}
 	}
-	println("here")
 
-	// Update tokenizers' configuration
-	if len(downloadedTokenizers) > 0 {
+	if !tokenizerFound {
+		err = fmt.Errorf("the following tokenizer couldn't be downloaded"+
+			"because it was not found : %s", tokenizerName)
+		return warning, "Tokenizer add failed", err
+	}
+
+	downloaderArgs := downloadermodel.Args{
+		ModelName:   modelToUse.Name,
+		ModelModule: string(modelToUse.Module),
+	}
+
+	customArgs.ModelName = downloaderArgs.ModelName
+	customArgs.ModelModule = string(downloaderArgs.ModelModule)
+
+	println("calling download")
+	success := modelToUse.DownloadTokenizer(addedTokenizer, customArgs)
+	if !success {
+		println("fail dl ")
+		err = fmt.Errorf("the following tokenizer"+
+			" couldn't be downloaded : %s", tokenizerName)
+	} else {
+		println("success download")
+		var downloadedTokenizers model.Tokenizers
+		downloadedTokenizers = append(downloadedTokenizers, tokenizerToUse)
 		//Reset model while keeping unchanged tokenizers
 		modelToUse.Tokenizers = modelToUse.Tokenizers.Difference(downloadedTokenizers)
 		//Adding new version of downloaded tokenizers
@@ -125,9 +136,6 @@ func processAddTokenizer(
 		}
 	}
 
-	// Displaying the downloads that failed
-	if len(failedTokenizers) > 0 {
-		err = fmt.Errorf("the following tokenizers(s) couldn't be downloaded : %s", failedTokenizers)
-	}
-	return warning, "Tokenizers update done", err
+	println("here")
+	return warning, "Tokenizers add done", err
 }
