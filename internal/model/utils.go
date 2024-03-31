@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
-	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
-	"github.com/pterm/pterm"
 	"os"
 	"path"
 )
@@ -101,7 +99,7 @@ func (m *Model) GetTokenizersNotDownloadedOnDevice() Tokenizers {
 }
 
 // BuildModelsFromDevice builds a slice of models recovered from the device folders.
-func BuildModelsFromDevice() Models {
+func BuildModelsFromDevice(accessToken string) Models {
 
 	// Get all the providers in the root folder
 	providers, err := os.ReadDir(app.DownloadDirectoryPath)
@@ -137,7 +135,7 @@ func BuildModelsFromDevice() Models {
 			modelPath := path.Join(providerPath, providerModel.Name())
 
 			// Fetching model from huggingface
-			huggingfaceModel, err := app.H().GetModelById(modelName)
+			huggingfaceModel, err := app.H().GetModelById(modelName, accessToken)
 			if err != nil {
 				// Model not found : custom
 				models = append(models, Model{
@@ -215,7 +213,7 @@ func FromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 }
 
 // Update attempts to update the model
-func (m *Model) Update() bool {
+func (m *Model) Update(yes bool, accessToken string) bool {
 	// Check if model is physically present on the device
 	m.UpdatePaths()
 	downloaded, err := m.DownloadedOnDevice(false)
@@ -227,10 +225,10 @@ func (m *Model) Update() bool {
 	install := false
 	if downloaded {
 		// Model already configured and downloaded : a new version is available
-		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
+		install = yes || app.UI().AskForUsersConfirmation(fmt.Sprintf("New version of '%s' is available. "+
 			"Would you like to overwrite its old version?", m.Name))
 	} else {
-		install = app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
+		install = yes || app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' has yet to be downloaded. "+
 			"Would you like to download it?", m.Name))
 	}
 
@@ -240,7 +238,7 @@ func (m *Model) Update() bool {
 	}
 
 	// Downloader script to skip the tokenizers download process if none selected
-	var skip string
+	var skipTokenizer bool
 
 	// If transformers : select the tokenizers to update using a multiselect
 	var tokenizerNames []string
@@ -254,31 +252,34 @@ func (m *Model) Update() bool {
 
 			// Prepare the tokenizers multiselect
 			message := "Please select the tokenizer(s) to be updated"
-			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
+			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, app.UI().BasicCheckmark(), true, true, 8)
 			app.UI().DisplaySelectedItems(tokenizerNames)
 
 			// No tokenizer is selected : skipping so that it doesn't overwrite the default one
-			if len(tokenizerNames) > 0 {
-				skip = downloadermodel.SkipValueTokenizer
-			}
+			skipTokenizer = len(tokenizerNames) > 0
 		}
 	}
-
 	// Prepare the script arguments
+	if accessToken == "" {
+		accessToken, err = m.GetAccessToken()
+		// Download failed
+		if err != nil {
+			return false
+		}
+	}
 	downloaderArgs := downloadermodel.Args{
 		ModelName:         m.Name,
 		ModelModule:       string(m.Module),
 		ModelClass:        m.Class,
 		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
-		Skip:              skip,
+		SkipTokenizer:     skipTokenizer,
 		OnlyConfiguration: false,
 		DirectoryPath:     app.DownloadDirectoryPath,
+		AccessToken:       accessToken,
 	}
 
 	// Downloading model
-	success := false
-	success = m.Download(downloaderArgs)
+	success := m.Download(downloaderArgs)
 	if !success {
 		// Download failed
 		return false
@@ -305,7 +306,7 @@ func (m *Model) Update() bool {
 
 		// The process failed for at least one tokenizer
 		if len(failedTokenizers) > 0 {
-			pterm.Error.Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
+			app.UI().Error().Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
 		}
 	}
 
@@ -387,13 +388,13 @@ func (m *Model) UpdateTokenizer(
 
 // TidyConfiguredModel downloads the missing elements that were configured
 // first bool is true if success, second bool is true if model was clean from the start
-func (m *Model) TidyConfiguredModel() (bool, bool) {
+func (m *Model) TidyConfiguredModel(accessToken string) (warning string, success bool, clean bool) {
 
 	// Check if model is physically present on the device
 	m.UpdatePaths()
 	downloaded, err := m.DownloadedOnDevice(false)
 	if err != nil {
-		return false, false
+		return warning, false, false
 	}
 
 	// Get all the configured but not downloaded tokenizers
@@ -401,10 +402,16 @@ func (m *Model) TidyConfiguredModel() (bool, bool) {
 
 	// Model is clean, nothing more to do here
 	if downloaded && len(missingTokenizers) == 0 {
-		return true, true
+		return "", true, true
 	}
-
 	// Prepare the script arguments
+	if accessToken == "" {
+		accessToken, err = m.GetAccessToken()
+		if err != nil {
+			// Download failed
+			return warning, false, false
+		}
+	}
 	downloaderArgs := downloadermodel.Args{
 		ModelName:         m.Name,
 		ModelModule:       string(m.Module),
@@ -412,17 +419,16 @@ func (m *Model) TidyConfiguredModel() (bool, bool) {
 		ModelOptions:      stringutil.OptionsMapToSlice(m.Options),
 		OnlyConfiguration: false,
 		DirectoryPath:     app.DownloadDirectoryPath,
+		AccessToken:       accessToken,
 	}
 
 	// Model has yet to be downloaded
 	if !downloaded {
-
 		// Downloading model
-		success := false
-		success = m.Download(downloaderArgs)
+		success := m.Download(downloaderArgs)
 		if !success {
 			// Download failed
-			return false, false
+			return warning, success, false
 		}
 	}
 
@@ -445,9 +451,9 @@ func (m *Model) TidyConfiguredModel() (bool, bool) {
 
 		// The process failed for at least one tokenizer
 		if len(failedTokenizers) > 0 {
-			pterm.Error.Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
+			warning = fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers)
 		}
 	}
 
-	return true, false
+	return warning, true, false
 }

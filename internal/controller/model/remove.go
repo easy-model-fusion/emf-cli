@@ -7,7 +7,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
-	"github.com/pterm/pterm"
 )
 
 // RunModelRemove runs the model remove command
@@ -17,15 +16,15 @@ func RunModelRemove(args []string, modelRemoveAllFlag bool) {
 
 	// Display messages to user
 	if warningMessage != "" {
-		pterm.Warning.Printfln(warningMessage)
+		app.UI().Warning().Printfln(warningMessage)
 	}
 
 	if infoMessage != "" {
-		pterm.Info.Printfln(infoMessage)
+		app.UI().Info().Printfln(infoMessage)
 	} else if err == nil {
-		pterm.Success.Printfln("Operation succeeded.")
+		app.UI().Success().Printfln("Operation succeeded.")
 	} else {
-		pterm.Error.Printfln("Operation failed.")
+		app.UI().Error().Printfln("Operation failed.")
 	}
 }
 
@@ -65,9 +64,9 @@ func processRemove(args []string, modelRemoveAllFlag bool) (string, string, erro
 func selectModelsToDelete(modelNames []string, selectAllModels bool) []string {
 	// Displays the multiselect only if the user has previously configured some models but hasn't selected all of them
 	if !selectAllModels && len(modelNames) > 0 {
-		checkMark := ui.Checkmark{Checked: pterm.Red("x"), Unchecked: pterm.Blue("-")}
+		checkMark := ui.Checkmark{Checked: app.UI().Red("x"), Unchecked: app.UI().Blue("-")}
 		message := "Please select the model(s) to be deleted"
-		modelNames = app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false, false)
+		modelNames = app.UI().DisplayInteractiveMultiselect(message, modelNames, checkMark, false, false, 8)
 		app.UI().DisplaySelectedItems(modelNames)
 	}
 	return modelNames

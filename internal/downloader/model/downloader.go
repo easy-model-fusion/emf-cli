@@ -25,9 +25,11 @@ type Args struct {
 	ModelOptions      []string
 	TokenizerClass    string
 	TokenizerOptions  []string
-	Skip              string
+	SkipTokenizer     bool
+	SkipModel         bool
 	OnlyConfiguration bool
 	DirectoryPath     string
+	AccessToken       string
 }
 
 // Constants related to the downloader script python arguments.
@@ -47,4 +49,5 @@ const (
 	SkipValueTokenizer = "tokenizer"
 	EmfClient          = "emf-client"
 	OnlyConfiguration  = "only-configuration"
+	AccessToken        = "access-token"
 )

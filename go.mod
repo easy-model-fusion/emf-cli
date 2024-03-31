@@ -8,6 +8,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
 	golang.org/x/mod v0.14.0
+	github.com/joho/godotenv v1.5.1
 )
 
 require (

@@ -14,7 +14,7 @@ func TestGetModelById_WithValidModule(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get model by id
-	fetchedModel, err := GetModelById("test")
+	fetchedModel, err := GetModelById("test", "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
@@ -28,7 +28,7 @@ func TestGetModelById_WithInvalidModule(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get model by id
-	_, err := GetModelById("test")
+	_, err := GetModelById("test", "")
 
 	// Assertions
 	test.AssertEqual(t, err.Error(), "downloading models from test library is not allowed")
@@ -51,7 +51,7 @@ func TestGetModelsByPipelineTag(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get models by pipeline tag
-	fetchedModels, err := GetModelsByPipelineTag(huggingface.TextToImage, 0)
+	fetchedModels, err := GetModelsByPipelineTag(huggingface.TextToImage, 0, "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
@@ -75,7 +75,7 @@ func TestGetModelsByMultiplePipelineTags(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get models by multiple pipeline tags
-	fetchedModels, err := GetModelsByMultiplePipelineTags([]string{"tag1", "tag2"})
+	fetchedModels, err := GetModelsByMultiplePipelineTags([]string{"tag1", "tag2"}, "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil)

@@ -13,7 +13,17 @@ var modelUpdateCmd = &cobra.Command{
 	Run:   runModelUpdate,
 }
 
+var (
+	accessToken        string
+	authorizeOverwrite bool
+)
+
+func init() {
+	modelUpdateCmd.Flags().BoolVarP(&authorizeOverwrite, "yes", "y", false, "Automatic yes to prompts")
+	modelUpdateCmd.Flags().StringVarP(&accessToken, "access-token", "a", "", "Access token for gated models")
+}
+
 // runModelUpdate runs the model update command
 func runModelUpdate(cmd *cobra.Command, args []string) {
-	modelcontroller.RunModelUpdate(args)
+	modelcontroller.RunModelUpdate(args, authorizeOverwrite, accessToken)
 }

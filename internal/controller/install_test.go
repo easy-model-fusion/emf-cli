@@ -22,7 +22,7 @@ func TestInstallController_Run_ConfigFileMissing(t *testing.T) {
 
 	ic := InstallController{}
 
-	err = ic.Run([]string{}, false)
+	err = ic.Run([]string{}, false, "")
 	test.AssertNotEqual(t, err, nil, "Error should not be nil")
 	// FIXME: impossible to capture -> err, ok := err.(viper.ConfigFileNotFoundError)
 	// so we do some nasty string contains check
@@ -45,7 +45,7 @@ func TestInstallController_Run_PythonNotFound(t *testing.T) {
 	defer ts.CleanTestSuite(t)
 
 	// Test the case where python is not found
-	err := ic.Run([]string{}, false)
+	err := ic.Run([]string{}, false, "")
 	test.AssertNotEqual(t, err, nil, "Error should not be nil")
 	test.AssertEqual(t, err.Error(), "python not found", "Error should be 'python not found'")
 }
@@ -66,11 +66,11 @@ func TestInstallController_Run(t *testing.T) {
 	defer ts.CleanTestSuite(t)
 
 	// Test the case where everything is fine (cuda not used)
-	err := ic.Run([]string{}, false)
+	err := ic.Run([]string{}, false, "")
 	test.AssertEqual(t, err, nil, "Error should be nil")
 
 	// Test the case where everything is fine (cuda used)
-	err = ic.Run([]string{}, true)
+	err = ic.Run([]string{}, true, "")
 	test.AssertEqual(t, err, nil, "Error should be nil")
 }
 
