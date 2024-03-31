@@ -13,7 +13,8 @@ import (
 type AddTokenizerController struct{}
 
 // RunTokenizerAdd runs the tokenizer add command
-func (ic AddTokenizerController) RunTokenizerAdd(args []string, customArgs downloadermodel.Args) {
+func (ic AddTokenizerController) RunTokenizerAdd(args []string,
+	customArgs downloadermodel.Args) error {
 	sdk.SendUpdateSuggestion()
 
 	// Process add operation with given arguments
@@ -26,10 +27,13 @@ func (ic AddTokenizerController) RunTokenizerAdd(args []string, customArgs downl
 
 	if infoMessage != "" {
 		pterm.Info.Printfln(infoMessage)
+		return err
 	} else if err == nil {
 		pterm.Success.Printfln("Operation succeeded.")
+		return err
 	} else {
 		pterm.Error.Printfln("Operation failed.")
+		return err
 	}
 }
 
@@ -52,7 +56,7 @@ func (ic AddTokenizerController) processAddTokenizer(
 	// Get all configured models objects/names and args model
 	models, err := config.GetModels()
 	if err != nil {
-		return warning, info, fmt.Errorf("error get model: %s", err.Error())
+		return warning, info, fmt.Errorf("error getting model: %s", err.Error())
 	}
 
 	// Checks the presence of the model
@@ -65,7 +69,7 @@ func (ic AddTokenizerController) processAddTokenizer(
 
 	// Verify model's module
 	if modelToUse.Module != huggingface.TRANSFORMERS {
-		return warning, info, fmt.Errorf("only transformers models have tokzenizers")
+		return warning, info, fmt.Errorf("only transformers models have tokenizers")
 	}
 	// No tokenizer name in args
 	if len(args) < 2 {
