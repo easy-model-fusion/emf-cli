@@ -10,12 +10,14 @@ import (
 	"github.com/pterm/pterm"
 )
 
+type AddTokenizerController struct{}
+
 // RunTokenizerAdd runs the tokenizer add command
-func RunTokenizerAdd(args []string, customArgs downloadermodel.Args) {
+func (ic AddTokenizerController) RunTokenizerAdd(args []string, customArgs downloadermodel.Args) {
 	sdk.SendUpdateSuggestion()
 
 	// Process add operation with given arguments
-	warningMessage, infoMessage, err := processAddTokenizer(args, customArgs)
+	warningMessage, infoMessage, err := ic.processAddTokenizer(args, customArgs)
 
 	// Display messages to user
 	if warningMessage != "" {
@@ -32,7 +34,7 @@ func RunTokenizerAdd(args []string, customArgs downloadermodel.Args) {
 }
 
 // processAddTokenizer processes tokenizers to be added
-func processAddTokenizer(
+func (ic AddTokenizerController) processAddTokenizer(
 	args []string,
 	customArgs downloadermodel.Args,
 ) (warning, info string, err error) {
