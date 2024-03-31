@@ -89,8 +89,8 @@ func (ic AddTokenizerController) processAddTokenizer(
 	println("Class is ", tokenizerName)
 
 	modelToUse.Tokenizers = append(modelToUse.Tokenizers, addedTokenizer)
-	availableTok := model.Tokenizers{}
-	availableTok, err = config.GetModelTokenizers(modelToUse)
+
+	availableTok, err := config.GetModelTokenizers(modelToUse)
 
 	// Check if tokenizerName is in available_tok
 	var tokenizerToUse = model.Tokenizer{}
