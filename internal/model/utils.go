@@ -7,6 +7,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
+	"github.com/pterm/pterm"
 	"os"
 	"path"
 )
