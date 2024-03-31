@@ -53,6 +53,17 @@ func (a *Args) ToCobra(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&a.AccessToken, AccessToken, "a", "", "Access token for gated models")
 }
 
+// ToCobraTokenizer builds the arguments for running the cobra command
+func (a *Args) ToCobraTokenizer(cmd *cobra.Command) {
+
+	// Optional for the tokenizer
+	cmd.Flags().StringVarP(&a.TokenizerClass, TokenizerClass, "c", "", "Tokenizer class (only for transformers)")
+	cmd.Flags().StringArrayVarP(&a.TokenizerOptions, TokenizerOptions, "o", []string{}, "List of tokenizer options (only for transformers)")
+	// Authorization token
+	cmd.Flags().StringVarP(&a.AccessToken, AccessToken, "a", "", "Access token for gated models")
+
+}
+
 // ToPython builds the arguments for running the python script.
 // Pre-condition : certain that the user authorized the overwriting when downloading the model.
 func (a *Args) ToPython() []string {
