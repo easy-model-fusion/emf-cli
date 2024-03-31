@@ -30,7 +30,6 @@ type Args struct {
 	OnlyConfiguration bool
 	DirectoryPath     string
 	AccessToken       string
-	HELP              bool
 }
 
 // Constants related to the downloader script python arguments.
