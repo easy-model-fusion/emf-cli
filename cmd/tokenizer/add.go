@@ -14,7 +14,7 @@ var (
 
 // tokenizerAddCmd represents the tokenizer add command
 var tokenizerAddCmd = &cobra.Command{
-	Use:   "add <model name> <tokenizer name> [flags]]",
+	Use:   "add <model name> <tokenizer name>",
 	Short: "Add one or more tokenizers",
 	Long:  "Add one or more tokenizers",
 	Args:  cobra.MinimumNArgs(2),
