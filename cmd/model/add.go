@@ -30,6 +30,7 @@ func init() {
 	customArgs.ToCobra(modelAddCmd)
 	customArgs.DirectoryPath = app.DownloadDirectoryPath
 	modelAddCmd.Flags().BoolVarP(&addController.AuthorizeDownload, "yes", "y", false, "Automatic yes to prompts")
+	modelAddCmd.Flags().BoolVarP(&addController.SingleFile, "single-file", "s", false, "Use the model as a single file, (usually its a safetensors file)")
 }
 
 // runAddByNames runs the add command to add models by name

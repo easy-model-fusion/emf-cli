@@ -9,10 +9,12 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
+	"os"
 )
 
 type AddController struct {
 	AuthorizeDownload bool
+	SingleFile        bool
 }
 
 // Run runs the add command to add models by name
@@ -36,8 +38,8 @@ func (ac AddController) Run(args []string, customArgs downloadermodel.Args) erro
 }
 
 // getRequestedModel returns the model to be added
-func (ac AddController) getRequestedModel(args []string, authorizationKey string) (model.Model, error) {
-	err := config.GetViperConfig(config.FilePath)
+func (ac AddController) getRequestedModel(args []string, authorizationKey string) (selectedModel model.Model, err error) {
+	err = config.GetViperConfig(config.FilePath)
 	if err != nil {
 		return model.Model{}, err
 	}
@@ -53,7 +55,11 @@ func (ac AddController) getRequestedModel(args []string, authorizationKey string
 		return model.Model{}, fmt.Errorf("you can enter only one model at a time")
 	}
 
-	var selectedModel model.Model
+	// Single file option is only available with a given model name
+	if ac.SingleFile && len(args) != 1 {
+		return model.Model{}, fmt.Errorf("you need to enter a model name to use the single file option")
+	}
+
 	// Add models passed in args
 	if len(args) == 1 {
 		name := args[0]
@@ -64,15 +70,26 @@ func (ac AddController) getRequestedModel(args []string, authorizationKey string
 			return model.Model{}, fmt.Errorf("the following model already exist and will be ignored : %s", name)
 		}
 
+		// In case of single file, we don't need to check if the model is valid
+		if ac.SingleFile {
+			selectedModel = model.Model{
+				Name:            name,
+				IsDownloaded:    true,
+				Source:          model.CUSTOM,
+				AddToBinaryFile: true,
+			}
+			return selectedModel, nil
+		}
+
 		// Verify if the model is a valid hugging face model
-		huggingfaceModel, err := hfinterface.GetModelById(name, authorizationKey)
+		hfModel, err := hfinterface.GetModelById(name, authorizationKey)
 		if err != nil {
 			// Model not found
 			return model.Model{}, fmt.Errorf("Model %s not valid : "+err.Error(), name)
 		}
 
 		// Map API response to model.Model
-		selectedModel = model.FromHuggingfaceModel(huggingfaceModel)
+		selectedModel = model.FromHuggingfaceModel(hfModel)
 	} else {
 		// If no models entered by user or if user entered -s/--select
 		// Get selected tags
@@ -95,28 +112,62 @@ func (ac AddController) getRequestedModel(args []string, authorizationKey string
 
 // processAdd processes the selected model and tries to add it
 func (ac AddController) processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes bool) (warning string, err error) {
-	// User choose if he wishes to install the model directly
-	message := fmt.Sprintf("Do you wish to directly download %s?", selectedModel.Name)
-	selectedModel.AddToBinaryFile = !customArgs.OnlyConfiguration && (yes || app.UI().AskForUsersConfirmation(message))
+	var updatedModel model.Model
 
-	// Validate model for download
-	warningMessage, valid, err := config.Validate(selectedModel, yes)
-	if !valid {
-		return warningMessage, err
-	}
+	// Download model is only available for model.Source == huggingface
+	if selectedModel.Source == model.HUGGING_FACE {
+		// User choose if he wishes to install the model directly
+		message := fmt.Sprintf("Do you wish to directly download %s?", selectedModel.Name)
+		selectedModel.AddToBinaryFile = !customArgs.OnlyConfiguration && (yes || app.UI().AskForUsersConfirmation(message))
 
-	// Try to download model
-	updatedModel, err := ac.downloadModel(selectedModel, customArgs)
-	if err != nil {
-		return warning, err
-	}
-
-	// Save access token
-	if customArgs.AccessToken != "" {
-		err = updatedModel.SaveAccessToken(customArgs.AccessToken)
-		if err != nil {
-			warning = "Failed to save access token"
+		// Validate model for download
+		warningMessage, valid, err := config.Validate(selectedModel, yes)
+		if !valid {
+			return warningMessage, err
 		}
+
+		// Try to download model
+		updatedModel, err := ac.downloadModel(selectedModel, customArgs)
+		if err != nil {
+			return warning, err
+		}
+
+		// Save access token
+		if customArgs.AccessToken != "" {
+			err = updatedModel.SaveAccessToken(customArgs.AccessToken)
+			if err != nil {
+				warning = "Failed to save access token"
+			}
+		}
+	} else if selectedModel.Source == model.CUSTOM && ac.SingleFile {
+
+		// We need some information to create a single file model
+		if customArgs.ModelClass == "" {
+			return "", fmt.Errorf("model class is required for single file model")
+		}
+		if customArgs.ModelModule == "" {
+			return "", fmt.Errorf("model module is required for single file model")
+		} else if customArgs.ModelModule != string(huggingface.DIFFUSERS) {
+			return "", fmt.Errorf("currently only diffusers models are supported for single file model")
+		}
+
+		// For a single file model to work, we need to check if the file exists
+		fi, err := os.Stat(selectedModel.Path)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return "", fmt.Errorf("file %s does not exist", selectedModel.Path)
+			}
+			return "", fmt.Errorf("error while checking file %s: %s", selectedModel.Path, err)
+		}
+		if fi.IsDir() {
+			return "", fmt.Errorf("file %s is a directory", selectedModel.Path)
+		}
+
+		app.UI().Warning().Println("Please note that the file extension is not checked, it could lead to errors if the file is not a valid single file.")
+
+		selectedModel.Class = customArgs.ModelClass
+		selectedModel.Module = huggingface.Module(customArgs.ModelModule)
+		selectedModel.PipelineTag = huggingface.TextToImage // FIXME: should not be hardcoded
 	}
 
 	// Add models to configuration file
