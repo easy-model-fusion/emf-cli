@@ -3,7 +3,7 @@ package cmdtokenizer
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/controller/tokenizer"
-	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/spf13/cobra"
 )

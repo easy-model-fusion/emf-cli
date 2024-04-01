@@ -67,6 +67,17 @@ func (ic AddTokenizerController) processAddTokenizer(
 		return warning, "Model is not configured", err
 	}
 
+	// Setting tokenizer name from args
+	tokenizerName := args[1]
+
+	tokenizerFound := modelToUse.Tokenizers.ContainsByClass(tokenizerName)
+
+	if tokenizerFound {
+		err = fmt.Errorf("the following tokenizer is already downloaded :%s",
+			tokenizerName)
+		return warning, "Tokenizer add failed, already downloaded", err
+	}
+
 	// Verify model's module
 	if modelToUse.Module != huggingface.TRANSFORMERS {
 		return warning, info, fmt.Errorf("only transformers models have tokenizers")
@@ -76,58 +87,20 @@ func (ic AddTokenizerController) processAddTokenizer(
 		return warning, info, fmt.Errorf("enter a tokenizer in argument")
 	}
 
-	// Setting tokenizer name from args
-	tokenizerName := args[1]
-
-	println("used path is ", modelToUse.Path)
 	var addedTokenizer = model.Tokenizer{
 		Path:  modelToUse.Path,
 		Class: tokenizerName,
-		//Options: options,
 	}
-
-	println("Class is ", tokenizerName)
-
 	modelToUse.Tokenizers = append(modelToUse.Tokenizers, addedTokenizer)
 
-	availableTok, err := config.GetModelTokenizers(modelToUse)
+	customArgs.ModelName = modelToUse.Name
+	customArgs.ModelModule = string(modelToUse.Module)
 
-	// Check if tokenizerName is in available_tok
-	var tokenizerToUse = model.Tokenizer{}
-	tokenizerFound := false
-	for _, tokenizer := range availableTok {
-		if tokenizerName == tokenizer.Class {
-			tokenizerFound = true
-			println("tokenizer Was found")
-			tokenizerToUse = tokenizer
-			break
-		}
-	}
-
-	if !tokenizerFound {
-		err = fmt.Errorf("the following tokenizer couldn't be downloaded"+
-			"because it was not found : %s", tokenizerName)
-		return warning, "Tokenizer add failed", err
-	}
-
-
-	customArgs.ModelName = downloaderArgs.ModelName
-	customArgs.ModelModule = string(downloaderArgs.ModelModule)
-
-	println("calling download")
 	success := modelToUse.DownloadTokenizer(addedTokenizer, customArgs)
 	if !success {
-		println("fail dl ")
 		err = fmt.Errorf("the following tokenizer"+
 			" couldn't be downloaded : %s", tokenizerName)
 	} else {
-		println("success download")
-		var downloadedTokenizers model.Tokenizers
-		downloadedTokenizers = append(downloadedTokenizers, tokenizerToUse)
-		//Reset model while keeping unchanged tokenizers
-		modelToUse.Tokenizers = modelToUse.Tokenizers.Difference(downloadedTokenizers)
-		//Adding new version of downloaded tokenizers
-		modelToUse.Tokenizers = append(modelToUse.Tokenizers, downloadedTokenizers...)
 
 		spinner, _ := pterm.DefaultSpinner.Start("Updating configuration file...")
 		err := config.AddModels(model.Models{modelToUse})
@@ -137,7 +110,5 @@ func (ic AddTokenizerController) processAddTokenizer(
 			spinner.Success()
 		}
 	}
-
-	println("here")
 	return warning, "Tokenizers add done", err
 }

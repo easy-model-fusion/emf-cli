@@ -25,7 +25,7 @@ func (a *Args) Validate() error {
 	}
 
 	// Module validity
-	if a.ModelModule == "" {
+	if !a.SkipModel && a.ModelModule == "" {
 		return errors.New("missing module for the model")
 	}
 
@@ -59,7 +59,6 @@ func (a *Args) ToCobraTokenizer(cmd *cobra.Command) {
 	// Optional for the tokenizer
 	cmd.Flags().StringVarP(&a.TokenizerClass, TokenizerClass, "c", "", "Tokenizer class (only for transformers)")
 	cmd.Flags().StringArrayVarP(&a.TokenizerOptions, TokenizerOptions, "o", []string{}, "List of tokenizer options (only for transformers)")
-
 }
 
 // ToPython builds the arguments for running the python script.

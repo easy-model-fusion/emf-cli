@@ -25,18 +25,6 @@ func GetModels() (model.Models, error) {
 	return models, nil
 }
 
-// GetModelTokenizers retrieves tokenizers from the model configuration.
-func GetModelTokenizers(model model.Model) (model.Tokenizers, error) {
-	// Define a slice for models
-	tokenizers := model.Tokenizers
-
-	// Retrieve models using the generic function
-	if err := GetViperItem("tokenizers", &tokenizers); err != nil {
-		return nil, err
-	}
-	return tokenizers, nil
-}
-
 // AddModels adds models to configuration file
 func AddModels(updatedModels model.Models) error {
 	// Get existent models

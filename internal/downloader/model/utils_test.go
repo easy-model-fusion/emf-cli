@@ -85,6 +85,19 @@ func TestValidate_MissingModule(t *testing.T) {
 	test.AssertNotEqual(t, result, nil)
 }
 
+// TestValidate_MissingModule tests the ArgsValidate function to return an error.
+func TestValidate_MissingModuleAndSkipTrue(t *testing.T) {
+	// Init
+	args := Args{ModelName: "present",
+		SkipModel: true}
+
+	// Execute
+	result := args.Validate()
+
+	// Assert
+	test.AssertEqual(t, result, nil)
+}
+
 // TestValidate_Success tests the ArgsValidate function to succeed.
 func TestValidate_Success(t *testing.T) {
 	// Init
@@ -124,6 +137,24 @@ func TestToCobra(t *testing.T) {
 	test.AssertEqual(t, len(args.TokenizerOptions), 0)
 	test.AssertEqual(t, args.SkipModel, false)
 	test.AssertEqual(t, args.SkipTokenizer, false)
+}
+
+// TestToCobraTokenizer tests the ArgsGetForCobra.
+func TestToCobraTokenizer(t *testing.T) {
+	// Init
+	cmd := &cobra.Command{}
+	args := &Args{}
+
+	// Execute
+	args.ToCobraTokenizer(cmd)
+
+	// Assert
+
+	test.AssertNotEqual(t, cmd.Flags().Lookup(TokenizerClass), nil)
+	test.AssertNotEqual(t, cmd.Flags().Lookup(TokenizerOptions), nil)
+
+	test.AssertEqual(t, args.TokenizerClass, "")
+	test.AssertEqual(t, len(args.TokenizerOptions), 0)
 }
 
 // TestToPython tests the ArgsProcessForPython.
