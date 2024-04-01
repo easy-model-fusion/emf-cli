@@ -560,7 +560,7 @@ func TestAddController_Run(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Run add method
-	_ = ac.Run(args, downloaderArgs, true)
+	_ = ac.Run(args, downloaderArgs)
 	models, err := config.GetModels()
 
 	// Assertions
@@ -595,7 +595,7 @@ func TestAddController_Run_WithInvalidModel(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Run add method
-	err = ac.Run(args, downloaderArgs, true)
+	err = ac.Run(args, downloaderArgs)
 	test.AssertNotEqual(t, err, nil)
 
 	models, err := config.GetModels()
