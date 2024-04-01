@@ -59,8 +59,6 @@ func (a *Args) ToCobraTokenizer(cmd *cobra.Command) {
 	// Optional for the tokenizer
 	cmd.Flags().StringVarP(&a.TokenizerClass, TokenizerClass, "c", "", "Tokenizer class (only for transformers)")
 	cmd.Flags().StringArrayVarP(&a.TokenizerOptions, TokenizerOptions, "o", []string{}, "List of tokenizer options (only for transformers)")
-	// Authorization token
-	cmd.Flags().StringVarP(&a.AccessToken, AccessToken, "a", "", "Access token for gated models")
 
 }
 
