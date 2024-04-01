@@ -110,10 +110,6 @@ func (ic AddTokenizerController) processAddTokenizer(
 		return warning, "Tokenizer add failed", err
 	}
 
-	downloaderArgs := downloadermodel.Args{
-		ModelName:   modelToUse.Name,
-		ModelModule: string(modelToUse.Module),
-	}
 
 	customArgs.ModelName = downloaderArgs.ModelName
 	customArgs.ModelModule = string(downloaderArgs.ModelModule)
