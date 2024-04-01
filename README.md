@@ -4,7 +4,7 @@
 
 The EMF CLI is a powerful tool for efficiently managing AI models, enhancing the development process for artificial intelligence applications.
 
-[Asciinema placeholder]
+[![EMF CLI demo](https://asciinema.org/a/650190.svg)](https://asciinema.org/a/650190?autoplay=1)
 
 ## Documentation
 
