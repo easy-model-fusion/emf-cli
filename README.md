@@ -17,5 +17,5 @@ We welcome contributions from everyone. There are several ways to contribute, an
 
 ## License
 
-All code is licensed under the TBD. See [LICENSE](./LICENSE) file for
+All code is licensed under the TBD. See [LICENSE](./LICENSE.txt) file for
 details.
