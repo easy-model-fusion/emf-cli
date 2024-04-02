@@ -36,7 +36,7 @@ func init() {
 
 // runTokenizerAdd runs the tokenizer add command
 func runTokenizerAdd(cmd *cobra.Command, args []string) {
-	err := addTokenizerController.Run(args, customArgs)
+	err := addController.Run(args, customArgs)
 	if err != nil {
 		return
 	}
