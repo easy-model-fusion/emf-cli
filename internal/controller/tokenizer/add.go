@@ -10,7 +10,7 @@ import (
 	"github.com/pterm/pterm"
 )
 
-type AddTokenizerController struct{}
+type AddController struct{}
 
 // RunTokenizerAdd runs the tokenizer add command
 func (ic AddTokenizerController) RunTokenizerAdd(args []string,
