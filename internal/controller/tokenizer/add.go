@@ -38,7 +38,7 @@ func (ic AddTokenizerController) RunTokenizerAdd(args []string,
 }
 
 // processAddTokenizer processes tokenizers to be added
-func (ic AddTokenizerController) processAddTokenizer(
+func (ic AddController) processAddTokenizer(
 	args []string,
 	customArgs downloadermodel.Args,
 ) (warning, info string, err error) {
