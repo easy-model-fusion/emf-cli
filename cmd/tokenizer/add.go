@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	addTokenizerController tokenizer.AddController
+	addController tokenizer.AddController
 )
 
 // tokenizerAddCmd represents the tokenizer add command
