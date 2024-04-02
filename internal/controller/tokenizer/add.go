@@ -86,10 +86,6 @@ func (ic AddController) processAddTokenizer(
 	if modelToUse.Module != huggingface.TRANSFORMERS {
 		return warning, info, fmt.Errorf("only transformers models have tokenizers")
 	}
-	// No tokenizer name in args
-	if len(args) < 2 {
-		return warning, info, fmt.Errorf("enter a tokenizer in argument")
-	}
 
 	var addedTokenizer = model.Tokenizer{
 		Path:  modelToUse.Path,
