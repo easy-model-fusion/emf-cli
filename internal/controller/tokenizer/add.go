@@ -12,8 +12,8 @@ import (
 
 type AddController struct{}
 
-// RunTokenizerAdd runs the tokenizer add command
-func (ic AddTokenizerController) RunTokenizerAdd(args []string,
+// Run the tokenizer add command
+func (ic AddController) Run(args []string,
 	customArgs downloadermodel.Args) error {
 	sdk.SendUpdateSuggestion()
 
