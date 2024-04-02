@@ -66,6 +66,10 @@ func (ic AddController) processAddTokenizer(
 	if !exists {
 		return warning, "Model is not configured", err
 	}
+	// No tokenizer name in args
+	if len(args) < 2 {
+		return warning, info, fmt.Errorf("enter a tokenizer in argument")
+	}
 
 	// Setting tokenizer name from args
 	tokenizerName := args[1]
