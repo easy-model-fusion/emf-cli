@@ -91,7 +91,6 @@ func (ic AddController) processAddTokenizer(
 		Path:  modelToUse.Path,
 		Class: tokenizerName,
 	}
-	modelToUse.Tokenizers = append(modelToUse.Tokenizers, addedTokenizer)
 
 	customArgs.ModelName = modelToUse.Name
 	customArgs.ModelModule = string(modelToUse.Module)
@@ -109,6 +108,7 @@ func (ic AddController) processAddTokenizer(
 		} else {
 			spinner.Success()
 		}
+		modelToUse.Tokenizers = append(modelToUse.Tokenizers, addedTokenizer)
 	}
 	return warning, "Tokenizers add done", err
 }
