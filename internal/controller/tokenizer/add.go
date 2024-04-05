@@ -93,7 +93,6 @@ func (ic AddController) processAddTokenizer(
 	}
 
 	customArgs.ModelName = modelToUse.Name
-	customArgs.ModelModule = string(modelToUse.Module)
 
 	success := modelToUse.DownloadTokenizer(addedTokenizer, customArgs)
 	if !success {
