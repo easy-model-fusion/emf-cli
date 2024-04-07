@@ -216,6 +216,13 @@ func TestModel_GenSuperInitParamsWithModule(t *testing.T) {
 	model.Module = "unknown"
 	params = model.GenSuperInitParamsWithModule()
 	test.AssertEqual(t, len(params), 0, "The number of parameters should be correct.")
+
+	// testing single file
+	model.Source = CUSTOM
+	model.Class = "CustomClass"
+	model.Module = huggingface.DIFFUSERS
+	params = model.GenSuperInitParamsWithModule()
+	test.AssertEqual(t, len(params), 6, "The number of parameters should be correct.")
 }
 
 func TestModel_GenFile_SingleFile(t *testing.T) {
