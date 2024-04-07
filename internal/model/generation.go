@@ -15,6 +15,11 @@ var generationExcludedCharacters = []string{"-", "/", "."}
 func (m *Model) GetFormattedModelName() string {
 	name := cases.Title(language.English, cases.Compact).String(m.Name)
 
+	// Check if name is empty, to avoid panic
+	if name == "" {
+		return name
+	}
+
 	// Remove special characters
 	for _, specialCharacter := range generationExcludedCharacters {
 		name = strings.ReplaceAll(name, specialCharacter, "")
@@ -151,9 +156,6 @@ func (m *Model) GenSuperInitParamsWithModule() []codegen.FunctionCallParameter {
 			Name:  "device",
 			Value: "Devices.GPU",
 		},
-		{
-			Value: "**kwargs",
-		},
 	}
 
 	if m.Source == "CUSTOM" {
@@ -166,6 +168,9 @@ func (m *Model) GenSuperInitParamsWithModule() []codegen.FunctionCallParameter {
 
 	switch m.Module {
 	case huggingface.DIFFUSERS:
+		params = append(params, codegen.FunctionCallParameter{
+			Value: "**kwargs",
+		})
 		return params
 	case huggingface.TRANSFORMERS:
 		params = append(params, codegen.FunctionCallParameter{

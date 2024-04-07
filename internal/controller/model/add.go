@@ -30,7 +30,7 @@ func (ac AddController) Run(args []string, customArgs downloadermodel.Args) erro
 		return ac.Run(args, customArgs)
 	}
 
-	warningMessage, err := ac.processAdd(selectedModel, customArgs, ac.AuthorizeDownload)
+	warningMessage, err := ac.processAdd(selectedModel, customArgs)
 	if warningMessage != "" {
 		app.UI().Warning().Println(warningMessage)
 	}
@@ -111,23 +111,23 @@ func (ac AddController) getRequestedModel(args []string, authorizationKey string
 }
 
 // processAdd processes the selected model and tries to add it
-func (ac AddController) processAdd(selectedModel model.Model, customArgs downloadermodel.Args, yes bool) (warning string, err error) {
+func (ac AddController) processAdd(selectedModel model.Model, customArgs downloadermodel.Args) (warning string, err error) {
 	var updatedModel model.Model
 
 	// Download model is only available for model.Source == huggingface
 	if selectedModel.Source == model.HUGGING_FACE {
 		// User choose if he wishes to install the model directly
 		message := fmt.Sprintf("Do you wish to directly download %s?", selectedModel.Name)
-		selectedModel.AddToBinaryFile = !customArgs.OnlyConfiguration && (yes || app.UI().AskForUsersConfirmation(message))
+		selectedModel.AddToBinaryFile = !customArgs.OnlyConfiguration && (ac.AuthorizeDownload || app.UI().AskForUsersConfirmation(message))
 
 		// Validate model for download
-		warningMessage, valid, err := config.Validate(selectedModel, yes)
+		warningMessage, valid, err := config.Validate(selectedModel, ac.AuthorizeDownload)
 		if !valid {
 			return warningMessage, err
 		}
 
 		// Try to download model
-		updatedModel, err := ac.downloadModel(selectedModel, customArgs)
+		updatedModel, err = ac.downloadModel(selectedModel, customArgs)
 		if err != nil {
 			return warning, err
 		}
@@ -168,6 +168,9 @@ func (ac AddController) processAdd(selectedModel model.Model, customArgs downloa
 		selectedModel.Class = customArgs.ModelClass
 		selectedModel.Module = huggingface.Module(customArgs.ModelModule)
 		selectedModel.PipelineTag = huggingface.TextToImage // FIXME: should not be hardcoded
+		updatedModel = selectedModel
+	} else {
+		return "", fmt.Errorf("model source %s is not supported", selectedModel.Source)
 	}
 
 	// Add models to configuration file

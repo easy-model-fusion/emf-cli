@@ -313,7 +313,7 @@ func (cg *PythonCodeGenerator) VisitImport(importStmt *Import) error {
 // VisitImportWhat visits an ImportWhat node
 func (cg *PythonCodeGenerator) VisitImportWhat(importWhat *ImportWhat) error {
 	if importWhat.Name == "" {
-		return errors.New("import what name cannot be empty")
+		return errors.New("import what \"name\" cannot be empty")
 	}
 
 	cg.append(importWhat.Name)

@@ -10,6 +10,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
+	"os"
 	"testing"
 )
 
@@ -204,6 +205,36 @@ func TestGetRequestedModel_WithValidArg(t *testing.T) {
 	// Assertions
 	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, requestedModel.Name, expectedModel.Name)
+}
+
+// Tests getRequestedModel with valid model passed in arguments and single file enabled
+func TestGetRequestedModel_WithSingleFile(t *testing.T) {
+	// Init
+	ac := AddController{
+		SingleFile: true,
+	}
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1"})
+	existingModels = append(existingModels, model.Model{Name: "model3"})
+	args := []string{"model2"}
+	expectedModel := model.Model{Name: "model2"}
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Get requested model
+	requestedModel, err := ac.getRequestedModel(args, "")
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, requestedModel.Name, expectedModel.Name)
+	test.AssertEqual(t, requestedModel.Source, model.CUSTOM)
+	test.AssertEqual(t, requestedModel.AddToBinaryFile, true)
+	test.AssertEqual(t, requestedModel.IsDownloaded, true)
 }
 
 // Tests getRequestedModel with existing model requested
@@ -401,15 +432,54 @@ func TestGetRequestedModel_WithInvalidConfigPath(t *testing.T) {
 	test.AssertNotEqual(t, err, nil)
 }
 
+// Tests process add for single file
+func TestProcessAdd_SingleFile(t *testing.T) {
+	// Init
+	ac := AddController{
+		SingleFile: true,
+	}
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"})
+	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"})
+	downloaderArgs := downloadermodel.Args{
+		ModelModule: string(huggingface.DIFFUSERS),
+		ModelClass:  "Test",
+		ModelName:   "model2",
+	}
+	selectedModel := model.Model{Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.CUSTOM, Class: "test", Path: "test.safetensors"}
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// create a sample file
+	err = os.WriteFile("test.safetensors", []byte("test"), 0644)
+	test.AssertEqual(t, err, nil)
+
+	// Process add
+	warning, err := ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertEqual(t, err, nil)
+	models, err := config.GetModels()
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, len(models), 3)
+	test.AssertEqual(t, models[2].Name, "model2")
+}
+
 // Tests process add
-func TestProcessAdd(t *testing.T) {
+func TestProcessAdd_HuggingFace(t *testing.T) {
 	// Init
 	ac := AddController{}
 	var existingModels model.Models
-	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
-	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
+	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"})
+	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"})
 	downloaderArgs := downloadermodel.Args{}
-	selectedModel := model.Model{Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"}
+	selectedModel := model.Model{Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"}
 
 	// Create full test suite with a configuration file
 	ts := test.TestSuite{}
@@ -423,7 +493,7 @@ func TestProcessAdd(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs, true)
+	warning, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertEqual(t, err, nil)
 	models, err := config.GetModels()
 
@@ -439,10 +509,10 @@ func TestProcessAdd_WithAccessToken(t *testing.T) {
 	// Init
 	ac := AddController{}
 	var existingModels model.Models
-	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
-	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
+	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE})
+	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE})
 	downloaderArgs := downloadermodel.Args{AccessToken: "testToken"}
-	selectedModel := model.Model{Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"}
+	selectedModel := model.Model{Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE}
 
 	// Create full test suite with a configuration file
 	ts := test.TestSuite{}
@@ -456,7 +526,7 @@ func TestProcessAdd_WithAccessToken(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs, true)
+	warning, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertEqual(t, err, nil)
 	token, err := dotenv.GetEnvValue("ACCESS_TOKEN_MODEL2")
 	test.AssertEqual(t, err, nil)
@@ -475,10 +545,10 @@ func TestProcessAdd_WithInvalidModel(t *testing.T) {
 	// Init
 	ac := AddController{}
 	var existingModels model.Models
-	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
-	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
+	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE})
+	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE})
 	downloaderArgs := downloadermodel.Args{}
-	selectedModel := model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"}
+	selectedModel := model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE}
 
 	// Create full test suite with a configuration file
 	ts := test.TestSuite{}
@@ -492,7 +562,7 @@ func TestProcessAdd_WithInvalidModel(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs, true)
+	warning, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertEqual(t, err, nil)
 	models, err := config.GetModels()
 
@@ -507,10 +577,10 @@ func TestProcessAdd_WithFailedDownload(t *testing.T) {
 	// Init
 	ac := AddController{}
 	var existingModels model.Models
-	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
-	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
+	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE})
+	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE})
 	downloaderArgs := downloadermodel.Args{}
-	selectedModel := model.Model{Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"}
+	selectedModel := model.Model{Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE}
 
 	// Create full test suite with a configuration file
 	ts := test.TestSuite{}
@@ -524,7 +594,7 @@ func TestProcessAdd_WithFailedDownload(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs, true)
+	warning, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertNotEqual(t, err, nil)
 	models, err := config.GetModels()
 
