@@ -11,6 +11,29 @@ description: "Description for your awesome IA application."
 # SDK Configuration
 sdk-tag: "vX.Y.Z"
 
+# The following section is used to configure the build process of the application.
+build:
+  # When you want to build for "production", you should use nuitka (it is a very long process but optimized)
+  nuitka:
+    args:
+      - "--plugin-enable=transformers"
+      - "--follow-imports"
+      - "--include-distribution-metadata=torchaudio"
+      - "--include-distribution-metadata=safetensors"
+      - "--include-distribution-metadata=accelerate"
+      - "--include-distribution-metadata=jinja2"
+      - "--include-distribution-metadata=psutil"
+      - "--include-distribution-metadata=torchaudio"
+      - "--include-distribution-metadata=torchvision"
+      - "--include-distribution-metadata=torch"
+      - "--include-distribution-metadata=transformers"
+      - "--include-distribution-metadata=diffusers"
+      - "--include-distribution-metadata=requests"
+      - "--include-distribution-metadata=filelock"
+      - "--noinclude-unittest-mode=allow"
+  pyinstaller:
+    args: []
+
 # Model Configuration
 models: []
 

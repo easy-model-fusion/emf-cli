@@ -6,14 +6,18 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/dotenv"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
+	"os"
 	"testing"
 )
 
 // Tests selectModel
 func TestSelectModel(t *testing.T) {
+	// Initialize the controller
+	ac := AddController{}
 	// Initialize models list
 	var models model.Models
 	models = append(models, model.Model{Name: "model1"})
@@ -25,7 +29,7 @@ func TestSelectModel(t *testing.T) {
 	app.SetUI(ui)
 
 	// Select models
-	selectedModel := selectModel(models)
+	selectedModel := ac.selectModel(models)
 
 	// Assertions
 	test.AssertEqual(t, models[1].Name, selectedModel.Name)
@@ -33,6 +37,8 @@ func TestSelectModel(t *testing.T) {
 
 // Tests selectTags
 func TestSelectTags(t *testing.T) {
+	// Initialize the controller
+	ac := AddController{}
 	// Initialize expected selections
 	var expectedSelections []string
 	expectedSelections = append(expectedSelections, string(huggingface.TextToImage))
@@ -42,7 +48,7 @@ func TestSelectTags(t *testing.T) {
 	app.SetUI(ui)
 
 	// Select models
-	selectedTags := selectTags()
+	selectedTags := ac.selectTags()
 
 	// Assertions
 	test.AssertEqual(t, len(selectedTags), 1, "1 tag should be returned")
@@ -51,6 +57,8 @@ func TestSelectTags(t *testing.T) {
 
 // Tests getModelsList
 func TestGetModelsList(t *testing.T) {
+	// Initialize the controller
+	ac := AddController{}
 	// Initialize tags list
 	tags := []string{"tag1"}
 	// Initialize existing expectedModels list
@@ -79,7 +87,7 @@ func TestGetModelsList(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get expectedModels list
-	models, err := getModelsList(tags, existingModels)
+	models, err := ac.getModelsList(tags, existingModels, "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
@@ -91,6 +99,8 @@ func TestGetModelsList(t *testing.T) {
 
 // Tests getModelsList throws error on failed api call
 func TestGetModelsList_Fail(t *testing.T) {
+	// Initialize the controller
+	ac := AddController{}
 	// Initialize tags list
 	tags := []string{"tag1"}
 	// Initialize existing expectedModels list
@@ -103,7 +113,7 @@ func TestGetModelsList_Fail(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get expectedModels list
-	models, err := getModelsList(tags, existingModels)
+	models, err := ac.getModelsList(tags, existingModels, "")
 
 	// Assertions
 	test.AssertNotEqual(t, err, nil)
@@ -113,6 +123,7 @@ func TestGetModelsList_Fail(t *testing.T) {
 // Tests downloadModel with addToBinary = true
 func TestDownloadModel(t *testing.T) {
 	// Init
+	ac := AddController{}
 	selectedModel := model.Model{Name: "model1", AddToBinaryFile: true}
 	var downloaderArgs downloadermodel.Args
 	var returnedModel downloadermodel.Model
@@ -122,7 +133,7 @@ func TestDownloadModel(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Download model
-	downloadedModel, err := downloadModel(selectedModel, downloaderArgs)
+	downloadedModel, err := ac.downloadModel(selectedModel, downloaderArgs)
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
@@ -132,6 +143,7 @@ func TestDownloadModel(t *testing.T) {
 // Tests downloadModel with addToBinary = false
 func TestDownloadModel_OnlyConfiguration(t *testing.T) {
 	// Init
+	ac := AddController{}
 	selectedModel := model.Model{Name: "model1"}
 	var downloaderArgs downloadermodel.Args
 	var returnedModel downloadermodel.Model
@@ -141,7 +153,7 @@ func TestDownloadModel_OnlyConfiguration(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Get model's config
-	downloadedModel, err := downloadModel(selectedModel, downloaderArgs)
+	downloadedModel, err := ac.downloadModel(selectedModel, downloaderArgs)
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
@@ -151,6 +163,7 @@ func TestDownloadModel_OnlyConfiguration(t *testing.T) {
 // Tests downloadModel failure
 func TestDownloadModel_Fail(t *testing.T) {
 	// Init
+	ac := AddController{}
 	selectedModel := model.Model{Name: "model1"}
 	var downloaderArgs downloadermodel.Args
 
@@ -159,7 +172,7 @@ func TestDownloadModel_Fail(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Download model
-	_, err := downloadModel(selectedModel, downloaderArgs)
+	_, err := ac.downloadModel(selectedModel, downloaderArgs)
 
 	// Assertions
 	test.AssertNotEqual(t, err, nil)
@@ -168,6 +181,7 @@ func TestDownloadModel_Fail(t *testing.T) {
 // Tests getRequestedModel with valid model passed in arguments
 func TestGetRequestedModel_WithValidArg(t *testing.T) {
 	// Init
+	ac := AddController{}
 	var existingModels model.Models
 	existingModels = append(existingModels, model.Model{Name: "model1"})
 	existingModels = append(existingModels, model.Model{Name: "model3"})
@@ -186,16 +200,77 @@ func TestGetRequestedModel_WithValidArg(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get requested model
-	requestedModel, err := getRequestedModel(args)
+	requestedModel, err := ac.getRequestedModel(args, "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, requestedModel.Name, expectedModel.Name)
 }
 
+// Tests getRequestedModel with valid model passed in arguments and single file enabled
+func TestGetRequestedModel_WithSingleFile(t *testing.T) {
+	// Init
+	ac := AddController{
+		SingleFile: true,
+	}
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1"})
+	existingModels = append(existingModels, model.Model{Name: "model3"})
+	args := []string{"model2"}
+	expectedModel := model.Model{Name: "model2"}
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Get requested model
+	requestedModel, err := ac.getRequestedModel(args, "")
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, requestedModel.Name, expectedModel.Name)
+	test.AssertEqual(t, requestedModel.Source, model.CUSTOM)
+	test.AssertEqual(t, requestedModel.AddToBinaryFile, true)
+	test.AssertEqual(t, requestedModel.IsDownloaded, true)
+}
+
+// Tests getRequestedModel with existing model requested (invalid single file args)
+func TestGetRequestedModel_WithInvalidSingleFile(t *testing.T) {
+	// Init
+	ac := AddController{
+		SingleFile: true,
+	}
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1"})
+	existingModels = append(existingModels, model.Model{Name: "model3"})
+	args := make([]string, 0)
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Create huggingface mock
+	huggingfaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{Name: "model2", LibraryName: huggingface.TRANSFORMERS}}
+	app.SetHuggingFace(&huggingfaceInterface)
+
+	// Get requested model
+	_, err = ac.getRequestedModel(args, "")
+
+	// Assertions
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "you need to enter a model name to use the single file option")
+}
+
 // Tests getRequestedModel with existing model requested
 func TestGetRequestedModel_WithInvalidArg(t *testing.T) {
 	// Init
+	ac := AddController{}
 	var existingModels model.Models
 	existingModels = append(existingModels, model.Model{Name: "model1"})
 	existingModels = append(existingModels, model.Model{Name: "model3"})
@@ -213,15 +288,17 @@ func TestGetRequestedModel_WithInvalidArg(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get requested model
-	_, err = getRequestedModel(args)
+	_, err = ac.getRequestedModel(args, "")
 
 	// Assertions
+	test.AssertNotEqual(t, err, nil)
 	test.AssertEqual(t, err.Error(), "the following model already exist and will be ignored : model1")
 }
 
 // Tests getRequestedModel with model not found
 func TestGetRequestedModel_WithModelNotFound(t *testing.T) {
 	// Init
+	ac := AddController{}
 	var existingModels model.Models
 	existingModels = append(existingModels, model.Model{Name: "model1"})
 	existingModels = append(existingModels, model.Model{Name: "model3"})
@@ -239,15 +316,17 @@ func TestGetRequestedModel_WithModelNotFound(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Get requested model
-	_, err = getRequestedModel(args)
+	_, err = ac.getRequestedModel(args, "")
 
 	// Assertions
+	test.AssertNotEqual(t, err, nil)
 	test.AssertEqual(t, err.Error(), "Model model2 not valid : test")
 }
 
 // Tests getRequestedModel with no arguments
 func TestGetRequestedModel_WithNoArgs(t *testing.T) {
 	// Init
+	ac := AddController{}
 	var existingModels model.Models
 	existingModels = append(existingModels, model.Model{Name: "model1"})
 	existingModels = append(existingModels, model.Model{Name: "model3"})
@@ -279,7 +358,7 @@ func TestGetRequestedModel_WithNoArgs(t *testing.T) {
 	app.SetUI(ui)
 
 	// Get requested model
-	requestedModel, err := getRequestedModel(args)
+	requestedModel, err := ac.getRequestedModel(args, "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
@@ -289,6 +368,7 @@ func TestGetRequestedModel_WithNoArgs(t *testing.T) {
 // Tests getRequestedModel with no arguments and hugging face models fetch error
 func TestGetRequestedModel_WithNoArgsWithFailedModelsFetch(t *testing.T) {
 	// Init
+	ac := AddController{}
 	var existingModels model.Models
 	existingModels = append(existingModels, model.Model{Name: "model1"})
 	existingModels = append(existingModels, model.Model{Name: "model3"})
@@ -311,7 +391,7 @@ func TestGetRequestedModel_WithNoArgsWithFailedModelsFetch(t *testing.T) {
 	app.SetUI(ui)
 
 	// Get requested model
-	_, err = getRequestedModel(args)
+	_, err = ac.getRequestedModel(args, "")
 
 	// Assertions
 	test.AssertNotEqual(t, err, nil)
@@ -320,6 +400,7 @@ func TestGetRequestedModel_WithNoArgsWithFailedModelsFetch(t *testing.T) {
 // Tests getRequestedModel with no arguments and no tags selected by the user
 func TestGetRequestedModel_WithNoArgsAndNoTags(t *testing.T) {
 	// Init
+	ac := AddController{}
 	var existingModels model.Models
 	existingModels = append(existingModels, model.Model{Name: "model1"})
 	existingModels = append(existingModels, model.Model{Name: "model3"})
@@ -338,7 +419,7 @@ func TestGetRequestedModel_WithNoArgsAndNoTags(t *testing.T) {
 	app.SetUI(ui)
 
 	// Get requested model
-	requestedModel, err := getRequestedModel(args)
+	requestedModel, err := ac.getRequestedModel(args, "")
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
@@ -348,6 +429,7 @@ func TestGetRequestedModel_WithNoArgsAndNoTags(t *testing.T) {
 // Tests getRequestedModel with more than 1 argument
 func TestGetRequestedModel_WithTooManyArgs(t *testing.T) {
 	// Init
+	ac := AddController{}
 	var existingModels model.Models
 	existingModels = append(existingModels, model.Model{Name: "model1"})
 	existingModels = append(existingModels, model.Model{Name: "model3"})
@@ -361,7 +443,7 @@ func TestGetRequestedModel_WithTooManyArgs(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Get requested model
-	_, err = getRequestedModel(args)
+	_, err = ac.getRequestedModel(args, "")
 
 	// Assertions
 	test.AssertEqual(t, err.Error(), "you can enter only one model at a time")
@@ -369,25 +451,34 @@ func TestGetRequestedModel_WithTooManyArgs(t *testing.T) {
 
 // Tests getRequestedModel with invalid configuration path
 func TestGetRequestedModel_WithInvalidConfigPath(t *testing.T) {
+	// Initialize the controller
+	ac := AddController{}
 	// Create mock UI
 	ui := mock.MockUI{UserInputResult: "invalid"}
 	app.SetUI(ui)
 
 	// Get requested model
-	_, err := getRequestedModel([]string{})
+	_, err := ac.getRequestedModel([]string{}, "")
 
 	// Assertions
 	test.AssertNotEqual(t, err, nil)
 }
 
-// Tests process add
-func TestProcessAdd(t *testing.T) {
+// Tests process add for single file
+func TestProcessAdd_SingleFile(t *testing.T) {
 	// Init
+	ac := AddController{
+		SingleFile: true,
+	}
 	var existingModels model.Models
-	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
-	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
-	downloaderArgs := downloadermodel.Args{}
-	selectedModel := model.Model{Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"}
+	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"})
+	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"})
+	downloaderArgs := downloadermodel.Args{
+		ModelModule: string(huggingface.DIFFUSERS),
+		ModelClass:  "Test",
+		ModelName:   "model2",
+	}
+	selectedModel := model.Model{Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.CUSTOM, Class: "test", Path: "test.safetensors"}
 
 	// Create full test suite with a configuration file
 	ts := test.TestSuite{}
@@ -396,12 +487,12 @@ func TestProcessAdd(t *testing.T) {
 	err := setupConfigFile(existingModels)
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
-	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
-	app.SetDownloader(&downloader)
+	// create a sample file
+	err = os.WriteFile("test.safetensors", []byte("test"), 0644)
+	test.AssertEqual(t, err, nil)
 
 	// Process add
-	warning, err := processAdd(selectedModel, downloaderArgs, true)
+	warning, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertEqual(t, err, nil)
 	models, err := config.GetModels()
 
@@ -412,14 +503,81 @@ func TestProcessAdd(t *testing.T) {
 	test.AssertEqual(t, models[2].Name, "model2")
 }
 
-// Tests process add with invalid model
-func TestProcessAdd_WithInvalidModel(t *testing.T) {
+// Tests process add for single file
+func TestProcessAdd_SingleFileMissingParams(t *testing.T) {
 	// Init
+	ac := AddController{
+		SingleFile: true,
+	}
 	var existingModels model.Models
-	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
-	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
+	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"})
+	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"})
 	downloaderArgs := downloadermodel.Args{}
-	selectedModel := model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"}
+	selectedModel := model.Model{
+		Source: "notexistingsource",
+	}
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// test source not supported
+	_, err = ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "model source notexistingsource is not supported")
+
+	selectedModel.Source = model.CUSTOM
+
+	// test ModelClass missing
+	_, err = ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "model class is required for single file model")
+
+	downloaderArgs.ModelClass = "test"
+
+	// test ModelModule missing
+	_, err = ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "model module is required for single file model")
+
+	downloaderArgs.ModelModule = string(huggingface.TRANSFORMERS)
+
+	// test wrong ModelModule
+	_, err = ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "currently only diffusers models are supported for single file model")
+
+	downloaderArgs.ModelModule = string(huggingface.DIFFUSERS)
+	selectedModel.Path = "test.safetensors"
+
+	// test file not found
+	_, err = ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "file test.safetensors does not exist")
+
+	// test file is folder
+	err = os.Mkdir("test.safetensors", 0755)
+	test.AssertEqual(t, err, nil)
+	_, err = ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "file test.safetensors is a directory")
+
+	// Assertions
+	//Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.CUSTOM, Class: "test", Path: "test.safetensors"
+}
+
+// Tests process add
+func TestProcessAdd_HuggingFace(t *testing.T) {
+	// Init
+	ac := AddController{}
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"})
+	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"})
+	downloaderArgs := downloadermodel.Args{}
+	selectedModel := model.Model{Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"}
 
 	// Create full test suite with a configuration file
 	ts := test.TestSuite{}
@@ -433,7 +591,76 @@ func TestProcessAdd_WithInvalidModel(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := processAdd(selectedModel, downloaderArgs, true)
+	warning, err := ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertEqual(t, err, nil)
+	models, err := config.GetModels()
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, len(models), 3)
+	test.AssertEqual(t, models[2].Name, "model2")
+}
+
+// Tests process add with access token
+func TestProcessAdd_WithAccessToken(t *testing.T) {
+	// Init
+	ac := AddController{}
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE})
+	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE})
+	downloaderArgs := downloadermodel.Args{AccessToken: "testToken"}
+	selectedModel := model.Model{Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE}
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	//Create downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	app.SetDownloader(&downloader)
+
+	// Process add
+	warning, err := ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertEqual(t, err, nil)
+	token, err := dotenv.GetEnvValue("ACCESS_TOKEN_MODEL2")
+	test.AssertEqual(t, err, nil)
+	models, err := config.GetModels()
+
+	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, len(models), 3)
+	test.AssertEqual(t, models[2].Name, "model2")
+	test.AssertEqual(t, token, "testToken")
+}
+
+// Tests process add with invalid model
+func TestProcessAdd_WithInvalidModel(t *testing.T) {
+	// Init
+	ac := AddController{}
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE})
+	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE})
+	downloaderArgs := downloadermodel.Args{}
+	selectedModel := model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE}
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	//Create downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	app.SetDownloader(&downloader)
+
+	// Process add
+	warning, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertEqual(t, err, nil)
 	models, err := config.GetModels()
 
@@ -446,11 +673,12 @@ func TestProcessAdd_WithInvalidModel(t *testing.T) {
 // Tests process add with failed download
 func TestProcessAdd_WithFailedDownload(t *testing.T) {
 	// Init
+	ac := AddController{}
 	var existingModels model.Models
-	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
-	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"})
+	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE})
+	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE})
 	downloaderArgs := downloadermodel.Args{}
-	selectedModel := model.Model{Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test"}
+	selectedModel := model.Model{Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Class: "test", Source: model.HUGGING_FACE}
 
 	// Create full test suite with a configuration file
 	ts := test.TestSuite{}
@@ -464,7 +692,7 @@ func TestProcessAdd_WithFailedDownload(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := processAdd(selectedModel, downloaderArgs, true)
+	warning, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertNotEqual(t, err, nil)
 	models, err := config.GetModels()
 
@@ -474,9 +702,10 @@ func TestProcessAdd_WithFailedDownload(t *testing.T) {
 	test.AssertEqual(t, len(models), 2)
 }
 
-// Tests RunAdd
-func TestRunAdd(t *testing.T) {
+// Tests Run
+func TestAddController_Run(t *testing.T) {
 	// Init
+	ac := AddController{}
 	var existingModels model.Models
 	existingModels = append(existingModels, model.Model{Name: "model1"})
 	existingModels = append(existingModels, model.Model{Name: "model3"})
@@ -499,7 +728,7 @@ func TestRunAdd(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Run add method
-	RunAdd(args, downloaderArgs, true)
+	_ = ac.Run(args, downloaderArgs)
 	models, err := config.GetModels()
 
 	// Assertions
@@ -509,8 +738,9 @@ func TestRunAdd(t *testing.T) {
 }
 
 // Tests RunAdd with invalid model
-func TestRunAdd_WithInvalidModel(t *testing.T) {
+func TestAddController_Run_WithInvalidModel(t *testing.T) {
 	// Init
+	ac := AddController{}
 	var existingModels model.Models
 	existingModels = append(existingModels, model.Model{Name: "model1"})
 	existingModels = append(existingModels, model.Model{Name: "model3"})
@@ -533,7 +763,9 @@ func TestRunAdd_WithInvalidModel(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Run add method
-	RunAdd(args, downloaderArgs, true)
+	err = ac.Run(args, downloaderArgs)
+	test.AssertNotEqual(t, err, nil)
+
 	models, err := config.GetModels()
 
 	// Assertions

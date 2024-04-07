@@ -1,6 +1,7 @@
 package mock
 
 import (
+	"context"
 	"github.com/easy-model-fusion/emf-cli/internal/ui"
 )
 
@@ -47,7 +48,7 @@ func (m MockPython) ExecutePip(_ string, _ []string) error {
 	return m.ExecutePipError
 }
 
-func (m MockPython) ExecuteScript(_, _ string, _ []string) ([]byte, error, int) {
+func (m MockPython) ExecuteScript(_, _ string, _ []string, _ context.Context) ([]byte, error, int) {
 	m.callFunction("ExecuteScript")
 	return m.ScriptResult, m.ExecuteScriptError, m.ScriptExit
 }

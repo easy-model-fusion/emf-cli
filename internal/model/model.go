@@ -2,9 +2,11 @@ package model
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/dotenv"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"path"
+	"strings"
 )
 
 type Models []Model
@@ -20,6 +22,7 @@ type Model struct {
 	AddToBinaryFile bool
 	IsDownloaded    bool
 	Version         string
+	AccessToken     string
 }
 
 type Tokenizers []Tokenizer
@@ -127,6 +130,24 @@ func (m Models) FilterWithNames(namesSlice []string) Models {
 	return namesModels
 }
 
+// FilterWithClass retrieves the tokenizers by their class given an input slice.
+func (t Tokenizers) FilterWithClass(namesSlice []string) Tokenizers {
+	// Create a map for faster lookup
+	namesMap := stringutil.SliceToMap(namesSlice)
+
+	// Slice of all the Tokenizers that were found
+	var namesTokenizers Tokenizers
+
+	// Find the requested Tokenizer
+	for _, existingTokenizer := range t {
+		// Check if this tokenizer exists and adds it to the result
+		if _, exists := namesMap[existingTokenizer.Class]; exists {
+			namesTokenizers = append(namesTokenizers, existingTokenizer)
+		}
+	}
+	return namesTokenizers
+}
+
 // FilterWithSourceHuggingface return a sub-slice of models sourcing from huggingface.
 func (m Models) FilterWithSourceHuggingface() Models {
 	var huggingfaceModels Models
@@ -167,15 +188,17 @@ func (m *Model) GetBasePath() string {
 
 // UpdatePaths to update the model's path to elements accordingly to its configuration.
 func (m *Model) UpdatePaths() {
-	basePath := m.GetBasePath()
-	modelPath := basePath
-	if m.Module == huggingface.TRANSFORMERS {
-		modelPath = path.Join(modelPath, "model")
-		for i, tokenizer := range m.Tokenizers {
-			m.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
+	if m.Path == "" {
+		basePath := m.GetBasePath()
+		modelPath := basePath
+		if m.Module == huggingface.TRANSFORMERS {
+			modelPath = path.Join(modelPath, "model")
+			for i, tokenizer := range m.Tokenizers {
+				m.Tokenizers[i].Path = path.Join(basePath, tokenizer.Class)
+			}
 		}
+		m.Path = modelPath
 	}
-	m.Path = modelPath
 }
 
 // Difference returns the models in that are not present in `slice`
@@ -197,4 +220,39 @@ func (t Tokenizers) ContainsByClass(class string) bool {
 		}
 	}
 	return false
+}
+
+// SetAccessTokenKey sets unique access token key for model
+func (m *Model) setAccessTokenKey() error {
+	// Convert model name to upper case
+	key := strings.ToUpper(m.Name)
+	// Replace "/", "." and "-" with "_"
+	key = strings.ReplaceAll(key, "/", "_")
+	key = strings.ReplaceAll(key, ".", "_")
+	key = strings.ReplaceAll(key, "-", "_")
+
+	// Prepend "ACCESS_TOKEN_" to the key
+	key = "ACCESS_TOKEN_" + key
+
+	// Check for duplicates
+	key, err := dotenv.SetNewEnvKey(key)
+	if err != nil {
+		return err
+	}
+	m.AccessToken = key
+	return nil
+}
+
+// SaveAccessToken saves the access token in the .env file
+func (m *Model) SaveAccessToken(accessToken string) error {
+	err := m.setAccessTokenKey()
+	if err != nil {
+		return err
+	}
+	return dotenv.AddNewEnvVariable(m.AccessToken, accessToken)
+}
+
+// GetAccessToken gets the access token from the .env file
+func (m *Model) GetAccessToken() (string, error) {
+	return dotenv.GetEnvValue(m.AccessToken)
 }

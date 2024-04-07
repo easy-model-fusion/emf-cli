@@ -73,7 +73,7 @@ func TestCopyEmbeddedFile(t *testing.T) {
 	// Verify that the destination file now exists
 	_, err = os.Stat(destinationFile)
 	if err != nil {
-		t.Fatalf("Destination file not created: %v", err)
+		t.Fatalf("DestinationDir file not created: %v", err)
 	}
 
 	// Read the content of the destination file

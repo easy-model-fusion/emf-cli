@@ -11,47 +11,60 @@ import (
 	"path/filepath"
 )
 
-func RunTidy() {
+type TidyController struct{}
+
+func (tc TidyController) RunTidy(yes bool, accessToken string) error {
 	// get all models from config file
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
 		app.UI().Error().Println(err.Error())
+		return err
 	}
 
-	sdk.SendUpdateSuggestion() // TODO: here proxy?
+	sdk.SendUpdateSuggestion()
 
 	models, err := config.GetModels()
 	if err != nil {
 		app.UI().Error().Println(err.Error())
-		return
+		return err
 	}
 
 	// Tidy the models configured but not physically present on the device
-	tidyModelsConfiguredButNotDownloaded(models)
+	app.UI().Info().Println("Verifying if all models are downloaded...")
+	warningMessages := tc.tidyModelsConfiguredButNotDownloaded(models, accessToken)
+	if len(warningMessages) > 0 {
+		for _, warning := range warningMessages {
+			app.UI().Warning().Println(warning)
+		}
+	}
 
 	// Tidy the models physically present on the device but not configured
-	tidyModelsDownloadedButNotConfigured(models)
+	app.UI().Info().Println("Verifying if all downloaded models are configured...")
+	tc.tidyModelsDownloadedButNotConfigured(models, yes, accessToken)
 
 	// Updating the models object since the configuration might have changed in between
 	models, err = config.GetModels()
 	if err != nil {
 		app.UI().Error().Println(err.Error())
-		return
+		return err
 	}
 
 	// Regenerate python code
-	err = regenerateCode(models)
+	spinner := app.UI().StartSpinner("Generating python code...")
+	err = tc.regenerateCode(models)
 	if err != nil {
-		app.UI().Error().Println(err.Error())
-		return
+		spinner.Fail(fmt.Sprintf("Error while generating python: %s", err))
+		return err
 	}
+	spinner.Success()
+
+	return nil
 }
 
 // tidyModelsConfiguredButNotDownloaded downloads any missing model and its missing tokenizers as well
-func tidyModelsConfiguredButNotDownloaded(models model.Models) {
-	app.UI().Info().Println("Verifying if all models are downloaded...")
+func (tc TidyController) tidyModelsConfiguredButNotDownloaded(models model.Models, accessToken string) (warnings []string) {
 	// filter the models that should be added to binary
-	models = models.FilterWithAddToBinaryFileTrue()
+	models = models.FilterWithIsDownloadedTrue()
 
 	// Search for the models that need to be downloaded
 	var downloadedModels model.Models
@@ -60,7 +73,11 @@ func tidyModelsConfiguredButNotDownloaded(models model.Models) {
 	// Tidying the configured but not downloaded models and also processing their tokenizers
 	for _, current := range models {
 
-		success, clean := current.TidyConfiguredModel()
+		warning, success, clean := current.TidyConfiguredModel(accessToken)
+		if warning != "" {
+			warnings = append(warnings, warning)
+		}
+
 		if !success {
 			failedModels = append(failedModels, current.Name)
 		} else if !clean {
@@ -72,7 +89,7 @@ func tidyModelsConfiguredButNotDownloaded(models model.Models) {
 
 	// Displaying the downloads that failed
 	if len(failedModels) > 0 {
-		app.UI().Error().Println(fmt.Sprintf("The following models(s) couldn't be downloaded : %s", failedModels))
+		warnings = append(warnings, fmt.Sprintf("The following models(s) couldn't be downloaded : %s", failedModels))
 	}
 
 	if len(downloadedModels) > 0 {
@@ -85,15 +102,14 @@ func tidyModelsConfiguredButNotDownloaded(models model.Models) {
 			spinner.Success()
 		}
 	}
+	return warnings
 }
 
 // tidyModelsDownloadedButNotConfigured configuring the downloaded models that aren't configured in the configuration file
 // and then asks the user if he wants to delete them or add them to the configuration file
-func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
-	app.UI().Info().Println("Verifying if all downloaded models are configured...")
-
+func (tc TidyController) tidyModelsDownloadedButNotConfigured(configModels model.Models, yes bool, accessToken string) {
 	// Get the list of downloaded models
-	downloadedModels := model.BuildModelsFromDevice()
+	downloadedModels := model.BuildModelsFromDevice(accessToken)
 
 	// Building map for faster lookup
 	mapConfigModels := configModels.Map()
@@ -119,12 +135,11 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 				current.Class = current.GetModuleAutoPipelineClassName()
 			}
 		}
-
 		// Model not configured
 		if !configured {
 
 			// Asking for permission to configure
-			configure := app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' wasn't found in your "+
+			configure := yes || app.UI().AskForUsersConfirmation(fmt.Sprintf("Model '%s' wasn't found in your "+
 				"configuration file. Confirm to configure, otherwise it will be removed.", current.Name))
 
 			// User chose to configure it
@@ -164,7 +179,7 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 				if !configured {
 
 					// Asking for permission to configure
-					configure := app.UI().AskForUsersConfirmation(fmt.Sprintf("Tokenizer '%s' for model '%s' wasn't found in your "+
+					configure := yes || app.UI().AskForUsersConfirmation(fmt.Sprintf("Tokenizer '%s' for model '%s' wasn't found in your "+
 						"configuration file. Confirm to configure, otherwise it will be removed.", tokenizer.Class, current.Name))
 
 					// User chose to configure it
@@ -208,15 +223,12 @@ func tidyModelsDownloadedButNotConfigured(configModels model.Models) {
 }
 
 // regenerateCode generates new default python code
-func regenerateCode(models model.Models) error {
+func (tc TidyController) regenerateCode(models model.Models) error {
 	// TODO: modify this logic when code generator is completed
-	app.UI().Info().Println("Generating new default python code...")
-
 	err := config.GenerateModelsPythonCode(models)
 	if err != nil {
 		return err
 	}
 
-	app.UI().Success().Println("Python code generated")
 	return nil
 }

@@ -12,8 +12,10 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	app.Init("", "")
-	app.InitGit("", "")
+	app.SetUI(&mock.MockUI{})
+	app.SetGit(&mock.MockGit{})
+	app.SetPython(&mock.MockPython{})
+	app.SetDownloader(&mock.MockDownloader{})
 	os.Exit(m.Run())
 }
 

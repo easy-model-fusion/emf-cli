@@ -34,11 +34,11 @@ func (m MockUI) AskForUsersInput(_ string) string {
 	return m.UserInputResult
 }
 
-func (m MockUI) DisplayInteractiveMultiselect(_ string, _ []string, _ ui.Checkmark, _, _ bool) []string {
+func (m MockUI) DisplayInteractiveMultiselect(_ string, _ []string, _ ui.Checkmark, _, _ bool, _ int) []string {
 	return m.MultiselectResult
 }
 
-func (m MockUI) DisplayInteractiveSelect(_ string, _ []string, _ bool) string {
+func (m MockUI) DisplayInteractiveSelect(_ string, _ []string, _ bool, _ int) string {
 	return m.SelectResult
 }
 
@@ -76,6 +76,29 @@ func (m MockUI) Warning() ui.Printer {
 func (m MockUI) DefaultBox() ui.Printer {
 	return &mockPrinter{
 		printerType: "default-box",
+	}
+}
+
+func (m MockUI) Green(a ...interface{}) string {
+	return fmt.Sprint(a...)
+}
+
+func (m MockUI) Red(a ...interface{}) string {
+	return fmt.Sprint(a...)
+}
+
+func (m MockUI) Yellow(a ...interface{}) string {
+	return fmt.Sprint(a...)
+}
+
+func (m MockUI) Blue(a ...interface{}) string {
+	return fmt.Sprint(a...)
+}
+
+func (m MockUI) BasicCheckmark() ui.Checkmark {
+	return ui.Checkmark{
+		Checked:   "+",
+		Unchecked: "-",
 	}
 }
 
