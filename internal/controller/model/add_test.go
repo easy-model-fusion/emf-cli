@@ -237,6 +237,36 @@ func TestGetRequestedModel_WithSingleFile(t *testing.T) {
 	test.AssertEqual(t, requestedModel.IsDownloaded, true)
 }
 
+// Tests getRequestedModel with existing model requested (invalid single file args)
+func TestGetRequestedModel_WithInvalidSingleFile(t *testing.T) {
+	// Init
+	ac := AddController{
+		SingleFile: true,
+	}
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1"})
+	existingModels = append(existingModels, model.Model{Name: "model3"})
+	args := make([]string, 0)
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// Create huggingface mock
+	huggingfaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{Name: "model2", LibraryName: huggingface.TRANSFORMERS}}
+	app.SetHuggingFace(&huggingfaceInterface)
+
+	// Get requested model
+	_, err = ac.getRequestedModel(args, "")
+
+	// Assertions
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "you need to enter a model name to use the single file option")
+}
+
 // Tests getRequestedModel with existing model requested
 func TestGetRequestedModel_WithInvalidArg(t *testing.T) {
 	// Init
@@ -261,6 +291,7 @@ func TestGetRequestedModel_WithInvalidArg(t *testing.T) {
 	_, err = ac.getRequestedModel(args, "")
 
 	// Assertions
+	test.AssertNotEqual(t, err, nil)
 	test.AssertEqual(t, err.Error(), "the following model already exist and will be ignored : model1")
 }
 
@@ -288,6 +319,7 @@ func TestGetRequestedModel_WithModelNotFound(t *testing.T) {
 	_, err = ac.getRequestedModel(args, "")
 
 	// Assertions
+	test.AssertNotEqual(t, err, nil)
 	test.AssertEqual(t, err.Error(), "Model model2 not valid : test")
 }
 
@@ -469,6 +501,72 @@ func TestProcessAdd_SingleFile(t *testing.T) {
 	test.AssertEqual(t, warning, "")
 	test.AssertEqual(t, len(models), 3)
 	test.AssertEqual(t, models[2].Name, "model2")
+}
+
+// Tests process add for single file
+func TestProcessAdd_SingleFileMissingParams(t *testing.T) {
+	// Init
+	ac := AddController{
+		SingleFile: true,
+	}
+	var existingModels model.Models
+	existingModels = append(existingModels, model.Model{Name: "model1", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"})
+	existingModels = append(existingModels, model.Model{Name: "model3", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.HUGGING_FACE, Class: "test"})
+	downloaderArgs := downloadermodel.Args{}
+	selectedModel := model.Model{
+		Source: "notexistingsource",
+	}
+
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(existingModels)
+	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
+
+	// test source not supported
+	_, err = ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "model source notexistingsource is not supported")
+
+	selectedModel.Source = model.CUSTOM
+
+	// test ModelClass missing
+	_, err = ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "model class is required for single file model")
+
+	downloaderArgs.ModelClass = "test"
+
+	// test ModelModule missing
+	_, err = ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "model module is required for single file model")
+
+	downloaderArgs.ModelModule = string(huggingface.TRANSFORMERS)
+
+	// test wrong ModelModule
+	_, err = ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "currently only diffusers models are supported for single file model")
+
+	downloaderArgs.ModelModule = string(huggingface.DIFFUSERS)
+	selectedModel.Path = "test.safetensors"
+
+	// test file not found
+	_, err = ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "file test.safetensors does not exist")
+
+	// test file is folder
+	err = os.Mkdir("test.safetensors", 0755)
+	test.AssertEqual(t, err, nil)
+	_, err = ac.processAdd(selectedModel, downloaderArgs)
+	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, err.Error(), "file test.safetensors is a directory")
+
+	// Assertions
+	//Name: "model2", PipelineTag: huggingface.TextToImage, Module: huggingface.DIFFUSERS, Source: model.CUSTOM, Class: "test", Path: "test.safetensors"
 }
 
 // Tests process add
