@@ -69,3 +69,17 @@ models: []
 #      addtobinaryfile: true
 #      isdownloaded: true
 #      version: "2024-02-06T12:36:24.000Z"
+
+# Diffusers model (single file)
+#  - name: stabilityai/sdxl-turbo
+#      path: models/sdxl-turbo.safetensors
+#      module: diffusers
+#      class: StableDiffusionXLPipeline
+#      options:
+#        torch_dtype: torch.float16
+#      tokenizers: []
+#      pipelinetag: text-to-image
+#      source: custom
+#      addtobinaryfile: true
+#      isdownloaded: true
+#      version: "2023-12-07T18:04:49.000Z"
