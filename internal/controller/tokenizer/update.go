@@ -49,23 +49,31 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 		return warning, info, err
 	}
 
-	// No model name in args
-	if len(args) < 1 {
-		return warning, info, fmt.Errorf("enter a model in argument")
-	}
-
 	// Get all configured models objects/names and args model
 	models, err := config.GetModels()
 	if err != nil {
 		return warning, info, fmt.Errorf("error get model: %s", err.Error())
 	}
+	var modelToUse model.Model
 
-	// Checks the presence of the model
-	selectedModel := args[0]
 	configModelsMap := models.Map()
-	modelToUse, exists := configModelsMap[selectedModel]
-	if !exists {
-		return warning, "Model is not configured", err
+	if len(args) == 0 {
+		// Get selected models from select
+		modelToUse = selectModel(models, configModelsMap)
+	} else {
+		// Get the selected models from the args
+		selectedModelName := args[0]
+		var exists bool
+		modelToUse, exists = configModelsMap[selectedModelName]
+		if !exists {
+			return warning, "Model is not configured", err
+		}
+		// Verify model's module
+		if modelToUse.Module != huggingface.TRANSFORMERS {
+			return warning, info, fmt.Errorf("only transformers models have tokenizers")
+		}
+		// Remove model name from arguments
+		args = args[1:]
 	}
 
 	// Verify model's module
@@ -75,8 +83,6 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 
 	var updateTokenizers model.Tokenizers
 	var failedTokenizers []string
-	// Remove model name from arguments
-	args = args[1:]
 
 	// Extracting available tokenizers
 	availableNames := modelToUse.Tokenizers.GetNames()
