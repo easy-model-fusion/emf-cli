@@ -23,38 +23,44 @@ import (
 	"time"
 )
 
-type BuildController struct{}
+type BuildController struct {
+	DestinationDir string
+	CustomName     string
+	OneFile        bool
+	ModelsSymlink  bool
+	Library        string
+}
 
 // Run runs the build command
-func (bc BuildController) Run(customName, library, destDir string, oneFile, modelsSymlink bool) error {
+func (bc BuildController) Run() error {
 	if err := config.GetViperConfig("."); err != nil {
 		return err
 	}
 
 	sdk.SendUpdateSuggestion()
 
-	if library != "pyinstaller" && library != "nuitka" {
+	if bc.Library != "pyinstaller" && bc.Library != "nuitka" {
 		return fmt.Errorf("invalid library selected")
 	}
 
 	// check if destDir exists
-	if _, err := os.Stat(destDir); os.IsNotExist(err) {
-		app.UI().Info().Println(fmt.Sprintf("Creating dist folder %s", destDir))
-		err = os.Mkdir(destDir, os.ModePerm)
+	if _, err := os.Stat(bc.DestinationDir); os.IsNotExist(err) {
+		app.UI().Info().Println(fmt.Sprintf("Creating dist folder %s", bc.DestinationDir))
+		err = os.Mkdir(bc.DestinationDir, os.ModePerm)
 		if err != nil {
 			return fmt.Errorf("error creating dist folder: %s", err.Error())
 		}
 	}
 
 	// Install dependencies
-	pythonPath, err := bc.InstallDependencies(library)
+	pythonPath, err := bc.InstallDependencies(bc.Library)
 	if err != nil {
 		return err
 	}
 
 	var libraryPath string
 
-	switch library {
+	switch bc.Library {
 	case "pyinstaller":
 		libraryPath, err = app.Python().FindVEnvExecutable(".venv", "pyinstaller")
 		if err != nil {
@@ -65,17 +71,17 @@ func (bc BuildController) Run(customName, library, destDir string, oneFile, mode
 	}
 
 	// Build the project
-	err = bc.Build(customName, library, destDir, libraryPath, oneFile)
+	err = bc.Build(libraryPath)
 	if err != nil {
 		return err
 	}
 
-	if !modelsSymlink {
+	if !bc.ModelsSymlink {
 		return nil
 	}
 
 	// Create symbolic link to models
-	err = bc.createModelsSymbolicLink(destDir)
+	err = bc.createModelsSymbolicLink()
 	if err != nil {
 		return fmt.Errorf("error creating symbolic link: %s", err.Error())
 	}
@@ -83,31 +89,31 @@ func (bc BuildController) Run(customName, library, destDir string, oneFile, mode
 }
 
 // createBuildArgs creates the arguments for the build command
-func (bc BuildController) createBuildArgs(customName, library, destDir string, oneFile bool) []string {
+func (bc BuildController) createBuildArgs() []string {
 	var buildArgs []string
 
-	if customName == "" {
-		customName = viper.GetString("name")
+	if bc.CustomName == "" {
+		bc.CustomName = viper.GetString("name")
 	}
 
-	switch library {
+	switch bc.Library {
 	case "pyinstaller":
-		if oneFile {
+		if bc.OneFile {
 			buildArgs = append(buildArgs, "-F")
 		}
 
-		buildArgs = append(buildArgs, fmt.Sprintf("--name=%s", customName))
-		buildArgs = append(buildArgs, fmt.Sprintf("--distpath=%s", destDir))
+		buildArgs = append(buildArgs, fmt.Sprintf("--name=%s", bc.CustomName))
+		buildArgs = append(buildArgs, fmt.Sprintf("--distpath=%s", bc.DestinationDir))
 		buildArgs = append(buildArgs, viper.GetStringSlice("build.pyinstaller.args")...)
 	case "nuitka":
 		buildArgs = append(buildArgs, "-m nuitka")
 
-		if oneFile {
+		if bc.OneFile {
 			buildArgs = append(buildArgs, "--onefile")
 		}
 
-		buildArgs = append(buildArgs, fmt.Sprintf("--python-flag=-o %s", customName))
-		buildArgs = append(buildArgs, fmt.Sprintf("--output-dir=%s", destDir))
+		buildArgs = append(buildArgs, fmt.Sprintf("--python-flag=-o %s", bc.CustomName))
+		buildArgs = append(buildArgs, fmt.Sprintf("--output-dir=%s", bc.DestinationDir))
 		buildArgs = append(buildArgs, viper.GetStringSlice("build.nuitka.args")...)
 	}
 
@@ -138,12 +144,12 @@ func (bc BuildController) InstallDependencies(library string) (string, error) {
 }
 
 // Build builds the project
-func (bc BuildController) Build(customName, library, destDir, libraryPath string, oneFile bool) (err error) {
-	buildArgs := bc.createBuildArgs(customName, library, destDir, oneFile)
+func (bc BuildController) Build(libraryPath string) (err error) {
+	buildArgs := bc.createBuildArgs()
 
-	app.UI().Info().Println(fmt.Sprintf("Building project using %s...", library))
+	app.UI().Info().Println(fmt.Sprintf("Building project using %s...", bc.Library))
 	app.UI().Info().Println(fmt.Sprintf("Using the following arguments: %s", buildArgs))
-	app.UI().Info().Println(fmt.Sprintf("The project will be built to %s", destDir))
+	app.UI().Info().Println(fmt.Sprintf("The project will be built to %s", bc.DestinationDir))
 
 	// Setup signal catching
 	ctx, cancel := context.WithCancel(context.Background())
@@ -184,10 +190,10 @@ func (bc BuildController) Build(customName, library, destDir, libraryPath string
 }
 
 // createModelsSymbolicLink creates a symbolic link to the models folder
-func (bc BuildController) createModelsSymbolicLink(destDir string) error {
+func (bc BuildController) createModelsSymbolicLink() error {
 	// Create symbolic link to models
 	modelsPath := "models"
-	distPath := path.Join(destDir, "models")
+	distPath := path.Join(bc.DestinationDir, "models")
 
 	app.UI().Info().Println(fmt.Sprintf("Creating symbolic link from %s to %s", modelsPath, distPath))
 
@@ -197,7 +203,7 @@ func (bc BuildController) createModelsSymbolicLink(destDir string) error {
 	}
 
 	// Check if dist folder exists
-	if _, err := os.Stat(destDir); os.IsNotExist(err) {
+	if _, err := os.Stat(bc.DestinationDir); os.IsNotExist(err) {
 		return fmt.Errorf("dist folder does not exist")
 	}
 

@@ -21,7 +21,7 @@ func (tc TidyController) RunTidy(yes bool, accessToken string) error {
 		return err
 	}
 
-	sdk.SendUpdateSuggestion() // TODO: here proxy?
+	sdk.SendUpdateSuggestion()
 
 	models, err := config.GetModels()
 	if err != nil {
