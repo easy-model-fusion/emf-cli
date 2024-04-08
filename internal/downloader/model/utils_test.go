@@ -162,8 +162,8 @@ func TestToPython(t *testing.T) {
 	// Init
 	args := Args{
 		ModelName:         "model",
-		ModelModule:       "module",
 		ModelClass:        "class",
+		ModelModule:       "module",
 		DirectoryPath:     "/path/to/download",
 		ModelOptions:      []string{"opt1=val1", "opt2=val2"},
 		TokenizerClass:    "tokenizer",
@@ -175,8 +175,9 @@ func TestToPython(t *testing.T) {
 	}
 	expected := []string{
 		TagPrefix + EmfClient, TagPrefix + Overwrite,
-		"/path/to/download", "model", "module",
+		"/path/to/download", "model",
 		TagPrefix + ModelClass, "class",
+		TagPrefix + ModelModule, "module",
 		TagPrefix + ModelOptions, "opt1=val1", "opt2=val2",
 		TagPrefix + TokenizerClass, "tokenizer",
 		TagPrefix + TokenizerOptions, "tok_opt1=val1",
