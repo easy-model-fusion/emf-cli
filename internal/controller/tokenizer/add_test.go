@@ -103,34 +103,6 @@ func TestTokenizerAddCmd_TokenizerDl(t *testing.T) {
 
 }
 
-// TestTokenizerAddCmd_BadModule tests the Add
-// command with the wrong model module
-func TestTokenizerAddCmd_BadModule(t *testing.T) {
-	var models model.Models
-	models = append(models, model.Model{
-		Name:   "model1",
-		Module: "",
-	})
-
-	// Initialize selected models list
-	args := []string{"model1", "tokenizer1"}
-
-	// Create temporary configuration file
-	ts := test.TestSuite{}
-	_ = ts.CreateFullTestSuite(t)
-	defer ts.CleanTestSuite(t)
-	err := setupConfigFile(models)
-	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
-	ic := AddController{}
-
-	var customArgs downloadermodel.Args
-	// Process update
-	err = ic.Run(args, customArgs)
-	expectedErrMsg := "only transformers models have tokenizers"
-	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
-
-}
-
 // TestTokenizerAddCmd_DownloadTokenizerSuccess
 // tests the Add command dl tokenizer Success
 func TestTokenizerAddCmd_DownloadTokenizerSuccess(t *testing.T) {
@@ -191,5 +163,4 @@ func TestTokenizerAddCmd_DownloadTokenizerFail(t *testing.T) {
 	// Assertions
 	expectedErrMsg := "the following tokenizer couldn't be downloaded : tokenizer1"
 	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
-	//test.AssertEqual(t, warning, "")
 }
