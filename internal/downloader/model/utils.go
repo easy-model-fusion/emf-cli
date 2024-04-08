@@ -66,11 +66,14 @@ func (a *Args) ToCobraTokenizer(cmd *cobra.Command) {
 func (a *Args) ToPython() []string {
 
 	// Mandatory arguments
-	cmdArgs := []string{TagPrefix + EmfClient, TagPrefix + Overwrite, a.DirectoryPath, a.ModelName, a.ModelModule}
+	cmdArgs := []string{TagPrefix + EmfClient, TagPrefix + Overwrite, a.DirectoryPath, a.ModelName}
 
 	// Optional arguments regarding the model
 	if a.ModelClass != "" {
 		cmdArgs = append(cmdArgs, TagPrefix+ModelClass, a.ModelClass)
+	}
+	if a.ModelModule != "" {
+		cmdArgs = append(cmdArgs, TagPrefix+ModelModule, a.ModelModule)
 	}
 	if len(a.ModelOptions) != 0 {
 		var options []string
