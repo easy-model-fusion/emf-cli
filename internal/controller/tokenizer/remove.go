@@ -39,9 +39,10 @@ func (ic RemoveTokenizerController) RunTokenizerRemove(args []string) error {
 }
 
 // selectModel displays a selector of models from which the user will choose to add to his project
-func selectModel(models model.Models, configModelsMap map[string]model.Model) model.Model {
+func selectModel(models model.Models, configModelsMap map[string]model.Model) (model.Model, string, error) {
 	// Build a selector with each model name
 	availableModelNames := models.GetNames()
+
 	// List of models that accept tokenizers
 	var compatibleModels []string
 	// Check for valid tokenizers
@@ -51,14 +52,19 @@ func selectModel(models model.Models, configModelsMap map[string]model.Model) mo
 			compatibleModels = append(compatibleModels, modelName)
 		}
 	}
+	// If no compatible models are found, return an error
+	if len(compatibleModels) == 0 {
+		return model.Model{}, "no compatible models found",
+			fmt.Errorf("only transformers models have tokenizers")
+	}
 	message := "Please select the model for which to remove tokenizer"
 	selectedModelName := app.UI().DisplayInteractiveSelect(message, compatibleModels, true, 8)
 
 	// Get newly selected model
 	selectedModels := models.FilterWithNames([]string{selectedModelName})
 
-	// returns newly selected models + models entered in args
-	return selectedModels[0]
+	// Return newly selected model along with selected model name and no error
+	return selectedModels[0], selectedModelName, nil
 }
 
 // processRemove processes the remove tokenizer operation
@@ -75,7 +81,9 @@ func (ic RemoveTokenizerController) processRemove(args []string) (warning, info 
 	if err != nil {
 		return warning, info, fmt.Errorf("error get model: %s", err.Error())
 	}
-
+	if len(models) == 0 {
+		return warning, "no models to choose from", err
+	}
 	var tokenizersToRemove model.Tokenizers
 	var invalidTokenizers []string
 	var tokenizerNames []string
@@ -84,7 +92,10 @@ func (ic RemoveTokenizerController) processRemove(args []string) (warning, info 
 	// No args, asks for model names
 	if len(args) == 0 {
 		// Get selected models from select
-		modelToUse = selectModel(models, configModelsMap)
+		modelToUse, info, err = selectModel(models, configModelsMap)
+		if err != nil {
+			return warning, info, err
+		}
 		// No tokenizer, asks for tokenizers names
 		availableNames := modelToUse.Tokenizers.GetNames()
 		tokenizerNames = selectTokenizersToDelete(availableNames)

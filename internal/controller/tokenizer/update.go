@@ -54,12 +54,18 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 	if err != nil {
 		return warning, info, fmt.Errorf("error get model: %s", err.Error())
 	}
+	if len(models) == 0 {
+		return warning, "no models to choose from", err
+	}
 	var modelToUse model.Model
 
 	configModelsMap := models.Map()
 	if len(args) == 0 {
 		// Get selected models from select
-		modelToUse = selectModel(models, configModelsMap)
+		modelToUse, info, err = selectModel(models, configModelsMap)
+		if err != nil {
+			return warning, info, err
+		}
 	} else {
 		// Get the selected models from the args
 		selectedModelName := args[0]
