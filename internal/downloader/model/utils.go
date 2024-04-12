@@ -25,7 +25,7 @@ func (a *Args) Validate() error {
 	}
 
 	// Module validity
-	if a.ModelModule == "" {
+	if !a.SkipModel && a.ModelModule == "" {
 		return errors.New("missing module for the model")
 	}
 
@@ -53,16 +53,27 @@ func (a *Args) ToCobra(cmd *cobra.Command) {
 	cmd.Flags().StringVarP(&a.AccessToken, AccessToken, "a", "", "Access token for gated models")
 }
 
+// ToCobraTokenizer builds the arguments for running the cobra command
+func (a *Args) ToCobraTokenizer(cmd *cobra.Command) {
+
+	// Optional for the tokenizer
+	cmd.Flags().StringVarP(&a.TokenizerClass, TokenizerClass, "c", "", "Tokenizer class (only for transformers)")
+	cmd.Flags().StringArrayVarP(&a.TokenizerOptions, TokenizerOptions, "o", []string{}, "List of tokenizer options (only for transformers)")
+}
+
 // ToPython builds the arguments for running the python script.
 // Pre-condition : certain that the user authorized the overwriting when downloading the model.
 func (a *Args) ToPython() []string {
 
 	// Mandatory arguments
-	cmdArgs := []string{TagPrefix + EmfClient, TagPrefix + Overwrite, a.DirectoryPath, a.ModelName, a.ModelModule}
+	cmdArgs := []string{TagPrefix + EmfClient, TagPrefix + Overwrite, a.DirectoryPath, a.ModelName}
 
 	// Optional arguments regarding the model
 	if a.ModelClass != "" {
 		cmdArgs = append(cmdArgs, TagPrefix+ModelClass, a.ModelClass)
+	}
+	if a.ModelModule != "" {
+		cmdArgs = append(cmdArgs, TagPrefix+ModelModule, a.ModelModule)
 	}
 	if len(a.ModelOptions) != 0 {
 		var options []string
