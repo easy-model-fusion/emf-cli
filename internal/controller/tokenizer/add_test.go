@@ -3,7 +3,7 @@ package tokenizer
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	downloadermodel "github.com/easy-model-fusion/emf-cli/internal/downloader/model"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
