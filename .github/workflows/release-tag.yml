@@ -8,6 +8,10 @@ on:
 jobs:
   release:
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
 
     strategy:
       matrix:
@@ -42,9 +46,6 @@ jobs:
       with:
         tag_name: ${{ github.ref }}
         release_name: Release ${{ github.ref }}
-        body: |
-          Changes in this release:
-          - Describe your changes here.
 
     - name: Upload Windows Artifact
       id: upload-windows-artifact
