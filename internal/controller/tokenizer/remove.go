@@ -6,6 +6,7 @@ package tokenizer
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/appselec"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
@@ -63,7 +64,7 @@ func (ic RemoveTokenizerController) processRemove(args []string) (warning, info 
 	// No args, asks for model names
 	if len(args) == 0 {
 		// Get selected models from select
-		modelToUse, info, err = selectModel(models, configModelsMap)
+		modelToUse, info, err = appselec.Selector().SelectTransformerModel(models, configModelsMap)
 		if err != nil {
 			return warning, info, err
 		}

@@ -2,6 +2,7 @@ package tokenizer
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/appselec"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
@@ -126,6 +127,23 @@ func TestTokenizerUpdateCmd_NoArgs(t *testing.T) {
 	// Initialize selected models list
 	var args []string
 
+	//Create model selector mock
+	mockModel := model.Model{Name: "model1", Module: huggingface.TRANSFORMERS, Tokenizers: model.Tokenizers{
+		{Path: "path1",
+			Class:   "tokenizer1",
+			Options: map[string]string{"option1": "value1"}},
+	}}
+	// Create Ui mock
+	selector := mock.MockModelSelector{SelectorModel: mockModel,
+		SelectorError:   nil,
+		SelectorWarning: "",
+	}
+	appselec.SetSelector(&selector)
+
+	// Create ui mock
+	ui := mock.MockUI{SelectResult: "tokenizer1"}
+	app.SetUI(ui)
+
 	// Create temporary configuration file
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
@@ -135,8 +153,7 @@ func TestTokenizerUpdateCmd_NoArgs(t *testing.T) {
 	ic := UpdateTokenizerController{}
 	// Process update
 	err = ic.TokenizerUpdateCmd(args)
-	expectedErrMsg := "enter a model in argument"
-	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
+	test.AssertEqual(t, err, nil, "Operation succeeded.")
 
 }
 
@@ -152,11 +169,8 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgs(t *testing.T) {
 		},
 	})
 
-	var expectedSelections []string
-	expectedSelections = append(expectedSelections, "tokenizer1")
-
 	// Create ui mock
-	ui := mock.MockUI{MultiselectResult: expectedSelections}
+	ui := mock.MockUI{SelectResult: "model1"}
 	app.SetUI(ui)
 
 	// Initialize selected models list
@@ -173,8 +187,8 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgs(t *testing.T) {
 	ic := UpdateTokenizerController{}
 	// Process update
 	err = ic.TokenizerUpdateCmd(args)
-	expectedErrMsg := "the following tokenizer(s) couldn't be downloaded : [tokenizer1]"
-	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
+	_, err = config.GetModels()
+	test.AssertEqual(t, err, nil, "No error expected on getting models")
 
 }
 

@@ -1,14 +1,26 @@
-package tokenizer
+package selector
 
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 )
 
-// selectModel displays a selector of models from which the user will choose to add to his project
-func selectModel(models model.Models, configModelsMap map[string]model.Model) (model.Model, string, error) {
+type ModelSelector interface {
+	SelectTransformerModel(models model.Models, configModelsMap map[string]model.Model) (model.Model, string, error)
+}
+
+type transformerModelSelector struct{}
+
+// NewTransformerModelSelector initialize a new model selector
+func NewTransformerModelSelector() ModelSelector {
+	return &transformerModelSelector{}
+}
+
+// SelectTransformerModel displays a selector of models from which the user will choose to add to his project
+func (selector *transformerModelSelector) SelectTransformerModel(models model.Models, configModelsMap map[string]model.Model) (model.Model, string, error) {
 	// Build a selector with each model name
 	availableModelNames := models.GetNames()
 
@@ -26,7 +38,7 @@ func selectModel(models model.Models, configModelsMap map[string]model.Model) (m
 		return model.Model{}, "no compatible models found",
 			fmt.Errorf("only transformers models have tokenizers")
 	}
-	message := "Please select the model for which to modify tokenizers "
+	message := "Please select the model for which to add/modify/remove tokenizers "
 	selectedModelName := app.UI().DisplayInteractiveSelect(message, compatibleModels, true, 8)
 	// Get newly selected model
 	selectedModels := models.FilterWithNames([]string{selectedModelName})
