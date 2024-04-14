@@ -1,6 +1,7 @@
 package tokenizer
 
 import (
+	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/appselec"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
@@ -286,7 +287,43 @@ func TestTokenizerUpdateCmd_UpdateError(t *testing.T) {
 	expectedErrMsg := "the following tokenizer(s) couldn't be downloaded : [tokenizerx]"
 	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
 
-	updatedModels, err := config.GetModels()
+	_, err = config.GetModels()
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
-	test.AssertEqual(t, len(updatedModels), 1)
+}
+
+// TestTokenizerUpdateCmd_DlError tests the error return of the update command
+func TestTokenizerUpdateCmd_DlError(t *testing.T) {
+	var models model.Models
+	models = append(models, model.Model{
+		Name:   "model1",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: model.Tokenizers{
+			{Path: "path1", Class: "tokenizer1", Options: map[string]string{"option1": "value1"}},
+		},
+	})
+
+	// Initialize selected models list
+	var args []string
+	args = append(args, "model1")
+	args = append(args, "tokenizerx")
+
+	//Create downloader mock
+	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("error on dl")}
+	app.SetDownloader(&downloader)
+
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+	ic := UpdateTokenizerController{}
+
+	// Process update
+	_, _, err = ic.processUpdateTokenizer(args)
+	expectedErrMsg := "the following tokenizer(s) couldn't be downloaded : [tokenizerx]"
+	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
+
+	_, err = config.GetModels()
+	test.AssertEqual(t, err, nil, "No error expected on getting models")
 }

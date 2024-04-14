@@ -2,6 +2,7 @@ package tokenizer
 
 import (
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/appselec"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
@@ -48,31 +49,49 @@ func (ic AddController) processAddTokenizer(
 		return warning, info, err
 	}
 
-	// No model name in args
-	if len(args) < 1 {
-		return warning, info, fmt.Errorf("enter a model in argument")
-	}
-
 	// Get all configured models objects/names and args model
 	models, err := config.GetModels()
 	if err != nil {
 		return warning, info, fmt.Errorf("error getting model: %s", err.Error())
 	}
+	if len(models) == 0 {
+		return warning, "no models to choose from", err
+	}
 
-	// Checks the presence of the model
-	selectedModel := args[0]
+	var modelToUse model.Model
 	configModelsMap := models.Map()
-	modelToUse, exists := configModelsMap[selectedModel]
-	if !exists {
-		return warning, "Model is not configured", err
-	}
-	// No tokenizer name in args
-	if len(args) < 2 {
-		return warning, info, fmt.Errorf("enter a tokenizer in argument")
+	if len(args) == 0 {
+		// Get selected models from select
+		modelToUse, info, err = appselec.Selector().SelectTransformerModel(models, configModelsMap)
+		if err != nil {
+			return warning, info, err
+		}
+
+	} else {
+		// Checks the presence of the model
+		selectedModel := args[0]
+
+		var exists bool
+		modelToUse, exists = configModelsMap[selectedModel]
+		if !exists {
+			return warning, "Model is not configured", err
+		}
+
+		// Verify model's module
+		if modelToUse.Module != huggingface.TRANSFORMERS {
+			return warning, info, fmt.Errorf("only transformers models have tokenizers")
+		}
+
+		// Remove model name from arguments
+		args = args[1:]
 	}
 
-	// Setting tokenizer name from args
-	tokenizerName := args[1]
+	var selectedTokenizersTouse []string
+
+	if len(args) > 0 {
+		// Setting tokenizer name from args
+		selectedTokenizersTouse = append(selectedTokenizersTouse, args...)
+	}
 
 	tokenizerFound := modelToUse.Tokenizers.ContainsByClass(tokenizerName)
 

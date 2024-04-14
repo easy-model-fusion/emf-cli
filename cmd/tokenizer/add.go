@@ -17,7 +17,7 @@ var tokenizerAddCmd = &cobra.Command{
 	Use:   "add <model name> <tokenizer name>",
 	Short: "Add one or more tokenizers",
 	Long:  "Add one or more tokenizers",
-	Args:  cobra.MinimumNArgs(2),
+	Args:  cobra.MinimumNArgs(0),
 	Run:   runTokenizerAdd,
 }
 
