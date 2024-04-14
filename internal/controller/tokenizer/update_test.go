@@ -35,6 +35,14 @@ func TestTokenizerUpdateCmd_ValidArgs(t *testing.T) {
 	args = append(args, "model1")
 	args = append(args, "tokenizer1")
 
+	// Create hugging face mock
+	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022", LibraryName: huggingface.TRANSFORMERS}}
+	app.SetHuggingFace(&huggingFaceInterface)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
 	// Create temporary configuration file
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
@@ -44,11 +52,11 @@ func TestTokenizerUpdateCmd_ValidArgs(t *testing.T) {
 	ic := UpdateTokenizerController{}
 	// Process update
 	err = ic.TokenizerUpdateCmd(args)
-	expectedErrMsg := "the following tokenizer(s) couldn't be downloaded : [tokenizer1]"
-	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
 
-	_, err = config.GetModels()
-	test.AssertEqual(t, err, nil, "No error expected on getting models")
+	updatedModels, err := config.GetModels()
+	// Assertions
+	test.AssertEqual(t, err, nil, "No error expected on getting all models")
+	test.AssertEqual(t, len(updatedModels), 1)
 }
 
 // TestTokenizerUpdateCmd_NoModuleTransformersUpdate tests the update command
@@ -58,6 +66,7 @@ func TestTokenizerUpdateCmd_NoModuleTransformersUpdate(t *testing.T) {
 	models = append(models, model.Model{
 		Name:   "model1",
 		Source: "CUSTOM",
+		Module: "",
 		Tokenizers: model.Tokenizers{
 			{Path: "path1", Class: "tokenizer1", Options: map[string]string{"option1": "value1"}},
 		},
@@ -65,7 +74,7 @@ func TestTokenizerUpdateCmd_NoModuleTransformersUpdate(t *testing.T) {
 	// Initialize selected models list
 	var args []string
 	args = append(args, "model1")
-	args = append(args, "tokenizer2")
+	args = append(args, "tokenizer1")
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
@@ -75,7 +84,6 @@ func TestTokenizerUpdateCmd_NoModuleTransformersUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 	ic := UpdateTokenizerController{}
 	// Process update
-
 	err = ic.TokenizerUpdateCmd(args)
 	expectedErrMsg := "only transformers models have tokenizers"
 	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
@@ -140,6 +148,14 @@ func TestTokenizerUpdateCmd_NoArgs(t *testing.T) {
 	}
 	appselec.SetSelector(&selector)
 
+	// Create hugging face mock
+	huggingFaceInterface := huggingface.MockHuggingFace{GetModelResult: huggingface.Model{LastModified: "2022", LibraryName: huggingface.TRANSFORMERS}}
+	app.SetHuggingFace(&huggingFaceInterface)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
 	// Create ui mock
 	ui := mock.MockUI{SelectResult: "tokenizer1"}
 	app.SetUI(ui)
@@ -170,12 +186,16 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgs(t *testing.T) {
 	})
 
 	// Create ui mock
-	ui := mock.MockUI{SelectResult: "model1"}
+	ui := mock.MockUI{SelectResult: "tokenizer1"}
 	app.SetUI(ui)
 
 	// Initialize selected models list
 	var args []string
 	args = append(args, "model1")
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
@@ -187,8 +207,9 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgs(t *testing.T) {
 	ic := UpdateTokenizerController{}
 	// Process update
 	err = ic.TokenizerUpdateCmd(args)
-	_, err = config.GetModels()
+	updatedModels, err := config.GetModels()
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
+	test.AssertEqual(t, len(updatedModels), 1)
 
 }
 
@@ -204,11 +225,11 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgsDownload(t *testing.T) {
 		},
 	})
 
-	var expectedSelections []string
-	expectedSelections = append(expectedSelections, "tokenizer1")
+	var expectedSelections string
+	expectedSelections = "tokenizer1"
 
 	// Create ui mock
-	ui := mock.MockUI{MultiselectResult: expectedSelections}
+	ui := mock.MockUI{SelectResult: expectedSelections}
 	app.SetUI(ui)
 
 	// Create Downloader mock
@@ -229,7 +250,11 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgsDownload(t *testing.T) {
 	ic := UpdateTokenizerController{}
 	// Process update
 	err = ic.TokenizerUpdateCmd(args)
-	test.AssertEqual(t, err, nil, "No error expected while processing remove")
+	test.AssertEqual(t, err, nil, "Operation succeeded.")
+
+	updatedModels, err := config.GetModels()
+	test.AssertEqual(t, err, nil, "No error expected on getting models")
+	test.AssertEqual(t, len(updatedModels), 1)
 }
 
 // TestTokenizerUpdateCmd_UpdateError tests the error return of the update command
@@ -243,23 +268,10 @@ func TestTokenizerUpdateCmd_UpdateError(t *testing.T) {
 		},
 	})
 
-	var expectedSelections []string
-	expectedSelections = append(expectedSelections, "tokenizer1")
-
-	// Create ui mock
-	ui := mock.MockUI{MultiselectResult: expectedSelections}
-	app.SetUI(ui)
-
-	// Create Downloader mock
-	downloader := mock.MockDownloader{
-		DownloaderModel: downloadermodel.Model{Path: "test"},
-		DownloaderError: os.ErrClosed,
-	}
-	app.SetDownloader(&downloader)
-
 	// Initialize selected models list
 	var args []string
 	args = append(args, "model1")
+	args = append(args, "tokenizer1")
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
@@ -273,4 +285,8 @@ func TestTokenizerUpdateCmd_UpdateError(t *testing.T) {
 	err = ic.TokenizerUpdateCmd(args)
 	expectedErrMsg := "the following tokenizer(s) couldn't be downloaded : [tokenizer1]"
 	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
+
+	updatedModels, err := config.GetModels()
+	test.AssertEqual(t, err, nil, "No error expected on getting models")
+	test.AssertEqual(t, len(updatedModels), 1)
 }
