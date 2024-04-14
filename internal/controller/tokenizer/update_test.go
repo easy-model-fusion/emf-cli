@@ -142,7 +142,7 @@ func TestTokenizerUpdateCmd_NoArgs(t *testing.T) {
 			Class:   "tokenizer1",
 			Options: map[string]string{"option1": "value1"}},
 	}}
-	// Create Ui mock
+	// Create Selector mock
 	selector := mock.MockModelSelector{SelectorModel: mockModel,
 		SelectorError:   nil,
 		SelectorWarning: "",
@@ -326,4 +326,35 @@ func TestTokenizerUpdateCmd_DlError(t *testing.T) {
 
 	_, err = config.GetModels()
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
+}
+
+// TestTokenizerUpdateCmd_NoModels tests the update command with no models to choose from
+func TestTokenizerUpdateCmd_NoModels(t *testing.T) {
+	var models model.Models
+	// Create ui mock
+	ui := mock.MockUI{SelectResult: "model1"}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{
+		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	appselec.Init("", "")
+
+	// Initialize selected models list
+	var args []string
+
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+	ic := UpdateTokenizerController{}
+
+	// Process update
+	_, _, err = ic.processUpdateTokenizer(args)
+	expectedMessage := "no models to choose from"
+	test.AssertEqual(t, err.Error(), expectedMessage, "error")
 }

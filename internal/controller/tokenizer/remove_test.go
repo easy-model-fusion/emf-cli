@@ -2,6 +2,8 @@ package tokenizer
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/appselec"
+	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
@@ -193,4 +195,112 @@ func TestRemoveTokenizer_WithWrongTokenizerArgs(t *testing.T) {
 		test.AssertEqual(t, err, nil, "Error on update")
 	}
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
+}
+
+// TestRemoveTokenizer_Noargs tests the RunTokenizerRemove function with wrong tokenizers args
+func TestRemoveTokenizer_Noargs(t *testing.T) {
+	var models model.Models
+	models = append(models, model.Model{
+		Name:   "model1",
+		Module: huggingface.TRANSFORMERS,
+		Tokenizers: model.Tokenizers{
+			{Path: "path1", Class: "tokenizer1", Options: map[string]string{"option1": "value1"}},
+		},
+	})
+	// Create ui mock
+	ui := mock.MockUI{SelectResult: "model1"}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{
+		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	appselec.Init("", "")
+
+	// Initialize selected models list
+	var args []string
+
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+	ic := RemoveTokenizerController{}
+	// Process remove
+	if err := ic.RunTokenizerRemove(args); err != nil {
+		test.AssertEqual(t, err, nil, "Error on update")
+	}
+	test.AssertEqual(t, err, nil, "No error expected while processing remove")
+}
+
+// TestRemoveTokenizer_NoargsBadModule tests the RunTokenizerRemove function with wrong tokenizers args
+func TestRemoveTokenizer_NoargsBadModule(t *testing.T) {
+	var models model.Models
+	models = append(models, model.Model{
+		Name:   "model1",
+		Module: huggingface.DIFFUSERS,
+		Tokenizers: model.Tokenizers{
+			{Path: "path1", Class: "tokenizer1", Options: map[string]string{"option1": "value1"}},
+		},
+	})
+	// Create ui mock
+	ui := mock.MockUI{SelectResult: "model1"}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{
+		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	appselec.Init("", "")
+
+	// Initialize selected models list
+	var args []string
+
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+	ic := RemoveTokenizerController{}
+	// Process remove
+	if err := ic.RunTokenizerRemove(args); err != nil {
+		expectedMessage := "only transformers models have tokenizers"
+		test.AssertEqual(t, err.Error(), expectedMessage, "error")
+	}
+}
+
+// TestTokenizerRemoveCmd_NoModels tests the Remove command with no models to choose from
+func TestTokenizerRemoveCmd_NoModels(t *testing.T) {
+	var models model.Models
+	// Create ui mock
+	ui := mock.MockUI{SelectResult: "model1"}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{
+		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	appselec.Init("", "")
+
+	// Initialize selected models list
+	var args []string
+
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+	ic := RemoveTokenizerController{}
+
+	// Process remove
+	if err := ic.RunTokenizerRemove(args); err != nil {
+		expectedMessage := "no models to choose from"
+		test.AssertEqual(t, err.Error(), expectedMessage, "error")
+	}
 }

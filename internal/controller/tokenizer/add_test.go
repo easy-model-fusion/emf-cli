@@ -3,6 +3,7 @@ package tokenizer
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/appselec"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -11,16 +12,23 @@ import (
 	"testing"
 )
 
-// TestTokenizerAddCmd_NoArgs tests the Add command with no args
-func TestTokenizerAddCmd_NoArgs(t *testing.T) {
+// TestTokenizerAddCmd_WrongModule tests the Add command with no args
+func TestTokenizerAddCmd_WrongModule(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
-		Module: huggingface.TRANSFORMERS,
-		Tokenizers: model.Tokenizers{
-			{Path: "path1", Class: "tokenizer1", Options: map[string]string{"option1": "value1"}},
-		},
+		Module: huggingface.DIFFUSERS,
 	})
+	// Create ui mock
+	ui := mock.MockUI{SelectResult: "model1"}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{
+		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	appselec.Init("", "")
 
 	// Initialize selected models list
 	var args []string
@@ -36,25 +44,31 @@ func TestTokenizerAddCmd_NoArgs(t *testing.T) {
 	var customArgs downloadermodel.Args
 	// Process update
 	err = ic.Run(args, customArgs)
-	expectedErrMsg := "enter a model in argument"
-	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
+	expectedMessage := "only transformers models have tokenizers"
+	test.AssertEqual(t, err.Error(), expectedMessage, "error")
 
 }
 
-// TestTokenizerAddCmd_NoTokenizerArg tests the Add
-// command with no tokenizer in args
-func TestTokenizerAddCmd_NoTokenizerArg(t *testing.T) {
+// TestTokenizerAddCmd_NoArgs tests the Add command with no args
+func TestTokenizerAddCmd_NoArgs(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
 		Module: huggingface.TRANSFORMERS,
-		Tokenizers: model.Tokenizers{
-			{Path: "path1", Class: "tokenizer1", Options: map[string]string{"option1": "value1"}},
-		},
 	})
+	// Create ui mock
+	ui := mock.MockUI{SelectResult: "model1"}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{
+		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	appselec.Init("", "")
 
 	// Initialize selected models list
-	args := []string{"model1"}
+	var args []string
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
@@ -67,9 +81,43 @@ func TestTokenizerAddCmd_NoTokenizerArg(t *testing.T) {
 	var customArgs downloadermodel.Args
 	// Process update
 	err = ic.Run(args, customArgs)
-	expectedErrMsg := "enter a tokenizer in argument"
-	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
+	test.AssertEqual(t, err, nil, "No error")
 
+}
+
+// TestTokenizerAddCmd_NoTokenizerArg tests the Add
+// command with no tokenizer in args
+func TestTokenizerAddCmd_NoTokenizerArg(t *testing.T) {
+	var models model.Models
+	models = append(models, model.Model{
+		Name:   "model1",
+		Module: huggingface.TRANSFORMERS,
+	})
+
+	// Initialize selected models list
+	args := []string{"model1"}
+	// Create ui mock
+	ui := mock.MockUI{SelectResult: "model1"}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{
+		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	appselec.Init("", "")
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+	ic := AddController{}
+
+	var customArgs downloadermodel.Args
+	// Process update
+	err = ic.Run(args, customArgs)
+	test.AssertEqual(t, err, nil, "Unexpected error message")
 }
 
 // TestTokenizerAddCmd_TokenizerDl tests the Add
@@ -163,4 +211,36 @@ func TestTokenizerAddCmd_DownloadTokenizerFail(t *testing.T) {
 	// Assertions
 	expectedErrMsg := "the following tokenizer couldn't be downloaded : tokenizer1"
 	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
+}
+
+// TestTokenizerAddCmd_NoModels tests the Add command with no models to choose from
+func TestTokenizerAddCmd_NoModels(t *testing.T) {
+	var models model.Models
+	// Create ui mock
+	ui := mock.MockUI{SelectResult: "model1"}
+	app.SetUI(ui)
+
+	// Create Downloader mock
+	downloader := mock.MockDownloader{
+		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	app.SetDownloader(&downloader)
+
+	appselec.Init("", "")
+
+	// Initialize selected models list
+	var args []string
+
+	// Create temporary configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+	err := setupConfigFile(models)
+	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
+	ic := AddController{}
+
+	var customArgs downloadermodel.Args
+	// Process update
+	err = ic.Run(args, customArgs)
+	test.AssertEqual(t, err.Error(), "no models to choose from", "error")
+
 }

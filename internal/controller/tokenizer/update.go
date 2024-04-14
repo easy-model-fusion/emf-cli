@@ -56,6 +56,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 		return warning, info, fmt.Errorf("error get model: %s", err.Error())
 	}
 	if len(models) == 0 {
+		err = fmt.Errorf("no models to choose from")
 		return warning, "no models to choose from", err
 	}
 	var modelToUse model.Model
