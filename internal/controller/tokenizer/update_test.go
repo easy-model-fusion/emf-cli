@@ -271,7 +271,7 @@ func TestTokenizerUpdateCmd_UpdateError(t *testing.T) {
 	// Initialize selected models list
 	var args []string
 	args = append(args, "model1")
-	args = append(args, "tokenizer1")
+	args = append(args, "tokenizerx")
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
@@ -280,10 +280,10 @@ func TestTokenizerUpdateCmd_UpdateError(t *testing.T) {
 	err := setupConfigFile(models)
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 	ic := UpdateTokenizerController{}
-	// Process update
 
-	err = ic.TokenizerUpdateCmd(args)
-	expectedErrMsg := "the following tokenizer(s) couldn't be downloaded : [tokenizer1]"
+	// Process update
+	_, _, err = ic.processUpdateTokenizer(args)
+	expectedErrMsg := "the following tokenizer(s) couldn't be downloaded : [tokenizerx]"
 	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
 
 	updatedModels, err := config.GetModels()
