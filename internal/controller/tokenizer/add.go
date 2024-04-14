@@ -91,42 +91,43 @@ func (ic AddController) processAddTokenizer(
 	if len(args) > 0 {
 		// Setting tokenizer name from args
 		selectedTokenizersTouse = append(selectedTokenizersTouse, args...)
-	}
-
-	tokenizerFound := modelToUse.Tokenizers.ContainsByClass(tokenizerName)
-
-	if tokenizerFound {
-		err = fmt.Errorf("the following tokenizer is already downloaded :%s",
-			tokenizerName)
-		return warning, "Tokenizer add failed, already downloaded", err
-	}
-
-	// Verify model's module
-	if modelToUse.Module != huggingface.TRANSFORMERS {
-		return warning, info, fmt.Errorf("only transformers models have tokenizers")
-	}
-
-	var addedTokenizer = model.Tokenizer{
-		Path:  modelToUse.Path,
-		Class: tokenizerName,
-	}
-
-	customArgs.ModelName = modelToUse.Name
-
-	success := modelToUse.DownloadTokenizer(addedTokenizer, customArgs)
-	if !success {
-		err = fmt.Errorf("the following tokenizer"+
-			" couldn't be downloaded : %s", tokenizerName)
 	} else {
-
-		spinner, _ := pterm.DefaultSpinner.Start("Updating configuration file...")
-		err := config.AddModels(model.Models{modelToUse})
-		if err != nil {
-			spinner.Fail(fmt.Sprintf("Error while updating the configuration file: %s", err))
-		} else {
-			spinner.Success()
-		}
-		modelToUse.Tokenizers = append(modelToUse.Tokenizers, addedTokenizer)
+		// will download default AutoTokenizer
+		selectedTokenizersTouse = append(selectedTokenizersTouse,
+			"AutoTokenizer")
 	}
+
+	var tokenizerName string
+	for _, tokenizerName = range selectedTokenizersTouse {
+		tokenizerFound := modelToUse.Tokenizers.ContainsByClass(tokenizerName)
+		if tokenizerFound {
+			err = fmt.Errorf("the following tokenizer is already downloaded :%s",
+				tokenizerName)
+			return warning, "Tokenizer add failed, already downloaded", err
+		}
+		addedTokenizer := model.Tokenizer{
+			Path:  modelToUse.Path,
+			Class: tokenizerName,
+		}
+		customArgs.ModelName = modelToUse.Name
+
+		success := modelToUse.DownloadTokenizer(addedTokenizer, customArgs)
+		if !success {
+			err = fmt.Errorf("the following tokenizer"+
+				" couldn't be downloaded : %s", tokenizerName)
+		} else {
+
+			spinner, _ := pterm.DefaultSpinner.Start("Updating configuration file...")
+			err := config.AddModels(model.Models{modelToUse})
+			if err != nil {
+				spinner.Fail(fmt.Sprintf("Error while updating the configuration file: %s", err))
+			} else {
+				spinner.Success()
+			}
+			modelToUse.Tokenizers = append(modelToUse.Tokenizers, addedTokenizer)
+		}
+
+	}
+
 	return warning, "Tokenizers add done", err
 }

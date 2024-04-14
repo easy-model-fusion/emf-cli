@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/easy-model-fusion/emf-cli/cmd"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/appselec"
 )
 
 var (
@@ -14,7 +15,7 @@ var (
 
 func main() {
 	app.Init(Version, BuildDate)
-
+	appselec.Init(Version, BuildDate)
 	// Execute command
 	cmd.Execute()
 }
