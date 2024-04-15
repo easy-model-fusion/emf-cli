@@ -52,6 +52,7 @@ func TestTokenizerUpdateCmd_ValidArgs(t *testing.T) {
 	ic := UpdateTokenizerController{}
 	// Process update
 	err = ic.TokenizerUpdateCmd(args)
+	test.AssertEqual(t, err, nil, "No error updating")
 
 	updatedModels, err := config.GetModels()
 	// Assertions
@@ -153,8 +154,11 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgs(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 
 	ic := UpdateTokenizerController{}
+
 	// Process update
 	err = ic.TokenizerUpdateCmd(args)
+	test.AssertEqual(t, err, nil, "No error updating")
+
 	updatedModels, err := config.GetModels()
 	test.AssertEqual(t, err, nil, "No error expected on getting models")
 	test.AssertEqual(t, len(updatedModels), 1)
@@ -173,8 +177,7 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgsDownload(t *testing.T) {
 		},
 	})
 
-	var expectedSelections string
-	expectedSelections = "tokenizer1"
+	expectedSelections := "tokenizer1"
 
 	// Create ui mock
 	ui := mock.MockUI{SelectResult: expectedSelections}
