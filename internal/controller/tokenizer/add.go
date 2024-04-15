@@ -2,7 +2,6 @@ package tokenizer
 
 import (
 	"fmt"
-	"github.com/easy-model-fusion/emf-cli/internal/appselec"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
@@ -62,16 +61,12 @@ func (ic AddController) processAddTokenizer(
 	var modelToUse model.Model
 	configModelsMap := models.Map()
 	if len(args) == 0 {
+		sc := SelectModelController{}
 		// Get selected models from select
-		modelToUse, info, err = appselec.Selector().SelectTransformerModel(models, configModelsMap)
-		if err != nil {
-			return warning, info, err
-		}
-
+		modelToUse = sc.SelectTransformerModel(models, configModelsMap)
 	} else {
 		// Checks the presence of the model
 		selectedModel := args[0]
-
 		var exists bool
 		modelToUse, exists = configModelsMap[selectedModel]
 		if !exists {

@@ -2,7 +2,6 @@ package tokenizer
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/appselec"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
@@ -216,8 +215,6 @@ func TestRemoveTokenizer_Noargs(t *testing.T) {
 		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
-	appselec.Init("", "")
-
 	// Initialize selected models list
 	var args []string
 
@@ -254,8 +251,6 @@ func TestRemoveTokenizer_NoargsBadModule(t *testing.T) {
 		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
-	appselec.Init("", "")
-
 	// Initialize selected models list
 	var args []string
 
@@ -284,8 +279,6 @@ func TestTokenizerRemoveCmd_NoModels(t *testing.T) {
 	downloader := mock.MockDownloader{
 		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
-
-	appselec.Init("", "")
 
 	// Initialize selected models list
 	var args []string

@@ -3,7 +3,6 @@ package tokenizer
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/appselec"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
@@ -19,19 +18,14 @@ func TestTokenizerAddCmd_WrongModule(t *testing.T) {
 		Name:   "model1",
 		Module: huggingface.DIFFUSERS,
 	})
-	// Create ui mock
-	ui := mock.MockUI{SelectResult: "model1"}
-	app.SetUI(ui)
 
 	// Create Downloader mock
 	downloader := mock.MockDownloader{
 		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
-	appselec.Init("", "")
-
 	// Initialize selected models list
-	var args []string
+	args := []string{"model1"}
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
@@ -64,9 +58,6 @@ func TestTokenizerAddCmd_NoArgs(t *testing.T) {
 	downloader := mock.MockDownloader{
 		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
-
-	appselec.Init("", "")
-
 	// Initialize selected models list
 	var args []string
 
@@ -104,8 +95,6 @@ func TestTokenizerAddCmd_NoTokenizerArg(t *testing.T) {
 	downloader := mock.MockDownloader{
 		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
-
-	appselec.Init("", "")
 	// Create temporary configuration file
 	ts := test.TestSuite{}
 	_ = ts.CreateFullTestSuite(t)
@@ -224,9 +213,6 @@ func TestTokenizerAddCmd_NoModels(t *testing.T) {
 	downloader := mock.MockDownloader{
 		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
-
-	appselec.Init("", "")
-
 	// Initialize selected models list
 	var args []string
 

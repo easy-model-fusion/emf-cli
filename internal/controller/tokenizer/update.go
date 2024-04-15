@@ -8,7 +8,6 @@ package tokenizer
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/appselec"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
@@ -64,7 +63,9 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 	configModelsMap := models.Map()
 	if len(args) == 0 {
 		// Get selected models from select
-		modelToUse, info, err = appselec.Selector().SelectTransformerModel(models, configModelsMap)
+		sc := SelectModelController{}
+		// Get selected models from select
+		modelToUse = sc.SelectTransformerModel(models, configModelsMap)
 		if err != nil {
 			return warning, info, err
 		}
