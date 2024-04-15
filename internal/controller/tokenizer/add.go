@@ -79,7 +79,7 @@ func (ic AddController) processAddTokenizer(
 	// Remove model name from arguments
 	args = args[1:]
 
-	var selectedTokenizersTouse []string
+	var selectedTokenizersToUse []string
 
 	// Setting tokenizer name from args
 	selectedTokenizersTouse = append(selectedTokenizersTouse, args...)
