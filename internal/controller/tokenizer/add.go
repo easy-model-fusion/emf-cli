@@ -57,7 +57,7 @@ func (ic AddController) processAddTokenizer(
 	}
 	if len(models) == 0 {
 		err = fmt.Errorf("no models to choose from")
-		return warning, "no models to choose from", err
+		return warning, info, err
 	}
 
 	var modelToUse model.Model
