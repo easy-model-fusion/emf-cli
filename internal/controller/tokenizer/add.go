@@ -48,7 +48,7 @@ func (ic AddController) processAddTokenizer(
 		return warning, info, err
 	}
 	if len(args) < 2 {
-		return warning, info, fmt.Errorf("please provide a tokenizer name to add")
+		return warning, info, fmt.Errorf("please provide a model and tokenizer name to add")
 	}
 	// Get all configured models objects/names and args model
 	models, err := config.GetModels()

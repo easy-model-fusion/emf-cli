@@ -50,9 +50,6 @@ func TestTokenizerAddCmd_NoArgs(t *testing.T) {
 		Name:   "model1",
 		Module: huggingface.TRANSFORMERS,
 	})
-	// Create ui mock
-	ui := mock.MockUI{SelectResult: "model1"}
-	app.SetUI(ui)
 
 	// Create Downloader mock
 	downloader := mock.MockDownloader{
@@ -72,7 +69,7 @@ func TestTokenizerAddCmd_NoArgs(t *testing.T) {
 	var customArgs downloadermodel.Args
 	// Process update
 	err = ic.Run(args, customArgs)
-	test.AssertEqual(t, err.Error(), "please provide a tokenizer name to add", "error")
+	test.AssertEqual(t, err.Error(), "please provide a model and tokenizer name to add", "error")
 
 }
 
