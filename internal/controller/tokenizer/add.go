@@ -88,9 +88,8 @@ func (ic AddController) processAddTokenizer(
 		// Setting tokenizer name from args
 		selectedTokenizersTouse = append(selectedTokenizersTouse, args...)
 	} else {
-		// will download default AutoTokenizer
-		selectedTokenizersTouse = append(selectedTokenizersTouse,
-			"AutoTokenizer")
+		err = fmt.Errorf("please provide a tokenizer name to add")
+		return warning, "Tokenizer add failed, already downloaded", err
 	}
 
 	var tokenizerName string

@@ -72,7 +72,7 @@ func TestTokenizerAddCmd_NoArgs(t *testing.T) {
 	var customArgs downloadermodel.Args
 	// Process update
 	err = ic.Run(args, customArgs)
-	test.AssertEqual(t, err, nil, "No error")
+	test.AssertEqual(t, err.Error(), "please provide a tokenizer name to add", "error")
 
 }
 
@@ -106,7 +106,7 @@ func TestTokenizerAddCmd_NoTokenizerArg(t *testing.T) {
 	var customArgs downloadermodel.Args
 	// Process update
 	err = ic.Run(args, customArgs)
-	test.AssertEqual(t, err, nil, "Unexpected error message")
+	test.AssertEqual(t, err.Error(), "please provide a tokenizer name to add", "error")
 }
 
 // TestTokenizerAddCmd_TokenizerDl tests the Add
