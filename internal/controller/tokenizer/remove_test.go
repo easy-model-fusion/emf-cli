@@ -196,7 +196,7 @@ func TestRemoveTokenizer_WithWrongTokenizerArgs(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
 
-// TestRemoveTokenizer_Noargs tests the RunTokenizerRemove function with wrong tokenizers args
+// TestRemoveTokenizer_Noargs tests the RunTokenizerRemove function with no args
 func TestRemoveTokenizer_Noargs(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
@@ -232,7 +232,7 @@ func TestRemoveTokenizer_Noargs(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }
 
-// TestRemoveTokenizer_NoargsBadModule tests the RunTokenizerRemove function with wrong tokenizers args
+// TestRemoveTokenizer_NoargsBadModule tests the RunTokenizerRemove function with bad module type
 func TestRemoveTokenizer_NoargsBadModule(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{

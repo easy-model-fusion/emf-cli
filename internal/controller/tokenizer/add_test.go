@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-// TestTokenizerAddCmd_WrongModule tests the Add command with no args
+// TestTokenizerAddCmd_WrongModule tests the Add command with wrong module
 func TestTokenizerAddCmd_WrongModule(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
