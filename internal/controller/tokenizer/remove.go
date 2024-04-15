@@ -54,14 +54,14 @@ func (ic RemoveTokenizerController) processRemove(args []string) (warning, info 
 	}
 	if len(models) == 0 {
 		err = fmt.Errorf("no models to choose from")
-		return warning, "no models to choose from", err
+		return warning, info, err
 	}
 	var tokenizersToRemove model.Tokenizers
 	var invalidTokenizers []string
 	var tokenizerNames []string
 	var modelToUse model.Model
 	configModelsMap := models.Map()
-	// No args, asks for model names
+	// No args, asks for model's name
 	if len(args) == 0 {
 		// Get selected models from select
 		sc := SelectModelController{}
@@ -91,7 +91,7 @@ func (ic RemoveTokenizerController) processRemove(args []string) (warning, info 
 			// No tokenizer, asks for tokenizers names
 			availableNames := modelToUse.Tokenizers.GetNames()
 			tokenizerNames = selectTokenizersToDelete(availableNames)
-		} else if len(args) > 0 {
+		} else {
 			// Check for duplicates
 			tokenizerNames = stringutil.SliceRemoveDuplicates(args)
 		}
