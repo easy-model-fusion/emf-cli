@@ -47,7 +47,9 @@ func (ic AddController) processAddTokenizer(
 	if err != nil {
 		return warning, info, err
 	}
-
+	if len(args) < 2 {
+		return warning, info, fmt.Errorf("please provide a tokenizer name to add")
+	}
 	// Get all configured models objects/names and args model
 	models, err := config.GetModels()
 	if err != nil {
@@ -60,37 +62,27 @@ func (ic AddController) processAddTokenizer(
 
 	var modelToUse model.Model
 	configModelsMap := models.Map()
-	if len(args) == 0 {
-		sc := SelectModelController{}
-		// Get selected models from select
-		modelToUse = sc.SelectTransformerModel(models, configModelsMap)
-	} else {
-		// Checks the presence of the model
-		selectedModel := args[0]
-		var exists bool
-		modelToUse, exists = configModelsMap[selectedModel]
-		if !exists {
-			return warning, "Model is not configured", err
-		}
 
-		// Verify model's module
-		if modelToUse.Module != huggingface.TRANSFORMERS {
-			return warning, info, fmt.Errorf("only transformers models have tokenizers")
-		}
-
-		// Remove model name from arguments
-		args = args[1:]
+	// Checks the presence of the model
+	selectedModel := args[0]
+	var exists bool
+	modelToUse, exists = configModelsMap[selectedModel]
+	if !exists {
+		return warning, "Model is not configured", err
 	}
+
+	// Verify model's module
+	if modelToUse.Module != huggingface.TRANSFORMERS {
+		return warning, info, fmt.Errorf("only transformers models have tokenizers")
+	}
+
+	// Remove model name from arguments
+	args = args[1:]
 
 	var selectedTokenizersTouse []string
 
-	if len(args) > 0 {
-		// Setting tokenizer name from args
-		selectedTokenizersTouse = append(selectedTokenizersTouse, args...)
-	} else {
-		err = fmt.Errorf("please provide a tokenizer name to add")
-		return warning, "Tokenizer add failed, already downloaded", err
-	}
+	// Setting tokenizer name from args
+	selectedTokenizersTouse = append(selectedTokenizersTouse, args...)
 
 	var tokenizerName string
 	for _, tokenizerName = range selectedTokenizersTouse {
