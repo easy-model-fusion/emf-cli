@@ -52,7 +52,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 	// Get all configured models objects/names and args model
 	models, err := config.GetModels()
 	if err != nil {
-		return warning, info, fmt.Errorf("error get model: %s", err.Error())
+		return warning, info, fmt.Errorf("error while getting configured models: %s", err.Error())
 	}
 	if len(models) == 0 {
 		err = fmt.Errorf("no models to choose from")
