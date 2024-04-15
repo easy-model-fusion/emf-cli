@@ -90,7 +90,7 @@ func (ic AddController) processAddTokenizer(
 		if tokenizerFound {
 			err = fmt.Errorf("the following tokenizer is already downloaded :%s",
 				tokenizerName)
-			return warning, "Tokenizer add failed, already downloaded", err
+			return warning, info, err
 		}
 		addedTokenizer := model.Tokenizer{
 			Path:  modelToUse.Path,
