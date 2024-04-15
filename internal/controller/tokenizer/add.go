@@ -65,8 +65,7 @@ func (ic AddController) processAddTokenizer(
 
 	// Checks the presence of the model
 	selectedModel := args[0]
-	var exists bool
-	modelToUse, exists = configModelsMap[selectedModel]
+	modelToUse, exists := configModelsMap[selectedModel]
 	if !exists {
 		return warning, "Model is not configured", err
 	}
@@ -82,10 +81,10 @@ func (ic AddController) processAddTokenizer(
 	var selectedTokenizersToUse []string
 
 	// Setting tokenizer name from args
-	selectedTokenizersTouse = append(selectedTokenizersTouse, args...)
+	selectedTokenizersToUse = append(selectedTokenizersToUse, args...)
 
 	var tokenizerName string
-	for _, tokenizerName = range selectedTokenizersTouse {
+	for _, tokenizerName = range selectedTokenizersToUse {
 		tokenizerFound := modelToUse.Tokenizers.ContainsByClass(tokenizerName)
 		if tokenizerFound {
 			err = fmt.Errorf("the following tokenizer is already downloaded :%s",

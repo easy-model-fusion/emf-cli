@@ -86,11 +86,6 @@ func (m *Model) DownloadTokenizer(tokenizer Tokenizer, downloaderArgs downloader
 	downloaderArgs.TokenizerClass = tokenizer.Class
 	downloaderArgs.TokenizerOptions = stringutil.OptionsMapToSlice(tokenizer.Options)
 	succeeded := m.executeDownload(downloaderArgs)
-	// Running the script for the tokenizer only
-	if succeeded {
-		m.AddToBinaryFile = !downloaderArgs.OnlyConfiguration
-		m.IsDownloaded = !downloaderArgs.OnlyConfiguration
-	}
 
 	return succeeded
 }
