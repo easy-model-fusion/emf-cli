@@ -304,7 +304,7 @@ func TestTokenizerUpdateCmd_NoModels(t *testing.T) {
 
 	// Process update
 	_, _, err = ic.processUpdateTokenizer(args)
-	expectedMessage := "Received no configured models found"
+	expectedMessage := "no configured models found"
 	test.AssertEqual(t, err.Error(), expectedMessage, "error")
 }
 
