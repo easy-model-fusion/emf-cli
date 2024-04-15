@@ -61,7 +61,7 @@ func (ic RemoveTokenizerController) processRemove(args []string) (warning, info 
 	var tokenizerNames []string
 	var modelToUse model.Model
 	configModelsMap := models.Map()
-	// No args, asks for model names
+	// No args, asks for model's name
 	if len(args) == 0 {
 		// Get selected models from select
 		sc := SelectModelController{}
