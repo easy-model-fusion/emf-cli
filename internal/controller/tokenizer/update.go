@@ -75,7 +75,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 		var exists bool
 		modelToUse, exists = configModelsMap[selectedModelName]
 		if !exists {
-			return warning, "Model is not configured", err
+			return warning, info, fmt.Errof("Model is not configured")
 		}
 		// Verify model's module
 		if modelToUse.Module != huggingface.TRANSFORMERS {
