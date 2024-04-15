@@ -25,7 +25,7 @@ func TestTokenizerAddCmd_WrongModule(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Initialize selected models list
-	args := []string{"model1"}
+	args := []string{"model1", "tokenizer1"}
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
@@ -103,7 +103,7 @@ func TestTokenizerAddCmd_NoTokenizerArg(t *testing.T) {
 	var customArgs downloadermodel.Args
 	// Process update
 	err = ic.Run(args, customArgs)
-	test.AssertEqual(t, err.Error(), "please provide a tokenizer name to add", "error")
+	test.AssertEqual(t, err.Error(), "please provide a model and tokenizer name to add", "error")
 }
 
 // TestTokenizerAddCmd_TokenizerDl tests the Add
@@ -211,7 +211,7 @@ func TestTokenizerAddCmd_NoModels(t *testing.T) {
 		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 	// Initialize selected models list
-	var args []string
+	args := []string{"model1", "tokenizer1"}
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
