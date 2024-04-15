@@ -119,7 +119,8 @@ func TestTokenizerUpdateCmd_WrongModelNameUpdate(t *testing.T) {
 	ic := UpdateTokenizerController{}
 	// Process update
 	err = ic.TokenizerUpdateCmd(args)
-	test.AssertEqual(t, err, nil, "Operation failed, no model found")
+	expectedErrMsg := "Model is not configured"
+	test.AssertEqual(t, err.Error(), expectedErrMsg, "Operation failed, no model found")
 }
 
 // TestTokenizerUpdateCmd_NoTokenizerInArgs tests the update command
@@ -303,7 +304,7 @@ func TestTokenizerUpdateCmd_NoModels(t *testing.T) {
 
 	// Process update
 	_, _, err = ic.processUpdateTokenizer(args)
-	expectedMessage := "no models to choose from"
+	expectedMessage := "Received no configured models found"
 	test.AssertEqual(t, err.Error(), expectedMessage, "error")
 }
 
