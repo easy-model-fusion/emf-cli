@@ -91,7 +91,7 @@ func (ic RemoveTokenizerController) processRemove(args []string) (warning, info 
 			// No tokenizer, asks for tokenizers names
 			availableNames := modelToUse.Tokenizers.GetNames()
 			tokenizerNames = selectTokenizersToDelete(availableNames)
-		} else if len(args) > 0 {
+		} else {
 			// Check for duplicates
 			tokenizerNames = stringutil.SliceRemoveDuplicates(args)
 		}
