@@ -54,7 +54,7 @@ func (ic RemoveTokenizerController) processRemove(args []string) (warning, info 
 	}
 	if len(models) == 0 {
 		err = fmt.Errorf("no models to choose from")
-		return warning, "no models to choose from", err
+		return warning, info, err
 	}
 	var tokenizersToRemove model.Tokenizers
 	var invalidTokenizers []string
