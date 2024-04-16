@@ -134,7 +134,7 @@ func TestProcessUpdate(t *testing.T) {
 
 	// Assertions
 	test.AssertEqual(t, err, nil, "No error expected")
-	test.AssertEqual(t, warningMessage, "The following models(s) couldn't be found and were ignored : [model4]", "A warning is expected")
+	test.AssertEqual(t, warningMessage[0], "The following models(s) couldn't be found and were ignored : [model4]", "A warning is expected")
 	test.AssertEqual(t, infoMessage, "The following model(s) are already up to date and were ignored : [model3]", "Information message expected")
 }
 
@@ -174,7 +174,7 @@ func TestProcessUpdate_WithNoArgs(t *testing.T) {
 
 	// Assertions
 	test.AssertEqual(t, err, nil, "No error expected")
-	test.AssertEqual(t, warningMessage, "", "No warning is expected")
+	test.AssertEqual(t, len(warningMessage), 0, "No warning is expected")
 	test.AssertEqual(t, infoMessage, "The following model(s) are already up to date and were ignored : [model3]", "Information message expected")
 }
 
@@ -212,7 +212,7 @@ func TestProcessUpdate_WithNoModelsSelected(t *testing.T) {
 
 	// Assertions
 	test.AssertEqual(t, err, nil, "No error expected")
-	test.AssertEqual(t, warningMessage, "", "No warning is expected")
+	test.AssertEqual(t, warningMessage[0], "", "No warning is expected")
 	test.AssertEqual(t, infoMessage, "There is no models to be updated.", "Information message expected")
 }
 
@@ -230,7 +230,7 @@ func TestProcessUpdate_WithErrorOnLoadingConfigurationFile(t *testing.T) {
 
 	// Assertions
 	test.AssertNotEqual(t, err, nil, "An error is expected")
-	test.AssertEqual(t, warningMessage, "", "No warning is expected")
+	test.AssertEqual(t, warningMessage[0], "", "No warning is expected")
 	test.AssertEqual(t, infoMessage, "", "No information message expected")
 }
 
