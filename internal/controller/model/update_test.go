@@ -212,7 +212,7 @@ func TestProcessUpdate_WithNoModelsSelected(t *testing.T) {
 
 	// Assertions
 	test.AssertEqual(t, err, nil, "No error expected")
-	test.AssertEqual(t, warningMessage[0], "", "No warning is expected")
+	test.AssertEqual(t, len(warningMessage), 0, "No warning is expected")
 	test.AssertEqual(t, infoMessage, "There is no models to be updated.", "Information message expected")
 }
 
@@ -230,7 +230,7 @@ func TestProcessUpdate_WithErrorOnLoadingConfigurationFile(t *testing.T) {
 
 	// Assertions
 	test.AssertNotEqual(t, err, nil, "An error is expected")
-	test.AssertEqual(t, warningMessage[0], "", "No warning is expected")
+	test.AssertEqual(t, len(warningMessage), 0, "No warning is expected")
 	test.AssertEqual(t, infoMessage, "", "No information message expected")
 }
 
