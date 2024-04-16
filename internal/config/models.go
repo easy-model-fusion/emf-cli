@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/codegen"
-	"github.com/easy-model-fusion/emf-cli/internal/dotenv"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/dotenv"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
