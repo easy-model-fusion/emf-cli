@@ -85,8 +85,11 @@ func (tc TidyController) tidyModelsConfiguredButNotDownloaded(models model.Model
 
 	// Tidying the configured but not downloaded models and also processing their tokenizers
 	for _, current := range models {
-		var warningMessages []string
-		warningMessages, success, clean, err := current.TidyConfiguredModel(accessToken)
+		var (
+			success, clean  bool
+			warningMessages []string
+		)
+		warningMessages, success, clean, err = current.TidyConfiguredModel(accessToken)
 		warnings = append(warnings, warningMessages...)
 		if err != nil {
 			return warnings, err

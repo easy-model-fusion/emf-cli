@@ -127,7 +127,7 @@ func (m *Model) executeDownload(downloaderArgs downloadermodel.Args) (success bo
 
 	if err != nil {
 		// Something went wrong or no data has been returned
-		return false, warnings, err
+		return false, warnings, nil
 	}
 
 	// Update the model for the configuration file

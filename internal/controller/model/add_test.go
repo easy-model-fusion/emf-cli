@@ -495,13 +495,13 @@ func TestProcessAdd_SingleFile(t *testing.T) {
 	test.AssertEqual(t, err, nil)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs)
+	warnings, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertEqual(t, err, nil)
 	models, err := config.GetModels()
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, len(models), 3)
 	test.AssertEqual(t, models[2].Name, "model2")
 }
@@ -594,13 +594,13 @@ func TestProcessAdd_HuggingFace(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs)
+	warnings, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertEqual(t, err, nil)
 	models, err := config.GetModels()
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, len(models), 3)
 	test.AssertEqual(t, models[2].Name, "model2")
 }
@@ -627,7 +627,7 @@ func TestProcessAdd_WithAccessToken(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs)
+	warnings, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertEqual(t, err, nil)
 	token, err := dotenv.GetEnvValue("ACCESS_TOKEN_MODEL2")
 	test.AssertEqual(t, err, nil)
@@ -635,7 +635,7 @@ func TestProcessAdd_WithAccessToken(t *testing.T) {
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, len(models), 3)
 	test.AssertEqual(t, models[2].Name, "model2")
 	test.AssertEqual(t, token, "testToken")
@@ -663,13 +663,13 @@ func TestProcessAdd_WithInvalidModel(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs)
+	warnings, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertEqual(t, err, nil)
 	models, err := config.GetModels()
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, warning, "Model 'model3' is already configured")
+	test.AssertEqual(t, warnings[0], "Model 'model3' is already configured")
 	test.AssertEqual(t, len(models), 2)
 }
 
@@ -695,13 +695,13 @@ func TestProcessAdd_WithFailedDownload(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs)
+	warnings, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertNotEqual(t, err, nil)
 	models, err := config.GetModels()
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, len(models), 2)
 }
 
