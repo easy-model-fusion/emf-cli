@@ -76,6 +76,7 @@ func processUpdate(args []string, yes bool, accessToken string) (result resultut
 		var warningMessages []string
 		warningMessages, err = updateModels(modelsToUpdate, yes, accessToken)
 		result.AddWarnings(warningMessages)
+		result.SetError(err)
 	} else {
 		result.AddInfos([]string{"There is no models to be updated."})
 	}

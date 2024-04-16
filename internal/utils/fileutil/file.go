@@ -2,7 +2,6 @@ package fileutil
 
 import (
 	"embed"
-	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
 	"io"
@@ -57,7 +56,7 @@ func CopyEmbeddedFile(fs embed.FS, file, dst string) error {
 // CloseFile closes a file and logs an error if it occurs.
 func CloseFile(file *os.File) {
 	if err := file.Close(); err != nil {
-		fmt.Fprintln(os.Stderr, fmt.Sprintf("Error closing file: %s", err))
+		fmt.Fprintf(os.Stderr, "Error closing file: %s", err)
 	}
 }
 
@@ -65,7 +64,7 @@ func CloseFile(file *os.File) {
 func IsExistingPath(name string) (bool, error) {
 	if _, err := os.Stat(name); err != nil && !os.IsNotExist(err) {
 		// An error occurred while verifying the non-existence of the path
-		return false, errors.New(fmt.Sprintf("Error checking the existence of %s : %s", name, err))
+		return false, fmt.Errorf("error checking the existence of %s : %s", name, err)
 	} else if err == nil {
 		// Path already exists
 		return true, nil

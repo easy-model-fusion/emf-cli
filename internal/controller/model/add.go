@@ -1,7 +1,6 @@
 package modelcontroller
 
 import (
-	"errors"
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
@@ -222,7 +221,7 @@ func (ac AddController) downloadModel(selectedModel model.Model, downloaderArgs 
 	}
 
 	if !success || err != nil {
-		return model.Model{}, warnings, errors.New(fmt.Sprintf("this model %s couldn't be downloaded", selectedModel.Name))
+		return model.Model{}, warnings, fmt.Errorf("this model %s couldn't be downloaded", selectedModel.Name)
 	}
 
 	return selectedModel, warnings, nil
