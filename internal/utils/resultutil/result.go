@@ -8,14 +8,14 @@ type ExecutionResult struct {
 	Error    error
 }
 
-// AddWarning adds a new warning message
-func (er *ExecutionResult) AddWarning(warning string) {
-	er.Warnings = append(er.Warnings, warning)
+// AddWarnings adds a new warning messages
+func (er *ExecutionResult) AddWarnings(warnings []string) {
+	er.Warnings = append(er.Warnings, warnings...)
 }
 
-// AddInfo adds a new information message
-func (er *ExecutionResult) AddInfo(info string) {
-	er.Infos = append(er.Infos, info)
+// AddInfos adds a new information messages
+func (er *ExecutionResult) AddInfos(infos []string) {
+	er.Infos = append(er.Infos, infos...)
 }
 
 // SetError sets an error

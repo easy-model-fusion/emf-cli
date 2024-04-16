@@ -7,35 +7,26 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/hfinterface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/resultutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 )
 
 // RunModelUpdate runs the model update command
 func RunModelUpdate(args []string, yes bool, accessToken string) {
 	// Process update operation with given arguments
-	warningMessages, infoMessage, err := processUpdate(args, yes, accessToken)
+	result := processUpdate(args, yes, accessToken)
 
 	// Display messages to user
-	for _, warningMessage := range warningMessages {
-		app.UI().Warning().Printfln(warningMessage)
-	}
-
-	if infoMessage != "" {
-		app.UI().Info().Printfln(infoMessage)
-	}
-	if err == nil {
-		app.UI().Success().Printfln("Operation succeeded.")
-	} else {
-		app.UI().Error().Printfln("Operation failed.\n%s", err.Error())
-	}
+	result.Display("Operation succeeded.", "Operation failed.")
 }
 
 // processUpdate processes the update model operation
-func processUpdate(args []string, yes bool, accessToken string) (warnings []string, info string, err error) {
+func processUpdate(args []string, yes bool, accessToken string) (result resultutil.ExecutionResult) {
 	// Load the configuration file
-	err = config.GetViperConfig(config.FilePath)
+	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
-		return warnings, info, err
+		result.SetError(err)
+		return result
 	}
 
 	// Request an update suggestion of the client when needed
@@ -44,7 +35,8 @@ func processUpdate(args []string, yes bool, accessToken string) (warnings []stri
 	// Get all models from configuration file
 	configModels, err := config.GetModels()
 	if err != nil {
-		return warnings, info, err
+		result.SetError(err)
+		return result
 	}
 
 	// Keep the downloaded models coming from huggingface (i.e. those that could potentially be updated)
@@ -72,24 +64,23 @@ func processUpdate(args []string, yes bool, accessToken string) (warnings []stri
 		if len(notFoundModelNames) > 0 {
 			warning = fmt.Sprintf("The following models(s) couldn't be found "+
 				"and were ignored : %s", notFoundModelNames)
-			warnings = append(warnings, warning)
+			result.AddWarnings([]string{warning})
 		}
 		// Indicate the models that are already up-to-date
 		if len(upToDateModelNames) > 0 {
-			info = fmt.Sprintf("The following model(s) are already up to date "+
-				"and were ignored : %s", upToDateModelNames)
+			result.AddInfos([]string{fmt.Sprintf("The following model(s) are already up to date "+
+				"and were ignored : %s", upToDateModelNames)})
 		}
 
 		// Processing filtered models for an update
-		warning, err = updateModels(modelsToUpdate, yes, accessToken)
-		if warning != "" {
-			warnings = append(warnings, warning)
-		}
+		var warningMessages []string
+		warningMessages, err = updateModels(modelsToUpdate, yes, accessToken)
+		result.AddWarnings(warningMessages)
 	} else {
-		info = "There is no models to be updated."
+		result.AddInfos([]string{"There is no models to be updated."})
 	}
 
-	return warnings, info, err
+	return result
 }
 
 // getUpdatableModels returns the models available for an update
@@ -141,13 +132,17 @@ func getUpdatableModels(modelNames []string, hfModelsAvailable model.Models, acc
 }
 
 // updateModels updates the given models
-func updateModels(modelsToUpdate model.Models, yes bool, accessToken string) (warning string, err error) {
+func updateModels(modelsToUpdate model.Models, yes bool, accessToken string) (warnings []string, err error) {
 	// Try to update all the given models
 	var failedModels []string
 	var updatedModels model.Models
 	for _, current := range modelsToUpdate {
 		var success bool
-		warning, success = current.Update(yes, accessToken)
+		warnings, success, err = current.Update(yes, accessToken)
+		if err != nil {
+			return warnings, err
+		}
+
 		if !success {
 			failedModels = append(failedModels, current.Name)
 		} else {
@@ -171,7 +166,7 @@ func updateModels(modelsToUpdate model.Models, yes bool, accessToken string) (wa
 		err = fmt.Errorf("the following models(s) couldn't be downloaded : %s", failedModels)
 	}
 
-	return warning, err
+	return warnings, err
 }
 
 // selectModelsToUpdate displays an interactive multiselect so the user can choose the models to update

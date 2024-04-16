@@ -1,6 +1,7 @@
 package modelcontroller
 
 import (
+	"errors"
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
@@ -8,6 +9,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/hfinterface"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/resultutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"os"
 )
@@ -30,10 +32,12 @@ func (ac AddController) Run(args []string, customArgs downloadermodel.Args) erro
 		return ac.Run(args, customArgs)
 	}
 
-	warningMessage, err := ac.processAdd(selectedModel, customArgs)
-	if warningMessage != "" {
-		app.UI().Warning().Println(warningMessage)
-	}
+	var result resultutil.ExecutionResult
+	warnings, err := ac.processAdd(selectedModel, customArgs)
+	result.AddWarnings(warnings)
+	result.SetError(err)
+	result.Display("Operation succeeded", "Operation failed")
+
 	return err
 }
 
@@ -111,7 +115,7 @@ func (ac AddController) getRequestedModel(args []string, authorizationKey string
 }
 
 // processAdd processes the selected model and tries to add it
-func (ac AddController) processAdd(selectedModel model.Model, customArgs downloadermodel.Args) (warning string, err error) {
+func (ac AddController) processAdd(selectedModel model.Model, customArgs downloadermodel.Args) (warnings []string, err error) {
 	var updatedModel model.Model
 
 	// Download model is only available for model.Source == huggingface
@@ -122,45 +126,48 @@ func (ac AddController) processAdd(selectedModel model.Model, customArgs downloa
 
 		// Validate model for download
 		warningMessage, valid, err := config.Validate(selectedModel, ac.AuthorizeDownload)
+		if warningMessage != "" {
+			warnings = append(warnings, warningMessage)
+		}
 		if !valid {
-			return warningMessage, err
+			return warnings, err
 		}
 
 		// Try to download model
-		updatedModel, err = ac.downloadModel(selectedModel, customArgs)
+		updatedModel, warnings, err = ac.downloadModel(selectedModel, customArgs)
 		if err != nil {
-			return warning, err
+			return warnings, err
 		}
 
 		// Save access token
 		if customArgs.AccessToken != "" {
 			err = updatedModel.SaveAccessToken(customArgs.AccessToken)
 			if err != nil {
-				warning = "Failed to save access token"
+				warnings = append(warnings, "Failed to save access token")
 			}
 		}
 	} else if selectedModel.Source == model.CUSTOM && ac.SingleFile {
 
 		// We need some information to create a single file model
 		if customArgs.ModelClass == "" {
-			return "", fmt.Errorf("model class is required for single file model")
+			return warnings, fmt.Errorf("model class is required for single file model")
 		}
 		if customArgs.ModelModule == "" {
-			return "", fmt.Errorf("model module is required for single file model")
+			return warnings, fmt.Errorf("model module is required for single file model")
 		} else if customArgs.ModelModule != string(huggingface.DIFFUSERS) {
-			return "", fmt.Errorf("currently only diffusers models are supported for single file model")
+			return warnings, fmt.Errorf("currently only diffusers models are supported for single file model")
 		}
 
 		// For a single file model to work, we need to check if the file exists
 		fi, err := os.Stat(selectedModel.Path)
 		if err != nil {
 			if os.IsNotExist(err) {
-				return "", fmt.Errorf("file %s does not exist", selectedModel.Path)
+				return warnings, fmt.Errorf("file %s does not exist", selectedModel.Path)
 			}
-			return "", fmt.Errorf("error while checking file %s: %s", selectedModel.Path, err)
+			return warnings, fmt.Errorf("error while checking file %s: %s", selectedModel.Path, err)
 		}
 		if fi.IsDir() {
-			return "", fmt.Errorf("file %s is a directory", selectedModel.Path)
+			return warnings, fmt.Errorf("file %s is a directory", selectedModel.Path)
 		}
 
 		app.UI().Warning().Println("Please note that the file extension is not checked, it could lead to errors if the file is not a valid single file.")
@@ -170,7 +177,7 @@ func (ac AddController) processAdd(selectedModel model.Model, customArgs downloa
 		selectedModel.PipelineTag = huggingface.TextToImage // FIXME: should not be hardcoded
 		updatedModel = selectedModel
 	} else {
-		return "", fmt.Errorf("model source %s is not supported", selectedModel.Source)
+		return warnings, fmt.Errorf("model source %s is not supported", selectedModel.Source)
 	}
 
 	// Add models to configuration file
@@ -191,11 +198,11 @@ func (ac AddController) processAdd(selectedModel model.Model, customArgs downloa
 		spinner.Success()
 	}
 
-	return warning, err
+	return warnings, err
 }
 
 // downloadModel tries to download the selected model
-func (ac AddController) downloadModel(selectedModel model.Model, downloaderArgs downloadermodel.Args) (model.Model, error) {
+func (ac AddController) downloadModel(selectedModel model.Model, downloaderArgs downloadermodel.Args) (downloadedModel model.Model, warnings []string, err error) {
 	// Prepare the script arguments
 	downloaderArgs.ModelName = selectedModel.Name
 	if downloaderArgs.ModelClass == "" {
@@ -208,17 +215,17 @@ func (ac AddController) downloadModel(selectedModel model.Model, downloaderArgs 
 	var success bool
 	if selectedModel.AddToBinaryFile {
 		// Downloading model
-		success = selectedModel.Download(downloaderArgs)
+		success, warnings, err = selectedModel.Download(downloaderArgs)
 	} else {
 		// Getting model configuration
-		success = selectedModel.GetConfig(downloaderArgs)
+		success, warnings, err = selectedModel.GetConfig(downloaderArgs)
 	}
 
-	if !success {
-		return model.Model{}, fmt.Errorf("this model %s couldn't be downloaded", selectedModel.Name)
+	if !success || err != nil {
+		return model.Model{}, warnings, errors.New(fmt.Sprintf("this model %s couldn't be downloaded", selectedModel.Name))
 	}
 
-	return selectedModel, nil
+	return selectedModel, warnings, nil
 }
 
 // getModelsList get list of models to display
