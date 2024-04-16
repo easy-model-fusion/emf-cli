@@ -22,6 +22,7 @@ func RunUpgrade(yes bool) {
 
 	err := config.GetViperConfig(config.FilePath)
 	if err != nil {
+		app.UI().Error().Println(err.Error())
 		return
 	}
 

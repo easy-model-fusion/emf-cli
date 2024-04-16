@@ -25,8 +25,7 @@ func GetViperConfig(confDirPath string) (err error) {
 
 	// restore the original config file path
 	FilePath = tempConfPath
-	app.UI().Error().Println(fmt.Sprintf("Error loading config file after %d attempts: %s", count, err))
-	return err
+	return fmt.Errorf("error loading config file after %d attempts: %s", count, err)
 }
 
 // GetViperItem Store the key data into the target

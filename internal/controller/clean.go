@@ -16,7 +16,8 @@ func RunClean(allFlagDelete bool, authorizeAllDelete bool) {
 	sdk.SendUpdateSuggestion()
 
 	// Only clean if config file exists (so we know it's a EMF project)
-	if config.GetViperConfig(config.FilePath) != nil {
+	if err := config.GetViperConfig(config.FilePath); err != nil {
+		app.UI().Error().Printfln(err.Error())
 		return
 	}
 

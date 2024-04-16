@@ -337,7 +337,7 @@ func TestUpdateModels_Success(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update models
-	err := updateModels(models, false, "")
+	_, err := updateModels(models, false, "")
 
 	// Assertions
 	test.AssertEqual(t, nil, err)
@@ -365,7 +365,7 @@ func TestUpdateModels_SuccessWithConfigurationAdded(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update models
-	err = updateModels(models, false, "")
+	_, err = updateModels(models, false, "")
 
 	// Assertions
 	test.AssertEqual(t, nil, err)
@@ -382,7 +382,7 @@ func TestUpdateModels_Fail(t *testing.T) {
 	app.SetUI(ui)
 
 	// Update models
-	err := updateModels(models, false, "")
+	_, err := updateModels(models, false, "")
 
 	// Assertions
 	test.AssertEqual(t, err.Error(), "the following models(s) couldn't be downloaded : [model1]")
