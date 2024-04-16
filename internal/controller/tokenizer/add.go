@@ -8,6 +8,8 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
+	"path/filepath"
+	"strings"
 )
 
 type AddController struct{}
@@ -86,15 +88,16 @@ func (ic AddController) processAddTokenizer(
 				tokenizerName)
 			return warning, info, err
 		}
-		// TODO
-		//path / to / model / model
-		//path / to / model / tokenizerClass
-		fmt.Printf("path to model %s ", modelToUse.Path)
 		addedTokenizer := model.Tokenizer{
-			Path:  modelToUse.Path,
 			Class: tokenizerName,
 		}
+
+		downloadPathSlice := strings.Split(filepath.Dir(modelToUse.Path), "\\")
+		// Extract the first element
+		downloadPath := downloadPathSlice[0]
+
 		customArgs.ModelName = modelToUse.Name
+		customArgs.DirectoryPath = downloadPath
 
 		success := modelToUse.DownloadTokenizer(addedTokenizer, customArgs)
 		if !success {
