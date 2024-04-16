@@ -213,12 +213,12 @@ func FromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 }
 
 // Update attempts to update the model
-func (m *Model) Update(yes bool, accessToken string) bool {
+func (m *Model) Update(yes bool, accessToken string) (warning string, success bool) {
 	// Check if model is physically present on the device
 	m.UpdatePaths()
 	downloaded, err := m.DownloadedOnDevice(false)
 	if err != nil {
-		return false
+		return warning, success
 	}
 
 	// Process internal state of the model
@@ -234,7 +234,7 @@ func (m *Model) Update(yes bool, accessToken string) bool {
 
 	// Model will not be downloaded or overwritten, nothing more to do here
 	if !install {
-		return false
+		return warning, success
 	}
 
 	// Downloader script to skip the tokenizers download process if none selected
@@ -264,7 +264,7 @@ func (m *Model) Update(yes bool, accessToken string) bool {
 		accessToken, err = m.GetAccessToken()
 		// Download failed
 		if err != nil {
-			return false
+			return warning, success
 		}
 	}
 	downloaderArgs := downloadermodel.Args{
@@ -279,10 +279,10 @@ func (m *Model) Update(yes bool, accessToken string) bool {
 	}
 
 	// Downloading model
-	success := m.Download(downloaderArgs)
+	success = m.Download(downloaderArgs)
 	if !success {
 		// Download failed
-		return false
+		return warning, success
 	}
 
 	// If transformers and at least one tokenizer were asked for an update
@@ -296,7 +296,7 @@ func (m *Model) Update(yes bool, accessToken string) bool {
 			tokenizer := mapModelTokenizers[tokenizerName]
 
 			// Downloading tokenizer
-			success = m.DownloadTokenizer(tokenizer, downloaderArgs)
+			success := m.DownloadTokenizer(tokenizer, downloaderArgs)
 			if !success {
 				// Download failed
 				failedTokenizers = append(failedTokenizers, tokenizer.Class)
@@ -306,11 +306,11 @@ func (m *Model) Update(yes bool, accessToken string) bool {
 
 		// The process failed for at least one tokenizer
 		if len(failedTokenizers) > 0 {
-			app.UI().Error().Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
+			warning = fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers)
 		}
 	}
 
-	return true
+	return warning, success
 }
 
 // TidyConfiguredModel downloads the missing elements that were configured

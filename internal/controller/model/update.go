@@ -13,12 +13,13 @@ import (
 // RunModelUpdate runs the model update command
 func RunModelUpdate(args []string, yes bool, accessToken string) {
 	// Process update operation with given arguments
-	warningMessage, infoMessage, err := processUpdate(args, yes, accessToken)
+	warningMessages, infoMessage, err := processUpdate(args, yes, accessToken)
 
 	// Display messages to user
-	if warningMessage != "" {
+	for _, warningMessage := range warningMessages {
 		app.UI().Warning().Printfln(warningMessage)
 	}
+
 	if infoMessage != "" {
 		app.UI().Info().Printfln(infoMessage)
 	}
@@ -30,11 +31,11 @@ func RunModelUpdate(args []string, yes bool, accessToken string) {
 }
 
 // processUpdate processes the update model operation
-func processUpdate(args []string, yes bool, accessToken string) (warning string, info string, err error) {
+func processUpdate(args []string, yes bool, accessToken string) (warnings []string, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
 	if err != nil {
-		return warning, info, err
+		return warnings, info, err
 	}
 
 	// Request an update suggestion of the client when needed
@@ -43,7 +44,7 @@ func processUpdate(args []string, yes bool, accessToken string) (warning string,
 	// Get all models from configuration file
 	configModels, err := config.GetModels()
 	if err != nil {
-		return warning, info, err
+		return warnings, info, err
 	}
 
 	// Keep the downloaded models coming from huggingface (i.e. those that could potentially be updated)
@@ -63,6 +64,7 @@ func processUpdate(args []string, yes bool, accessToken string) (warning string,
 
 	// Verify if the user selected some models to update
 	if len(selectedModelNames) > 0 {
+		var warning string
 		// Filter selected models to only keep those available for an update
 		modelsToUpdate, notFoundModelNames, upToDateModelNames := getUpdatableModels(selectedModelNames, hfModelsAvailable, accessToken)
 
@@ -70,6 +72,7 @@ func processUpdate(args []string, yes bool, accessToken string) (warning string,
 		if len(notFoundModelNames) > 0 {
 			warning = fmt.Sprintf("The following models(s) couldn't be found "+
 				"and were ignored : %s", notFoundModelNames)
+			warnings = append(warnings, warning)
 		}
 		// Indicate the models that are already up-to-date
 		if len(upToDateModelNames) > 0 {
@@ -78,12 +81,15 @@ func processUpdate(args []string, yes bool, accessToken string) (warning string,
 		}
 
 		// Processing filtered models for an update
-		err = updateModels(modelsToUpdate, yes, accessToken)
+		warning, err = updateModels(modelsToUpdate, yes, accessToken)
+		if warning != "" {
+			warnings = append(warnings, warning)
+		}
 	} else {
 		info = "There is no models to be updated."
 	}
 
-	return warning, info, err
+	return warnings, info, err
 }
 
 // getUpdatableModels returns the models available for an update
@@ -135,12 +141,13 @@ func getUpdatableModels(modelNames []string, hfModelsAvailable model.Models, acc
 }
 
 // updateModels updates the given models
-func updateModels(modelsToUpdate model.Models, yes bool, accessToken string) (err error) {
+func updateModels(modelsToUpdate model.Models, yes bool, accessToken string) (warning string, err error) {
 	// Try to update all the given models
 	var failedModels []string
 	var updatedModels model.Models
 	for _, current := range modelsToUpdate {
-		success := current.Update(yes, accessToken)
+		var success bool
+		warning, success = current.Update(yes, accessToken)
 		if !success {
 			failedModels = append(failedModels, current.Name)
 		} else {
@@ -164,7 +171,7 @@ func updateModels(modelsToUpdate model.Models, yes bool, accessToken string) (er
 		err = fmt.Errorf("the following models(s) couldn't be downloaded : %s", failedModels)
 	}
 
-	return err
+	return warning, err
 }
 
 // selectModelsToUpdate displays an interactive multiselect so the user can choose the models to update
