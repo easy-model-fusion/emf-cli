@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
-	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
-	"github.com/pterm/pterm"
 	"os"
 	"path"
 )
@@ -254,8 +252,7 @@ func (m *Model) Update(yes bool, accessToken string) bool {
 
 			// Prepare the tokenizers multiselect
 			message := "Please select the tokenizer(s) to be updated"
-			checkMark := ui.Checkmark{Checked: pterm.Green("+"), Unchecked: pterm.Red("-")}
-			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, checkMark, true, true)
+			tokenizerNames = app.UI().DisplayInteractiveMultiselect(message, availableNames, app.UI().BasicCheckmark(), true, true, 8)
 			app.UI().DisplaySelectedItems(tokenizerNames)
 
 			// No tokenizer is selected : skipping so that it doesn't overwrite the default one
@@ -309,7 +306,7 @@ func (m *Model) Update(yes bool, accessToken string) bool {
 
 		// The process failed for at least one tokenizer
 		if len(failedTokenizers) > 0 {
-			pterm.Error.Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
+			app.UI().Error().Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
 		}
 	}
 

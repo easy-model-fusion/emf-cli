@@ -6,6 +6,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/codegen"
 	"github.com/easy-model-fusion/emf-cli/internal/dotenv"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/dotenv"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/spf13/viper"

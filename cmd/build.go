@@ -2,84 +2,36 @@ package cmd
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
-	"github.com/easy-model-fusion/emf-cli/internal/config"
-	"github.com/easy-model-fusion/emf-cli/internal/sdk"
-	"github.com/pterm/pterm"
+	"github.com/easy-model-fusion/emf-cli/internal/controller"
 	"github.com/spf13/cobra"
 	"os"
-	"os/exec"
 )
 
 var (
-	buildDestination   = "/dist"
-	buildCustomName    string
-	buildOneFile       bool
-	buildCompress      bool
-	buildIncludeModels bool
+	buildController = controller.BuildController{}
 )
 
 // buildCmd represents the build command
 var buildCmd = &cobra.Command{
 	Use:   "build",
 	Short: "Build the project",
-	Long:  `Build the project.`,
-	Run:   runBuild,
-}
-
-func init() {
-	buildCmd.Flags().StringVarP(&buildDestination, "out-dir", "o", "", "Destination directory where the project will be built")
-	buildCmd.Flags().StringVarP(&buildCustomName, "name", "n", "", "Custom name for the executable")
-	buildCmd.Flags().BoolVarP(&buildOneFile, "one-file", "f", false, "Build the project in one file")
-	buildCmd.Flags().BoolVarP(&buildCompress, "compress", "c", false, "Compress the output file(s) into a tarball file")
-	buildCmd.Flags().BoolVarP(&buildIncludeModels, "include-models", "m", false, "Include models in the build compressed file")
+	Long: `Build the project using the selected library (pyinstaller or nuitka).
+			Note: if you want to use nuitka, you need to have a working C compiler.`,
+	Run: runBuild,
 }
 
 func runBuild(cmd *cobra.Command, args []string) {
-	if config.GetViperConfig(".") != nil {
-		return
-	}
-
-	sdk.SendUpdateSuggestion()
-
-	// check if buildDestination exists
-	if _, err := os.Stat(buildDestination); os.IsNotExist(err) {
-
-		if buildDestination == "/dist" {
-			err = os.Mkdir(buildDestination, os.ModeDir)
-			if err != nil {
-				pterm.Error.Println("Error creating dist folder")
-				return
-			}
-		} else {
-			pterm.Error.Println("Destination directory does not exist")
-			return
-		}
-
-	}
-
-	// Install dependencies
-	pythonPath, err := app.Python().FindVEnvExecutable(".venv", "python")
+	err := buildController.Run()
 	if err != nil {
-		pterm.Error.Println("Error finding python executable")
-		return
+		app.UI().Error().Println(err.Error())
+		os.Exit(1)
 	}
+}
 
-	var pyinstaller *exec.Cmd
-
-	if buildOneFile {
-		pyinstaller = exec.Command(pythonPath, "-m", "pyinstaller", "--onefile", "main.py")
-	} else {
-		pyinstaller = exec.Command(pythonPath, "-m", "pyinstaller", "main.py")
-	}
-
-	err = pyinstaller.Run()
-	if err != nil {
-		pterm.Error.Println("Error building project")
-		return
-	}
-
-	// if buildCompress {
-	// }
-
-	pterm.Success.Println("Project built successfully!")
+func init() {
+	buildCmd.Flags().StringVarP(&buildController.DestinationDir, "out-dir", "o", "dist", "DestinationDir directory where the project will be built")
+	buildCmd.Flags().StringVarP(&buildController.CustomName, "name", "n", "", "Custom name for the executable")
+	buildCmd.Flags().StringVarP(&buildController.Library, "library", "l", "pyinstaller", "Library to use for building the project (select between pyinstaller and nuitka)")
+	buildCmd.Flags().BoolVarP(&buildController.OneFile, "one-file", "f", false, "Build the project in one file")
+	buildCmd.Flags().BoolVarP(&buildController.ModelsSymlink, "models-symlink", "s", false, "Symlink the models directory to the build directory")
 }

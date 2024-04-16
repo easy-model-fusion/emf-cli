@@ -85,6 +85,19 @@ func TestValidate_MissingModule(t *testing.T) {
 	test.AssertNotEqual(t, result, nil)
 }
 
+// TestValidate_MissingModule tests the ArgsValidate function to return an error.
+func TestValidate_MissingModuleAndSkipTrue(t *testing.T) {
+	// Init
+	args := Args{ModelName: "present",
+		SkipModel: true}
+
+	// Execute
+	result := args.Validate()
+
+	// Assert
+	test.AssertEqual(t, result, nil)
+}
+
 // TestValidate_Success tests the ArgsValidate function to succeed.
 func TestValidate_Success(t *testing.T) {
 	// Init
@@ -126,29 +139,49 @@ func TestToCobra(t *testing.T) {
 	test.AssertEqual(t, args.SkipTokenizer, false)
 }
 
+// TestToCobraTokenizer tests the ArgsGetForCobra.
+func TestToCobraTokenizer(t *testing.T) {
+	// Init
+	cmd := &cobra.Command{}
+	args := &Args{}
+
+	// Execute
+	args.ToCobraTokenizer(cmd)
+
+	// Assert
+
+	test.AssertNotEqual(t, cmd.Flags().Lookup(TokenizerClass), nil)
+	test.AssertNotEqual(t, cmd.Flags().Lookup(TokenizerOptions), nil)
+
+	test.AssertEqual(t, args.TokenizerClass, "")
+	test.AssertEqual(t, len(args.TokenizerOptions), 0)
+}
+
 // TestToPython tests the ArgsProcessForPython.
 func TestToPython(t *testing.T) {
 	// Init
 	args := Args{
 		ModelName:         "model",
-		ModelModule:       "module",
 		ModelClass:        "class",
+		ModelModule:       "module",
 		DirectoryPath:     "/path/to/download",
 		ModelOptions:      []string{"opt1=val1", "opt2=val2"},
 		TokenizerClass:    "tokenizer",
 		TokenizerOptions:  []string{"tok_opt1=val1"},
 		SkipModel:         true,
-		SkipTokenizer:     false,
+		SkipTokenizer:     true,
 		OnlyConfiguration: true,
 		AccessToken:       "token",
 	}
 	expected := []string{
 		TagPrefix + EmfClient, TagPrefix + Overwrite,
-		"/path/to/download", "model", "module",
+		"/path/to/download", "model",
 		TagPrefix + ModelClass, "class",
+		TagPrefix + ModelModule, "module",
 		TagPrefix + ModelOptions, "opt1=val1", "opt2=val2",
 		TagPrefix + TokenizerClass, "tokenizer",
 		TagPrefix + TokenizerOptions, "tok_opt1=val1",
+		TagPrefix + Skip, "tokenizer",
 		TagPrefix + Skip, "model",
 		TagPrefix + OnlyConfiguration,
 		TagPrefix + AccessToken, "token",

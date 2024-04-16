@@ -15,6 +15,11 @@ var generationExcludedCharacters = []string{"-", "/", "."}
 func (m *Model) GetFormattedModelName() string {
 	name := cases.Title(language.English, cases.Compact).String(m.Name)
 
+	// Check if name is empty, to avoid panic
+	if name == "" {
+		return name
+	}
+
 	// Remove special characters
 	for _, specialCharacter := range generationExcludedCharacters {
 		name = strings.ReplaceAll(name, specialCharacter, "")
@@ -134,52 +139,44 @@ func (m *Model) GenInitParamsWithModule() []codegen.Parameter {
 
 // GenSuperInitParamsWithModule generate the init params for the super class
 func (m *Model) GenSuperInitParamsWithModule() []codegen.FunctionCallParameter {
+	params := []codegen.FunctionCallParameter{
+		{
+			Name:  "model_name",
+			Value: "\"" + m.Name + "\"",
+		},
+		{
+			Name:  "model_path",
+			Value: "\"" + m.Path + "\"",
+		},
+		{
+			Name:  "model_class",
+			Value: m.Class,
+		},
+		{
+			Name:  "device",
+			Value: "Devices.GPU",
+		},
+	}
+
+	if m.Source == CUSTOM {
+		// If the model is a single file (source=="custom"), we need to add the single file parameter
+		params = append(params, codegen.FunctionCallParameter{
+			Name:  "single_file",
+			Value: "True",
+		})
+	}
 
 	switch m.Module {
 	case huggingface.DIFFUSERS:
-		return []codegen.FunctionCallParameter{
-			{
-				Name:  "model_name",
-				Value: "\"" + m.Name + "\"",
-			},
-			{
-				Name:  "model_path",
-				Value: "\"" + m.Path + "\"",
-			},
-			{
-				Name:  "model_class",
-				Value: m.Class,
-			},
-			{
-				Name:  "device",
-				Value: "Devices.GPU",
-			}, /*, ToDo : Add the Kwargs to the generation
-			{
-				Value: "**kwargs",
-			}*/}
-
+		params = append(params, codegen.FunctionCallParameter{
+			Value: "**kwargs",
+		})
+		return params
 	case huggingface.TRANSFORMERS:
-		params := []codegen.FunctionCallParameter{
-			{
-				Name:  "model_name",
-				Value: "\"" + m.Name + "\"",
-			},
-			{
-				Name:  "model_path",
-				Value: "\"" + m.Path + "\"",
-			},
-			{
-				Name:  "task",
-				Value: "\"" + string(m.PipelineTag) + "\"",
-			},
-			{
-				Name:  "model_class",
-				Value: m.Class,
-			},
-			{
-				Name:  "device",
-				Value: "Devices.GPU",
-			}}
+		params = append(params, codegen.FunctionCallParameter{
+			Name:  "task",
+			Value: "\"" + string(m.PipelineTag) + "\"",
+		})
 
 		if len(m.Tokenizers) > 0 {
 			params = append(params, codegen.FunctionCallParameter{

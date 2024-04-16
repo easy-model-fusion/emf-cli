@@ -313,7 +313,7 @@ func (cg *PythonCodeGenerator) VisitImport(importStmt *Import) error {
 // VisitImportWhat visits an ImportWhat node
 func (cg *PythonCodeGenerator) VisitImportWhat(importWhat *ImportWhat) error {
 	if importWhat.Name == "" {
-		return errors.New("import what name cannot be empty")
+		return errors.New("import what \"name\" cannot be empty")
 	}
 
 	cg.append(importWhat.Name)
@@ -410,7 +410,10 @@ func (cg *PythonCodeGenerator) VisitFunctionCall(functionCall *FunctionCall) err
 			return err
 		}
 
-		if param.Name == "" && positionalFound {
+		// Check if positional argument follows keyword argument
+		// Positional arguments must come before keyword arguments
+		// **kwargs is an exception to this rule, so we ignore it
+		if param.Name == "" && !strings.HasPrefix(param.Value, "**") && positionalFound {
 			return errors.New("positional argument follows keyword argument")
 		}
 
