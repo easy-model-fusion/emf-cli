@@ -38,7 +38,7 @@ func TestTokenizerAddCmd_WrongModule(t *testing.T) {
 	var customArgs downloadermodel.Args
 	// Process update
 	err = ic.Run(args, customArgs)
-	expectedMessage := "only transformers models have tokenizers"
+	expectedMessage := "no models to choose from"
 	test.AssertEqual(t, err.Error(), expectedMessage, "error")
 
 }

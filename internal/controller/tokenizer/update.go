@@ -50,7 +50,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 	}
 
 	// Get all configured models objects/names and args model
-	models, err := config.GetModels()
+	models, err := config.GetModelsByModule(string(huggingface.TRANSFORMERS))
 	if err != nil {
 		return warning, info, fmt.Errorf("error while getting configured models: %s", err.Error())
 	}
@@ -77,10 +77,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 		if !exists {
 			return warning, info, fmt.Errorf("Model is not configured")
 		}
-		// Verify model's module
-		if modelToUse.Module != huggingface.TRANSFORMERS {
-			return warning, info, fmt.Errorf("only transformers models have tokenizers")
-		}
+
 		// Remove model name from arguments
 		args = args[1:]
 	}

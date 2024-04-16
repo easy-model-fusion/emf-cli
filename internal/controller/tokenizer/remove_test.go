@@ -88,7 +88,7 @@ func TestRemoveTokenizer_WithModuleNotTransformers(t *testing.T) {
 	ic := RemoveTokenizerController{}
 	// Process remove
 	if err := ic.RunTokenizerRemove(args); err != nil {
-		expectedErrMsg := "only transformers models have tokenizers"
+		expectedErrMsg := "no models to choose from"
 		if err.Error() != expectedErrMsg {
 			t.Errorf("Expected error message '%s', but got '%s'", expectedErrMsg, err.Error())
 		}
@@ -263,7 +263,7 @@ func TestRemoveTokenizer_NoargsBadModule(t *testing.T) {
 	ic := RemoveTokenizerController{}
 	// Process remove
 	if err := ic.RunTokenizerRemove(args); err != nil {
-		expectedMessage := "only transformers models have tokenizers"
+		expectedMessage := "no models to choose from"
 		test.AssertEqual(t, err.Error(), expectedMessage, "error")
 	}
 }

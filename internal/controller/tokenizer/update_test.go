@@ -86,7 +86,7 @@ func TestTokenizerUpdateCmd_NoModuleTransformersUpdate(t *testing.T) {
 	ic := UpdateTokenizerController{}
 	// Process update
 	err = ic.TokenizerUpdateCmd(args)
-	expectedErrMsg := "only transformers models have tokenizers"
+	expectedErrMsg := "no configured models found"
 	test.AssertEqual(t, err.Error(), expectedErrMsg, "Unexpected error message")
 
 	_, err = config.GetModels()

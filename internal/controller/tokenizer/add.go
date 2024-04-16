@@ -51,7 +51,7 @@ func (ic AddController) processAddTokenizer(
 		return warning, info, fmt.Errorf("please provide a model and tokenizer name to add")
 	}
 	// Get all configured models objects/names and args model
-	models, err := config.GetModels()
+	models, err := config.GetModelsByModule(string(huggingface.TRANSFORMERS))
 	if err != nil {
 		return warning, info, fmt.Errorf("error getting model: %s", err.Error())
 	}
@@ -70,11 +70,6 @@ func (ic AddController) processAddTokenizer(
 		return warning, "Model is not configured", err
 	}
 
-	// Verify model's module
-	if modelToUse.Module != huggingface.TRANSFORMERS {
-		return warning, info, fmt.Errorf("only transformers models have tokenizers")
-	}
-
 	// Remove model name from arguments
 	args = args[1:]
 
@@ -91,6 +86,10 @@ func (ic AddController) processAddTokenizer(
 				tokenizerName)
 			return warning, info, err
 		}
+		// TODO
+		//path / to / model / model
+		//path / to / model / tokenizerClass
+		fmt.Printf("path to model %s ", modelToUse.Path)
 		addedTokenizer := model.Tokenizer{
 			Path:  modelToUse.Path,
 			Class: tokenizerName,
