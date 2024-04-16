@@ -133,10 +133,11 @@ func TestDownloadModel(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Download model
-	downloadedModel, err := ac.downloadModel(selectedModel, downloaderArgs)
+	downloadedModel, warnings, err := ac.downloadModel(selectedModel, downloaderArgs)
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, downloadedModel.Name, selectedModel.Name)
 }
 
@@ -153,10 +154,11 @@ func TestDownloadModel_OnlyConfiguration(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Get model's config
-	downloadedModel, err := ac.downloadModel(selectedModel, downloaderArgs)
+	downloadedModel, warnings, err := ac.downloadModel(selectedModel, downloaderArgs)
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, downloadedModel.Name, selectedModel.Name)
 }
 
@@ -172,10 +174,11 @@ func TestDownloadModel_Fail(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Download model
-	_, err := ac.downloadModel(selectedModel, downloaderArgs)
+	_, warnings, err := ac.downloadModel(selectedModel, downloaderArgs)
 
 	// Assertions
 	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 }
 
 // Tests getRequestedModel with valid model passed in arguments
