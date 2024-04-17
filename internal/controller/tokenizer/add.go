@@ -89,8 +89,8 @@ func (ic AddController) processAddTokenizer(
 		addedTokenizer := model.Tokenizer{
 			Class: tokenizerName,
 		}
-
-		downloadPath, err := modelToUse.GetModelDirectory()
+		var downloadPath string
+		downloadPath, err = modelToUse.GetModelDirectory()
 		if err != nil {
 			return warning, "Error getting model path", err
 		}
