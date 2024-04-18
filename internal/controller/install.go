@@ -33,6 +33,7 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
@@ -183,10 +184,30 @@ func (ic InstallController) cloneSDK() (err error) {
 	tag := viper.GetString("sdk-tag")
 
 	// Clone SDK
+	retry := false
+clone:
 	spinner := app.UI().StartSpinner("Cloning SDK")
 	err = app.G().CloneSDK(tag, "sdk")
 	if err != nil {
 		spinner.Fail("Unable to clone sdk: ", err)
+
+		if !retry && app.UI().AskForUsersConfirmation("Do you want to remove the sdk folder and try again?") {
+
+			// Remove sdk folder
+			err = os.RemoveAll("sdk")
+			if err != nil {
+				return fmt.Errorf("unable to remove sdk folder: %w", err)
+			}
+
+			// Retry cloning
+			retry = true
+			goto clone
+		}
+
+		if retry {
+			app.UI().Warning().Println("Cloning the SDK failed twice, please retry the whole process.")
+		}
+
 		return err
 	}
 	spinner.Success()
