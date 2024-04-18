@@ -213,12 +213,12 @@ func FromHuggingfaceModel(huggingfaceModel huggingface.Model) Model {
 }
 
 // Update attempts to update the model
-func (m *Model) Update(yes bool, accessToken string) bool {
+func (m *Model) Update(yes bool, accessToken string) (warnings []string, success bool, err error) {
 	// Check if model is physically present on the device
 	m.UpdatePaths()
 	downloaded, err := m.DownloadedOnDevice(false)
 	if err != nil {
-		return false
+		return warnings, success, err
 	}
 
 	// Process internal state of the model
@@ -234,7 +234,7 @@ func (m *Model) Update(yes bool, accessToken string) bool {
 
 	// Model will not be downloaded or overwritten, nothing more to do here
 	if !install {
-		return false
+		return warnings, success, err
 	}
 
 	// Downloader script to skip the tokenizers download process if none selected
@@ -264,7 +264,7 @@ func (m *Model) Update(yes bool, accessToken string) bool {
 		accessToken, err = m.GetAccessToken()
 		// Download failed
 		if err != nil {
-			return false
+			return warnings, success, err
 		}
 	}
 	downloaderArgs := downloadermodel.Args{
@@ -279,10 +279,10 @@ func (m *Model) Update(yes bool, accessToken string) bool {
 	}
 
 	// Downloading model
-	success := m.Download(downloaderArgs)
-	if !success {
+	success, warnings, err = m.Download(downloaderArgs)
+	if !success || err != nil {
 		// Download failed
-		return false
+		return warnings, success, err
 	}
 
 	// If transformers and at least one tokenizer were asked for an update
@@ -296,7 +296,12 @@ func (m *Model) Update(yes bool, accessToken string) bool {
 			tokenizer := mapModelTokenizers[tokenizerName]
 
 			// Downloading tokenizer
-			success = m.DownloadTokenizer(tokenizer, downloaderArgs)
+			var warningMessages []string
+			success, warningMessages, err = m.DownloadTokenizer(tokenizer, downloaderArgs)
+			warnings = append(warnings, warningMessages...)
+			if err != nil {
+				return warnings, false, err
+			}
 			if !success {
 				// Download failed
 				failedTokenizers = append(failedTokenizers, tokenizer.Class)
@@ -306,22 +311,22 @@ func (m *Model) Update(yes bool, accessToken string) bool {
 
 		// The process failed for at least one tokenizer
 		if len(failedTokenizers) > 0 {
-			app.UI().Error().Println(fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
+			warnings = append(warnings, fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
 		}
 	}
 
-	return true
+	return warnings, true, err
 }
 
 // TidyConfiguredModel downloads the missing elements that were configured
 // first bool is true if success, second bool is true if model was clean from the start
-func (m *Model) TidyConfiguredModel(accessToken string) (warning string, success bool, clean bool) {
+func (m *Model) TidyConfiguredModel(accessToken string) (warnings []string, success bool, clean bool, err error) {
 
 	// Check if model is physically present on the device
 	m.UpdatePaths()
 	downloaded, err := m.DownloadedOnDevice(false)
 	if err != nil {
-		return warning, false, false
+		return warnings, false, false, err
 	}
 
 	// Get all the configured but not downloaded tokenizers
@@ -329,14 +334,14 @@ func (m *Model) TidyConfiguredModel(accessToken string) (warning string, success
 
 	// Model is clean, nothing more to do here
 	if downloaded && len(missingTokenizers) == 0 {
-		return "", true, true
+		return warnings, true, true, err
 	}
 	// Prepare the script arguments
 	if accessToken == "" {
 		accessToken, err = m.GetAccessToken()
 		if err != nil {
 			// Download failed
-			return warning, false, false
+			return warnings, false, false, err
 		}
 	}
 	downloaderArgs := downloadermodel.Args{
@@ -352,10 +357,10 @@ func (m *Model) TidyConfiguredModel(accessToken string) (warning string, success
 	// Model has yet to be downloaded
 	if !downloaded {
 		// Downloading model
-		success := m.Download(downloaderArgs)
-		if !success {
+		success, warnings, err = m.Download(downloaderArgs)
+		if !success || err != nil {
 			// Download failed
-			return warning, success, false
+			return warnings, success, false, err
 		}
 	}
 
@@ -367,8 +372,12 @@ func (m *Model) TidyConfiguredModel(accessToken string) (warning string, success
 		for _, tokenizer := range missingTokenizers {
 
 			// Downloading tokenizer
-			success := false
-			success = m.DownloadTokenizer(tokenizer, downloaderArgs)
+			var warningMessages []string
+			success, warningMessages, err = m.DownloadTokenizer(tokenizer, downloaderArgs)
+			warnings = append(warnings, warningMessages...)
+			if err != nil {
+				return warnings, false, false, err
+			}
 			if !success {
 				// Download failed
 				failedTokenizers = append(failedTokenizers, tokenizer.Class)
@@ -378,9 +387,9 @@ func (m *Model) TidyConfiguredModel(accessToken string) (warning string, success
 
 		// The process failed for at least one tokenizer
 		if len(failedTokenizers) > 0 {
-			warning = fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers)
+			warnings = append(warnings, fmt.Sprintf("The following tokenizer(s) couldn't be downloaded for '%s': %s", m.Name, failedTokenizers))
 		}
 	}
 
-	return warning, true, false
+	return warnings, true, false, err
 }

@@ -131,12 +131,12 @@ func TestProcessUpdate(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
-	warningMessage, infoMessage, err := processUpdate(args, false, "")
+	result := processUpdate(args, false, "")
 
 	// Assertions
-	test.AssertEqual(t, err, nil, "No error expected")
-	test.AssertEqual(t, warningMessage, "The following models(s) couldn't be found and were ignored : [model4]", "A warning is expected")
-	test.AssertEqual(t, infoMessage, "The following model(s) are already up to date and were ignored : [model3]", "Information message expected")
+	test.AssertEqual(t, result.Error, nil, "No error expected")
+	test.AssertEqual(t, result.Warnings[0], "The following models(s) couldn't be found and were ignored : [model4]", "A warning is expected")
+	test.AssertEqual(t, result.Infos[0], "The following model(s) are already up to date and were ignored : [model3]", "Information message expected")
 }
 
 // Tests processUpdate with no args
@@ -171,12 +171,12 @@ func TestProcessUpdate_WithNoArgs(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
-	warningMessage, infoMessage, err := processUpdate(args, false, "")
+	result := processUpdate(args, false, "")
 
 	// Assertions
-	test.AssertEqual(t, err, nil, "No error expected")
-	test.AssertEqual(t, warningMessage, "", "No warning is expected")
-	test.AssertEqual(t, infoMessage, "The following model(s) are already up to date and were ignored : [model3]", "Information message expected")
+	test.AssertEqual(t, result.Error, nil, "No error expected")
+	test.AssertEqual(t, len(result.Warnings), 0, "No warning is expected")
+	test.AssertEqual(t, result.Infos[0], "The following model(s) are already up to date and were ignored : [model3]", "Information message expected")
 }
 
 // Tests processUpdate with no models selected
@@ -209,12 +209,12 @@ func TestProcessUpdate_WithNoModelsSelected(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	// Process update
-	warningMessage, infoMessage, err := processUpdate(args, false, "")
+	result := processUpdate(args, false, "")
 
 	// Assertions
-	test.AssertEqual(t, err, nil, "No error expected")
-	test.AssertEqual(t, warningMessage, "", "No warning is expected")
-	test.AssertEqual(t, infoMessage, "There is no models to be updated.", "Information message expected")
+	test.AssertEqual(t, result.Error, nil, "No error expected")
+	test.AssertEqual(t, len(result.Warnings), 0, "No warning is expected")
+	test.AssertEqual(t, result.Infos[0], "There is no models to be updated.", "Information message expected")
 }
 
 // Tests processUpdate with an error on loading configuration file
@@ -227,12 +227,12 @@ func TestProcessUpdate_WithErrorOnLoadingConfigurationFile(t *testing.T) {
 	app.SetUI(ui)
 
 	// Process update
-	warningMessage, infoMessage, err := processUpdate(args, false, "")
+	result := processUpdate(args, false, "")
 
 	// Assertions
-	test.AssertNotEqual(t, err, nil, "An error is expected")
-	test.AssertEqual(t, warningMessage, "", "No warning is expected")
-	test.AssertEqual(t, infoMessage, "", "No information message expected")
+	test.AssertNotEqual(t, result.Error, nil, "An error is expected")
+	test.AssertEqual(t, len(result.Warnings), 0, "No warning is expected")
+	test.AssertEqual(t, len(result.Infos), 0, "No information message expected")
 }
 
 // Tests selectModelsToUpdate
@@ -338,7 +338,7 @@ func TestUpdateModels_Success(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update models
-	err := updateModels(models, false, "")
+	_, err := updateModels(models, false, "")
 
 	// Assertions
 	test.AssertEqual(t, nil, err)
@@ -366,7 +366,7 @@ func TestUpdateModels_SuccessWithConfigurationAdded(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update models
-	err = updateModels(models, false, "")
+	_, err = updateModels(models, false, "")
 
 	// Assertions
 	test.AssertEqual(t, nil, err)
@@ -383,7 +383,7 @@ func TestUpdateModels_Fail(t *testing.T) {
 	app.SetUI(ui)
 
 	// Update models
-	err := updateModels(models, false, "")
+	_, err := updateModels(models, false, "")
 
 	// Assertions
 	test.AssertEqual(t, err.Error(), "the following models(s) couldn't be downloaded : [model1]")

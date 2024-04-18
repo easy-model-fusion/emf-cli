@@ -2,6 +2,7 @@ package tokenizer
 
 import (
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
@@ -18,11 +19,11 @@ func (ic AddController) Run(args []string,
 	sdk.SendUpdateSuggestion()
 
 	// Process add operation with given arguments
-	warningMessage, infoMessage, err := ic.processAddTokenizer(args, customArgs)
+	warningMessages, infoMessage, err := ic.processAddTokenizer(args, customArgs)
 
 	// Display messages to user
-	if warningMessage != "" {
-		pterm.Warning.Printfln(warningMessage)
+	for _, warningMessage := range warningMessages {
+		app.UI().Warning().Printfln(warningMessage)
 	}
 
 	if infoMessage != "" {
@@ -41,22 +42,22 @@ func (ic AddController) Run(args []string,
 func (ic AddController) processAddTokenizer(
 	args []string,
 	customArgs downloadermodel.Args,
-) (warning, info string, err error) {
+) (warnings []string, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
 	if err != nil {
-		return warning, info, err
+		return warnings, info, err
 	}
 
 	// No model name in args
 	if len(args) < 1 {
-		return warning, info, fmt.Errorf("enter a model in argument")
+		return warnings, info, fmt.Errorf("enter a model in argument")
 	}
 
 	// Get all configured models objects/names and args model
 	models, err := config.GetModels()
 	if err != nil {
-		return warning, info, fmt.Errorf("error getting model: %s", err.Error())
+		return warnings, info, fmt.Errorf("error getting model: %s", err.Error())
 	}
 
 	// Checks the presence of the model
@@ -64,11 +65,11 @@ func (ic AddController) processAddTokenizer(
 	configModelsMap := models.Map()
 	modelToUse, exists := configModelsMap[selectedModel]
 	if !exists {
-		return warning, "Model is not configured", err
+		return warnings, "Model is not configured", err
 	}
 	// No tokenizer name in args
 	if len(args) < 2 {
-		return warning, info, fmt.Errorf("enter a tokenizer in argument")
+		return warnings, info, fmt.Errorf("enter a tokenizer in argument")
 	}
 
 	// Setting tokenizer name from args
@@ -79,12 +80,12 @@ func (ic AddController) processAddTokenizer(
 	if tokenizerFound {
 		err = fmt.Errorf("the following tokenizer is already downloaded :%s",
 			tokenizerName)
-		return warning, "Tokenizer add failed, already downloaded", err
+		return warnings, "Tokenizer add failed, already downloaded", err
 	}
 
 	// Verify model's module
 	if modelToUse.Module != huggingface.TRANSFORMERS {
-		return warning, info, fmt.Errorf("only transformers models have tokenizers")
+		return warnings, info, fmt.Errorf("only transformers models have tokenizers")
 	}
 
 	var addedTokenizer = model.Tokenizer{
@@ -94,7 +95,11 @@ func (ic AddController) processAddTokenizer(
 
 	customArgs.ModelName = modelToUse.Name
 
-	success := modelToUse.DownloadTokenizer(addedTokenizer, customArgs)
+	var success bool
+	success, warnings, err = modelToUse.DownloadTokenizer(addedTokenizer, customArgs)
+	if err != nil {
+		return warnings, info, err
+	}
 	if !success {
 		err = fmt.Errorf("the following tokenizer"+
 			" couldn't be downloaded : %s", tokenizerName)
@@ -109,5 +114,5 @@ func (ic AddController) processAddTokenizer(
 		}
 		modelToUse.Tokenizers = append(modelToUse.Tokenizers, addedTokenizer)
 	}
-	return warning, "Tokenizers add done", err
+	return warnings, "Tokenizers add done", err
 }

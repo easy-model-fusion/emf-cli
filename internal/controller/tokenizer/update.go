@@ -22,10 +22,10 @@ type UpdateTokenizerController struct{}
 func (ic UpdateTokenizerController) TokenizerUpdateCmd(args []string) error {
 	sdk.SendUpdateSuggestion()
 	// Process remove operation with given arguments
-	warningMessage, infoMessage, err := ic.processUpdateTokenizer(args)
+	warningMessages, infoMessage, err := ic.processUpdateTokenizer(args)
 
 	// Display messages to user
-	if warningMessage != "" {
+	for _, warningMessage := range warningMessages {
 		app.UI().Warning().Printfln(warningMessage)
 	}
 
@@ -42,22 +42,22 @@ func (ic UpdateTokenizerController) TokenizerUpdateCmd(args []string) error {
 }
 
 // processUpdateTokenizer processes tokenizers to be updated
-func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warning, info string, err error) {
+func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warnings []string, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
 	if err != nil {
-		return warning, info, err
+		return warnings, info, err
 	}
 
 	// No model name in args
 	if len(args) < 1 {
-		return warning, info, fmt.Errorf("enter a model in argument")
+		return warnings, info, fmt.Errorf("enter a model in argument")
 	}
 
 	// Get all configured models objects/names and args model
 	models, err := config.GetModels()
 	if err != nil {
-		return warning, info, fmt.Errorf("error get model: %s", err.Error())
+		return warnings, info, fmt.Errorf("error get model: %s", err.Error())
 	}
 
 	// Checks the presence of the model
@@ -65,12 +65,12 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 	configModelsMap := models.Map()
 	modelToUse, exists := configModelsMap[selectedModel]
 	if !exists {
-		return warning, "Model is not configured", err
+		return warnings, "Model is not configured", err
 	}
 
 	// Verify model's module
 	if modelToUse.Module != huggingface.TRANSFORMERS {
-		return warning, info, fmt.Errorf("only transformers models have tokenizers")
+		return warnings, info, fmt.Errorf("only transformers models have tokenizers")
 	}
 
 	var updateTokenizers model.Tokenizers
@@ -113,7 +113,11 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 			ModelModule: string(modelToUse.Module),
 		}
 
-		success := modelToUse.DownloadTokenizer(tokenizer, downloaderArgs)
+		var success bool
+		success, warnings, err = modelToUse.DownloadTokenizer(tokenizer, downloaderArgs)
+		if err != nil {
+			return warnings, info, err
+		}
 		if !success {
 			failedTokenizers = append(failedTokenizers, tokenizer.Class)
 		} else {
@@ -141,5 +145,5 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 	if len(failedTokenizers) > 0 {
 		err = fmt.Errorf("the following tokenizer(s) couldn't be downloaded : %s", failedTokenizers)
 	}
-	return warning, "Tokenizers update done", err
+	return warnings, "Tokenizers update done", err
 }

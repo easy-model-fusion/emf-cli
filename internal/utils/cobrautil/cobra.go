@@ -44,14 +44,15 @@ func GetSubCommands(cmd *cobra.Command, cmdsToHide []string) ([]string, map[stri
 }
 
 // MultiselectSubcommands presents an interactive selection of available sub-commands and executes the chosen one.
-func MultiselectSubcommands(cmd *cobra.Command, args []string, commandsList []string, commandsMap map[string]func(*cobra.Command, []string)) {
+func MultiselectSubcommands(cmd *cobra.Command, args []string, commandsList []string, commandsMap map[string]func(*cobra.Command, []string)) (err error) {
 	selectedCommand := app.UI().DisplayInteractiveSelect("", commandsList, true, 8)
 
 	if runCommand, exists := commandsMap[selectedCommand]; exists {
 		runCommand(cmd, args)
 	} else {
-		app.UI().Error().Println(fmt.Sprintf("Selected command '%s' not recognized", selectedCommand))
+		err = fmt.Errorf("selected command '%s' not recognized", selectedCommand)
 	}
+	return err
 }
 
 // GetNonProvidedLocalFlags retrieves flags that have not been provided for a Cobra command.
@@ -143,7 +144,5 @@ func RunCommandAsPalette(cmd *cobra.Command, args []string, cmdSearchName string
 	commandsList, commandsMap := GetSubCommands(currentCmd, cmdsToHide)
 
 	// Users chooses a command and runs it automatically
-	MultiselectSubcommands(currentCmd, args, commandsList, commandsMap)
-
-	return nil
+	return MultiselectSubcommands(currentCmd, args, commandsList, commandsMap)
 }
