@@ -114,22 +114,22 @@ func AskFlagInput(cmd *cobra.Command, flag *pflag.Flag) error {
 	return cmd.Flags().Set(flag.Name, inputValue)
 }
 
-// AllowInputAmongRemainingFlags presents remaining flags for input selection.
-func AllowInputAmongRemainingFlags(cmd *cobra.Command) error {
-
-	// User chooses among the remaining flags
-	remainingFlagsMap, selectedFlags := MultiselectRemainingFlags(cmd)
-
-	// User inputs data for the chosen flags
-	for _, flag := range selectedFlags {
-		err := AskFlagInput(cmd, remainingFlagsMap[flag])
-		if err != nil {
-			return fmt.Errorf("couldn't set the value for %s : %s", remainingFlagsMap[flag].Name, err)
-		}
-	}
-
-	return nil
-}
+////AllowInputAmongRemainingFlags presents remaining flags for input selection.
+//func AllowInputAmongRemainingFlags(cmd *cobra.Command) error {
+//
+//	// User chooses among the remaining flags
+//	remainingFlagsMap, selectedFlags := MultiselectRemainingFlags(cmd)
+//
+//	// User inputs data for the chosen flags
+//	for _, flag := range selectedFlags {
+//		err := AskFlagInput(cmd, remainingFlagsMap[flag])
+//		if err != nil {
+//			return fmt.Errorf("couldn't set the value for %s : %s", remainingFlagsMap[flag].Name, err)
+//		}
+//	}
+//
+//	return nil
+//}
 
 // RunCommandAsPalette allows the user to run a subcommand
 func RunCommandAsPalette(cmd *cobra.Command, args []string, cmdSearchName string, cmdsToHide []string) error {

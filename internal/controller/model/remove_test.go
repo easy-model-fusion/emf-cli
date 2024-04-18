@@ -5,6 +5,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/dmock"
 	mock "github.com/easy-model-fusion/emf-cli/test/mock"
 	"github.com/spf13/viper"
 	"os"
@@ -15,7 +16,7 @@ func TestMain(m *testing.M) {
 	app.SetUI(&mock.MockUI{})
 	app.SetGit(&mock.MockGit{})
 	app.SetPython(&mock.MockPython{})
-	app.SetDownloader(&mock.MockDownloader{})
+	app.SetDownloader(&dmock.MockDownloader{})
 	os.Exit(m.Run())
 }
 

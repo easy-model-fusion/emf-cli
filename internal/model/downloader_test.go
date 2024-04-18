@@ -5,6 +5,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/dmock"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
 	"path/filepath"
@@ -13,18 +14,18 @@ import (
 )
 
 func SetupDownloaderForFailure() {
-	app.Downloader().(*mock.MockDownloader).DownloaderModel = downloadermodel.Model{}
-	app.Downloader().(*mock.MockDownloader).DownloaderError = errors.New("")
+	app.Downloader().(*dmock.MockDownloader).DownloaderModel = downloadermodel.Model{}
+	app.Downloader().(*dmock.MockDownloader).DownloaderError = errors.New("")
 }
 
 func SetupDownloaderForSuccess(model downloadermodel.Model) {
 	// Mock python script to succeed
-	app.Downloader().(*mock.MockDownloader).DownloaderModel = model
-	app.Downloader().(*mock.MockDownloader).DownloaderError = nil
+	app.Downloader().(*dmock.MockDownloader).DownloaderModel = model
+	app.Downloader().(*dmock.MockDownloader).DownloaderError = nil
 }
 
 func TestMain(m *testing.M) {
-	app.SetDownloader(&mock.MockDownloader{})
+	app.SetDownloader(&dmock.MockDownloader{})
 	app.SetUI(&mock.MockUI{})
 	app.SetPython(&mock.MockPython{})
 	os.Exit(m.Run())

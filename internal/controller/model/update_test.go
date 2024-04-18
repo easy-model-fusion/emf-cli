@@ -8,6 +8,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/dmock"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"testing"
 )
@@ -33,7 +34,7 @@ func TestRunModelUpdate_Success(t *testing.T) {
 	app.SetUI(ui)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Create full test suite with a configuration file
@@ -76,7 +77,7 @@ func TestRunModelUpdate_Fail(t *testing.T) {
 	app.SetUI(ui)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Create full test suite with a configuration file
@@ -119,7 +120,7 @@ func TestProcessUpdate(t *testing.T) {
 	app.SetUI(ui)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Create full test suite with a configuration file
@@ -159,7 +160,7 @@ func TestProcessUpdate_WithNoArgs(t *testing.T) {
 	app.SetUI(ui)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Create full test suite with a configuration file
@@ -197,7 +198,7 @@ func TestProcessUpdate_WithNoModelsSelected(t *testing.T) {
 	app.SetUI(ui)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Create full test suite with a configuration file
@@ -333,7 +334,7 @@ func TestUpdateModels_Success(t *testing.T) {
 	app.SetUI(ui)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Update models
@@ -361,7 +362,7 @@ func TestUpdateModels_SuccessWithConfigurationAdded(t *testing.T) {
 	app.SetUI(ui)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Update models

@@ -7,6 +7,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/dmock"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
 	"testing"
@@ -198,7 +199,7 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgsDownload(t *testing.T) {
 	app.SetUI(ui)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Initialize selected models list
@@ -237,7 +238,7 @@ func TestTokenizerUpdateCmd_UpdateError(t *testing.T) {
 	app.SetUI(ui)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{
+	downloader := dmock.MockDownloader{
 		DownloaderModel: downloadermodel.Model{Path: "test"},
 		DownloaderError: os.ErrClosed,
 	}
