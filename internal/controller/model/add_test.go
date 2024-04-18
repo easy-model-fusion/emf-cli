@@ -9,6 +9,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/utils/dotenv"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/dmock"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
 	"testing"
@@ -129,7 +130,7 @@ func TestDownloadModel(t *testing.T) {
 	var returnedModel downloadermodel.Model
 
 	// Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: returnedModel}
+	downloader := dmock.MockDownloader{DownloaderModel: returnedModel}
 	app.SetDownloader(&downloader)
 
 	// Download model
@@ -149,7 +150,7 @@ func TestDownloadModel_OnlyConfiguration(t *testing.T) {
 	var returnedModel downloadermodel.Model
 
 	// Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: returnedModel}
+	downloader := dmock.MockDownloader{DownloaderModel: returnedModel}
 	app.SetDownloader(&downloader)
 
 	// Get model's config
@@ -168,7 +169,7 @@ func TestDownloadModel_Fail(t *testing.T) {
 	var downloaderArgs downloadermodel.Args
 
 	// Create downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Download model
@@ -587,7 +588,7 @@ func TestProcessAdd_HuggingFace(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
 	app.SetDownloader(&downloader)
 
 	// Process add
@@ -620,7 +621,7 @@ func TestProcessAdd_WithAccessToken(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
 	app.SetDownloader(&downloader)
 
 	// Process add
@@ -656,7 +657,7 @@ func TestProcessAdd_WithInvalidModel(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
 	app.SetDownloader(&downloader)
 
 	// Process add
@@ -688,7 +689,7 @@ func TestProcessAdd_WithFailedDownload(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Process add
@@ -724,7 +725,7 @@ func TestAddController_Run(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
 	app.SetDownloader(&downloader)
 
 	// Run add method
@@ -759,7 +760,7 @@ func TestAddController_Run_WithInvalidModel(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
 	app.SetDownloader(&downloader)
 
 	// Run add method

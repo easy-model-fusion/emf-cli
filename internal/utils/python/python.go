@@ -59,12 +59,6 @@ func (p *python) CheckForPython() (string, bool) {
 	return p.CheckPythonVersion("python3")
 }
 
-// CreateVirtualEnv creates a virtual environment in the given path
-func (p *python) CreateVirtualEnv(pythonPath, path string) error {
-	cmd := exec.Command(pythonPath, "-m", "venv", path)
-	return cmd.Run()
-}
-
 // FindVEnvExecutable searches for the requested executable within a virtual environment.
 func (p *python) FindVEnvExecutable(venvPath string, executableName string) (string, error) {
 	var pipPath string
@@ -83,28 +77,23 @@ func (p *python) FindVEnvExecutable(venvPath string, executableName string) (str
 
 // InstallDependencies installs the dependencies from the given requirements.txt file
 func (p *python) InstallDependencies(pipPath, path string) error {
-	cmd := exec.Command(pipPath, "install", "-r", path)
-
-	// bind stderr to a buffer
-	var errBuf strings.Builder
-	cmd.Stderr = &errBuf
-
-	err := cmd.Run()
-	if err != nil {
-		errBufStr := errBuf.String()
-		if errBufStr != "" {
-			return fmt.Errorf("%s: %s", err.Error(), errBufStr)
-		}
-		return err
-	}
-
-	return nil
+	return p.runCommand(exec.Command(pipPath, "install", "-r", path))
 }
 
 // ExecutePip runs pip with the given arguments
 func (p *python) ExecutePip(pipPath string, args []string) error {
-	cmd := exec.Command(pipPath, args...)
+	return p.runCommand(exec.Command(pipPath, args...))
+}
 
+// CreateVirtualEnv creates a virtual environment in the given path
+func (p *python) CreateVirtualEnv(pythonPath, path string) error {
+	cmd := exec.Command(pythonPath, "-m", "venv", path)
+	return p.runCommand(cmd)
+}
+
+// runCommand runs the given command and returns an error if it fails
+// The error message is appended with the stderr output
+func (p *python) runCommand(cmd *exec.Cmd) error {
 	// bind stderr to a buffer
 	var errBuf strings.Builder
 	cmd.Stderr = &errBuf
@@ -192,7 +181,11 @@ func (p *python) CheckAskForPython(ui ui.UI) (string, bool) {
 		ui.Success().Println("Python executable found! (" + path + ")")
 		return path, true
 	}
+	return p.askSpecificPythonPath(ui)
+}
 
+// askSpecificPythonPath asks the user if they want to specify the path to python
+func (p *python) askSpecificPythonPath(ui ui.UI) (string, bool) {
 	ui.Warning().Println("Python is not installed or not available in the PATH")
 
 	if ui.AskForUsersConfirmation("Do you want to specify the path to python?") {
@@ -203,7 +196,7 @@ func (p *python) CheckAskForPython(ui ui.UI) (string, bool) {
 			return "", false
 		}
 
-		path, ok = p.CheckPythonVersion(result)
+		path, ok := p.CheckPythonVersion(result)
 		if ok {
 			ui.Success().Println("Python executable found! (" + path + ")")
 			return path, true

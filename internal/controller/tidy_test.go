@@ -8,6 +8,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/dmock"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"github.com/spf13/viper"
 	"os"
@@ -63,7 +64,7 @@ func TestTidyModelsConfiguredButNotDownloaded_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on loading configuration file")
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Download missing models
@@ -98,7 +99,7 @@ func TestTidyModelsConfiguredButNotDownloaded_SuccessWithNoConfFile(t *testing.T
 	})
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Download missing models
@@ -140,7 +141,7 @@ func TestTidyModelsConfiguredButNotDownloaded_Fail(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on loading configuration file")
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Download missing models
@@ -187,7 +188,7 @@ func TestTidyModelsConfiguredButNotDownloaded_WithTokenizerFailure(t *testing.T)
 	})
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Create full test suite with a configuration file
@@ -236,7 +237,7 @@ func TestTidyModelsDownloadedButNotConfigured(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Create full test suite with a configuration file
@@ -289,7 +290,7 @@ func TestTidyModelsDownloadedButNotConfigured_WithNoConfirmation(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Create Downloader mock
@@ -350,7 +351,7 @@ func TestRunTidy(t *testing.T) {
 	})
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Create full test suite with a configuration file
