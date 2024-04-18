@@ -200,9 +200,11 @@ func TestGetConfig_Failure(t *testing.T) {
 	expected := input
 
 	// Execute
-	success := input.GetConfig(downloaderArgs)
+	success, warnings, err := input.GetConfig(downloaderArgs)
 
 	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, success, false)
 	test.AssertEqual(t, reflect.DeepEqual(expected, input), true)
 }
@@ -226,9 +228,11 @@ func TestGetConfig_Success(t *testing.T) {
 	SetupDownloaderForSuccess(expectedDownloaderResult)
 
 	// Execute
-	success := input.GetConfig(downloaderArgs)
+	success, warnings, err := input.GetConfig(downloaderArgs)
 
 	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, success, true)
 	test.AssertEqual(t, reflect.DeepEqual(expected, input), true)
 }
@@ -250,9 +254,11 @@ func TestModel_Download_Failure(t *testing.T) {
 	expected := input
 
 	// Execute
-	success := input.Download(downloaderArgs)
+	success, warnings, err := input.Download(downloaderArgs)
 
 	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, success, false)
 	test.AssertEqual(t, reflect.DeepEqual(expected, input), true)
 }
@@ -278,9 +284,11 @@ func TestModel_Download_Success(t *testing.T) {
 	SetupDownloaderForSuccess(expectedDownloaderResult)
 
 	// Execute
-	success := input.Download(downloaderArgs)
+	success, warnings, err := input.Download(downloaderArgs)
 
 	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, success, true)
 	test.AssertEqual(t, reflect.DeepEqual(expected, input), true)
 }
@@ -304,9 +312,11 @@ func TestTokenizer_Download_Failure(t *testing.T) {
 	expected := input
 
 	// Execute
-	success := input.DownloadTokenizer(tokenizer, downloaderArgs)
+	success, warnings, err := input.DownloadTokenizer(tokenizer, downloaderArgs)
 
 	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, success, false)
 	test.AssertEqual(t, reflect.DeepEqual(expected, input), true)
 }
@@ -334,9 +344,11 @@ func TestTokenizer_Download_Success(t *testing.T) {
 	SetupDownloaderForSuccess(expectedDownloaderResult)
 
 	// Execute
-	success := input.DownloadTokenizer(tokenizer, downloaderArgs)
+	success, warnings, err := input.DownloadTokenizer(tokenizer, downloaderArgs)
 
 	// Assert
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, success, true)
 	test.AssertEqual(t, reflect.DeepEqual(expected, input), true)
 }

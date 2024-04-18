@@ -127,8 +127,7 @@ func (p *python) ExecuteScript(venvPath, filePath string, args []string, ctx con
 	// Find the python executable inside the venv to run the script
 	pythonPath, err := p.FindVEnvExecutable(venvPath, "python")
 	if err != nil {
-		pterm.Error.Println(fmt.Sprintf("Error using the venv : %s", err))
-		return nil, err, 1
+		return nil, fmt.Errorf("error using the venv : %s", err), 1
 	}
 
 	// Checking that the script does exist

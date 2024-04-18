@@ -380,12 +380,13 @@ func TestTidyConfiguredModel_CleanModel(t *testing.T) {
 	}
 
 	// Synchronize model
-	warning, success, clean := model.TidyConfiguredModel("")
+	warnings, success, clean, err := model.TidyConfiguredModel("")
 
 	// Assertions
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, success, true)
 	test.AssertEqual(t, clean, true)
-	test.AssertEqual(t, warning, "")
 }
 
 // Tests TidyConfiguredModel
@@ -411,12 +412,13 @@ func TestTidyConfiguredModel_Success(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Synchronize model
-	warning, success, clean := model.TidyConfiguredModel("")
+	warnings, success, clean, err := model.TidyConfiguredModel("")
 
 	// Assertions
 	test.AssertEqual(t, success, true)
 	test.AssertEqual(t, clean, false)
-	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 }
 
 // Tests TidyConfiguredModel
@@ -442,12 +444,13 @@ func TestTidyConfiguredModel_Fail(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Synchronize model
-	warning, success, clean := model.TidyConfiguredModel("")
+	warnings, success, clean, err := model.TidyConfiguredModel("")
 
 	// Assertions
 	test.AssertEqual(t, success, false)
 	test.AssertEqual(t, clean, false)
-	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 }
 
 // Tests TidyConfiguredModel
@@ -478,12 +481,13 @@ func TestTidyConfiguredModel_FailTokenizersTidy(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Synchronize model
-	warning, success, clean := model.TidyConfiguredModel("")
+	warnings, success, clean, err := model.TidyConfiguredModel("")
 
 	// Assertions
+	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, success, true)
 	test.AssertEqual(t, clean, false)
-	test.AssertEqual(t, warning, "The following tokenizer(s) couldn't be downloaded for 'model4/name': [tokenizer2]")
+	test.AssertEqual(t, warnings[0], "The following tokenizer(s) couldn't be downloaded for 'model4/name': [tokenizer2]")
 }
 
 // Tests successful update on diffusers model
@@ -505,9 +509,10 @@ func TestModelUpdate_Diffusers(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update model
-	success := model.Update(true, "")
+	_, success, err := model.Update(true, "")
 
 	// Assertions
+	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, success, true)
 }
 
@@ -529,9 +534,10 @@ func TestModelUpdate_WithNoConfirmation(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update model
-	success := model.Update(false, "")
+	_, success, err := model.Update(false, "")
 
 	// Assertions
+	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, success, false)
 }
 
@@ -549,9 +555,10 @@ func TestModelUpdate_Failed(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update model
-	success := model.Update(true, "")
+	_, success, err := model.Update(true, "")
 
 	// Assertions
+	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, success, false)
 }
 
@@ -584,8 +591,9 @@ func TestModelUpdate_Transformers(t *testing.T) {
 	app.SetDownloader(&downloader)
 
 	// Update model
-	success := model.Update(true, "")
+	_, success, err := model.Update(true, "")
 
 	// Assertions
+	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, success, true)
 }
