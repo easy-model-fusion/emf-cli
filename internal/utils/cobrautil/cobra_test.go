@@ -155,7 +155,8 @@ func TestMultiselectSubcommands_Fail(t *testing.T) {
 	rootCmd.AddCommand(cmd3)
 
 	// Execute
-	MultiselectSubcommands(rootCmd, []string{}, []string{cmd1.Use, cmd2.Use, cmd3.Use}, map[string]func(*cobra.Command, []string){cmd1.Use: cmd1.Run, cmd2.Use: cmd2.Run, cmd3.Use: cmd3.Run})
+	MultiselectSubcommands(rootCmd, []string{}, []string{cmd1.Use, cmd2.Use, cmd3.Use},
+		map[string]func(*cobra.Command, []string){cmd1.Use: cmd1.Run, cmd2.Use: cmd2.Run, cmd3.Use: cmd3.Run})
 }
 
 // TestMultiselectRemainingFlags_Success tests the MultiselectRemainingFlags function for selecting remaining flags.
