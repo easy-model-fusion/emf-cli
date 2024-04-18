@@ -137,7 +137,10 @@ func TestMultiselectSubcommands_Success(t *testing.T) {
 	rootCmd.AddCommand(cmd3)
 
 	// Execute
-	MultiselectSubcommands(rootCmd, []string{}, []string{cmd1.Use, cmd2.Use, cmd3.Use}, map[string]func(*cobra.Command, []string){cmd1.Use: cmd1.Run, cmd2.Use: cmd2.Run, cmd3.Use: cmd3.Run})
+	err := MultiselectSubcommands(rootCmd, []string{}, []string{cmd1.Use, cmd2.Use, cmd3.Use}, map[string]func(*cobra.Command, []string){cmd1.Use: cmd1.Run, cmd2.Use: cmd2.Run, cmd3.Use: cmd3.Run})
+
+	// Assert
+	test.AssertEqual(t, err, nil)
 }
 
 // TestMultiselectSubcommands_Fail tests the MultiselectSubcommands function for selecting sub-commands when the selected command is not recognized.
@@ -155,8 +158,11 @@ func TestMultiselectSubcommands_Fail(t *testing.T) {
 	rootCmd.AddCommand(cmd3)
 
 	// Execute
-	MultiselectSubcommands(rootCmd, []string{}, []string{cmd1.Use, cmd2.Use, cmd3.Use},
+	err := MultiselectSubcommands(rootCmd, []string{}, []string{cmd1.Use, cmd2.Use, cmd3.Use},
 		map[string]func(*cobra.Command, []string){cmd1.Use: cmd1.Run, cmd2.Use: cmd2.Run, cmd3.Use: cmd3.Run})
+
+	// Assert
+	test.AssertNotEqual(t, err, nil)
 }
 
 // TestMultiselectRemainingFlags_Success tests the MultiselectRemainingFlags function for selecting remaining flags.
@@ -237,21 +243,6 @@ func TestAskFlagInput_Success(t *testing.T) {
 	err := AskFlagInput(cmd1, cmd1.Flags().Lookup("flag1"))
 
 	// Assert
-	test.AssertEqual(t, err, nil)
-}
-
-// TestRunCommandAsPalette_Success tests the RunCommandAsPalette function when the command is found and successfully run.
-func TestRunCommandAsPalette_Success(t *testing.T) {
-	// Init
-	rootCmd := prepareRootCmd()
-	cmd1 := prepareSubCmd("cmd1")
-	rootCmd.AddCommand(cmd1)
-
-	// Execute
-	err := RunCommandAsPalette(rootCmd, []string{}, cmd1.Name(), []string{})
-
-	// Assert
-
 	test.AssertEqual(t, err, nil)
 }
 
