@@ -8,6 +8,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/easy-model-fusion/emf-cli/test/dmock"
+	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"testing"
 )
 
@@ -20,7 +21,7 @@ func TestTokenizerAddCmd_WrongModule(t *testing.T) {
 	})
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{
+	downloader := dmock.MockDownloader{
 		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
@@ -52,7 +53,7 @@ func TestTokenizerAddCmd_NoArgs(t *testing.T) {
 	})
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{
+	downloader := dmock.MockDownloader{
 		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 	// Initialize selected models list
@@ -89,7 +90,7 @@ func TestTokenizerAddCmd_NoTokenizerArg(t *testing.T) {
 	app.SetUI(ui)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{
+	downloader := dmock.MockDownloader{
 		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 	// Create temporary configuration file
@@ -207,7 +208,7 @@ func TestTokenizerAddCmd_NoModels(t *testing.T) {
 	app.SetUI(ui)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{
+	downloader := dmock.MockDownloader{
 		DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 	// Initialize selected models list
