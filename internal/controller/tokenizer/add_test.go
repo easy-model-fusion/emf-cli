@@ -144,6 +144,7 @@ func TestTokenizerAddCmd_DownloadTokenizerSuccess(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
+		Path:   "/models/model1/model",
 		Module: huggingface.TRANSFORMERS,
 	})
 
@@ -174,6 +175,7 @@ func TestTokenizerAddCmd_DownloadTokenizerFail(t *testing.T) {
 	var models model.Models
 	models = append(models, model.Model{
 		Name:   "model1",
+		Path:   "/models/model1/model",
 		Module: huggingface.TRANSFORMERS,
 	})
 

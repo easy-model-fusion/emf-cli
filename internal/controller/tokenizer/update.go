@@ -49,11 +49,6 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 		return warnings, info, err
 	}
 
-	// No model name in args
-	if len(args) < 1 {
-		return warnings, info, fmt.Errorf("enter a model in argument")
-	}
-
 	// Get all configured models objects/names and args model
 	models, err := config.GetModelsByModule(string(huggingface.TRANSFORMERS))
 	if err != nil {
@@ -80,6 +75,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 		var exists bool
 		modelToUse, exists = configModelsMap[selectedModelName]
 		if !exists {
+			err = fmt.Errorf("model is not configured")
 			return warnings, "Model is not configured", err
 		}
 

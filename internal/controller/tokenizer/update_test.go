@@ -107,7 +107,7 @@ func TestTokenizerUpdateCmd_WrongModelNameUpdate(t *testing.T) {
 	})
 	// Initialize selected models list
 	var args []string
-	args = append(args, "modelX")
+	args = append(args, "modelXY")
 	args = append(args, "tokenizer1")
 
 	// Create temporary configuration file
@@ -120,7 +120,7 @@ func TestTokenizerUpdateCmd_WrongModelNameUpdate(t *testing.T) {
 	ic := UpdateTokenizerController{}
 	// Process update
 	err = ic.TokenizerUpdateCmd(args)
-	expectedErrMsg := "Model is not configured"
+	expectedErrMsg := "model is not configured"
 	test.AssertEqual(t, err.Error(), expectedErrMsg, "Operation failed, no model found")
 }
 
@@ -293,6 +293,8 @@ func TestTokenizerUpdateCmd_NoModels(t *testing.T) {
 
 	// Initialize selected models list
 	var args []string
+	args = append(args, "model1")
+	args = append(args, "tokenizerx")
 
 	// Create temporary configuration file
 	ts := test.TestSuite{}
@@ -326,7 +328,7 @@ func TestTokenizerUpdateCmd_NoArgs(t *testing.T) {
 
 	downloader := dmock.MockDownloader{
 		DownloaderModel: downloadermodel.Model{Path: "test"},
-		DownloaderError: os.ErrClosed,
+		DownloaderError: nil,
 	}
 	app.SetDownloader(&downloader)
 
