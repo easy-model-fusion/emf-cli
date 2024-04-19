@@ -117,7 +117,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 			ModelName:   modelToUse.Name,
 			ModelModule: string(modelToUse.Module),
 		}
-		if modelToUse.IsDownloaded == false {
+		if !modelToUse.IsDownloaded {
 			downloaderArgs.OnlyConfiguration = true
 		}
 

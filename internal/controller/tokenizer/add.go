@@ -77,10 +77,8 @@ func (ic AddController) processAddTokenizer(
 	// Remove model name from arguments
 	args = args[1:]
 
-	var selectedTokenizersToUse []string
-
 	// Setting tokenizer name from args
-	selectedTokenizersToUse = stringutil.SliceRemoveDuplicates(args)
+	selectedTokenizersToUse := stringutil.SliceRemoveDuplicates(args)
 
 	var tokenizerName string
 	for _, tokenizerName = range selectedTokenizersToUse {
@@ -93,7 +91,7 @@ func (ic AddController) processAddTokenizer(
 		addedTokenizer := model.Tokenizer{
 			Class: tokenizerName,
 		}
-		if modelToUse.IsDownloaded == false {
+		if !modelToUse.IsDownloaded {
 			customArgs.OnlyConfiguration = true
 		}
 		customArgs.ModelName = modelToUse.Name
