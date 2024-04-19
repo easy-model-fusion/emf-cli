@@ -8,6 +8,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/dmock"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"github.com/spf13/viper"
 	"os"
@@ -63,14 +64,15 @@ func TestTidyModelsConfiguredButNotDownloaded_Success(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on loading configuration file")
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Download missing models
 	var tidyController TidyController
-	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels, "")
+	warnings, err := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels, "")
 
 	// Assertions
+	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, len(warnings), 0)
 }
 
@@ -98,14 +100,15 @@ func TestTidyModelsConfiguredButNotDownloaded_SuccessWithNoConfFile(t *testing.T
 	})
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Download missing models
 	var tidyController TidyController
-	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels, "")
+	warnings, err := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels, "")
 
 	// Assertions
+	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, len(warnings), 0)
 }
 
@@ -140,14 +143,15 @@ func TestTidyModelsConfiguredButNotDownloaded_Fail(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on loading configuration file")
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Download missing models
 	var tidyController TidyController
-	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels, "")
+	warnings, err := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels, "")
 
 	// Assertions
+	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, len(warnings), 1)
 	test.AssertEqual(t, warnings[0], "The following models(s) couldn't be downloaded : [model5]")
 
@@ -187,7 +191,7 @@ func TestTidyModelsConfiguredButNotDownloaded_WithTokenizerFailure(t *testing.T)
 	})
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Create full test suite with a configuration file
@@ -197,9 +201,10 @@ func TestTidyModelsConfiguredButNotDownloaded_WithTokenizerFailure(t *testing.T)
 
 	// Download missing models
 	var tidyController TidyController
-	warnings := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels, "")
+	warnings, err := tidyController.tidyModelsConfiguredButNotDownloaded(existingModels, "")
 
 	// Assertions
+	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, len(warnings), 1)
 	test.AssertEqual(t, warnings[0], "The following tokenizer(s) couldn't be downloaded for 'model4/name': [tokenizer2]")
 }
@@ -236,7 +241,7 @@ func TestTidyModelsDownloadedButNotConfigured(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Create full test suite with a configuration file
@@ -248,7 +253,9 @@ func TestTidyModelsDownloadedButNotConfigured(t *testing.T) {
 
 	// Download missing models
 	var tidyController TidyController
-	tidyController.tidyModelsDownloadedButNotConfigured(existingModels, true, "")
+	warnings, err := tidyController.tidyModelsDownloadedButNotConfigured(existingModels, true, "")
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 	models, err := config.GetModels()
 
 	// Assertions
@@ -289,7 +296,7 @@ func TestTidyModelsDownloadedButNotConfigured_WithNoConfirmation(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Create Downloader mock
@@ -305,7 +312,9 @@ func TestTidyModelsDownloadedButNotConfigured_WithNoConfirmation(t *testing.T) {
 
 	// Download missing models
 	var tidyController TidyController
-	tidyController.tidyModelsDownloadedButNotConfigured(existingModels, false, "")
+	warnings, err := tidyController.tidyModelsDownloadedButNotConfigured(existingModels, false, "")
+	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 	models, err := config.GetModels()
 
 	// Assertions
@@ -350,7 +359,7 @@ func TestRunTidy(t *testing.T) {
 	})
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Create full test suite with a configuration file

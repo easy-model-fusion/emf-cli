@@ -9,6 +9,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/utils/dotenv"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/dmock"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
 	"testing"
@@ -129,14 +130,15 @@ func TestDownloadModel(t *testing.T) {
 	var returnedModel downloadermodel.Model
 
 	// Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: returnedModel}
+	downloader := dmock.MockDownloader{DownloaderModel: returnedModel}
 	app.SetDownloader(&downloader)
 
 	// Download model
-	downloadedModel, err := ac.downloadModel(selectedModel, downloaderArgs)
+	downloadedModel, warnings, err := ac.downloadModel(selectedModel, downloaderArgs)
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, downloadedModel.Name, selectedModel.Name)
 }
 
@@ -149,14 +151,15 @@ func TestDownloadModel_OnlyConfiguration(t *testing.T) {
 	var returnedModel downloadermodel.Model
 
 	// Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: returnedModel}
+	downloader := dmock.MockDownloader{DownloaderModel: returnedModel}
 	app.SetDownloader(&downloader)
 
 	// Get model's config
-	downloadedModel, err := ac.downloadModel(selectedModel, downloaderArgs)
+	downloadedModel, warnings, err := ac.downloadModel(selectedModel, downloaderArgs)
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, downloadedModel.Name, selectedModel.Name)
 }
 
@@ -168,14 +171,15 @@ func TestDownloadModel_Fail(t *testing.T) {
 	var downloaderArgs downloadermodel.Args
 
 	// Create downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Download model
-	_, err := ac.downloadModel(selectedModel, downloaderArgs)
+	_, warnings, err := ac.downloadModel(selectedModel, downloaderArgs)
 
 	// Assertions
 	test.AssertNotEqual(t, err, nil)
+	test.AssertEqual(t, len(warnings), 0)
 }
 
 // Tests getRequestedModel with valid model passed in arguments
@@ -492,13 +496,13 @@ func TestProcessAdd_SingleFile(t *testing.T) {
 	test.AssertEqual(t, err, nil)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs)
+	warnings, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertEqual(t, err, nil)
 	models, err := config.GetModels()
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, len(models), 3)
 	test.AssertEqual(t, models[2].Name, "model2")
 }
@@ -587,17 +591,17 @@ func TestProcessAdd_HuggingFace(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs)
+	warnings, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertEqual(t, err, nil)
 	models, err := config.GetModels()
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, len(models), 3)
 	test.AssertEqual(t, models[2].Name, "model2")
 }
@@ -620,11 +624,11 @@ func TestProcessAdd_WithAccessToken(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs)
+	warnings, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertEqual(t, err, nil)
 	token, err := dotenv.GetEnvValue("ACCESS_TOKEN_MODEL2")
 	test.AssertEqual(t, err, nil)
@@ -632,7 +636,7 @@ func TestProcessAdd_WithAccessToken(t *testing.T) {
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, len(models), 3)
 	test.AssertEqual(t, models[2].Name, "model2")
 	test.AssertEqual(t, token, "testToken")
@@ -656,17 +660,17 @@ func TestProcessAdd_WithInvalidModel(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs)
+	warnings, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertEqual(t, err, nil)
 	models, err := config.GetModels()
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, warning, "Model 'model3' is already configured")
+	test.AssertEqual(t, warnings[0], "Model 'model3' is already configured")
 	test.AssertEqual(t, len(models), 2)
 }
 
@@ -688,17 +692,17 @@ func TestProcessAdd_WithFailedDownload(t *testing.T) {
 	test.AssertEqual(t, err, nil, "No error expected on setting configuration file")
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Process add
-	warning, err := ac.processAdd(selectedModel, downloaderArgs)
+	warnings, err := ac.processAdd(selectedModel, downloaderArgs)
 	test.AssertNotEqual(t, err, nil)
 	models, err := config.GetModels()
 
 	// Assertions
 	test.AssertEqual(t, err, nil)
-	test.AssertEqual(t, warning, "")
+	test.AssertEqual(t, len(warnings), 0)
 	test.AssertEqual(t, len(models), 2)
 }
 
@@ -724,7 +728,7 @@ func TestAddController_Run(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
 	app.SetDownloader(&downloader)
 
 	// Run add method
@@ -759,7 +763,7 @@ func TestAddController_Run_WithInvalidModel(t *testing.T) {
 	app.SetHuggingFace(&huggingfaceInterface)
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
 	app.SetDownloader(&downloader)
 
 	// Run add method

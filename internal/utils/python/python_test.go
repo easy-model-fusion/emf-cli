@@ -2,11 +2,12 @@ package python
 
 import (
 	"context"
-	"github.com/easy-model-fusion/emf-cli/internal/ui"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/executil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/test"
+	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -263,7 +264,82 @@ func TestCheckAskForPython_Success(t *testing.T) {
 		return
 	}
 
-	b, ok := NewPython().CheckAskForPython(ui.NewPTermUI())
+	b, ok := NewPython().CheckAskForPython(mock.MockUI{})
 	test.AssertEqual(t, ok, true, "Should return true if python is installed")
 	test.AssertEqual(t, a, b, "Should return the same value as CheckForPython")
+}
+
+// TestCheckAskForPython_Fail tests the CheckAskForPython function when Python is not installed.
+func TestCheckAskForPython_Fail(t *testing.T) {
+	// check python
+	_, ok := NewPython().CheckForPython()
+	if ok {
+		return
+	}
+
+	_, ok = NewPython().CheckAskForPython(mock.MockUI{})
+	test.AssertEqual(t, ok, false, "Should return false if python is not installed")
+}
+
+func TestPython_runCommand_Fail(t *testing.T) {
+	// Command without error, execute some command that exist on every os: cd
+	cmd := exec.Command("qsdqsdqs")
+
+	// Execute
+	p := python{}
+	err := p.runCommand(cmd)
+
+	// Assert
+	test.AssertNotEqual(t, err, nil)
+}
+
+func TestPython_runCommand_Success(t *testing.T) {
+	// Command without error, execute some command that exist on every os: cmd/sh
+	var cmd *exec.Cmd
+
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("cmd")
+	} else {
+		cmd = exec.Command("sh")
+	}
+
+	// Execute
+	p := python{}
+	err := p.runCommand(cmd)
+
+	// Assert
+	test.AssertEqual(t, err, nil)
+}
+
+func TestPython_askSpecificPythonPath_success(t *testing.T) {
+	// Init
+	uiMock := mock.MockUI{}
+	uiMock.UserConfirmationResult = true
+	uiMock.UserInputResult = "python"
+	p := python{}
+
+	// Execute
+	path, ok := p.askSpecificPythonPath(uiMock)
+
+	// Assert
+	test.AssertEqual(t, ok, true)
+	test.AssertNotEqual(t, path, "")
+
+	// user input empty
+	uiMock.UserInputResult = ""
+	_, ok = p.askSpecificPythonPath(uiMock)
+	test.AssertEqual(t, ok, false)
+}
+
+func TestPython_askSpecificPythonPath_fail(t *testing.T) {
+	// Init
+	uiMock := mock.MockUI{}
+	p := python{}
+
+	// Execute
+	path, ok := p.askSpecificPythonPath(uiMock)
+
+	// Assert
+	test.AssertEqual(t, ok, false)
+	test.AssertEqual(t, path, "")
 }

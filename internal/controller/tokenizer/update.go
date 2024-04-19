@@ -22,10 +22,10 @@ type UpdateTokenizerController struct{}
 func (ic UpdateTokenizerController) TokenizerUpdateCmd(args []string) error {
 	sdk.SendUpdateSuggestion()
 	// Process remove operation with given arguments
-	warningMessage, infoMessage, err := ic.processUpdateTokenizer(args)
+	warningMessages, infoMessage, err := ic.processUpdateTokenizer(args)
 
 	// Display messages to user
-	if warningMessage != "" {
+	for _, warningMessage := range warningMessages {
 		app.UI().Warning().Printfln(warningMessage)
 	}
 
@@ -42,21 +42,26 @@ func (ic UpdateTokenizerController) TokenizerUpdateCmd(args []string) error {
 }
 
 // processUpdateTokenizer processes tokenizers to be updated
-func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warning, info string, err error) {
+func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warnings []string, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
 	if err != nil {
-		return warning, info, err
+		return warnings, info, err
+	}
+
+	// No model name in args
+	if len(args) < 1 {
+		return warnings, info, fmt.Errorf("enter a model in argument")
 	}
 
 	// Get all configured models objects/names and args model
 	models, err := config.GetModelsByModule(string(huggingface.TRANSFORMERS))
 	if err != nil {
-		return warning, info, fmt.Errorf("error while getting configured models: %s", err.Error())
+		return warnings, info, fmt.Errorf("error get model: %s", err.Error())
 	}
 	if len(models) == 0 {
 		err = fmt.Errorf("no configured models found")
-		return warning, info, err
+		return warnings, info, err
 	}
 	var modelToUse model.Model
 
@@ -67,7 +72,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 		// Get selected models from select
 		modelToUse = sc.SelectTransformerModel(models, configModelsMap)
 		if err != nil {
-			return warning, info, err
+			return warnings, info, err
 		}
 	} else {
 		// Get the selected models from the args
@@ -75,7 +80,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 		var exists bool
 		modelToUse, exists = configModelsMap[selectedModelName]
 		if !exists {
-			return warning, info, fmt.Errorf("Model is not configured")
+			return warnings, "Model is not configured", err
 		}
 
 		// Remove model name from arguments
@@ -120,7 +125,11 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 			ModelModule: string(modelToUse.Module),
 		}
 
-		success := modelToUse.DownloadTokenizer(tokenizer, downloaderArgs)
+		var success bool
+		success, warnings, err = modelToUse.DownloadTokenizer(tokenizer, downloaderArgs)
+		if err != nil {
+			return warnings, info, err
+		}
 		if !success {
 			failedTokenizers = append(failedTokenizers, tokenizer.Class)
 		} else {
@@ -148,5 +157,5 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 	if len(failedTokenizers) > 0 {
 		err = fmt.Errorf("the following tokenizer(s) couldn't be downloaded : %s", failedTokenizers)
 	}
-	return warning, "Tokenizers update done", err
+	return warnings, "Tokenizers update done", err
 }

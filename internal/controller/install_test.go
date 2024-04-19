@@ -192,3 +192,27 @@ func TestInstallController_cloneSDK(t *testing.T) {
 	test.AssertNotEqual(t, err, nil, "Error should not be nil")
 	test.AssertEqual(t, err.Error(), "error cloning sdk", "Error should be 'error cloning sdk'")
 }
+
+// TestInstallController_cloneSDKConfirm tests the cloneSDKConfirm function.
+func TestInstallController_cloneSDKConfirm_retry(t *testing.T) {
+	// Init
+	ts := test.TestSuite{}
+	_ = ts.CreateFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+
+	mockGit := &mock.MockGit{}
+	ui := &mock.MockUI{}
+	app.SetUI(&mock.MockUI{})
+	app.SetGit(mockGit)
+	app.SetUI(ui)
+	ic := InstallController{}
+
+	// Test the case where git clone has error and retry is true
+	mockGit.CloneSDKError = errors.New("error cloning sdk")
+
+	ui.UserConfirmationResult = true
+
+	err := ic.cloneSDK()
+	test.AssertNotEqual(t, err, nil, "Error should not be nil")
+	test.AssertEqual(t, err.Error(), "error cloning sdk", "Error should be 'error cloning sdk'")
+}

@@ -7,7 +7,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
-	"github.com/easy-model-fusion/emf-cli/test/mock"
+	"github.com/easy-model-fusion/emf-cli/test/dmock"
 	"testing"
 )
 
@@ -150,7 +150,7 @@ func TestTokenizerAddCmd_DownloadTokenizerSuccess(t *testing.T) {
 	args := []string{"model1", "tokenizer1"}
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Module: "diffusers", Class: "test"}}
 	app.SetDownloader(&downloader)
 
 	// Create temporary configuration file
@@ -180,7 +180,7 @@ func TestTokenizerAddCmd_DownloadTokenizerFail(t *testing.T) {
 	args := []string{"model1", "tokenizer1"}
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("")}
 	app.SetDownloader(&downloader)
 
 	// Create temporary configuration file

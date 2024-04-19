@@ -18,11 +18,11 @@ func (ic AddController) Run(args []string,
 	sdk.SendUpdateSuggestion()
 
 	// Process add operation with given arguments
-	warningMessage, infoMessage, err := ic.processAddTokenizer(args, customArgs)
+	warningMessages, infoMessage, err := ic.processAddTokenizer(args, customArgs)
 
 	// Display messages to user
-	if warningMessage != "" {
-		pterm.Warning.Printfln(warningMessage)
+	for _, warningMessage := range warningMessages {
+		app.UI().Warning().Printfln(warningMessage)
 	}
 
 	if infoMessage != "" {
@@ -41,23 +41,25 @@ func (ic AddController) Run(args []string,
 func (ic AddController) processAddTokenizer(
 	args []string,
 	customArgs downloadermodel.Args,
-) (warning, info string, err error) {
+) (warnings []string, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
 	if err != nil {
-		return warning, info, err
+		return warnings, info, err
 	}
+
+	// No model name in args
 	if len(args) < 2 {
-		return warning, info, fmt.Errorf("please provide a model and tokenizer name to add")
+		return warnings, info, fmt.Errorf("enter a model in argument")
 	}
 	// Get all configured models objects/names and args model
 	models, err := config.GetModelsByModule(string(huggingface.TRANSFORMERS))
 	if err != nil {
-		return warning, info, fmt.Errorf("error getting model: %s", err.Error())
+		return warnings, info, fmt.Errorf("error getting model: %s", err.Error())
 	}
 	if len(models) == 0 {
 		err = fmt.Errorf("no models to choose from")
-		return warning, info, err
+		return warnings, info, err
 	}
 
 	var modelToUse model.Model
@@ -67,7 +69,7 @@ func (ic AddController) processAddTokenizer(
 	selectedModel := args[0]
 	modelToUse, exists := configModelsMap[selectedModel]
 	if !exists {
-		return warning, "Model is not configured", err
+		return warnings, "Model is not configured", err
 	}
 
 	// Remove model name from arguments
@@ -84,7 +86,7 @@ func (ic AddController) processAddTokenizer(
 		if tokenizerFound {
 			err = fmt.Errorf("the following tokenizer is already downloaded :%s",
 				tokenizerName)
-			return warning, info, err
+			return warnings, info, err
 		}
 		addedTokenizer := model.Tokenizer{
 			Class: tokenizerName,
@@ -95,11 +97,15 @@ func (ic AddController) processAddTokenizer(
 		customArgs.DirectoryPath = downloadPath
 		customArgs.ModelModule = "transformers"
 
-		success := modelToUse.DownloadTokenizer(addedTokenizer, customArgs)
-		if !success {
-			err = fmt.Errorf("the following tokenizer"+
-				" couldn't be downloaded : %s", tokenizerName)
-		} else {
+	var success bool
+	success, warnings, err = modelToUse.DownloadTokenizer(addedTokenizer, customArgs)
+	if err != nil {
+		return warnings, info, err
+	}
+	if !success {
+		err = fmt.Errorf("the following tokenizer"+
+			" couldn't be downloaded : %s", tokenizerName)
+	} else {
 
 			spinner, _ := pterm.DefaultSpinner.Start("Updating configuration file...")
 			err := config.AddModels(model.Models{modelToUse})
@@ -112,6 +118,5 @@ func (ic AddController) processAddTokenizer(
 		}
 
 	}
-
-	return warning, "Tokenizers add done", err
+	return warnings, "Tokenizers add done", err
 }

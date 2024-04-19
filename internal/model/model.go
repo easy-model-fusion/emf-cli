@@ -159,6 +159,17 @@ func (m Models) FilterWithSourceHuggingface() Models {
 	return huggingfaceModels
 }
 
+// FilterWithIsDownloadedOrAddToBinaryFileTrue return a sub-slice of models with IsDownloaded or AddToBinaryFile  to true.
+func (m Models) FilterWithIsDownloadedOrAddToBinaryFileTrue() Models {
+	var downloadedModels Models
+	for _, current := range m {
+		if current.IsDownloaded || current.AddToBinaryFile {
+			downloadedModels = append(downloadedModels, current)
+		}
+	}
+	return downloadedModels
+}
+
 // FilterWithIsDownloadedTrue return a sub-slice of models with IsDownloaded to true.
 func (m Models) FilterWithIsDownloadedTrue() Models {
 	var downloadedModels Models
