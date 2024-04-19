@@ -93,6 +93,9 @@ func (ic AddController) processAddTokenizer(
 		addedTokenizer := model.Tokenizer{
 			Class: tokenizerName,
 		}
+		if modelToUse.IsDownloaded == false {
+			customArgs.OnlyConfiguration = true
+		}
 		customArgs.ModelName = modelToUse.Name
 		customArgs.DirectoryPath, err = modelToUse.GetModelDirectory()
 		if err != nil {
