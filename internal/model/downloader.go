@@ -90,7 +90,6 @@ func (m *Model) DownloadTokenizer(tokenizer Tokenizer, downloaderArgs downloader
 	downloaderArgs.TokenizerOptions = stringutil.OptionsMapToSlice(tokenizer.Options)
 	return m.executeDownload(downloaderArgs)
 
-	return succeeded, warnings, err
 }
 
 // executeDownload runs the download script
