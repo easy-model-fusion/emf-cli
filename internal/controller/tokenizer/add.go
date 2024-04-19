@@ -7,6 +7,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/pterm/pterm"
 )
@@ -79,7 +80,7 @@ func (ic AddController) processAddTokenizer(
 	var selectedTokenizersToUse []string
 
 	// Setting tokenizer name from args
-	selectedTokenizersToUse = append(selectedTokenizersToUse, args...)
+	selectedTokenizersToUse = stringutil.SliceRemoveDuplicates(args)
 
 	var tokenizerName string
 	for _, tokenizerName = range selectedTokenizersToUse {

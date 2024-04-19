@@ -26,23 +26,21 @@ func GetModels() (model.Models, error) {
 }
 
 // GetModelsByModule retrieves models from the configuration.
-func GetModelsByModule(moduleType string) (model.Models, error) {
+func GetModelsByModule(module string) (model.Models, error) {
 	// Define a slice for models
-	var models model.Models
-
-	// Retrieve models using the generic function
-	if err := GetViperItem("models", &models); err != nil {
-		return nil, err
+	models, err := GetModels()
+	if err != nil {
+		return models, err
 	}
 
-	var modulesToReturn model.Models
+	var modelsToReturn model.Models
 	for _, currentModel := range models {
-		if string(currentModel.Module) == moduleType {
-			modulesToReturn = append(modulesToReturn, currentModel)
+		if string(currentModel.Module) == module {
+			modelsToReturn = append(modelsToReturn, currentModel)
 		}
 	}
 
-	return modulesToReturn, nil
+	return modelsToReturn, nil
 }
 
 // AddModels adds models to configuration file

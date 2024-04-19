@@ -66,9 +66,6 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 		sc := SelectModelController{}
 		// Get selected models from select
 		modelToUse = sc.SelectTransformerModel(models, configModelsMap)
-		if err != nil {
-			return warnings, info, err
-		}
 	} else {
 		// Get the selected models from the args
 		selectedModelName := args[0]
