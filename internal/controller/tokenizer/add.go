@@ -90,12 +90,10 @@ func (ic AddController) processAddTokenizer(
 			Class: tokenizerName,
 		}
 		var downloadPath string
-		downloadPath, err = modelToUse.GetModelDirectory()
-		if err != nil {
-			return warning, "Error getting model path", err
-		}
+		downloadPath = modelToUse.GetModelDirectory()
 		customArgs.ModelName = modelToUse.Name
 		customArgs.DirectoryPath = downloadPath
+		customArgs.ModelModule = "transformers"
 
 		success := modelToUse.DownloadTokenizer(addedTokenizer, customArgs)
 		if !success {

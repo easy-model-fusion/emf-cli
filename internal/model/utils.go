@@ -388,22 +388,21 @@ func (m *Model) TidyConfiguredModel(accessToken string) (warning string, success
 }
 
 // GetModelDirectory returns the directory path leading up to the 'models' directory
-func (m *Model) GetModelDirectory() (extractedPath string, err error) {
+func (m *Model) GetModelDirectory() string {
 	// Get the directory path of the modelPath
-	directoryPath, err := filepath.Abs(m.Path)
-	if err != nil {
-		return "", err
+
+	directoryPath := filepath.Dir(m.Path)
+	// Find the last occurrence index of the model name in the path
+	modelNameIndex := strings.LastIndex(directoryPath, m.Name)
+
+	if modelNameIndex == -1 {
+		// Model name not found, return the original path
+		return directoryPath
 	}
 
-	// Find the last occurrence index of 'models' in the path
-	modelsIndex := strings.LastIndex(directoryPath, "models")
-	if modelsIndex == -1 {
-		return "", fmt.Errorf("directory 'models' not found in path")
-	}
-
-	// Extract the path leading up to 'models' directory including "models"
-	extractedPath = directoryPath[:modelsIndex+len("models")]
-
-	// Return the extracted path leading up to 'models' directory
-	return extractedPath, nil
+	// Extract the path leading up to the model name
+	directoryPath = directoryPath[:modelNameIndex]
+	// Trim any trailing slashes
+	directoryPath = strings.TrimSuffix(directoryPath, string(filepath.Separator))
+	return directoryPath
 }
