@@ -66,7 +66,7 @@ func (ic RemoveTokenizerController) processRemove(args []string) (warning, info 
 		// Get selected models from select
 		sc := SelectModelController{}
 		// Get selected models from select
-		modelToUse = sc.SelectTransformerModel(models, configModelsMap)
+		modelToUse = sc.SelectTransformerModel(models)
 		// No tokenizer, asks for tokenizers names
 		availableNames := modelToUse.Tokenizers.GetNames()
 		tokenizerNames = selectTokenizersToDelete(availableNames)

@@ -35,11 +35,9 @@ func TestSelectTransformerModel_Success(t *testing.T) {
 	err := setupConfigFile(models)
 	test.AssertEqual(t, err, nil, "No error expected while adding models to configuration file")
 
-	configModelsMap := models.Map()
-
 	ic := SelectModelController{}
 
-	selectedModel := ic.SelectTransformerModel(models, configModelsMap)
+	selectedModel := ic.SelectTransformerModel(models)
 
 	// Assert that the selected model is as expected
 	if selectedModel.Name != "model2" {

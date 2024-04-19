@@ -9,7 +9,7 @@ type SelectModelController struct {
 }
 
 // SelectTransformerModel displays a selector of models from which the user will choose to add to his project
-func (ic SelectModelController) SelectTransformerModel(models model.Models, configModelsMap map[string]model.Model) model.Model {
+func (ic SelectModelController) SelectTransformerModel(models model.Models) model.Model {
 	// Build a selector with each model name
 	availableModelNames := models.GetNames()
 
