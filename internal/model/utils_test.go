@@ -598,3 +598,42 @@ func TestModelUpdate_Transformers(t *testing.T) {
 	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, success, true)
 }
+
+// TestModel_GetModelDirectorySuccess test the success case of GetModelDirectory
+func TestModel_GetModelDirectorySuccess(t *testing.T) {
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+
+	// Init
+	model := Model{
+		Name:   "model4/name",
+		Path:   "folder/folder2/models/model4/name/model",
+		Module: huggingface.TRANSFORMERS,
+	}
+
+	resultPath, err := model.GetModelDirectory()
+	expectedPath := "folder/folder2/models"
+	test.AssertEqual(t, err, nil, "No error message")
+	test.AssertEqual(t, resultPath, expectedPath, "Path is as expected")
+}
+
+// TestModel_GetModelDirectoryFail test the fail case of GetModelDirectory
+func TestModel_GetModelDirectoryFail(t *testing.T) {
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+
+	// Init
+	model := Model{
+		Name:   "model4/name",
+		Path:   "",
+		Module: huggingface.TRANSFORMERS,
+	}
+
+	_, err := model.GetModelDirectory()
+	expectedMessage := "directory invalid ."
+	test.AssertEqual(t, err.Error(), expectedMessage, "Directory error message")
+}
