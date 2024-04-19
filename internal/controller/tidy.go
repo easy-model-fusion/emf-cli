@@ -77,7 +77,7 @@ func (tc TidyController) RunTidy(yes bool, accessToken string) error {
 // tidyModelsConfiguredButNotDownloaded downloads any missing model and its missing tokenizers as well
 func (tc TidyController) tidyModelsConfiguredButNotDownloaded(models model.Models, accessToken string) (warnings []string, err error) {
 	// filter the models that should be added to binary
-	models = models.FilterWithIsDownloadedTrue()
+	models = models.FilterWithIsDownloadedOrAddToBinaryFileTrue()
 
 	// Search for the models that need to be downloaded
 	var downloadedModels model.Models

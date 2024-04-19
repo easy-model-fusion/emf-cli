@@ -245,6 +245,26 @@ func TestFilterWithIsDownloadedTrue_Success(t *testing.T) {
 	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
 }
 
+// TestFilterWithIsDownloadedTrue_Success tests the Models.FilterWithIsDownloadedTrue to return the sub-slice.
+func TestFilterWithIsDownloadedOrAddToBinaryTrue_Success(t *testing.T) {
+	// Init
+	models := GetModels(4)
+	models[0].IsDownloaded = false
+	models[0].AddToBinaryFile = false
+	models[2].IsDownloaded = false
+	models[3].AddToBinaryFile = false
+	expected := Models{models[1], models[2], models[3]}
+
+	// Execute
+	result := models.FilterWithIsDownloadedOrAddToBinaryFileTrue()
+
+	// Assert
+	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
+	for i, currentModel := range expected {
+		test.AssertEqual(t, result[i].Name, currentModel.Name, "returned models should be equal to expected model.")
+	}
+}
+
 // TestFilterWithAddToBinaryFileTrue_Success tests the Models.FilterWithAddToBinaryFileTrue to return the sub-slice.
 func TestFilterWithAddToBinaryFileTrue_Success(t *testing.T) {
 	// Init
