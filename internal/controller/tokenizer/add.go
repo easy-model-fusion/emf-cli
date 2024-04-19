@@ -2,6 +2,7 @@ package tokenizer
 
 import (
 	"fmt"
+	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
@@ -91,21 +92,18 @@ func (ic AddController) processAddTokenizer(
 		addedTokenizer := model.Tokenizer{
 			Class: tokenizerName,
 		}
-		var downloadPath string
-		downloadPath = modelToUse.GetModelDirectory()
 		customArgs.ModelName = modelToUse.Name
-		customArgs.DirectoryPath = downloadPath
-		customArgs.ModelModule = "transformers"
+		customArgs.DirectoryPath = modelToUse.GetModelDirectory()
 
-	var success bool
-	success, warnings, err = modelToUse.DownloadTokenizer(addedTokenizer, customArgs)
-	if err != nil {
-		return warnings, info, err
-	}
-	if !success {
-		err = fmt.Errorf("the following tokenizer"+
-			" couldn't be downloaded : %s", tokenizerName)
-	} else {
+		var success bool
+		success, warnings, err = modelToUse.DownloadTokenizer(addedTokenizer, customArgs)
+		if err != nil {
+			return warnings, info, err
+		}
+		if !success {
+			err = fmt.Errorf("the following tokenizer"+
+				" couldn't be downloaded : %s", tokenizerName)
+		} else {
 
 			spinner, _ := pterm.DefaultSpinner.Start("Updating configuration file...")
 			err := config.AddModels(model.Models{modelToUse})

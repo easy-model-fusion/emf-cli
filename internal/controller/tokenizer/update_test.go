@@ -41,7 +41,7 @@ func TestTokenizerUpdateCmd_ValidArgs(t *testing.T) {
 	app.SetHuggingFace(&huggingFaceInterface)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Create temporary configuration file
@@ -145,7 +145,7 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgs(t *testing.T) {
 	args = append(args, "model1")
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Create temporary configuration file
@@ -186,7 +186,7 @@ func TestTokenizerUpdateCmd_NoTokenizerInArgsDownload(t *testing.T) {
 	app.SetUI(ui)
 
 	// Create Downloader mock
-	downloader := mock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
+	downloader := dmock.MockDownloader{DownloaderModel: downloadermodel.Model{Path: "test"}, DownloaderError: nil}
 	app.SetDownloader(&downloader)
 
 	// Initialize selected models list
@@ -260,7 +260,7 @@ func TestTokenizerUpdateCmd_DlError(t *testing.T) {
 	args = append(args, "tokenizerx")
 
 	//Create downloader mock
-	downloader := mock.MockDownloader{DownloaderError: fmt.Errorf("error on dl")}
+	downloader := dmock.MockDownloader{DownloaderError: fmt.Errorf("error on dl")}
 	app.SetDownloader(&downloader)
 
 	// Create temporary configuration file
