@@ -73,7 +73,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 		modelToUse, exists = configModelsMap[selectedModelName]
 		if !exists {
 			err = fmt.Errorf("model is not configured")
-			return warnings, "Model is not configured", err
+			return warnings, info, err
 		}
 
 		// Remove model name from arguments
@@ -117,9 +117,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 			ModelName:   modelToUse.Name,
 			ModelModule: string(modelToUse.Module),
 		}
-		if !modelToUse.IsDownloaded {
-			downloaderArgs.OnlyConfiguration = true
-		}
+		downloaderArgs.OnlyConfiguration = !modelToUse.IsDownloaded
 
 		var success bool
 		success, warnings, err = modelToUse.DownloadTokenizer(tokenizer, downloaderArgs)

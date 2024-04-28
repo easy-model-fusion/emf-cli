@@ -126,7 +126,7 @@ func TestRemoveTokenizer_WithWrongModel(t *testing.T) {
 	ic := RemoveTokenizerController{}
 	// Process remove
 	if err := ic.RunTokenizerRemove(args); err != nil {
-		test.AssertEqual(t, err, nil, "Error on update")
+		test.AssertEqual(t, err.Error(), "Model is not configured", "Error on update")
 	}
 	test.AssertEqual(t, err, nil, "No error expected while processing remove")
 }

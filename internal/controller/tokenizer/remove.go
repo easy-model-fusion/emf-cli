@@ -76,7 +76,7 @@ func (ic RemoveTokenizerController) processRemove(args []string) (warning, info 
 		var exists bool
 		modelToUse, exists = configModelsMap[selectedModelName]
 		if !exists {
-			return warning, "Model is not configured", err
+			return warning, info, fmt.Errorf("Model is not configured")
 		}
 
 		// Remove model name from arguments
