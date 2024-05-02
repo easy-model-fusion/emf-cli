@@ -2,7 +2,8 @@
 
 # EMF Command line Interface (CLI)
 
-The EMF CLI is a powerful tool for efficiently managing AI models, enhancing the development process for artificial intelligence applications.
+The EMF CLI is a powerful tool for efficiently managing AI models, enhancing the development process for artificial
+intelligence applications.
 
 [![EMF CLI demo](https://asciinema.org/a/650190.svg)](https://asciinema.org/a/650190?autoplay=1)
 
@@ -13,7 +14,8 @@ more, please refer to the complete [Documentation](https://easy-model-fusion.git
 
 ## Contributing
 
-We welcome contributions from everyone. There are several ways to contribute, and we appreciate all contributions. See [CONTRIBUTING.md](./CONTRIBUTING.md) file for details.
+We welcome contributions from everyone. There are several ways to contribute, and we appreciate all contributions.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) file for details.
 
 ## License
 
