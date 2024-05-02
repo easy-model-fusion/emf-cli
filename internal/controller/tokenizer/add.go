@@ -15,8 +15,7 @@ import (
 type AddController struct{}
 
 // Run the tokenizer add command
-func (ic AddController) Run(args []string,
-	customArgs downloadermodel.Args) error {
+func (ic AddController) Run(args []string, customArgs downloadermodel.Args) error {
 	sdk.SendUpdateSuggestion()
 
 	// Process add operation with given arguments
@@ -41,9 +40,7 @@ func (ic AddController) Run(args []string,
 
 // processAddTokenizer processes tokenizers to be added
 func (ic AddController) processAddTokenizer(
-	args []string,
-	customArgs downloadermodel.Args,
-) (warnings []string, info string, err error) {
+	args []string, customArgs downloadermodel.Args) (warnings []string, info string, err error) {
 	// Load the configuration file
 	err = config.GetViperConfig(config.FilePath)
 	if err != nil {
@@ -84,8 +81,7 @@ func (ic AddController) processAddTokenizer(
 	for _, tokenizerName = range selectedTokenizersToUse {
 		tokenizerFound := modelToUse.Tokenizers.ContainsByClass(tokenizerName)
 		if tokenizerFound {
-			err = fmt.Errorf("the following tokenizer is already downloaded :%s",
-				tokenizerName)
+			err = fmt.Errorf("the following tokenizer is already downloaded :%s", tokenizerName)
 			return warnings, info, err
 		}
 		addedTokenizer := model.Tokenizer{
@@ -104,10 +100,8 @@ func (ic AddController) processAddTokenizer(
 			return warnings, info, err
 		}
 		if !success {
-			err = fmt.Errorf("the following tokenizer"+
-				" couldn't be downloaded : %s", tokenizerName)
+			err = fmt.Errorf("the following tokenizer couldn't be downloaded : %s", tokenizerName)
 		} else {
-
 			spinner, _ := pterm.DefaultSpinner.Start("Updating configuration file...")
 			err := config.AddModels(model.Models{modelToUse})
 			if err != nil {

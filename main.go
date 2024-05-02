@@ -14,6 +14,7 @@ var (
 
 func main() {
 	app.Init(Version, BuildDate)
+	
 	// Execute command
 	cmd.Execute()
 }

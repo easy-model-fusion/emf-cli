@@ -7,7 +7,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
-	mock "github.com/easy-model-fusion/emf-cli/test/mock"
+	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path"
