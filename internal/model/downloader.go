@@ -88,9 +88,8 @@ func (m *Model) DownloadTokenizer(tokenizer Tokenizer, downloaderArgs downloader
 	downloaderArgs.SkipTokenizer = false
 	downloaderArgs.TokenizerClass = tokenizer.Class
 	downloaderArgs.TokenizerOptions = stringutil.OptionsMapToSlice(tokenizer.Options)
-
-	// Running the script for the tokenizer only
 	return m.executeDownload(downloaderArgs)
+
 }
 
 // executeDownload runs the download script

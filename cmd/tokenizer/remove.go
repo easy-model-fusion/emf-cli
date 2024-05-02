@@ -15,7 +15,6 @@ var tokenizerRemoveCmd = &cobra.Command{
 	Use:   "remove <model name> <tokenizer name> [<other tokenizer names>...]",
 	Short: "Remove one or more tokenizer",
 	Long:  "Remove one or more tokenizer",
-	Args:  cobra.MinimumNArgs(1),
 	Run:   runTokenizerRemove,
 }
 

@@ -30,7 +30,6 @@ func init() {
 
 	// Bind cobra args to the downloader script args
 	customArgs.ToCobraTokenizer(tokenizerAddCmd)
-	customArgs.DirectoryPath = app.DownloadDirectoryPath
 	tokenizerAddCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Automatic yes to prompts")
 }
 

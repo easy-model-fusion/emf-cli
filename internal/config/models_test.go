@@ -7,7 +7,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
-	mock "github.com/easy-model-fusion/emf-cli/test/mock"
+	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path"
@@ -188,6 +188,52 @@ func TestGetModels_MissingConfig(t *testing.T) {
 
 	// Assert that the models have been retrieved correctly
 	retrievedModels, err := GetModels()
+	test.AssertEqual(t, len(retrievedModels), 0, "Retrieved models should be empty.")
+	test.AssertEqual(t, err, nil, "Retrieving models should not have failed.")
+
+	// Clean up directory afterward
+	cleanConfDir(t, confDir)
+}
+
+// TestGetModelsByModule_Success tests the GetModelsByModule function.
+func TestGetModelsByModule_Success(t *testing.T) {
+	// Setup directory
+	confDir, initialConfigFile := setupConfigDir(t)
+
+	// Setup file
+	initialModels := []model.Model{getModel(0), getModel(1)}
+	err := setupConfigFile(initialConfigFile, initialModels, false)
+	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
+
+	// Call the GetModels function
+	err = Load(confDir)
+	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
+	retrievedModels, err := GetModelsByModule("module1")
+	test.AssertEqual(t, err, nil, "Error while retrieving models from configuration.")
+
+	// Assert that the models have been retrieved correctly
+	test.AssertEqual(t, len(retrievedModels), 1, "Retrieved models do not match initial models.")
+
+	// Clean up directory afterward
+	cleanConfDir(t, confDir)
+}
+
+// TestGetModelsByModule_MissingConfig tests the GetModelsByModule function with a missing config file.
+func TestGetModelsByModule_MissingConfig(t *testing.T) {
+	// Setup directory
+	confDir, initialConfigFile := setupConfigDir(t)
+
+	// Setup file
+	var initialModels []model.Model
+	err := setupConfigFile(initialConfigFile, initialModels, false)
+	test.AssertEqual(t, err, nil, "Error while creating temporary configuration file.")
+
+	// Call the GetModels function
+	err = Load(confDir)
+	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
+
+	// Assert that the models have been retrieved correctly
+	retrievedModels, err := GetModelsByModule("")
 	test.AssertEqual(t, len(retrievedModels), 0, "Retrieved models should be empty.")
 	test.AssertEqual(t, err, nil, "Retrieving models should not have failed.")
 

@@ -9,6 +9,8 @@ import (
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 )
 
 // DownloadedOnDevice returns true if the model is physically present on the device.
@@ -392,4 +394,24 @@ func (m *Model) TidyConfiguredModel(accessToken string) (warnings []string, succ
 	}
 
 	return warnings, true, false, err
+}
+
+// GetModelDirectory returns the directory path leading up to the 'models' directory
+func (m *Model) GetModelDirectory() (path string, err error) {
+	// Get the directory path of the modelPath
+
+	directoryPath := filepath.Dir(m.Path)
+	// Find the last occurrence index of the model name in the path
+	modelNameIndex := strings.LastIndex(directoryPath, m.Name)
+
+	if modelNameIndex == -1 {
+		// Model name not found, return the original path
+		return directoryPath, fmt.Errorf("directory invalid %s", directoryPath)
+	}
+
+	// Extract the path leading up to the model name
+	directoryPath = directoryPath[:modelNameIndex]
+	// Trim any trailing slashes
+	directoryPath = strings.TrimSuffix(directoryPath, string(filepath.Separator))
+	return directoryPath, nil
 }
