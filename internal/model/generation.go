@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/codegen"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
