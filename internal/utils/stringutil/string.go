@@ -30,29 +30,6 @@ func SplitPath(path string) []string {
 	return elements
 }
 
-// PathRemoveSpecialCharacter adds a slash before a special character
-func PathRemoveSpecialCharacter(path string) string {
-	// List of special characters that need to be escaped
-	specialChars := map[string]string{
-		"\\a": "\\\\a",
-		"\\b": "\\\\b",
-		"\\f": "\\\\f",
-		"\\n": "\\\\n",
-		"\\r": "\\\\r",
-		"\\t": "\\\\t",
-		"\\v": "\\\\v",
-	}
-
-	// Replace special characters with their escaped form
-	for oldChar, newChar := range specialChars {
-		if strings.Contains(path, oldChar) {
-			path = strings.ReplaceAll(path, oldChar, newChar)
-		}
-	}
-
-	return path
-}
-
 // PathUniformize returns uniformized path regarding the device OS.
 func PathUniformize(path string) string {
 	// Replace backslashes with forward slashes
@@ -60,7 +37,6 @@ func PathUniformize(path string) string {
 
 	// Resolve dots and double slashes
 	path = filepath.Clean(path)
-	path = PathRemoveSpecialCharacter(path)
 
 	return path
 }
