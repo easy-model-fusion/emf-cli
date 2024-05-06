@@ -35,8 +35,13 @@ func PathRemoveSpecialCharacter(path string) string {
 	// List of special characters that need to be escaped
 	specialChars := map[string]string{
 		"\\a": "\\\\a",
+		"\\b": "\\\\b",
+		"\\f": "\\\\f",
+		"\\F": "\\\\F",
 		"\\n": "\\\\n",
+		"\\r": "\\\\r",
 		"\\t": "\\\\t",
+		"\\v": "\\\\v",
 	}
 
 	// Replace special characters with their escaped form
