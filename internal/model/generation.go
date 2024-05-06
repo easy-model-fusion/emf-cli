@@ -87,7 +87,7 @@ func (m *Model) GenFile() *codegen.File {
 // GenModelPath returns the model path to be used in the code generation
 func (m *Model) GenModelPath() string {
 	if m.IsDownloaded {
-		return m.Path
+		return stringutil.PathUniformize(m.Path)
 	}
 	return m.Name
 }
