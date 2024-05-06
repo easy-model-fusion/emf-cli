@@ -401,8 +401,10 @@ func (m *Model) GetModelDirectory() (path string, err error) {
 	// Get the directory path of the modelPath
 
 	directoryPath := filepath.Dir(m.Path)
+	// Split the string at every '/'
+	name := strings.Split(m.Name, "/")
 	// Find the last occurrence index of the model name in the path
-	modelNameIndex := strings.LastIndex(directoryPath, m.Name)
+	modelNameIndex := strings.LastIndex(directoryPath, name[0])
 
 	if modelNameIndex == -1 {
 		// Model name not found, return the original path
