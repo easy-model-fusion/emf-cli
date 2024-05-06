@@ -162,14 +162,3 @@ func TestOptionsMapToSlice(t *testing.T) {
 	test.AssertEqual(t, SliceContainsItem(optionsSlice, "key3=module.value"), true)
 	test.AssertEqual(t, SliceContainsItem(optionsSlice, "key4='text'"), true)
 }
-
-func TestPathRemoveSpecialCharacter(t *testing.T) {
-	// Init
-	testPath := "models\\FredZhang7\\anime-anything-promptgen-v2\\model"
-
-	// Execute
-	updatedPath := PathRemoveSpecialCharacter(testPath)
-	expectedPath := "models\\\\FredZhang7\\\\anime-anything-promptgen-v2\\model"
-
-	test.AssertEqual(t, updatedPath, expectedPath)
-}

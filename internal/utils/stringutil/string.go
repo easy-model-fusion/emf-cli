@@ -37,7 +37,6 @@ func PathRemoveSpecialCharacter(path string) string {
 		"\\a": "\\\\a",
 		"\\b": "\\\\b",
 		"\\f": "\\\\f",
-		"\\F": "\\\\F",
 		"\\n": "\\\\n",
 		"\\r": "\\\\r",
 		"\\t": "\\\\t",
