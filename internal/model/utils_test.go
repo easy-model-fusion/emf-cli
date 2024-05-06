@@ -614,7 +614,7 @@ func TestModel_GetModelDirectorySuccess(t *testing.T) {
 	}
 
 	resultPath, err := model.GetModelDirectory()
-	expectedPath := "folder\\folder2\\models"
+	expectedPath := "folder/folder2/models"
 	test.AssertEqual(t, err, nil, "No error message")
 	test.AssertEqual(t, resultPath, expectedPath, "Path is as expected")
 }
