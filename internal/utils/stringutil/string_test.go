@@ -2,7 +2,6 @@ package stringutil
 
 import (
 	"github.com/easy-model-fusion/emf-cli/test"
-	"path/filepath"
 	"testing"
 )
 
@@ -65,7 +64,7 @@ func TestPathUniformize_Success(t *testing.T) {
 		result := PathUniformize(item.input)
 
 		// Assert
-		test.AssertEqual(t, result, filepath.Clean(item.expected))
+		test.AssertEqual(t, result, item.expected)
 	}
 }
 
