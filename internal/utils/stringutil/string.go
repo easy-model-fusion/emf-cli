@@ -51,9 +51,11 @@ func PathRemoveSpecialCharacter(path string) string {
 func PathUniformize(path string) string {
 	// Replace backslashes with forward slashes
 	// Resolve dots and double slashes
+	fmt.Println("Cleaning b4", path)
 	path = filepath.Clean(path)
+	fmt.Println("Cleaning", path)
 	path = PathRemoveSpecialCharacter(path)
-
+	fmt.Println("removing", path)
 	return path
 }
 
