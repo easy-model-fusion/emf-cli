@@ -169,7 +169,7 @@ func TestPathRemoveSpecialCharacter(t *testing.T) {
 
 	// Execute
 	updatedPath := PathRemoveSpecialCharacter(testPath)
-	expectedPath := "models\\FredZhang7\\\\anime-anything-promptgen-v2\\model"
+	expectedPath := "models/FredZhang7/anime-anything-promptgen-v2/model"
 
 	test.AssertEqual(t, updatedPath, expectedPath)
 }
