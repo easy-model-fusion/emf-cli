@@ -50,8 +50,6 @@ func PathRemoveSpecialCharacter(path string) string {
 // PathUniformize returns uniformized path regarding the device OS.
 func PathUniformize(path string) string {
 	// Replace backslashes with forward slashes
-	//path = strings.ReplaceAll(path, "\\", "/")
-	//path = filepath.ToSlash(path)
 	// Resolve dots and double slashes
 	path = filepath.Clean(path)
 	path = PathRemoveSpecialCharacter(path)
