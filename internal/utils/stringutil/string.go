@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
@@ -51,11 +52,23 @@ func PathRemoveSpecialCharacter(path string) string {
 func PathUniformize(path string) string {
 	// Replace backslashes with forward slashes
 	// Resolve dots and double slashes
-	fmt.Println("Cleaning b4", path)
-	path = filepath.Clean(path)
-	fmt.Println("Cleaning", path)
-	path = PathRemoveSpecialCharacter(path)
-	fmt.Println("removing", path)
+
+	// Handling platform-specific behavior
+	switch runtime.GOOS {
+	case "windows":
+		fmt.Println("Cleaning windows b4", path)
+		path = filepath.Clean(path)
+		fmt.Println("Cleaning", path)
+		path = PathRemoveSpecialCharacter(path)
+		fmt.Println("removing", path)
+	case "linux", "darwin":
+		fmt.Println("Cleaning linux", path)
+		path = PathRemoveSpecialCharacter(path)
+		fmt.Println("removing", path)
+		fmt.Println("Cleaning b4", path)
+		path = filepath.Clean(path)
+	}
+
 	return path
 }
 
