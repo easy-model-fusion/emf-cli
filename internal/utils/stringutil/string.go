@@ -53,19 +53,13 @@ func PathUniformize(path string) string {
 	// Replace backslashes with forward slashes
 	// Resolve dots and double slashes
 
-	// Handling platform-specific behavior
+	// Handling platform-specific behavior since filepath.Clean behaves differently for each
 	switch runtime.GOOS {
 	case "windows":
-		fmt.Println("Cleaning windows b4", path)
 		path = filepath.Clean(path)
-		fmt.Println("Cleaning", path)
 		path = PathRemoveSpecialCharacter(path)
-		fmt.Println("removing", path)
 	case "linux", "darwin":
-		fmt.Println("Cleaning linux", path)
 		path = PathRemoveSpecialCharacter(path)
-		fmt.Println("removing", path)
-		fmt.Println("Cleaning b4", path)
 		path = filepath.Clean(path)
 	}
 
