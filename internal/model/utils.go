@@ -8,7 +8,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 )
@@ -118,7 +117,7 @@ func BuildModelsFromDevice(accessToken string) Models {
 		}
 
 		// Get all the models for the provider
-		providerPath := path.Join(app.DownloadDirectoryPath, provider.Name())
+		providerPath := filepath.Join(app.DownloadDirectoryPath, provider.Name())
 		providerModels, err := os.ReadDir(providerPath)
 		if err != nil {
 			continue
@@ -133,8 +132,8 @@ func BuildModelsFromDevice(accessToken string) Models {
 			}
 
 			// Model info
-			modelName := path.Join(provider.Name(), providerModel.Name())
-			modelPath := path.Join(providerPath, providerModel.Name())
+			modelName := filepath.Join(provider.Name(), providerModel.Name())
+			modelPath := filepath.Join(providerPath, providerModel.Name())
 
 			// Fetching model from huggingface
 			huggingfaceModel, err := app.H().GetModelById(modelName, accessToken)
@@ -181,7 +180,7 @@ func BuildModelsFromDevice(accessToken string) Models {
 
 					// Model folder exists : meaning the model is downloaded
 					if directory.Name() == "model" {
-						modelMapped.Path = path.Join(modelPath, "model")
+						modelMapped.Path = filepath.Join(modelPath, "model")
 						modelMapped.AddToBinaryFile = true
 						modelMapped.IsDownloaded = true
 						continue
@@ -189,7 +188,7 @@ func BuildModelsFromDevice(accessToken string) Models {
 
 					// Otherwise : directory is considered as a tokenizer
 					tokenizer := Tokenizer{
-						Path:  path.Join(modelPath, directory.Name()),
+						Path:  filepath.Join(modelPath, directory.Name()),
 						Class: directory.Name(),
 					}
 					modelMapped.Tokenizers = append(modelMapped.Tokenizers, tokenizer)

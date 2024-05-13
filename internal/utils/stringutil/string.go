@@ -54,14 +54,11 @@ func PathUniformize(path string) string {
 	// Resolve dots and double slashes
 
 	// Handling platform-specific behavior since filepath.Clean behaves differently for each
-	switch runtime.GOOS {
-	case "windows":
-		path = filepath.Clean(path)
-		path = PathRemoveSpecialCharacter(path)
-	case "linux", "darwin":
-		path = PathRemoveSpecialCharacter(path)
-		path = filepath.Clean(path)
+	if runtime.GOOS == "windows" {
+		path = filepath.ToSlash(path)
 	}
+	path = PathRemoveSpecialCharacter(path)
+	path = filepath.Clean(path)
 
 	return path
 }

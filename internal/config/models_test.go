@@ -10,7 +10,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"gopkg.in/yaml.v3"
 	"os"
-	"path"
 	"path/filepath"
 	"testing"
 
@@ -579,9 +578,9 @@ func TestValidate_DownloadedAndBinaryFalse_ConfirmFalse(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 
 	// Create a temporary directory representing the model base path
-	modelName := path.Join("microsoft", "phi-2")
-	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
-	modelPath := path.Join(modelDirectory, "model")
+	modelName := filepath.Join("microsoft", "phi-2")
+	modelDirectory := filepath.Join(app.DownloadDirectoryPath, modelName)
+	modelPath := filepath.Join(modelDirectory, "model")
 	err = os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)
@@ -617,9 +616,9 @@ func TestValidate_DownloadedAndBinaryFalse_ConfirmTrueAndRemove(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 
 	// Create a temporary directory representing the model base path
-	modelName := path.Join("microsoft", "phi-2")
-	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
-	modelPath := path.Join(modelDirectory, "model")
+	modelName := filepath.Join("microsoft", "phi-2")
+	modelDirectory := filepath.Join(app.DownloadDirectoryPath, modelName)
+	modelPath := filepath.Join(modelDirectory, "model")
 	err = os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)
@@ -660,9 +659,9 @@ func TestValidate_Downloaded_ConfirmFalse(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 
 	// Create a temporary directory representing the model base path
-	modelName := path.Join("microsoft", "phi-2")
-	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
-	modelPath := path.Join(modelDirectory, "model")
+	modelName := filepath.Join("microsoft", "phi-2")
+	modelDirectory := filepath.Join(app.DownloadDirectoryPath, modelName)
+	modelPath := filepath.Join(modelDirectory, "model")
 	err = os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)
@@ -698,9 +697,9 @@ func TestValidate_Downloaded_ConfirmTrue(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 
 	// Create a temporary directory representing the model base path
-	modelName := path.Join("microsoft", "phi-2")
-	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
-	modelPath := path.Join(modelDirectory, "model")
+	modelName := filepath.Join("microsoft", "phi-2")
+	modelDirectory := filepath.Join(app.DownloadDirectoryPath, modelName)
+	modelPath := filepath.Join(modelDirectory, "model")
 	err = os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)

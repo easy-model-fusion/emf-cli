@@ -17,7 +17,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"path"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -193,7 +193,7 @@ func (bc BuildController) Build(libraryPath string) (err error) {
 func (bc BuildController) createModelsSymbolicLink() error {
 	// Create symbolic link to models
 	modelsPath := "models"
-	distPath := path.Join(bc.DestinationDir, "models")
+	distPath := filepath.Join(bc.DestinationDir, "models")
 
 	app.UI().Info().Println(fmt.Sprintf("Creating symbolic link from %s to %s", modelsPath, distPath))
 
