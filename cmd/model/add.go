@@ -37,6 +37,7 @@ func init() {
 func runAdd(cmd *cobra.Command, args []string) {
 	err := addController.Run(args, customArgs)
 	if err != nil {
+		app.UI().Error().Println(err.Error())
 		os.Exit(1)
 	}
 }
