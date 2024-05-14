@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 )
 
@@ -50,17 +49,9 @@ func PathRemoveSpecialCharacter(path string) string {
 
 // PathUniformize returns uniformized path regarding the device OS.
 func PathUniformize(path string) string {
-	// Replace backslashes with forward slashes
-	// Resolve dots and double slashes
-
-	// Handling platform-specific behavior since filepath.Clean behaves differently for each
-	if runtime.GOOS == "windows" {
-		path = filepath.ToSlash(path)
-	}
-	path = PathRemoveSpecialCharacter(path)
 	path = filepath.Clean(path)
-
-	return path
+	// Replace backslashes with forward slashes
+	return filepath.ToSlash(path)
 }
 
 // ParseOptions parses a string containing options in various formats

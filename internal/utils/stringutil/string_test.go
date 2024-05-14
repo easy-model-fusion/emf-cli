@@ -47,16 +47,16 @@ func TestPathUniformize_Success(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"C:\\path\\to\\file", "C:/path/to/file"},
-		{"C:\\path\\to\\..\\file", "C:/path/file"},
-		{"C:\\path\\to\\dir\\..\\file", "C:/path/to/file"},
-		{"C:\\path\\with\\double\\\\slashes", "C:/path/with/double/slashes"},
-		{"C:\\path\\with\\dots\\..", "C:/path/with"},
-		{"C:\\path\\with\\dots\\..\\..", "C:/path"},
-		{"C:\\path\\with\\dots\\.", "C:/path/with/dots"},
-		{"C:\\path\\with\\dots\\.\\.", "C:/path/with/dots"},
-		{"C:\\path\\with\\dots\\.\\.\\..", "C:/path/with"},
-		{"C:\\path\\with\\dots\\.\\.\\..\\file", "C:/path/with/file"},
+		{"C:/path/to/file", "C:/path/to/file"},
+		{"C:/path/to/../file", "C:/path/file"},
+		{"C:/path/to/dir/../file", "C:/path/to/file"},
+		{"C:/path/with/double/slashes", "C:/path/with/double/slashes"},
+		{"C:/path/with/dots/..", "C:/path/with"},
+		{"C:/path/with/dots/../..", "C:/path"},
+		{"C:/path/with/dots/.", "C:/path/with/dots"},
+		{"C:/path/with/dots/./.", "C:/path/with/dots"},
+		{"C:/path/with/dots/././..", "C:/path/with"},
+		{"C:/path/with/dots/././../file", "C:/path/with/file"},
 	}
 
 	for _, item := range items {
