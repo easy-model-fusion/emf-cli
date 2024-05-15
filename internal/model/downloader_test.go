@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/easy-model-fusion/emf-cli/test/dmock"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
@@ -101,7 +102,7 @@ func TestFromDownloaderModel_Fill(t *testing.T) {
 		},
 	}
 	expected := Model{
-		Path:   filepath.Clean("/path/to/model"),
+		Path:   filepath.ToSlash(filepath.Clean("/path/to/model")),
 		Module: "module_name",
 		Class:  "class_name",
 		Options: map[string]string{
@@ -110,7 +111,7 @@ func TestFromDownloaderModel_Fill(t *testing.T) {
 		},
 		Tokenizers: []Tokenizer{
 			{
-				Path:  filepath.Clean("/path/to/tokenizer"),
+				Path:  filepath.ToSlash(filepath.Clean("/path/to/tokenizer")),
 				Class: "tokenizer_class",
 				Options: map[string]string{
 					"option1": "true",
@@ -153,7 +154,7 @@ func TestFromDownloaderModel_ReplaceTokenizer(t *testing.T) {
 		},
 	}
 	input := Model{
-		Path:    filepath.Clean("/path/to/model"),
+		Path:    stringutil.PathUniformize("/path/to/model"),
 		Module:  "module_name",
 		Class:   "class_name",
 		Options: map[string]string{},
