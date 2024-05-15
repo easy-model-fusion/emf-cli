@@ -2,7 +2,6 @@ package stringutil
 
 import (
 	"github.com/easy-model-fusion/emf-cli/test"
-	"path/filepath"
 	"testing"
 )
 
@@ -48,16 +47,16 @@ func TestPathUniformize_Success(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"C:\\path\\to\\file", "C:/path/to/file"},
-		{"C:\\path\\to\\..\\file", "C:/path/file"},
-		{"C:\\path\\to\\dir\\..\\file", "C:/path/to/file"},
-		{"C:\\path\\with\\double\\\\slashes", "C:/path/with/double/slashes"},
-		{"C:\\path\\with\\dots\\..", "C:/path/with"},
-		{"C:\\path\\with\\dots\\..\\..", "C:/path"},
-		{"C:\\path\\with\\dots\\.", "C:/path/with/dots"},
-		{"C:\\path\\with\\dots\\.\\.", "C:/path/with/dots"},
-		{"C:\\path\\with\\dots\\.\\.\\..", "C:/path/with"},
-		{"C:\\path\\with\\dots\\.\\.\\..\\file", "C:/path/with/file"},
+		{"C:/path/to/file", "C:/path/to/file"},
+		{"C:/path/to/../file", "C:/path/file"},
+		{"C:/path/to/dir/../file", "C:/path/to/file"},
+		{"C:/path/with/double/slashes", "C:/path/with/double/slashes"},
+		{"C:/path/with/dots/..", "C:/path/with"},
+		{"C:/path/with/dots/../..", "C:/path"},
+		{"C:/path/with/dots/.", "C:/path/with/dots"},
+		{"C:/path/with/dots/./.", "C:/path/with/dots"},
+		{"C:/path/with/dots/././..", "C:/path/with"},
+		{"C:/path/with/dots/././../file", "C:/path/with/file"},
 	}
 
 	for _, item := range items {
@@ -65,7 +64,7 @@ func TestPathUniformize_Success(t *testing.T) {
 		result := PathUniformize(item.input)
 
 		// Assert
-		test.AssertEqual(t, result, filepath.Clean(item.expected))
+		test.AssertEqual(t, result, item.expected)
 	}
 }
 
@@ -161,4 +160,15 @@ func TestOptionsMapToSlice(t *testing.T) {
 	test.AssertEqual(t, SliceContainsItem(optionsSlice, "key2=True"), true)
 	test.AssertEqual(t, SliceContainsItem(optionsSlice, "key3=module.value"), true)
 	test.AssertEqual(t, SliceContainsItem(optionsSlice, "key4='text'"), true)
+}
+
+func TestPathRemoveSpecialCharacter(t *testing.T) {
+	// Init
+	testPath := "models\\FredZhang7\\anime-anything-promptgen-v2\\model"
+
+	// Execute
+	updatedPath := PathRemoveSpecialCharacter(testPath)
+	expectedPath := "models/FredZhang7/anime-anything-promptgen-v2/model"
+
+	test.AssertEqual(t, updatedPath, expectedPath)
 }
