@@ -79,7 +79,7 @@ jobs:
 
       - name: Run tests with code coverage
         run: |
-          go test -coverprofile=coverage.out ./...
+          go test -v ./... -coverprofile=coverage.out
 
       - name: Upload coverage artifact
         if: github.event_name == 'push'
