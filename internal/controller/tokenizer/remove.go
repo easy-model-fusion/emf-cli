@@ -48,40 +48,50 @@ func (ic RemoveTokenizerController) processRemove(args []string) (warning, info 
 
 	// Get all configured models objects/names and args model
 	var models model.Models
-	models, err = config.GetModels()
+	models, err = config.GetModelsByModule(string(huggingface.TRANSFORMERS))
 	if err != nil {
-		return warning, info, fmt.Errorf("error get model: %s", err.Error())
+		return warning, info, fmt.Errorf("error while getting configured models: %s", err.Error())
 	}
-
-	// Checks the presence of the model
-	selectedModelName := args[0]
-	configModelsMap := models.Map()
-	modelToUse, exists := configModelsMap[selectedModelName]
-	if !exists {
-		return warning, "Model is not configured", err
+	if len(models) == 0 {
+		err = fmt.Errorf("no models to choose from")
+		return warning, info, err
 	}
-
-	// Verify model's module
-	if modelToUse.Module != huggingface.TRANSFORMERS {
-		return warning, info, fmt.Errorf("only transformers models have tokenizers")
-	}
-
-	configTokenizerMap := modelToUse.Tokenizers.Map()
 	var tokenizersToRemove model.Tokenizers
 	var invalidTokenizers []string
 	var tokenizerNames []string
-
-	// Remove model name from arguments
-	args = args[1:]
+	var modelToUse model.Model
+	configModelsMap := models.Map()
+	// No args, asks for model's name
 	if len(args) == 0 {
+		// Get selected models from select
+		sc := SelectModelController{}
+		// Get selected models from select
+		modelToUse = sc.SelectTransformerModel(models)
 		// No tokenizer, asks for tokenizers names
 		availableNames := modelToUse.Tokenizers.GetNames()
 		tokenizerNames = selectTokenizersToDelete(availableNames)
+	} else {
+		// Get the selected models from the args
+		selectedModelName := args[0]
+		var exists bool
+		modelToUse, exists = configModelsMap[selectedModelName]
+		if !exists {
+			return warning, info, fmt.Errorf("Model is not configured")
+		}
 
-	} else if len(args) > 0 {
-		// Check for duplicates
-		tokenizerNames = stringutil.SliceRemoveDuplicates(args)
+		// Remove model name from arguments
+		args = args[1:]
+		if len(args) == 0 {
+			// No tokenizer, asks for tokenizers names
+			availableNames := modelToUse.Tokenizers.GetNames()
+			tokenizerNames = selectTokenizersToDelete(availableNames)
+		} else {
+			// Check for duplicates
+			tokenizerNames = stringutil.SliceRemoveDuplicates(args)
+		}
 	}
+
+	configTokenizerMap := modelToUse.Tokenizers.Map()
 
 	// Check for valid tokenizers
 	for _, name := range tokenizerNames {

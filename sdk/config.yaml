@@ -32,10 +32,10 @@ build:
       - "--include-distribution-metadata=filelock"
       - "--noinclude-unittest-mode=allow"
   pyinstaller:
-    args: []
+    args: [ ]
 
 # Model Configuration
-models: []
+models: [ ]
 
 # Diffusers model
 #  - name: stabilityai/sdxl-turbo

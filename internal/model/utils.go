@@ -8,7 +8,8 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"os"
-	"path"
+	"path/filepath"
+	"strings"
 )
 
 // DownloadedOnDevice returns true if the model is physically present on the device.
@@ -116,7 +117,7 @@ func BuildModelsFromDevice(accessToken string) Models {
 		}
 
 		// Get all the models for the provider
-		providerPath := path.Join(app.DownloadDirectoryPath, provider.Name())
+		providerPath := filepath.Join(app.DownloadDirectoryPath, provider.Name())
 		providerModels, err := os.ReadDir(providerPath)
 		if err != nil {
 			continue
@@ -131,8 +132,8 @@ func BuildModelsFromDevice(accessToken string) Models {
 			}
 
 			// Model info
-			modelName := path.Join(provider.Name(), providerModel.Name())
-			modelPath := path.Join(providerPath, providerModel.Name())
+			modelName := filepath.Join(provider.Name(), providerModel.Name())
+			modelPath := filepath.Join(providerPath, providerModel.Name())
 
 			// Fetching model from huggingface
 			huggingfaceModel, err := app.H().GetModelById(modelName, accessToken)
@@ -179,7 +180,7 @@ func BuildModelsFromDevice(accessToken string) Models {
 
 					// Model folder exists : meaning the model is downloaded
 					if directory.Name() == "model" {
-						modelMapped.Path = path.Join(modelPath, "model")
+						modelMapped.Path = filepath.Join(modelPath, "model")
 						modelMapped.AddToBinaryFile = true
 						modelMapped.IsDownloaded = true
 						continue
@@ -187,7 +188,7 @@ func BuildModelsFromDevice(accessToken string) Models {
 
 					// Otherwise : directory is considered as a tokenizer
 					tokenizer := Tokenizer{
-						Path:  path.Join(modelPath, directory.Name()),
+						Path:  filepath.Join(modelPath, directory.Name()),
 						Class: directory.Name(),
 					}
 					modelMapped.Tokenizers = append(modelMapped.Tokenizers, tokenizer)
@@ -392,4 +393,26 @@ func (m *Model) TidyConfiguredModel(accessToken string) (warnings []string, succ
 	}
 
 	return warnings, true, false, err
+}
+
+// GetModelDirectory returns the directory path leading up to the 'models' directory
+func (m *Model) GetModelDirectory() (path string, err error) {
+	// Get the directory path of the modelPath
+
+	directoryPath := filepath.Dir(m.Path)
+	// Split the string at every '/'
+	name := strings.Split(m.Name, "/")
+	// Find the last occurrence index of the model name in the path
+	modelNameIndex := strings.LastIndex(directoryPath, name[0])
+
+	if modelNameIndex == -1 {
+		// Model name not found, return the original path
+		return directoryPath, fmt.Errorf("directory invalid %s", directoryPath)
+	}
+
+	// Extract the path leading up to the model name
+	directoryPath = directoryPath[:modelNameIndex]
+	// Trim any trailing slashes
+	directoryPath = strings.TrimSuffix(directoryPath, string(filepath.Separator))
+	return directoryPath, nil
 }

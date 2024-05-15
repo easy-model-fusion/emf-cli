@@ -34,7 +34,6 @@ func (ac AddController) Run(args []string, customArgs downloadermodel.Args) erro
 	var result resultutil.ExecutionResult
 	warnings, err := ac.processAdd(selectedModel, customArgs)
 	result.AddWarnings(warnings)
-	result.SetError(err)
 	result.Display("Operation succeeded", "Operation failed")
 
 	return err

@@ -49,34 +49,39 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 		return warnings, info, err
 	}
 
-	// No model name in args
-	if len(args) < 1 {
-		return warnings, info, fmt.Errorf("enter a model in argument")
-	}
-
 	// Get all configured models objects/names and args model
-	models, err := config.GetModels()
+	models, err := config.GetModelsByModule(string(huggingface.TRANSFORMERS))
 	if err != nil {
 		return warnings, info, fmt.Errorf("error get model: %s", err.Error())
 	}
-
-	// Checks the presence of the model
-	selectedModel := args[0]
-	configModelsMap := models.Map()
-	modelToUse, exists := configModelsMap[selectedModel]
-	if !exists {
-		return warnings, "Model is not configured", err
+	if len(models) == 0 {
+		err = fmt.Errorf("no configured models found")
+		return warnings, info, err
 	}
+	var modelToUse model.Model
 
-	// Verify model's module
-	if modelToUse.Module != huggingface.TRANSFORMERS {
-		return warnings, info, fmt.Errorf("only transformers models have tokenizers")
+	configModelsMap := models.Map()
+	if len(args) == 0 {
+		// Get selected models from select
+		sc := SelectModelController{}
+		// Get selected models from select
+		modelToUse = sc.SelectTransformerModel(models)
+	} else {
+		// Get the selected models from the args
+		selectedModelName := args[0]
+		var exists bool
+		modelToUse, exists = configModelsMap[selectedModelName]
+		if !exists {
+			err = fmt.Errorf("model is not configured")
+			return warnings, info, err
+		}
+
+		// Remove model name from arguments
+		args = args[1:]
 	}
 
 	var updateTokenizers model.Tokenizers
 	var failedTokenizers []string
-	// Remove model name from arguments
-	args = args[1:]
 
 	// Extracting available tokenizers
 	availableNames := modelToUse.Tokenizers.GetNames()
@@ -112,6 +117,7 @@ func (ic UpdateTokenizerController) processUpdateTokenizer(args []string) (warni
 			ModelName:   modelToUse.Name,
 			ModelModule: string(modelToUse.Module),
 		}
+		downloaderArgs.OnlyConfiguration = !modelToUse.IsDownloaded
 
 		var success bool
 		success, warnings, err = modelToUse.DownloadTokenizer(tokenizer, downloaderArgs)

@@ -15,7 +15,6 @@ var tokenizerUpdateCmd = &cobra.Command{
 	Use:   "update <model name> <tokenizer name> [<other tokenizer names>...]",
 	Short: "Update one or more tokenizers",
 	Long:  "Update one or more tokenizers",
-	Args:  cobra.MinimumNArgs(1),
 	Run:   runTokenizerUpdate,
 }
 

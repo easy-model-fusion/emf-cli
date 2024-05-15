@@ -10,7 +10,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"github.com/pterm/pterm"
 	"os"
-	"path"
 	"path/filepath"
 	"testing"
 
@@ -83,9 +82,9 @@ func TestDownloadedOnDevice_True(t *testing.T) {
 // TestModelDownloadedOnDevice_UseBasePath_True tests the ModelDownloadedOnDevice function to return true.
 func TestModelDownloadedOnDevice_UseBasePath_True(t *testing.T) {
 	// Create a temporary directory representing the model base path
-	modelName := path.Join("microsoft", "phi-2")
-	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
-	modelPath := path.Join(modelDirectory, "model")
+	modelName := filepath.Join("microsoft", "phi-2")
+	modelDirectory := filepath.Join(app.DownloadDirectoryPath, modelName)
+	modelPath := filepath.Join(modelDirectory, "model")
 	err := os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)
@@ -243,7 +242,7 @@ func TestGetTokenizersNotDownloadedOnDevice_NotMissing(t *testing.T) {
 // TestBuildModelsFromDevice_Custom tests the BuildModelsFromDevice function to work for custom configured models.
 func TestBuildModelsFromDevice_Custom(t *testing.T) {
 	// Create a temporary directory representing the path to the custom model
-	modelPath := path.Join(app.DownloadDirectoryPath, "custom-provider", "custom-model")
+	modelPath := filepath.Join(app.DownloadDirectoryPath, "custom-provider", "custom-model")
 	modelPath = filepath.ToSlash(modelPath)
 	err := os.MkdirAll(modelPath, 0750)
 	if err != nil {
@@ -267,7 +266,7 @@ func TestBuildModelsFromDevice_Custom(t *testing.T) {
 // TestBuildModelsFromDevice_HuggingfaceEmpty tests the BuildModelsFromDevice function to work for huggingface empty models.
 func TestBuildModelsFromDevice_HuggingfaceEmpty(t *testing.T) {
 	// Create a temporary directory representing the path to the model which is empty
-	modelDirectoryPath := path.Join(app.DownloadDirectoryPath, "stabilityai", "sdxl-turbo")
+	modelDirectoryPath := filepath.Join(app.DownloadDirectoryPath, "stabilityai", "sdxl-turbo")
 	err := os.MkdirAll(modelDirectoryPath, 0750)
 	if err != nil {
 		t.Fatal(err)
@@ -285,9 +284,9 @@ func TestBuildModelsFromDevice_HuggingfaceEmpty(t *testing.T) {
 // TestBuildModelsFromDevice_HuggingfaceDiffusers tests the BuildModelsFromDevice function to work for huggingface diffusers models.
 func TestBuildModelsFromDevice_HuggingfaceDiffusers(t *testing.T) {
 	// Create a temporary directory representing the path to the diffusers model which is not empty
-	modelName := path.Join("stabilityai", "sdxl-turbo")
-	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
-	err := os.MkdirAll(path.Join(modelDirectory, "not-empty"), 0750)
+	modelName := filepath.Join("stabilityai", "sdxl-turbo")
+	modelDirectory := filepath.Join(app.DownloadDirectoryPath, modelName)
+	err := os.MkdirAll(filepath.Join(modelDirectory, "not-empty"), 0750)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -311,9 +310,9 @@ func TestBuildModelsFromDevice_HuggingfaceDiffusers(t *testing.T) {
 // TestBuildModelsFromDevice_HuggingfaceTransformers tests the BuildModelsFromDevice function to work for huggingface transformers models.
 func TestBuildModelsFromDevice_HuggingfaceTransformers(t *testing.T) {
 	// Create a temporary directory representing the path to the transformers model
-	modelName := path.Join("microsoft", "phi-2")
-	modelDirectory := path.Join(app.DownloadDirectoryPath, modelName)
-	modelPath := path.Join(modelDirectory, "model")
+	modelName := filepath.Join("microsoft", "phi-2")
+	modelDirectory := filepath.Join(app.DownloadDirectoryPath, modelName)
+	modelPath := filepath.Join(modelDirectory, "model")
 	err := os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)
@@ -597,4 +596,43 @@ func TestModelUpdate_Transformers(t *testing.T) {
 	// Assertions
 	test.AssertEqual(t, err, nil)
 	test.AssertEqual(t, success, true)
+}
+
+// TestModel_GetModelDirectorySuccess test the success case of GetModelDirectory
+func TestModel_GetModelDirectorySuccess(t *testing.T) {
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+
+	// Init
+	model := Model{
+		Name:   "model4/name",
+		Path:   "folder/folder2/models/model4/name/model",
+		Module: huggingface.TRANSFORMERS,
+	}
+
+	resultPath, err := model.GetModelDirectory()
+	expectedPath := "folder/folder2/models"
+	test.AssertEqual(t, err, nil, "No error message")
+	test.AssertEqual(t, resultPath, expectedPath, "Path is as expected")
+}
+
+// TestModel_GetModelDirectoryFail test the fail case of GetModelDirectory
+func TestModel_GetModelDirectoryFail(t *testing.T) {
+	// Create full test suite with a configuration file
+	ts := test.TestSuite{}
+	_ = ts.CreateModelsFolderFullTestSuite(t)
+	defer ts.CleanTestSuite(t)
+
+	// Init
+	model := Model{
+		Name:   "model4/name",
+		Path:   "",
+		Module: huggingface.TRANSFORMERS,
+	}
+
+	_, err := model.GetModelDirectory()
+	expectedMessage := "directory invalid ."
+	test.AssertEqual(t, err.Error(), expectedMessage, "Directory error message")
 }

@@ -250,3 +250,25 @@ func TestModel_GenFile_SingleFile(t *testing.T) {
 	test.AssertEqual(t, len(file.Classes), 1, "The file should contain one class.")
 	test.AssertEqual(t, len(file.HeaderComments), 2, "The file should contain two header comments.")
 }
+
+func TestGenModelPath_DownloadedModel(t *testing.T) {
+	// Init
+	m := Model{Name: "name", Path: "path", IsDownloaded: false}
+
+	// Get model path
+	path := m.GenModelPath()
+
+	// Assert
+	test.AssertEqual(t, path, "name", "The returned path name should be equal to model name.")
+}
+
+func TestGenModelPath_NotDownloadedModel(t *testing.T) {
+	// Init
+	m := Model{Name: "name", Path: "path", IsDownloaded: true}
+
+	// Get model path
+	path := m.GenModelPath()
+
+	// Assert
+	test.AssertEqual(t, path, "path", "The returned path name should be equal to model path.")
+}

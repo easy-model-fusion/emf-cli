@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/codegen"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -84,6 +85,14 @@ func (m *Model) GenFile() *codegen.File {
 	}
 }
 
+// GenModelPath returns the model path to be used in the code generation
+func (m *Model) GenModelPath() string {
+	if m.IsDownloaded {
+		return stringutil.PathUniformize(m.Path)
+	}
+	return m.Name
+}
+
 // GenImports generate the imports for the given model
 func (m *Model) GenImports() []codegen.Import {
 	return []codegen.Import{
@@ -146,7 +155,7 @@ func (m *Model) GenSuperInitParamsWithModule() []codegen.FunctionCallParameter {
 		},
 		{
 			Name:  "model_path",
-			Value: "\"" + m.Path + "\"",
+			Value: "\"" + m.GenModelPath() + "\"",
 		},
 		{
 			Name:  "model_class",

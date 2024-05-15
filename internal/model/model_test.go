@@ -5,7 +5,7 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
-	"path"
+	"path/filepath"
 	"testing"
 )
 
@@ -245,6 +245,26 @@ func TestFilterWithIsDownloadedTrue_Success(t *testing.T) {
 	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
 }
 
+// TestFilterWithIsDownloadedTrue_Success tests the Models.FilterWithIsDownloadedTrue to return the sub-slice.
+func TestFilterWithIsDownloadedOrAddToBinaryTrue_Success(t *testing.T) {
+	// Init
+	models := GetModels(4)
+	models[0].IsDownloaded = false
+	models[0].AddToBinaryFile = false
+	models[2].IsDownloaded = false
+	models[3].AddToBinaryFile = false
+	expected := Models{models[1], models[2], models[3]}
+
+	// Execute
+	result := models.FilterWithIsDownloadedOrAddToBinaryFileTrue()
+
+	// Assert
+	test.AssertEqual(t, len(expected), len(result), "Lengths should be equal.")
+	for i, currentModel := range expected {
+		test.AssertEqual(t, result[i].Name, currentModel.Name, "returned models should be equal to expected model.")
+	}
+}
+
 // TestFilterWithAddToBinaryFileTrue_Success tests the Models.FilterWithAddToBinaryFileTrue to return the sub-slice.
 func TestFilterWithAddToBinaryFileTrue_Success(t *testing.T) {
 	// Init
@@ -269,7 +289,7 @@ func TestGetBasePath(t *testing.T) {
 	basePath := model.GetBasePath()
 
 	// Assert
-	test.AssertEqual(t, basePath, path.Join(app.DownloadDirectoryPath, model.Name))
+	test.AssertEqual(t, basePath, filepath.Join(app.DownloadDirectoryPath, model.Name))
 }
 
 // TestUpdatePaths_Default tests the Model.UpdatePaths for a default model.
@@ -281,7 +301,7 @@ func TestUpdatePaths_Default(t *testing.T) {
 	model.UpdatePaths()
 
 	// Assert
-	test.AssertEqual(t, model.Path, path.Join(app.DownloadDirectoryPath, model.Name))
+	test.AssertEqual(t, model.Path, filepath.Join(app.DownloadDirectoryPath, model.Name))
 }
 
 // TestUpdatePaths_Transformers tests the Model.UpdatePaths for a transformers model.
@@ -294,7 +314,7 @@ func TestUpdatePaths_Transformers(t *testing.T) {
 	model.UpdatePaths()
 
 	// Assert
-	test.AssertEqual(t, model.Path, path.Join(app.DownloadDirectoryPath, model.Name, "model"))
+	test.AssertEqual(t, model.Path, filepath.Join(app.DownloadDirectoryPath, model.Name, "model"))
 }
 
 // TestUpdatePaths_TransformersTokenizers tests the Model.UpdatePaths for a transformers model.
@@ -308,7 +328,7 @@ func TestUpdatePaths_TransformersTokenizers(t *testing.T) {
 	model.UpdatePaths()
 
 	// Assert
-	test.AssertEqual(t, model.Tokenizers[0].Path, path.Join(app.DownloadDirectoryPath, model.Name, "tokenizer"))
+	test.AssertEqual(t, model.Tokenizers[0].Path, filepath.Join(app.DownloadDirectoryPath, model.Name, "tokenizer"))
 }
 
 // TestFilterWithClass_Success tests the Tokenizers.FilterWithClass function to return the correct models.

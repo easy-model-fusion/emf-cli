@@ -25,6 +25,24 @@ func GetModels() (model.Models, error) {
 	return models, nil
 }
 
+// GetModelsByModule retrieves models from the configuration.
+func GetModelsByModule(module string) (model.Models, error) {
+	// Define a slice for models
+	models, err := GetModels()
+	if err != nil {
+		return models, err
+	}
+
+	var modelsToReturn model.Models
+	for _, currentModel := range models {
+		if string(currentModel.Module) == module {
+			modelsToReturn = append(modelsToReturn, currentModel)
+		}
+	}
+
+	return modelsToReturn, nil
+}
+
 // AddModels adds models to configuration file
 func AddModels(updatedModels model.Models) error {
 	// Get existent models
