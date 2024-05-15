@@ -10,7 +10,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -63,9 +62,9 @@ func (p *python) CheckForPython() (string, bool) {
 func (p *python) FindVEnvExecutable(venvPath string, executableName string) (string, error) {
 	var pipPath string
 	if runtime.GOOS == "windows" {
-		pipPath = filepath.Join(venvPath, "Scripts", executableName+".exe")
+		pipPath = fileutil.PathJoin(venvPath, "Scripts", executableName+".exe")
 	} else {
-		pipPath = filepath.Join(venvPath, "bin", executableName)
+		pipPath = fileutil.PathJoin(venvPath, "bin", executableName)
 	}
 
 	if _, err := os.Stat(pipPath); os.IsNotExist(err) {

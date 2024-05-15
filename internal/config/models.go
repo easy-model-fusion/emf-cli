@@ -10,7 +10,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/spf13/viper"
 	"os"
-	"path/filepath"
 )
 
 // GetModels retrieves models from the configuration.
@@ -94,7 +93,7 @@ func RemoveItemPhysically(itemPath string) error {
 		// Cleaning up : removing every empty directory on the way to the item (from tail to head)
 		for i := len(directories) - 1; i >= 0; i-- {
 			// Build path to parent directory
-			path := filepath.Join(directories[:i+1]...)
+			path := fileutil.PathJoin(directories[:i+1]...)
 
 			// Delete directory if empty
 			err = fileutil.DeleteDirectoryIfEmpty(path)
@@ -123,7 +122,7 @@ func RemoveAllModels() (info string, err error) {
 
 	// Trying to remove every model
 	for _, item := range models {
-		modelPath := filepath.Join(app.DownloadDirectoryPath, item.Name)
+		modelPath := fileutil.PathJoin(app.DownloadDirectoryPath, item.Name)
 		spinner := app.UI().StartSpinner(fmt.Sprintf("Removing item %s...", item.Name))
 		err = RemoveItemPhysically(modelPath)
 		if err != nil {
@@ -161,7 +160,7 @@ func RemoveModelsByNames(models model.Models, modelsNamesToRemove []string) (war
 
 	// Trying to remove the models
 	for _, item := range modelsToRemove {
-		modelPath := filepath.Join(app.DownloadDirectoryPath, item.Name)
+		modelPath := fileutil.PathJoin(app.DownloadDirectoryPath, item.Name)
 		spinner := app.UI().StartSpinner(fmt.Sprintf("Removing item %s...", item.Name))
 		err = RemoveItemPhysically(modelPath)
 		if err != nil {
@@ -219,7 +218,7 @@ func Validate(current model.Model, yes bool) (warning string, success bool, err 
 		}
 
 		// Removing model
-		modelPath := filepath.Join(app.DownloadDirectoryPath, current.Name)
+		modelPath := fileutil.PathJoin(app.DownloadDirectoryPath, current.Name)
 		spinner := app.UI().StartSpinner(fmt.Sprintf("Removing item %s...", current.Name))
 		err = RemoveItemPhysically(modelPath)
 		if err != nil {
@@ -293,5 +292,5 @@ func GenerateModelsPythonCode(models model.Models) error {
 		return err
 	}
 
-	return os.WriteFile(filepath.Join("sdk", "generated_models.py"), []byte(result), 0644)
+	return os.WriteFile(fileutil.PathJoin("sdk", "generated_models.py"), []byte(result), 0644)
 }

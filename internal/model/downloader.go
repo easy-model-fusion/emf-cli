@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"os"
@@ -18,7 +19,7 @@ func (m *Model) FromDownloaderModel(dlModel downloadermodel.Model) {
 	// Check if ScriptModel is valid
 	if !dlModel.Empty() {
 		if len(dlModel.Path) != 0 {
-			m.Path = stringutil.PathUniformize(dlModel.Path)
+			m.Path = fileutil.PathUniformize(dlModel.Path)
 		}
 		m.Module = huggingface.Module(dlModel.Module)
 		m.Class = dlModel.Class
@@ -31,7 +32,7 @@ func (m *Model) FromDownloaderModel(dlModel downloadermodel.Model) {
 		// Mapping to tokenizer
 		var tokenizer Tokenizer
 		if len(dlModel.Tokenizer.Path) != 0 {
-			tokenizer.Path = stringutil.PathUniformize(dlModel.Tokenizer.Path)
+			tokenizer.Path = fileutil.PathUniformize(dlModel.Tokenizer.Path)
 		}
 		tokenizer.Class = dlModel.Tokenizer.Class
 		tokenizer.Options = dlModel.Tokenizer.Options

@@ -3,9 +3,9 @@ package model
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/dotenv"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
-	"path/filepath"
 	"strings"
 )
 
@@ -194,7 +194,7 @@ func (m Models) FilterWithAddToBinaryFileTrue() Models {
 
 // GetBasePath return the base path to the model
 func (m *Model) GetBasePath() string {
-	return filepath.Join(app.DownloadDirectoryPath, m.Name)
+	return fileutil.PathJoin(app.DownloadDirectoryPath, m.Name)
 }
 
 // UpdatePaths to update the model's path to elements accordingly to its configuration.
@@ -203,9 +203,9 @@ func (m *Model) UpdatePaths() {
 		basePath := m.GetBasePath()
 		modelPath := basePath
 		if m.Module == huggingface.TRANSFORMERS {
-			modelPath = filepath.Join(modelPath, "model")
+			modelPath = fileutil.PathJoin(modelPath, "model")
 			for i, tokenizer := range m.Tokenizers {
-				m.Tokenizers[i].Path = filepath.Join(basePath, tokenizer.Class)
+				m.Tokenizers[i].Path = fileutil.PathJoin(basePath, tokenizer.Class)
 			}
 		}
 		m.Path = modelPath

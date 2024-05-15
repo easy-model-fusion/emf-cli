@@ -25,12 +25,11 @@ import (
 	"github.com/easy-model-fusion/emf-cli/sdk"
 	"github.com/spf13/viper"
 	"os"
-	"path/filepath"
 )
 
 type InitController struct{}
 
-var initDependenciesPath = filepath.Join("sdk", "requirements.txt")
+var initDependenciesPath = fileutil.PathJoin("sdk", "requirements.txt")
 
 // Run runs the init command
 func (ic InitController) Run(args []string, useTorchCuda bool, customTag string) error {
@@ -83,7 +82,7 @@ func (ic InitController) createProject(projectName string, useTorchCuda bool, cu
 
 	// Create virtual environment
 	spinner := app.UI().StartSpinner("Creating virtual environment")
-	err = app.Python().CreateVirtualEnv(pythonPath, filepath.Join(projectName, ".venv"))
+	err = app.Python().CreateVirtualEnv(pythonPath, fileutil.PathJoin(projectName, ".venv"))
 	if err != nil {
 		spinner.Fail("Unable to create venv: ", err)
 		return err
@@ -128,27 +127,27 @@ func (ic InitController) createProjectFiles(projectName, sdkTag string) (err err
 	}()
 
 	// Copy main.py, config.yaml & .gitignore
-	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "main.py", filepath.Join(projectName, "main.py"))
+	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "main.py", fileutil.PathJoin(projectName, "main.py"))
 	if err != nil {
 		return err
 	}
 
-	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "config.yaml", filepath.Join(projectName, "config.yaml"))
+	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "config.yaml", fileutil.PathJoin(projectName, "config.yaml"))
 	if err != nil {
 		return err
 	}
 
-	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, ".gitignore", filepath.Join(projectName, ".gitignore"))
+	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, ".gitignore", fileutil.PathJoin(projectName, ".gitignore"))
 	if err != nil {
 		return err
 	}
 
-	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "README.md", filepath.Join(projectName, "README.md"))
+	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "README.md", fileutil.PathJoin(projectName, "README.md"))
 	if err != nil {
 		return err
 	}
 
-	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "requirements.txt", filepath.Join(projectName, "requirements.txt"))
+	err = fileutil.CopyEmbeddedFile(sdk.EmbeddedFiles, "requirements.txt", fileutil.PathJoin(projectName, "requirements.txt"))
 	if err != nil {
 		return err
 	}
@@ -168,13 +167,13 @@ func (ic InitController) createProjectFiles(projectName, sdkTag string) (err err
 	}
 
 	// Create sdk folder
-	err = os.Mkdir(filepath.Join(projectName, "sdk"), os.ModePerm)
+	err = os.Mkdir(fileutil.PathJoin(projectName, "sdk"), os.ModePerm)
 	if err != nil {
 		return err
 	}
 
 	// Create models folder
-	err = os.Mkdir(filepath.Join(projectName, "models"), os.ModePerm)
+	err = os.Mkdir(fileutil.PathJoin(projectName, "models"), os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -185,13 +184,13 @@ func (ic InitController) createProjectFiles(projectName, sdkTag string) (err err
 // installDependencies installs the dependencies for the project
 func (ic InitController) installDependencies(projectName string, useTorchCuda bool) (err error) {
 	// Install dependencies
-	pipPath, err := app.Python().FindVEnvExecutable(filepath.Join(projectName, ".venv"), "pip")
+	pipPath, err := app.Python().FindVEnvExecutable(fileutil.PathJoin(projectName, ".venv"), "pip")
 	if err != nil {
 		return err
 	}
 
 	spinner := app.UI().StartSpinner("Installing dependencies")
-	err = app.Python().InstallDependencies(pipPath, filepath.Join(projectName, initDependenciesPath))
+	err = app.Python().InstallDependencies(pipPath, fileutil.PathJoin(projectName, initDependenciesPath))
 	if err != nil {
 		spinner.Fail("Unable to install dependencies: ", err)
 		return err
@@ -239,7 +238,7 @@ func (ic InitController) cloneSDK(projectName, tag string) (err error) {
 
 	// Clone SDK
 	spinner := app.UI().StartSpinner("Cloning SDK")
-	err = app.G().CloneSDK(tag, filepath.Join(projectName, "sdk"))
+	err = app.G().CloneSDK(tag, fileutil.PathJoin(projectName, "sdk"))
 	if err != nil {
 		spinner.Fail("Unable to clone sdk: ", err)
 		return err
@@ -249,21 +248,21 @@ func (ic InitController) cloneSDK(projectName, tag string) (err error) {
 	spinner = app.UI().StartSpinner("Reorganizing SDK files")
 
 	// Move files from sdk/sdk to sdk/
-	err = fileutil.MoveFiles(filepath.Join(projectName, "sdk", "sdk"), filepath.Join(projectName, "sdk"))
+	err = fileutil.MoveFiles(fileutil.PathJoin(projectName, "sdk", "sdk"), fileutil.PathJoin(projectName, "sdk"))
 	if err != nil {
 		spinner.Fail("Unable to move SDK files: ", err)
 		return err
 	}
 
 	// remove sdk/sdk folder
-	err = os.RemoveAll(filepath.Join(projectName, "sdk", "sdk"))
+	err = os.RemoveAll(fileutil.PathJoin(projectName, "sdk", "sdk"))
 	if err != nil {
 		spinner.Fail("Unable to remove sdk/sdk folder: ", err)
 		return err
 	}
 
 	// remove .github/ folder
-	err = os.RemoveAll(filepath.Join(projectName, "sdk", ".github"))
+	err = os.RemoveAll(fileutil.PathJoin(projectName, "sdk", ".github"))
 	if err != nil {
 		spinner.Fail("Unable to remove .github folder: ", err)
 		return err

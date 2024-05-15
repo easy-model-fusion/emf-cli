@@ -8,7 +8,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"testing"
 )
@@ -29,7 +28,7 @@ func CreateVenv(t *testing.T) (string, string) {
 		t.FailNow()
 	}
 
-	venvPath := filepath.Join(dname, "venv")
+	venvPath := fileutil.PathJoin(dname, "venv")
 	err = NewPython().CreateVirtualEnv(path, venvPath)
 	if err != nil {
 		t.Error(err)
@@ -96,7 +95,7 @@ func TestCreateVirtualEnv_Success(t *testing.T) {
 	}
 	defer os.RemoveAll(dname)
 
-	err = NewPython().CreateVirtualEnv(path, filepath.Join(dname, "venv"))
+	err = NewPython().CreateVirtualEnv(path, fileutil.PathJoin(dname, "venv"))
 	test.AssertEqual(t, err, nil)
 }
 
@@ -105,18 +104,18 @@ func TestFindVEnvExecutable_Success(t *testing.T) {
 	// Init
 	dname, err := os.MkdirTemp("", "emf-cli")
 	test.AssertEqual(t, err, nil, "Error creating temporary directory")
-	venvPath := filepath.Join(dname, "venv")
+	venvPath := fileutil.PathJoin(dname, "venv")
 
 	// create "virtual environment"
 	if runtime.GOOS == "windows" {
-		err = os.MkdirAll(filepath.Join(venvPath, "Scripts"), os.ModePerm)
+		err = os.MkdirAll(fileutil.PathJoin(venvPath, "Scripts"), os.ModePerm)
 		test.AssertEqual(t, err, nil, "Error creating Scripts directory")
-		_, err = os.Create(filepath.Join(venvPath, "Scripts", "pip.exe"))
+		_, err = os.Create(fileutil.PathJoin(venvPath, "Scripts", "pip.exe"))
 		test.AssertEqual(t, err, nil, "Error creating pip.exe")
 	} else {
-		err = os.MkdirAll(filepath.Join(venvPath, "bin"), os.ModePerm)
+		err = os.MkdirAll(fileutil.PathJoin(venvPath, "bin"), os.ModePerm)
 		test.AssertEqual(t, err, nil, "Error creating bin directory")
-		_, err = os.Create(filepath.Join(venvPath, "bin", "pip"))
+		_, err = os.Create(fileutil.PathJoin(venvPath, "bin", "pip"))
 		test.AssertEqual(t, err, nil, "Error creating pip")
 	}
 
@@ -138,7 +137,7 @@ func TestFindVEnvExecutable_Fail(t *testing.T) {
 	}
 	defer os.RemoveAll(dname)
 
-	pipPath, err := NewPython().FindVEnvExecutable(filepath.Join(dname, "venv"), "pip")
+	pipPath, err := NewPython().FindVEnvExecutable(fileutil.PathJoin(dname, "venv"), "pip")
 	test.AssertNotEqual(t, err, nil, "Should return an error")
 	test.AssertEqual(t, pipPath, "")
 }

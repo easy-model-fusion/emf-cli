@@ -117,7 +117,7 @@ func BuildModelsFromDevice(accessToken string) Models {
 		}
 
 		// Get all the models for the provider
-		providerPath := filepath.Join(app.DownloadDirectoryPath, provider.Name())
+		providerPath := fileutil.PathJoin(app.DownloadDirectoryPath, provider.Name())
 		providerModels, err := os.ReadDir(providerPath)
 		if err != nil {
 			continue
@@ -132,15 +132,15 @@ func BuildModelsFromDevice(accessToken string) Models {
 			}
 
 			// Model info
-			modelName := filepath.Join(provider.Name(), providerModel.Name())
-			modelPath := filepath.Join(providerPath, providerModel.Name())
+			modelName := fileutil.PathJoin(provider.Name(), providerModel.Name())
+			modelPath := fileutil.PathJoin(providerPath, providerModel.Name())
 
 			// Fetching model from huggingface
 			huggingfaceModel, err := app.H().GetModelById(modelName, accessToken)
 			if err != nil {
 				// Model not found : custom
 				models = append(models, Model{
-					Name:            providerModel.Name(),
+					Name:            modelName,
 					Path:            modelPath,
 					Source:          CUSTOM,
 					AddToBinaryFile: true,
@@ -180,7 +180,7 @@ func BuildModelsFromDevice(accessToken string) Models {
 
 					// Model folder exists : meaning the model is downloaded
 					if directory.Name() == "model" {
-						modelMapped.Path = filepath.Join(modelPath, "model")
+						modelMapped.Path = fileutil.PathJoin(modelPath, "model")
 						modelMapped.AddToBinaryFile = true
 						modelMapped.IsDownloaded = true
 						continue
@@ -188,7 +188,7 @@ func BuildModelsFromDevice(accessToken string) Models {
 
 					// Otherwise : directory is considered as a tokenizer
 					tokenizer := Tokenizer{
-						Path:  filepath.Join(modelPath, directory.Name()),
+						Path:  fileutil.PathJoin(modelPath, directory.Name()),
 						Class: directory.Name(),
 					}
 					modelMapped.Tokenizers = append(modelMapped.Tokenizers, tokenizer)
@@ -414,5 +414,5 @@ func (m *Model) GetModelDirectory() (path string, err error) {
 	directoryPath = directoryPath[:modelNameIndex]
 	// Trim any trailing slashes
 	directoryPath = strings.TrimSuffix(directoryPath, string(filepath.Separator))
-	return directoryPath, nil
+	return fileutil.PathUniformize(directoryPath), nil
 }

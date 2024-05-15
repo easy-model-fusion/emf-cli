@@ -10,7 +10,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"gopkg.in/yaml.v3"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/easy-model-fusion/emf-cli/test"
@@ -36,7 +35,7 @@ func setupConfigDir(t *testing.T) (string, string) {
 	}
 
 	// Set up a temporary config file with some initial models
-	initialConfigFile := filepath.Join(confDir, "config.yaml")
+	initialConfigFile := fileutil.PathJoin(confDir, "config.yaml")
 
 	return confDir, initialConfigFile
 }
@@ -328,7 +327,7 @@ func TestRemoveModelPhysically_NotPhysical(t *testing.T) {
 func TestRemoveModelPhysically_Success(t *testing.T) {
 	// Init
 	modelToRemove := getModel(0)
-	modelPath := filepath.Join(app.DownloadDirectoryPath, modelToRemove.Name)
+	modelPath := fileutil.PathJoin(app.DownloadDirectoryPath, modelToRemove.Name)
 
 	// Create temporary model
 	setupModelDirectory(t, modelPath)
@@ -352,13 +351,13 @@ func TestRemoveAllModels_Success(t *testing.T) {
 	models := []model.Model{getModel(0), getModel(1), getModel(2)}
 
 	// Create temporary models
-	modelPath0 := filepath.Join(app.DownloadDirectoryPath, models[0].Name)
+	modelPath0 := fileutil.PathJoin(app.DownloadDirectoryPath, models[0].Name)
 	setupModelDirectory(t, modelPath0)
 	defer os.RemoveAll(modelPath0)
-	modelPath1 := filepath.Join(app.DownloadDirectoryPath, models[1].Name)
+	modelPath1 := fileutil.PathJoin(app.DownloadDirectoryPath, models[1].Name)
 	setupModelDirectory(t, modelPath1)
 	defer os.RemoveAll(modelPath1)
-	modelPath2 := filepath.Join(app.DownloadDirectoryPath, models[2].Name)
+	modelPath2 := fileutil.PathJoin(app.DownloadDirectoryPath, models[2].Name)
 	setupModelDirectory(t, modelPath2)
 	defer os.RemoveAll(modelPath2)
 
@@ -418,11 +417,11 @@ func TestRemoveModels_Success(t *testing.T) {
 	models := []model.Model{getModel(0), getModel(1), getModel(2)}
 
 	// Create temporary models
-	modelPath0 := filepath.Join(app.DownloadDirectoryPath, models[0].Name)
+	modelPath0 := fileutil.PathJoin(app.DownloadDirectoryPath, models[0].Name)
 	setupModelDirectory(t, modelPath0)
-	modelPath1 := filepath.Join(app.DownloadDirectoryPath, models[1].Name)
+	modelPath1 := fileutil.PathJoin(app.DownloadDirectoryPath, models[1].Name)
 	setupModelDirectory(t, modelPath1)
-	modelPath2 := filepath.Join(app.DownloadDirectoryPath, models[2].Name)
+	modelPath2 := fileutil.PathJoin(app.DownloadDirectoryPath, models[2].Name)
 	setupModelDirectory(t, modelPath2)
 	defer os.RemoveAll(app.DownloadDirectoryPath)
 
@@ -484,11 +483,11 @@ func TestRemoveModels_WithInvalidModels(t *testing.T) {
 	models := []model.Model{getModel(0), getModel(1), getModel(2)}
 
 	// Create temporary models
-	modelPath0 := filepath.Join(app.DownloadDirectoryPath, models[0].Name)
+	modelPath0 := fileutil.PathJoin(app.DownloadDirectoryPath, models[0].Name)
 	setupModelDirectory(t, modelPath0)
-	modelPath1 := filepath.Join(app.DownloadDirectoryPath, models[1].Name)
+	modelPath1 := fileutil.PathJoin(app.DownloadDirectoryPath, models[1].Name)
 	setupModelDirectory(t, modelPath1)
-	modelPath2 := filepath.Join(app.DownloadDirectoryPath, models[2].Name)
+	modelPath2 := fileutil.PathJoin(app.DownloadDirectoryPath, models[2].Name)
 	setupModelDirectory(t, modelPath2)
 	defer os.RemoveAll(app.DownloadDirectoryPath)
 
@@ -578,9 +577,9 @@ func TestValidate_DownloadedAndBinaryFalse_ConfirmFalse(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 
 	// Create a temporary directory representing the model base path
-	modelName := filepath.Join("microsoft", "phi-2")
-	modelDirectory := filepath.Join(app.DownloadDirectoryPath, modelName)
-	modelPath := filepath.Join(modelDirectory, "model")
+	modelName := fileutil.PathJoin("microsoft", "phi-2")
+	modelDirectory := fileutil.PathJoin(app.DownloadDirectoryPath, modelName)
+	modelPath := fileutil.PathJoin(modelDirectory, "model")
 	err = os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)
@@ -616,9 +615,9 @@ func TestValidate_DownloadedAndBinaryFalse_ConfirmTrueAndRemove(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 
 	// Create a temporary directory representing the model base path
-	modelName := filepath.Join("microsoft", "phi-2")
-	modelDirectory := filepath.Join(app.DownloadDirectoryPath, modelName)
-	modelPath := filepath.Join(modelDirectory, "model")
+	modelName := fileutil.PathJoin("microsoft", "phi-2")
+	modelDirectory := fileutil.PathJoin(app.DownloadDirectoryPath, modelName)
+	modelPath := fileutil.PathJoin(modelDirectory, "model")
 	err = os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)
@@ -659,9 +658,9 @@ func TestValidate_Downloaded_ConfirmFalse(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 
 	// Create a temporary directory representing the model base path
-	modelName := filepath.Join("microsoft", "phi-2")
-	modelDirectory := filepath.Join(app.DownloadDirectoryPath, modelName)
-	modelPath := filepath.Join(modelDirectory, "model")
+	modelName := fileutil.PathJoin("microsoft", "phi-2")
+	modelDirectory := fileutil.PathJoin(app.DownloadDirectoryPath, modelName)
+	modelPath := fileutil.PathJoin(modelDirectory, "model")
 	err = os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)
@@ -697,9 +696,9 @@ func TestValidate_Downloaded_ConfirmTrue(t *testing.T) {
 	test.AssertEqual(t, err, nil, "Error while loading configuration file.")
 
 	// Create a temporary directory representing the model base path
-	modelName := filepath.Join("microsoft", "phi-2")
-	modelDirectory := filepath.Join(app.DownloadDirectoryPath, modelName)
-	modelPath := filepath.Join(modelDirectory, "model")
+	modelName := fileutil.PathJoin("microsoft", "phi-2")
+	modelDirectory := fileutil.PathJoin(app.DownloadDirectoryPath, modelName)
+	modelPath := fileutil.PathJoin(modelDirectory, "model")
 	err = os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)

@@ -7,8 +7,8 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/model"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
-	"path/filepath"
 )
 
 type TidyController struct{}
@@ -168,7 +168,7 @@ func (tc TidyController) tidyModelsDownloadedButNotConfigured(configModels model
 				modelsToConfigure = append(modelsToConfigure, current)
 			} else {
 				// User chose not to configure : removing the model
-				modelPath := filepath.Join(app.DownloadDirectoryPath, current.Name)
+				modelPath := fileutil.PathJoin(app.DownloadDirectoryPath, current.Name)
 				spinner := app.UI().StartSpinner(fmt.Sprintf("Removing model %s...", current.Name))
 				err := config.RemoveItemPhysically(modelPath)
 				if err != nil {
@@ -208,7 +208,7 @@ func (tc TidyController) tidyModelsDownloadedButNotConfigured(configModels model
 						modelTokenizersToConfigure = append(modelTokenizersToConfigure, tokenizer)
 					} else {
 						// User chose not to configure : removing the tokenizer
-						tokenizerPath := filepath.Join(app.DownloadDirectoryPath, tokenizer.Path)
+						tokenizerPath := fileutil.PathJoin(app.DownloadDirectoryPath, tokenizer.Path)
 						spinner := app.UI().StartSpinner(fmt.Sprintf("Removing tokenizer %s...", tokenizer.Class))
 						err := config.RemoveItemPhysically(tokenizerPath)
 						if err != nil {
