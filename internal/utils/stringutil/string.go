@@ -47,13 +47,6 @@ func PathRemoveSpecialCharacter(path string) string {
 	return path
 }
 
-// PathUniformize returns uniformized path regarding the device OS.
-func PathUniformize(path string) string {
-	path = filepath.Clean(path)
-	// Replace backslashes with forward slashes
-	return filepath.ToSlash(path)
-}
-
 // ParseOptions parses a string containing options in various formats
 // Returns a slice of strings where each string represents an option.
 func ParseOptions(input string) []string {

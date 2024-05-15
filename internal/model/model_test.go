@@ -3,9 +3,9 @@ package model
 import (
 	"fmt"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test"
-	"path/filepath"
 	"testing"
 )
 
@@ -289,7 +289,7 @@ func TestGetBasePath(t *testing.T) {
 	basePath := model.GetBasePath()
 
 	// Assert
-	test.AssertEqual(t, basePath, filepath.Join(app.DownloadDirectoryPath, model.Name))
+	test.AssertEqual(t, basePath, fileutil.PathJoin(app.DownloadDirectoryPath, model.Name))
 }
 
 // TestUpdatePaths_Default tests the Model.UpdatePaths for a default model.
@@ -301,7 +301,7 @@ func TestUpdatePaths_Default(t *testing.T) {
 	model.UpdatePaths()
 
 	// Assert
-	test.AssertEqual(t, model.Path, filepath.Join(app.DownloadDirectoryPath, model.Name))
+	test.AssertEqual(t, model.Path, fileutil.PathJoin(app.DownloadDirectoryPath, model.Name))
 }
 
 // TestUpdatePaths_Transformers tests the Model.UpdatePaths for a transformers model.
@@ -314,7 +314,7 @@ func TestUpdatePaths_Transformers(t *testing.T) {
 	model.UpdatePaths()
 
 	// Assert
-	test.AssertEqual(t, model.Path, filepath.Join(app.DownloadDirectoryPath, model.Name, "model"))
+	test.AssertEqual(t, model.Path, fileutil.PathJoin(app.DownloadDirectoryPath, model.Name, "model"))
 }
 
 // TestUpdatePaths_TransformersTokenizers tests the Model.UpdatePaths for a transformers model.
@@ -328,7 +328,7 @@ func TestUpdatePaths_TransformersTokenizers(t *testing.T) {
 	model.UpdatePaths()
 
 	// Assert
-	test.AssertEqual(t, model.Tokenizers[0].Path, filepath.Join(app.DownloadDirectoryPath, model.Name, "tokenizer"))
+	test.AssertEqual(t, model.Tokenizers[0].Path, fileutil.PathJoin(app.DownloadDirectoryPath, model.Name, "tokenizer"))
 }
 
 // TestFilterWithClass_Success tests the Tokenizers.FilterWithClass function to return the correct models.

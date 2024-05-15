@@ -2,10 +2,10 @@ package config
 
 import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/spf13/viper"
@@ -30,7 +30,7 @@ func TestLoad(t *testing.T) {
 	}
 	defer os.RemoveAll(dname)
 	// Create a temporary config file for the test
-	file, err := os.Create(filepath.Join(dname, "config.yaml"))
+	file, err := os.Create(fileutil.PathJoin(dname, "config.yaml"))
 	defer func(file *os.File) {
 		err = file.Close()
 		if err != nil {

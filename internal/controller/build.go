@@ -12,12 +12,12 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/config"
 	"github.com/easy-model-fusion/emf-cli/internal/sdk"
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/spf13/viper"
 	"os"
 	"os/exec"
 	"os/signal"
-	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -193,7 +193,7 @@ func (bc BuildController) Build(libraryPath string) (err error) {
 func (bc BuildController) createModelsSymbolicLink() error {
 	// Create symbolic link to models
 	modelsPath := "models"
-	distPath := filepath.Join(bc.DestinationDir, "models")
+	distPath := fileutil.PathJoin(bc.DestinationDir, "models")
 
 	app.UI().Info().Println(fmt.Sprintf("Creating symbolic link from %s to %s", modelsPath, distPath))
 
