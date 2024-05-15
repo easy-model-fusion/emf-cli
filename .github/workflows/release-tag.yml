@@ -29,14 +29,17 @@ jobs:
       - name: Installing Go dependency
         run: go get -v -t -d ./...
 
+      - name: Set current date as env variable
+        run: echo "NOW=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
+
       - name: Build for Windows
-        run: GOOS=windows GOARCH=amd64 go build -o emf-cli-windows-amd64.exe
+        run: GOOS=windows GOARCH=amd64 go build -o emf-cli-windows-amd64.exe -a -trimpath -ldflags "-X main.Version=${{ github.ref }}-0 -X main.BuildDate=${{ env.NOW }}"
 
       - name: Build for Mac
-        run: GOOS=darwin GOARCH=amd64 go build -o emf-cli-darwin-amd64
+        run: GOOS=darwin GOARCH=amd64 go build -o emf-cli-darwin-amd64 -a -trimpath -ldflags "-X main.Version=${{ github.ref }}-0 -X main.BuildDate=${{ env.NOW }}"
 
       - name: Build for Linux
-        run: GOOS=linux GOARCH=amd64 go build -o emf-cli-linux-amd64
+        run: GOOS=linux GOARCH=amd64 go build -o emf-cli-linux-amd64 -a -trimpath -ldflags "-X main.Version=${{ github.ref }}-0 -X main.BuildDate=${{ env.NOW }}"
 
       - name: Create Release
         id: create_release
