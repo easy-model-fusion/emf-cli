@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ ubuntu-latest ] # [windows-latest, ubuntu-latest, macos-latest]
+        os: [ ubuntu-latest ]
     
     steps:
       - name: Checkout code
@@ -40,7 +40,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest] # [windows-latest, ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - name: Checkout code
@@ -60,13 +60,34 @@ jobs:
       - name: Code compilation
         run: go build ./...
 
+  test:
+    runs-on: ${{ matrix.os }}
+    needs: build
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Installing Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21.6
+
+      - name: Run tests
+        run: |
+          go test -v ./...
+
   coverage:
     runs-on: ${{ matrix.os }}
     needs: build
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest] # [windows-latest, ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
 
     steps:
       - name: Checkout code
@@ -79,7 +100,7 @@ jobs:
 
       - name: Run tests with code coverage
         run: |
-          go test -v ./... -coverprofile=coverage.out
+          go test -v ./... -coverprofile coverage.out
 
       - name: Upload coverage artifact
         if: github.event_name == 'push'
