@@ -5,7 +5,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/spf13/cobra"
 	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -62,7 +61,7 @@ func TestCopyEmbeddedFile(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	sourceFile := "main.py"
-	destinationFile := filepath.Join(tmpDir, "destination.py")
+	destinationFile := PathJoin(tmpDir, "destination.py")
 
 	// Call the function to copy the embedded file
 	err = CopyEmbeddedFile(sdk.EmbeddedFiles, sourceFile, destinationFile)
@@ -129,7 +128,7 @@ func TestIsExistingPath_False(t *testing.T) {
 	defer os.RemoveAll(dir) // clean up
 
 	// Check path existence
-	exists, err := IsExistingPath(filepath.Join(dir, "shouldRaiseError"))
+	exists, err := IsExistingPath(PathJoin(dir, "shouldRaiseError"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -293,8 +292,36 @@ func TestMoveFiles_RenameError(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	// Move the file to the second directory
-	err = MoveFiles(dir, filepath.Join(dir, "notFound d569sdf%/**"))
+	err = MoveFiles(dir, PathJoin(dir, "notFound d569sdf%/**"))
 	if err == nil {
 		t.Fatal("Expected error")
+	}
+}
+
+// TestPathUniformize_Success tests the PathUniformize to return uniformized paths.
+func TestPathUniformize_Success(t *testing.T) {
+	// Init
+	items := []struct {
+		input    string
+		expected string
+	}{
+		{"C:/path/to/file", "C:/path/to/file"},
+		{"C:/path/to/../file", "C:/path/file"},
+		{"C:/path/to/dir/../file", "C:/path/to/file"},
+		{"C:/path/with/double/slashes", "C:/path/with/double/slashes"},
+		{"C:/path/with/dots/..", "C:/path/with"},
+		{"C:/path/with/dots/../..", "C:/path"},
+		{"C:/path/with/dots/.", "C:/path/with/dots"},
+		{"C:/path/with/dots/./.", "C:/path/with/dots"},
+		{"C:/path/with/dots/././..", "C:/path/with"},
+		{"C:/path/with/dots/././../file", "C:/path/with/file"},
+	}
+
+	for _, item := range items {
+		// Execute
+		result := PathUniformize(item.input)
+
+		// Assert
+		test.AssertEqual(t, result, item.expected)
 	}
 }

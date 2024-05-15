@@ -1,10 +1,10 @@
 package git
 
 import (
+	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -86,7 +86,7 @@ func TestCloneSDK(t *testing.T) {
 	}
 
 	// Check if the SDK was cloned (.git folder exists)
-	_, err = os.Stat(filepath.Join(tmpDir, ".git"))
+	_, err = os.Stat(fileutil.PathJoin(tmpDir, ".git"))
 	if err != nil {
 		t.Error(err)
 		t.FailNow()

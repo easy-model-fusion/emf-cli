@@ -5,7 +5,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/pkg/huggingface"
 	"github.com/easy-model-fusion/emf-cli/test/dmock"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
@@ -83,9 +82,9 @@ func TestDownloadedOnDevice_True(t *testing.T) {
 // TestModelDownloadedOnDevice_UseBasePath_True tests the ModelDownloadedOnDevice function to return true.
 func TestModelDownloadedOnDevice_UseBasePath_True(t *testing.T) {
 	// Create a temporary directory representing the model base path
-	modelName := filepath.Join("microsoft", "phi-2")
-	modelDirectory := filepath.Join(app.DownloadDirectoryPath, modelName)
-	modelPath := filepath.Join(modelDirectory, "model")
+	modelName := fileutil.PathJoin("microsoft", "phi-2")
+	modelDirectory := fileutil.PathJoin(app.DownloadDirectoryPath, modelName)
+	modelPath := fileutil.PathJoin(modelDirectory, "model")
 	err := os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)
@@ -243,7 +242,7 @@ func TestGetTokenizersNotDownloadedOnDevice_NotMissing(t *testing.T) {
 // TestBuildModelsFromDevice_Custom tests the BuildModelsFromDevice function to work for custom configured models.
 func TestBuildModelsFromDevice_Custom(t *testing.T) {
 	// Create a temporary directory representing the path to the custom model
-	modelPath := filepath.Join(app.DownloadDirectoryPath, "custom-provider", "custom-model")
+	modelPath := fileutil.PathJoin(app.DownloadDirectoryPath, "custom-provider", "custom-model")
 	modelPath = filepath.ToSlash(modelPath)
 	err := os.MkdirAll(modelPath, 0750)
 	if err != nil {
@@ -267,7 +266,7 @@ func TestBuildModelsFromDevice_Custom(t *testing.T) {
 // TestBuildModelsFromDevice_HuggingfaceEmpty tests the BuildModelsFromDevice function to work for huggingface empty models.
 func TestBuildModelsFromDevice_HuggingfaceEmpty(t *testing.T) {
 	// Create a temporary directory representing the path to the model which is empty
-	modelDirectoryPath := filepath.Join(app.DownloadDirectoryPath, "stabilityai", "sdxl-turbo")
+	modelDirectoryPath := fileutil.PathJoin(app.DownloadDirectoryPath, "stabilityai", "sdxl-turbo")
 	err := os.MkdirAll(modelDirectoryPath, 0750)
 	if err != nil {
 		t.Fatal(err)
@@ -285,9 +284,9 @@ func TestBuildModelsFromDevice_HuggingfaceEmpty(t *testing.T) {
 // TestBuildModelsFromDevice_HuggingfaceDiffusers tests the BuildModelsFromDevice function to work for huggingface diffusers models.
 func TestBuildModelsFromDevice_HuggingfaceDiffusers(t *testing.T) {
 	// Create a temporary directory representing the path to the diffusers model which is not empty
-	modelName := stringutil.PathUniformize(filepath.Join("stabilityai", "sdxl-turbo"))
-	modelDirectory := stringutil.PathUniformize(filepath.Join(app.DownloadDirectoryPath, modelName))
-	err := os.MkdirAll(filepath.Join(modelDirectory, "not-empty"), 0750)
+	modelName := fileutil.PathJoin("stabilityai", "sdxl-turbo")
+	modelDirectory := fileutil.PathJoin(app.DownloadDirectoryPath, modelName)
+	err := os.MkdirAll(fileutil.PathJoin(modelDirectory, "not-empty"), 0750)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -311,9 +310,9 @@ func TestBuildModelsFromDevice_HuggingfaceDiffusers(t *testing.T) {
 // TestBuildModelsFromDevice_HuggingfaceTransformers tests the BuildModelsFromDevice function to work for huggingface transformers models.
 func TestBuildModelsFromDevice_HuggingfaceTransformers(t *testing.T) {
 	// Create a temporary directory representing the path to the transformers model
-	modelName := stringutil.PathUniformize(filepath.Join("microsoft", "phi-2"))
-	modelDirectory := stringutil.PathUniformize(filepath.Join(app.DownloadDirectoryPath, modelName))
-	modelPath := stringutil.PathUniformize(filepath.Join(modelDirectory, "model"))
+	modelName := fileutil.PathJoin("microsoft", "phi-2")
+	modelDirectory := fileutil.PathJoin(app.DownloadDirectoryPath, modelName)
+	modelPath := fileutil.PathJoin(modelDirectory, "model")
 	err := os.MkdirAll(modelPath, 0750)
 	if err != nil {
 		t.Fatal(err)

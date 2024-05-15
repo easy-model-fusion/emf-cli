@@ -105,14 +105,14 @@ func DeleteDirectoryIfEmpty(path string) error {
 
 // MoveFiles moves all files from the source directory to the destination directory
 func MoveFiles(sourceDir, destinationDir string) error {
-	fileList, err := filepath.Glob(filepath.Join(sourceDir, "*"))
+	fileList, err := filepath.Glob(PathJoin(sourceDir, "*"))
 	if err != nil {
 		return err
 	}
 
 	for _, file := range fileList {
 		_, fileName := filepath.Split(file)
-		destinationPath := filepath.Join(destinationDir, fileName)
+		destinationPath := PathJoin(destinationDir, fileName)
 
 		err = os.Rename(file, destinationPath)
 		if err != nil {
@@ -122,4 +122,17 @@ func MoveFiles(sourceDir, destinationDir string) error {
 	}
 
 	return nil
+}
+
+// PathJoin returns uniformized path from joins path elements
+func PathJoin(elem ...string) string {
+	path := filepath.Join(elem...)
+	return PathUniformize(path)
+}
+
+// PathUniformize returns uniformized path regarding the device OS.
+func PathUniformize(path string) string {
+	path = filepath.Clean(path)
+	// Replace backslashes with forward slashes
+	return filepath.ToSlash(path)
 }

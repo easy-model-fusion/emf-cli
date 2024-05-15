@@ -40,34 +40,6 @@ func TestSplitPath_Success(t *testing.T) {
 	}
 }
 
-// TestPathUniformize_Success tests the PathUniformize to return uniformized paths.
-func TestPathUniformize_Success(t *testing.T) {
-	// Init
-	items := []struct {
-		input    string
-		expected string
-	}{
-		{"C:/path/to/file", "C:/path/to/file"},
-		{"C:/path/to/../file", "C:/path/file"},
-		{"C:/path/to/dir/../file", "C:/path/to/file"},
-		{"C:/path/with/double/slashes", "C:/path/with/double/slashes"},
-		{"C:/path/with/dots/..", "C:/path/with"},
-		{"C:/path/with/dots/../..", "C:/path"},
-		{"C:/path/with/dots/.", "C:/path/with/dots"},
-		{"C:/path/with/dots/./.", "C:/path/with/dots"},
-		{"C:/path/with/dots/././..", "C:/path/with"},
-		{"C:/path/with/dots/././../file", "C:/path/with/file"},
-	}
-
-	for _, item := range items {
-		// Execute
-		result := PathUniformize(item.input)
-
-		// Assert
-		test.AssertEqual(t, result, item.expected)
-	}
-}
-
 // TestParseOptions_KeyValueClassic tests parsing key-value pairs in classic format.
 // It initializes an input string with a single key-value pair in classic format.
 // It then executes the ParseOptions function with the input string and asserts that the result contains the specified option.

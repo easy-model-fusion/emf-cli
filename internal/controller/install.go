@@ -39,7 +39,6 @@ import (
 	"github.com/easy-model-fusion/emf-cli/internal/utils/fileutil"
 	"github.com/spf13/viper"
 	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -215,21 +214,21 @@ clone:
 	spinner = app.UI().StartSpinner("Reorganizing SDK files")
 
 	// Move files from sdk/sdk to sdk/
-	err = fileutil.MoveFiles(filepath.Join("sdk", "sdk"), "sdk")
+	err = fileutil.MoveFiles(fileutil.PathJoin("sdk", "sdk"), "sdk")
 	if err != nil {
 		spinner.Fail("Unable to move SDK files: ", err)
 		return err
 	}
 
 	// remove sdk/sdk folder
-	err = os.RemoveAll(filepath.Join("sdk", "sdk"))
+	err = os.RemoveAll(fileutil.PathJoin("sdk", "sdk"))
 	if err != nil {
 		spinner.Fail("Unable to remove sdk/sdk folder: ", err)
 		return err
 	}
 
 	// remove .github/ folder
-	err = os.RemoveAll(filepath.Join("sdk", ".github"))
+	err = os.RemoveAll(fileutil.PathJoin("sdk", ".github"))
 	if err != nil {
 		spinner.Fail("Unable to remove .github folder: ", err)
 		return err

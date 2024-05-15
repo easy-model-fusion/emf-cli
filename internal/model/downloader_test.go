@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/easy-model-fusion/emf-cli/internal/app"
 	"github.com/easy-model-fusion/emf-cli/internal/downloader/model"
-	"github.com/easy-model-fusion/emf-cli/internal/utils/stringutil"
 	"github.com/easy-model-fusion/emf-cli/test"
 	"github.com/easy-model-fusion/emf-cli/test/dmock"
 	"github.com/easy-model-fusion/emf-cli/test/mock"
@@ -154,7 +153,7 @@ func TestFromDownloaderModel_ReplaceTokenizer(t *testing.T) {
 		},
 	}
 	input := Model{
-		Path:    stringutil.PathUniformize("/path/to/model"),
+		Path:    "/path/to/model",
 		Module:  "module_name",
 		Class:   "class_name",
 		Options: map[string]string{},
