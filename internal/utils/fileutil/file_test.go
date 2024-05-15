@@ -325,3 +325,32 @@ func TestPathUniformize_Success(t *testing.T) {
 		test.AssertEqual(t, result, item.expected)
 	}
 }
+
+// TestPathJoin_Success tests the PathJoin to return uniformized paths from joined elements.
+func TestPathJoin_Success(t *testing.T) {
+	// Init
+	items := []struct {
+		directory string
+		fileName  string
+		expected  string
+	}{
+		{"C:/path/to", "file", "C:/path/to/file"},
+		{"C:/path/to/..", "file", "C:/path/file"},
+		{"C:/path/to/dir/..", "file", "C:/path/to/file"},
+		{"C:/path/with/double", "slashes", "C:/path/with/double/slashes"},
+		{"C:/path/with/dots", "..", "C:/path/with"},
+		{"C:/path/with/dots", "../..", "C:/path"},
+		{"C:/path/with/dots", ".", "C:/path/with/dots"},
+		{"C:/path/with/dots", "./.", "C:/path/with/dots"},
+		{"C:/path/with/dots", "././..", "C:/path/with"},
+		{"C:/path/with/dots", "././../file", "C:/path/with/file"},
+	}
+
+	for _, item := range items {
+		// Execute
+		result := PathJoin(item.directory, item.fileName)
+
+		// Assert
+		test.AssertEqual(t, result, item.expected)
+	}
+}
